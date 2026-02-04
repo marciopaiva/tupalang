@@ -7,6 +7,8 @@
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![MVP](https://img.shields.io/badge/status-MVP%20em%20constru%C3%A7%C3%A3o-orange)](#)
 
+> **Status atual**: este projeto é apenas uma ideia. Ainda não há implementação iniciada nem previsão de início.
+
 ```tupa
 // IA responsável desde o primeiro caractere
 fn summarize(article: Text) -> SafeText<!misinformation> {
