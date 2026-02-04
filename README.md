@@ -5,7 +5,6 @@
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/marciopaiva/tupalang/ci.yml?branch=main&logo=github)](https://github.com/marciopaiva/tupalang/actions)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Chat](https://img.shields.io/badge/chat-Discord-7289da.svg)](https://discord.gg/tupalang)
 [![MVP](https://img.shields.io/badge/status-MVP%20em%20constru%C3%A7%C3%A3o-orange)](#)
 
 ```tupa
@@ -132,33 +131,6 @@ fn main() {
 
 ---
 
-## 🗺️ Roadmap Transparente
-
-```mermaid
-gantt
-	title Roadmap Tupã (2026-2028)
-	dateFormat  YYYY-MM
-	axisFormat  %b '%y
-    
-	section MVP
-	Lexer/Parser       :2026-03, 3M
-	Type Checker       :2026-06, 3M
-	LLVM Codegen       :2026-09, 4M
-    
-	section IA Nativa
-	∇ Diferenciável    :2027-01, 4M
-	Alignment Types    :2027-05, 5M
-	Esparsidade        :2027-10, 4M
-    
-	section Maturidade
-	Self-hosted        :2028-02, 6M
-	Pacotes oficiais   :2028-08, 4M
-```
-
-> ✅ **MVP funcional previsto para Q4 2026** — tempo realista para um dev sênior + comunidade
-
----
-
 ## 🤝 Como Contribuir
 
 ### Níveis de envolvimento
@@ -214,9 +186,10 @@ Tupã é a **primeira linguagem brasileira com ambição global desde Lua** (199
 | Documento | Descrição |
 |-----------|-----------|
 | [docs/SPEC.md](docs/SPEC.md) | Especificação técnica completa (gramática EBNF) |
-| [docs/ROADMAP.md](docs/ROADMAP.md) | Timeline detalhado com milestones |
 | [docs/MVP_PLAN.md](docs/MVP_PLAN.md) | Plano objetivo do MVP |
 | [docs/ISSUES.md](docs/ISSUES.md) | Lista de issues iniciais sugeridas |
+| [docs/ADOPTION_PLAN.md](docs/ADOPTION_PLAN.md) | Plano técnico mínimo de adoção |
+| [docs/AI_SUPPORT_SUGGESTIONS.md](docs/AI_SUPPORT_SUGGESTIONS.md) | Sugestões adicionais para apoio por IA |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Guia para novos contribuidores |
 | [examples/README.md](examples/README.md) | Casos de uso reais (IA, microserviços, sistemas críticos) |
 
@@ -234,7 +207,6 @@ Tupã é a **primeira linguagem brasileira com ambição global desde Lua** (199
 
 ## 💬 Comunidade
 
-- [Discord](https://discord.gg/tupalang) — chat em tempo real (PT/EN)
 - [GitHub Discussions](https://github.com/marciopaiva/tupalang/discussions) — RFCs e debates técnicos
 - [Twitter @tupalang](https://twitter.com/tupalang) — atualizações e demos
 
