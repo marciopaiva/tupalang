@@ -150,17 +150,10 @@ fn main() {
 ```bash
 # 1. Clone o repositório
 git clone https://github.com/marciopaiva/tupalang
-cd tupa
+cd tupalang
 
-# 2. Setup Rust (nightly requerido)
-rustup install nightly-2025-01-15
-rustup override set nightly-2025-01-15
-
-# 3. Rode testes do lexer
-cargo test -p tupa-lexer
-
-# 4. Compile o "Hello World"
-cargo run --bin tupa-cli -- examples/hello.tp
+# 2. Implementação (futuro)
+# Ainda não há toolchain implementada.
 ```
 
 > 💡 **Não sabe Rust?** Comece com:

@@ -1,6 +1,6 @@
 # Exemplos
 
-Este diretório reúne exemplos de uso da linguagem Tupã.
+Este diretório contém **placeholders** de exemplos que serão criados quando a implementação iniciar.
 
 Sugestões iniciais:
 

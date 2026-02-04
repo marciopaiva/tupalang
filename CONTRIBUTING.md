@@ -4,7 +4,7 @@ Obrigado por considerar contribuir com o projeto Tupã.
 
 ## Como começar
 
-1. Confira o [index.md](index.md) para entender a visão geral.
+1. Confira o [README.md](README.md) para entender a visão geral.
 2. Abra uma issue descrevendo a proposta ou problema.
 3. Faça um fork e crie uma branch a partir de main.
 

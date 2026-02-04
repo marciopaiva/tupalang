@@ -17,7 +17,7 @@ Entregar um compilador mínimo que parseia, verifica tipos simples e gera um bin
 5. CLI
    - `tupa-cli` com `build` e `run`.
 
-## Critérios de Aceite
+## Critérios de Aceite (quando houver implementação)
 
 - Compilar e executar `examples/hello.tp`.
 - Erros de tipo claros e localizados.
