@@ -14,14 +14,31 @@ pub enum Item {
 #[derive(Debug, Clone, PartialEq)]
 pub struct Function {
     pub name: String,
+    pub params: Vec<Param>,
+    pub return_type: Option<Type>,
     pub body: Vec<Stmt>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub struct Param {
+    pub name: String,
+    pub ty: Type,
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum Stmt {
-    Let { name: String, expr: Expr },
+    Let {
+        name: String,
+        ty: Option<Type>,
+        expr: Expr,
+    },
     Return(Option<Expr>),
     Expr(Expr),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Type {
+    Ident(String),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -161,9 +178,21 @@ impl Parser {
             None => return Err(ParserError::Eof),
         };
         self.expect(Token::LParen)?;
+        let params = self.parse_params()?;
         self.expect(Token::RParen)?;
+        let return_type = if matches!(self.peek(), Some(Token::Colon)) {
+            self.next();
+            Some(self.parse_type()?)
+        } else {
+            None
+        };
         let body = self.parse_block()?;
-        Ok(Function { name, body })
+        Ok(Function {
+            name,
+            params,
+            return_type,
+            body,
+        })
     }
 
     fn parse_stmt(&mut self) -> Result<Stmt, ParserError> {
@@ -175,10 +204,16 @@ impl Parser {
                     Some(tok) => return Err(ParserError::Unexpected(tok, self.pos.saturating_sub(1))),
                     None => return Err(ParserError::Eof),
                 };
+                let ty = if matches!(self.peek(), Some(Token::Colon)) {
+                    self.next();
+                    Some(self.parse_type()?)
+                } else {
+                    None
+                };
                 self.expect(Token::Equal)?;
                 let expr = self.parse_expr()?;
                 self.expect(Token::Semicolon)?;
-                Ok(Stmt::Let { name, expr })
+                Ok(Stmt::Let { name, ty, expr })
             }
             Some(Token::Return) => {
                 self.next();
@@ -216,6 +251,41 @@ impl Parser {
         }
         self.expect(Token::RBrace)?;
         Ok(body)
+    }
+
+    fn parse_params(&mut self) -> Result<Vec<Param>, ParserError> {
+        let mut params = Vec::new();
+        if matches!(self.peek(), Some(Token::RParen)) {
+            return Ok(params);
+        }
+        loop {
+            let name = match self.next() {
+                Some(Token::Ident(name)) => name,
+                Some(tok) => return Err(ParserError::Unexpected(tok, self.pos.saturating_sub(1))),
+                None => return Err(ParserError::Eof),
+            };
+            self.expect(Token::Colon)?;
+            let ty = self.parse_type()?;
+            params.push(Param { name, ty });
+
+            if matches!(self.peek(), Some(Token::Comma)) {
+                self.next();
+                if matches!(self.peek(), Some(Token::RParen)) {
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+        Ok(params)
+    }
+
+    fn parse_type(&mut self) -> Result<Type, ParserError> {
+        match self.next() {
+            Some(Token::Ident(name)) => Ok(Type::Ident(name)),
+            Some(tok) => Err(ParserError::Unexpected(tok, self.pos.saturating_sub(1))),
+            None => Err(ParserError::Eof),
+        }
     }
 
     fn parse_expr(&mut self) -> Result<Expr, ParserError> {
@@ -487,5 +557,20 @@ mod tests {
             panic!("expected let");
         };
         assert!(matches!(expr, Expr::Float(f) if (f - 3.14).abs() < 1e-9));
+    }
+
+    #[test]
+    fn parse_typed_let_and_params() {
+        let src = "fn add(x: i64, y: i64): i64 { let z: i64 = x + y; return z; }";
+        let program = parse_program(src).unwrap();
+        let func = match &program.items[0] {
+            Item::Function(func) => func,
+        };
+        assert_eq!(func.params.len(), 2);
+        assert_eq!(func.return_type, Some(Type::Ident("i64".into())));
+        let Stmt::Let { ty, .. } = &func.body[0] else {
+            panic!("expected let");
+        };
+        assert_eq!(ty, &Some(Type::Ident("i64".into())));
     }
 }

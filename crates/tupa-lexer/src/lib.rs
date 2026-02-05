@@ -30,6 +30,7 @@ pub enum Token {
     RBrace,
     Semicolon,
     Comma,
+    Colon,
     Equal,
     Arrow,
     EqualEqual,
@@ -155,6 +156,12 @@ mod tests {
     }
 
     #[test]
+    fn lex_colon() {
+        let tokens = lex(":").unwrap();
+        assert_eq!(tokens, vec![Token::Colon]);
+    }
+
+    #[test]
     fn lex_float_literal() {
         let tokens = lex("3.14 1.0e-3").unwrap();
         assert_eq!(
@@ -205,6 +212,7 @@ fn punct(input: &str) -> IResult<&str, Token> {
         ("}", Token::RBrace),
         (";", Token::Semicolon),
         (",", Token::Comma),
+        (":", Token::Colon),
         ("=", Token::Equal),
         ("<", Token::Less),
         (">", Token::Greater),
