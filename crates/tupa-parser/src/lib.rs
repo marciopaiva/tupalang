@@ -27,6 +27,7 @@ pub enum Stmt {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Expr {
     Int(i64),
+    Float(f64),
     Str(String),
     Bool(bool),
     Null,
@@ -275,6 +276,10 @@ impl Parser {
                 .parse::<i64>()
                 .map(Expr::Int)
                 .map_err(|_| ParserError::Unexpected(Token::Int(value), self.pos.saturating_sub(1))),
+            Some(Token::Float(value)) => value
+                .parse::<f64>()
+                .map(Expr::Float)
+                .map_err(|_| ParserError::Unexpected(Token::Float(value), self.pos.saturating_sub(1))),
             Some(Token::Str(value)) => Ok(Expr::Str(value)),
             Some(Token::True) => Ok(Expr::Bool(true)),
             Some(Token::False) => Ok(Expr::Bool(false)),
@@ -469,5 +474,18 @@ mod tests {
             panic!("expected let");
         };
         assert!(matches!(expr, Expr::Unary { op: UnaryOp::Not, .. }));
+    }
+
+    #[test]
+    fn parse_float_literal() {
+        let src = "fn main() { let x = 3.14; }";
+        let program = parse_program(src).unwrap();
+        let func = match &program.items[0] {
+            Item::Function(func) => func,
+        };
+        let Stmt::Let { expr, .. } = &func.body[0] else {
+            panic!("expected let");
+        };
+        assert!(matches!(expr, Expr::Float(f) if (f - 3.14).abs() < 1e-9));
     }
 }

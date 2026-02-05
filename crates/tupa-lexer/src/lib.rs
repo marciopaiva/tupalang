@@ -2,9 +2,9 @@ use nom::{
     branch::alt,
     bytes::complete::{escaped_transform, is_not, tag, take_while, take_while1},
     character::complete::{char, digit1},
-    combinator::{map, recognize, value},
+    combinator::{map, opt, recognize, value},
     error::{Error as NomError, ErrorKind},
-    sequence::{delimited, pair},
+    sequence::{delimited, pair, tuple},
     IResult,
 };
 use thiserror::Error;
@@ -22,6 +22,7 @@ pub enum Token {
     Null,
     Ident(String),
     Int(String),
+    Float(String),
     Str(String),
     LParen,
     RParen,
@@ -154,6 +155,18 @@ mod tests {
     }
 
     #[test]
+    fn lex_float_literal() {
+        let tokens = lex("3.14 1.0e-3").unwrap();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Float("3.14".into()),
+                Token::Float("1.0e-3".into()),
+            ]
+        );
+    }
+
+    #[test]
     fn lex_string_literal() {
         let tokens = lex("\"ola\\n\"").unwrap();
         assert_eq!(tokens, vec![Token::Str("ola\n".into())]);
@@ -170,6 +183,7 @@ fn token(input: &str) -> IResult<&str, Token> {
     alt((
         punct,
         string_lit,
+        float_lit,
         int_lit,
         ident_or_keyword,
     ))(input)
@@ -230,6 +244,19 @@ fn string_lit(input: &str) -> IResult<&str, Token> {
 
 fn int_lit(input: &str) -> IResult<&str, Token> {
     map(recognize(digit1), |s: &str| Token::Int(s.to_string()))(input)
+}
+
+fn float_lit(input: &str) -> IResult<&str, Token> {
+    let exp = tuple((
+        alt((tag("e"), tag("E"))),
+        opt(alt((tag("+"), tag("-")))),
+        digit1,
+    ));
+
+    map(
+        recognize(tuple((digit1, char('.'), digit1, opt(exp)))),
+        |s: &str| Token::Float(s.to_string()),
+    )(input)
 }
 
 fn ident_or_keyword(input: &str) -> IResult<&str, Token> {
