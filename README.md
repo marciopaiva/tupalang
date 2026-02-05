@@ -1,4 +1,4 @@
-# ⚡ Tupã
+﻿# ⚡ Tupã
 
 > **Força ancestral, código moderno**  
 > Linguagem brasileira para sistemas críticos e IA evolutiva
@@ -20,7 +20,7 @@ fn summarize(article: Text) -> SafeText<!misinformation> {
 
 ## 🌩️ Por que Tupã?
 
-Na mitologia tupi-guarani, **Tupã** é a divindade do trovão — força bruta canalizada com precisão. Assim é nossa linguagem:
+Na mitologia tupi-guarani, **Tupã** é a divindade do trovão, uma força bruta canalizada com precisão. Assim é nossa linguagem:
 
 | Problema atual das linguagens | Solução Tupã |
 |-------------------------------|--------------|
@@ -29,7 +29,7 @@ Na mitologia tupi-guarani, **Tupã** é a divindade do trovão — força bruta 
 | ❌ Todas: diferenciabilidade via bibliotecas frágeis | ✅ `∇` (nabla) como operador de primeira classe |
 | ❌ Modelos densos → pegada de carbono insustentável | ✅ Esparsidade declarativa no tipo (`density=0.1`) |
 
-> **Tupã não é "mais uma linguagem"** — é a **primeira linguagem projetada desde o solo para a era pós-LLM**, onde segurança ética e eficiência energética são tão críticas quanto performance.
+> **Tupã não é apenas mais uma linguagem.** É uma proposta focada em IA e sistemas críticos, onde segurança ética e eficiência energética são requisitos de primeira classe.
 
 ---
 
@@ -167,12 +167,12 @@ cd tupalang
 
 Tupã é a **primeira linguagem brasileira com ambição global desde Lua** (1993). Mas enquanto Lua focou em *embeddability*, Tupã nasce para resolver os maiores desafios da computação moderna:
 
-- 🇧🇷 **Raízes tupi-guarani** — nome, logo e filosofia inspirados na sabedoria ancestral
-- 🌱 **Sustentabilidade** — esparsidade nativa reduz pegada de carbono da IA
-- 🛡️ **Segurança ética** — alignment não é *feature*, é fundação
-- ⚡ **Performance** — LLVM + zero-cost abstractions = código tão rápido quanto C
+- 🇧🇷 **Raízes tupi-guarani**: nome, logo e filosofia inspirados na sabedoria ancestral
+- 🌱 **Sustentabilidade**: esparsidade nativa reduz pegada de carbono da IA
+- 🛡️ **Segurança ética**: alignment não é *feature*, é fundação
+- ⚡ **Performance**: LLVM + zero-cost abstractions = código tão rápido quanto C
 
-> *"Não estamos reinventando a roda — estamos construindo a primeira roda que não polui o planeta enquanto rola."*
+> *"Não estamos reinventando a roda. Estamos construindo a primeira roda que não polui o planeta enquanto rola."*
 
 ---
 
@@ -202,8 +202,8 @@ Tupã é a **primeira linguagem brasileira com ambição global desde Lua** (199
 
 ## 💬 Comunidade
 
-- [GitHub Discussions](https://github.com/marciopaiva/tupalang/discussions) — RFCs e debates técnicos
-- [Twitter @tupalang](https://twitter.com/tupalang) — atualizações e demos
+- [GitHub Discussions](https://github.com/marciopaiva/tupalang/discussions): RFCs e debates técnicos
+- [Twitter @tupalang](https://twitter.com/tupalang): atualizações e demos
 
 ---
 
@@ -233,6 +233,6 @@ Tupã é a **primeira linguagem brasileira com ambição global desde Lua** (199
 4. **Seção "Quem usa Tupã?"** (para quando tiver adopters):
    ```markdown
    ## 🏢 Early Adopters
-   - [Satellite AI](https://example.com) — Detecção de anomalias em redes Red Hat
-   - [Nuvem Tupã](https://example.com) — PaaS brasileiro para microserviços IA
+	- [Satellite AI](https://example.com): Detecção de anomalias em redes Red Hat
+	- [Nuvem Tupã](https://example.com): PaaS brasileiro para microserviços IA
    ```

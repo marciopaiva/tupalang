@@ -14,7 +14,7 @@
 1. **Performance previsível**: Zero alocações ocultas; custo de execução visível no código-fonte
 2. **Diferenciabilidade nativa**: Qualquer expressão pura é automaticamente derivável via operador `∇`
 3. **Alignment via tipos**: Restrições éticas verificadas em *compile-time*, não runtime
-4. **Esparsidade declarativa**: Densidade de dados é parte do tipo — não otimização pós-processo
+4. **Esparsidade declarativa**: Densidade de dados é parte do tipo, não otimização pós-processo
 
 ### 1.2 Target Audience
 - Pesquisadores de IA que precisam de performance + segurança formal
@@ -402,7 +402,7 @@ match await rx.recv_timeout(1000) {  // 1000ms
 }
 ```
 
-> **Garantia**: Canais são *ownership-based* — impossível data races pelo sistema de tipos.
+> **Garantia**: Canais são *ownership-based*, o que torna impossível data races pelo sistema de tipos.
 
 ---
 
@@ -433,7 +433,7 @@ fn main() {
 }
 ```
 
-> **Regra**: `unsafe` requer bloco explícito — auditoria facilitada.
+> **Regra**: `unsafe` requer bloco explícito, o que facilita auditoria.
 
 ---
 
@@ -685,7 +685,7 @@ fn train_step(batch: [Transaction], targets: [f64], lr: f64) {
 - **Minor** (v0.1 → v0.2): Novas features compatíveis (ex: novo atributo)
 - **Patch** (v0.1.0 → v0.1.1): Correções de bugs sem mudanças na spec
 
-> **Compromisso**: API estável a partir de v1.0 (previsto Q3 2027)
+> **Compromisso**: API estável a partir de v1.0.
 
 ---
 
@@ -703,4 +703,4 @@ fn train_step(batch: [Transaction], targets: [f64], lr: f64) {
 ---
 
 *Especificação mantida pela comunidade Tupã • Licença: CC-BY-SA 4.0*  
-*Última atualização: Fevereiro 2026 • Versão: 0.1-draft*
+*Versão: 0.1-draft*

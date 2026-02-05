@@ -1,21 +1,23 @@
-# Código de Conduta
+﻿# Código de Conduta
 
-## Nosso compromisso
+Queremos uma comunidade segura, respeitosa e colaborativa.
 
-Estamos comprometidos em manter um ambiente acolhedor, respeitoso e colaborativo.
+## O que esperamos
+- Respeito a pessoas e ideias diferentes
+- Críticas construtivas e foco em soluções
+- Empatia: todos estamos aprendendo
 
-## Comportamentos esperados
+## O que não aceitamos
+- Assédio, discriminação ou ataques pessoais
+- Comentários ofensivos ou degradantes
+- Comportamentos que inviabilizem a colaboração
 
-- Respeitar opiniões diferentes.
-- Ser construtivo em críticas e sugestões.
-- Priorizar o bem-estar da comunidade.
+## Se acontecer algo
+- Reporte para os mantenedores (canal de contato do repositório)
+- Responderemos o quanto antes com um plano de ação
 
-## Comportamentos inaceitáveis
+## Consequências (enforcement)
+- Aviso  suspensão  banimento (conforme gravidade e recorrência)
+- É possível pedir revisão/ apelação
 
-- Assédio, discriminação ou ataques pessoais.
-- Comentários ofensivos ou degradantes.
-- Qualquer comportamento que inviabilize a colaboração.
-
-## Aplicação
-
-Casos de violação podem ser reportados aos mantenedores do projeto.
+Obrigado por ajudar a manter o espaço saudável para todos.

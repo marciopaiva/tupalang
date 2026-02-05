@@ -1,25 +1,25 @@
-# Sugestões adicionais (IA)
+﻿# Sugestões adicionais (IA)
 
 ## Produto
-
-- Manter um "core" estável e documentado.
-- Evitar features grandes antes do MVP.
-- Especificar claramente o que não está pronto.
+- Mantenha um core estável e documentado
+- Evite features grandes antes do MVP
+- Declare claramente o que não está pronto
 
 ## Comunidade
-
-- Centralizar suporte no GitHub Discussions.
-- Manter um FAQ curto e objetivo.
-- Publicar RFCs para decisões de design.
+- Centralize suporte em Discussions
+- Mantenha um FAQ curto e direto
+- Publique RFCs para decisões de design
 
 ## Qualidade
+- Testes de regressão para parsing e types
+- Linters e formatters com regras mínimas
+- Mensagens de erro com exemplos de correção
 
-- Testes de regressão para parsing e types.
-- Linters e formatters com regras mínimas.
-- Mensagens de erro com exemplos de correção.
+## Exemplos de diagnóstico
+- E1002 (parser): vírgula faltando no argumento  adicione `,`
+- E2001 (types): `!nan` não provada  valide divisor ou use `Safe<f64, !nan>` com evidência
+- E4003 (alignment): score RLHF abaixo do limiar → eleve threshold ou forneça dataset validado
 
-## Documentação
-
-- Guia de início rápido.
-- Glossário de termos.
-- Comparações honestas com outras linguagens.
+## Integração com IA
+- Saída `--json` nos diagnósticos para automação
+- Use mensagens curtas, com sugestões acionáveis

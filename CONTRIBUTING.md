@@ -1,31 +1,33 @@
-# Como contribuir
+﻿# Como contribuir
 
-Obrigado por considerar contribuir com o projeto Tupã.
+Obrigado por considerar contribuir com o projeto Tupã! Queremos tornar sua experiência simples e acolhedora.
 
-## Como começar
+## Passo a passo
 
-1. Confira o [README.md](README.md) para entender a visão geral.
-2. Abra uma issue descrevendo a proposta ou problema.
-3. Faça um fork e crie uma branch a partir de main.
+1) Abra uma issue explicando o problema ou ideia  o contexto ajuda muito
+2) Faça um fork e crie uma branch pequena: `feat/nome-curto` ou `fix/nome-curto`
+3) Implemente a mudança e descreva como testar
+4) Abra um PR com objetivo, escopo e resultados
 
-## Padrões de contribuição
+## Boas práticas
 
-- Seja claro e objetivo na descrição do problema/solução.
-- Mantenha mudanças pequenas e focadas.
-- Prefira documentação e exemplos quando possível.
+- Mudanças pequenas são mais fáceis de revisar
+- Explique o porquê da mudança e alternativas consideradas
+- Inclua exemplos e testes sempre que possível
+- Use títulos de commits claros: `feat: ...`, `fix: ...`, `docs: ...`, `chore: ...`
 
-## Fluxo de PR
+## Testes e qualidade
 
-1. Crie a branch: `feat/nome-curto` ou `fix/nome-curto`.
-2. Atualize/adicione documentação relevante.
-3. Abra o PR com contexto, motivação e escopo.
-4. Aguarde revisão.
+Quando o toolchain estiver disponível, vamos documentar:
+- Como rodar testes
+- Como executar `fmt` e `lint`
+- Como validar diagnósticos
 
 ## Estilo de documentação
 
-- Use português claro.
-- Prefira frases curtas e diretas.
-- Evite abreviações sem explicação.
+- Português claro e direto
+- Frases curtas; sem jargões desnecessários
+- Exemplos práticos ajudam a ensinar
 
 ## Licenciamento
 
