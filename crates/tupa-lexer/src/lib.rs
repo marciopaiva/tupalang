@@ -12,6 +12,7 @@ use thiserror::Error;
 pub enum Token {
     Fn,
     Let,
+    Return,
     Ident(String),
     Int(String),
     Str(String),
@@ -21,6 +22,7 @@ pub enum Token {
     RBrace,
     Semicolon,
     Comma,
+    Equal,
 }
 
 #[derive(Debug, Error)]
@@ -95,7 +97,7 @@ mod tests {
     #[test]
     fn lex_string_literal() {
         let tokens = lex("\"ola\\n\"").unwrap();
-        assert_eq!(tokens, vec![Token::Str("ola\\n".into())]);
+        assert_eq!(tokens, vec![Token::Str("ola\n".into())]);
     }
 
     #[test]
@@ -122,6 +124,7 @@ fn punct(input: &str) -> IResult<&str, Token> {
         map(tag("}"), |_| Token::RBrace),
         map(tag(";"), |_| Token::Semicolon),
         map(tag(","), |_| Token::Comma),
+        map(tag("="), |_| Token::Equal),
     ))(input)
 }
 
@@ -153,6 +156,7 @@ fn ident_or_keyword(input: &str) -> IResult<&str, Token> {
         |s: &str| match s {
             "fn" => Token::Fn,
             "let" => Token::Let,
+            "return" => Token::Return,
             _ => Token::Ident(s.to_string()),
         },
     )(input)
