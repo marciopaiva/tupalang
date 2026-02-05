@@ -55,6 +55,56 @@ pub fn lex(input: &str) -> Result<Vec<Token>, LexerError> {
     Ok(tokens)
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn lex_keywords_and_idents() {
+        let tokens = lex("fn let foo bar").unwrap();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Fn,
+                Token::Let,
+                Token::Ident("foo".into()),
+                Token::Ident("bar".into()),
+            ]
+        );
+    }
+
+    #[test]
+    fn lex_punct_and_int() {
+        let tokens = lex("(x) { let y; 123 }").unwrap();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::LParen,
+                Token::Ident("x".into()),
+                Token::RParen,
+                Token::LBrace,
+                Token::Let,
+                Token::Ident("y".into()),
+                Token::Semicolon,
+                Token::Int("123".into()),
+                Token::RBrace,
+            ]
+        );
+    }
+
+    #[test]
+    fn lex_string_literal() {
+        let tokens = lex("\"ola\\n\"").unwrap();
+        assert_eq!(tokens, vec![Token::Str("ola\\n".into())]);
+    }
+
+    #[test]
+    fn lex_skips_comments() {
+        let tokens = lex("// c\nfn /* x */ let").unwrap();
+        assert_eq!(tokens, vec![Token::Fn, Token::Let]);
+    }
+}
+
 fn token(input: &str) -> IResult<&str, Token> {
     alt((
         punct,
