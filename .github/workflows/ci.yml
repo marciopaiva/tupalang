@@ -8,3 +8,4 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo test -p tupa-lexer
       - run: cargo test -p tupa-parser
+      - run: cargo test -p tupa-typecheck

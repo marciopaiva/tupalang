@@ -106,6 +106,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "tupa-typecheck"
+version = "0.1.0"
+dependencies = [
+ "thiserror",
+ "tupa-parser",
+]
+
+[[package]]
 name = "unicode-ident"
 version = "1.0.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"

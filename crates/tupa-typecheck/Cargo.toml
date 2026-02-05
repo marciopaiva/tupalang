@@ -1,0 +1,8 @@
+[package]
+name = "tupa-typecheck"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+thiserror = "1.0"
+tupa-parser = { path = "../tupa-parser" }
