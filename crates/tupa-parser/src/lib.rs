@@ -33,12 +33,28 @@ pub enum Stmt {
         expr: Expr,
     },
     Return(Option<Expr>),
+    While {
+        condition: Expr,
+        body: Block,
+    },
+    For {
+        name: String,
+        iter: Expr,
+        body: Block,
+    },
     Expr(Expr),
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Type {
     Ident(String),
+    Array {
+        elem: Box<Type>,
+        len: i64,
+    },
+    Slice {
+        elem: Box<Type>,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -49,6 +65,10 @@ pub enum Expr {
     Bool(bool),
     Null,
     Ident(String),
+    Assign {
+        name: String,
+        expr: Box<Expr>,
+    },
     Call { callee: String, args: Vec<Expr> },
     If {
         condition: Box<Expr>,
@@ -156,6 +176,10 @@ impl Parser {
         self.tokens.get(self.pos)
     }
 
+    fn peek_next(&self) -> Option<&Token> {
+        self.tokens.get(self.pos + 1)
+    }
+
     fn next(&mut self) -> Option<Token> {
         let tok = self.tokens.get(self.pos).cloned();
         self.pos += 1;
@@ -225,6 +249,24 @@ impl Parser {
                 self.expect(Token::Semicolon)?;
                 Ok(Stmt::Return(expr))
             }
+            Some(Token::While) => {
+                self.next();
+                let condition = self.parse_expr()?;
+                let body = self.parse_block()?;
+                Ok(Stmt::While { condition, body })
+            }
+            Some(Token::For) => {
+                self.next();
+                let name = match self.next() {
+                    Some(Token::Ident(name)) => name,
+                    Some(tok) => return Err(ParserError::Unexpected(tok, self.pos.saturating_sub(1))),
+                    None => return Err(ParserError::Eof),
+                };
+                self.expect(Token::In)?;
+                let iter = self.parse_expr()?;
+                let body = self.parse_block()?;
+                Ok(Stmt::For { name, iter, body })
+            }
             Some(Token::If) | Some(Token::Match) => {
                 let expr = self.parse_expr()?;
                 if matches!(self.peek(), Some(Token::Semicolon)) {
@@ -283,12 +325,43 @@ impl Parser {
     fn parse_type(&mut self) -> Result<Type, ParserError> {
         match self.next() {
             Some(Token::Ident(name)) => Ok(Type::Ident(name)),
+            Some(Token::LBracket) => {
+                let elem = self.parse_type()?;
+                if matches!(self.peek(), Some(Token::Semicolon)) {
+                    self.next();
+                    let len = match self.next() {
+                        Some(Token::Int(value)) => value
+                            .parse::<i64>()
+                            .map_err(|_| ParserError::Unexpected(Token::Int(value), self.pos.saturating_sub(1)))?,
+                        Some(tok) => return Err(ParserError::Unexpected(tok, self.pos.saturating_sub(1))),
+                        None => return Err(ParserError::Eof),
+                    };
+                    self.expect(Token::RBracket)?;
+                    Ok(Type::Array {
+                        elem: Box::new(elem),
+                        len,
+                    })
+                } else {
+                    self.expect(Token::RBracket)?;
+                    Ok(Type::Slice { elem: Box::new(elem) })
+                }
+            }
             Some(tok) => Err(ParserError::Unexpected(tok, self.pos.saturating_sub(1))),
             None => Err(ParserError::Eof),
         }
     }
 
     fn parse_expr(&mut self) -> Result<Expr, ParserError> {
+        if let (Some(Token::Ident(name)), Some(Token::Equal)) = (self.peek(), self.peek_next()) {
+            let name = name.clone();
+            self.next();
+            self.next();
+            let expr = self.parse_expr()?;
+            return Ok(Expr::Assign {
+                name,
+                expr: Box::new(expr),
+            });
+        }
         self.parse_precedence(0)
     }
 
@@ -572,5 +645,36 @@ mod tests {
             panic!("expected let");
         };
         assert_eq!(ty, &Some(Type::Ident("i64".into())));
+    }
+
+    #[test]
+    fn parse_array_and_slice_types() {
+        let src = "fn main() { let a: [i64; 3] = 0; let b: [i64] = 0; }";
+        let program = parse_program(src).unwrap();
+        let func = match &program.items[0] {
+            Item::Function(func) => func,
+        };
+        let Stmt::Let { ty, .. } = &func.body[0] else {
+            panic!("expected let");
+        };
+        assert!(matches!(
+            ty,
+            Some(Type::Array { len: 3, .. })
+        ));
+        let Stmt::Let { ty, .. } = &func.body[1] else {
+            panic!("expected let");
+        };
+        assert!(matches!(ty, Some(Type::Slice { .. })));
+    }
+
+    #[test]
+    fn parse_while_and_for() {
+        let src = "fn main() { while x < 10 { x = x + 1; } for i in xs { return i; } }";
+        let program = parse_program(src).unwrap();
+        let func = match &program.items[0] {
+            Item::Function(func) => func,
+        };
+        assert!(matches!(func.body[0], Stmt::While { .. }));
+        assert!(matches!(func.body[1], Stmt::For { .. }));
     }
 }

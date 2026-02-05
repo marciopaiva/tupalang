@@ -18,6 +18,9 @@ pub enum Token {
     If,
     Else,
     Match,
+    While,
+    For,
+    In,
     True,
     False,
     Null,
@@ -29,6 +32,8 @@ pub enum Token {
     RParen,
     LBrace,
     RBrace,
+    LBracket,
+    RBracket,
     Semicolon,
     Comma,
     Colon,
@@ -88,7 +93,7 @@ mod tests {
 
     #[test]
     fn lex_keywords_and_idents() {
-        let tokens = lex("fn let if else match return true false null foo bar").unwrap();
+        let tokens = lex("fn let if else match while for in return true false null foo bar").unwrap();
         assert_eq!(
             tokens,
             vec![
@@ -97,6 +102,9 @@ mod tests {
                 Token::If,
                 Token::Else,
                 Token::Match,
+                Token::While,
+                Token::For,
+                Token::In,
                 Token::Return,
                 Token::True,
                 Token::False,
@@ -163,6 +171,12 @@ mod tests {
     }
 
     #[test]
+    fn lex_brackets() {
+        let tokens = lex("[]").unwrap();
+        assert_eq!(tokens, vec![Token::LBracket, Token::RBracket]);
+    }
+
+    #[test]
     fn lex_float_literal() {
         let tokens = lex("3.14 1.0e-3").unwrap();
         assert_eq!(
@@ -223,6 +237,8 @@ fn punct(input: &str) -> IResult<&str, Token> {
         (")", Token::RParen),
         ("{", Token::LBrace),
         ("}", Token::RBrace),
+        ("[", Token::LBracket),
+        ("]", Token::RBracket),
         (";", Token::Semicolon),
         (",", Token::Comma),
         (":", Token::Colon),
@@ -298,6 +314,9 @@ fn ident_or_keyword(input: &str) -> IResult<&str, Token> {
                 "if" => Token::If,
                 "else" => Token::Else,
                 "match" => Token::Match,
+                "while" => Token::While,
+                "for" => Token::For,
+                "in" => Token::In,
                 "true" => Token::True,
                 "false" => Token::False,
                 "null" => Token::Null,
