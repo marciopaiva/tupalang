@@ -3,6 +3,7 @@ use nom::{
     bytes::complete::{escaped_transform, is_not, tag, take_while, take_while1},
     character::complete::{char, digit1},
     combinator::{map, recognize, value},
+    error::{Error as NomError, ErrorKind},
     sequence::{delimited, pair},
     IResult,
 };
@@ -16,6 +17,9 @@ pub enum Token {
     If,
     Else,
     Match,
+    True,
+    False,
+    Null,
     Ident(String),
     Int(String),
     Str(String),
@@ -27,6 +31,20 @@ pub enum Token {
     Comma,
     Equal,
     Arrow,
+    EqualEqual,
+    BangEqual,
+    Less,
+    LessEqual,
+    Greater,
+    GreaterEqual,
+    AndAnd,
+    OrOr,
+    Plus,
+    Minus,
+    Star,
+    Slash,
+    DoubleStar,
+    Bang,
 }
 
 #[derive(Debug, Error)]
@@ -67,7 +85,7 @@ mod tests {
 
     #[test]
     fn lex_keywords_and_idents() {
-        let tokens = lex("fn let if else match return foo bar").unwrap();
+        let tokens = lex("fn let if else match return true false null foo bar").unwrap();
         assert_eq!(
             tokens,
             vec![
@@ -77,6 +95,9 @@ mod tests {
                 Token::Else,
                 Token::Match,
                 Token::Return,
+                Token::True,
+                Token::False,
+                Token::Null,
                 Token::Ident("foo".into()),
                 Token::Ident("bar".into()),
             ]
@@ -109,6 +130,30 @@ mod tests {
     }
 
     #[test]
+    fn lex_operators() {
+        let tokens = lex("== != <= >= && || + - * / ** ! < >").unwrap();
+        assert_eq!(
+            tokens,
+            vec![
+                Token::EqualEqual,
+                Token::BangEqual,
+                Token::LessEqual,
+                Token::GreaterEqual,
+                Token::AndAnd,
+                Token::OrOr,
+                Token::Plus,
+                Token::Minus,
+                Token::Star,
+                Token::Slash,
+                Token::DoubleStar,
+                Token::Bang,
+                Token::Less,
+                Token::Greater,
+            ]
+        );
+    }
+
+    #[test]
     fn lex_string_literal() {
         let tokens = lex("\"ola\\n\"").unwrap();
         assert_eq!(tokens, vec![Token::Str("ola\n".into())]);
@@ -131,16 +176,41 @@ fn token(input: &str) -> IResult<&str, Token> {
 }
 
 fn punct(input: &str) -> IResult<&str, Token> {
-    alt((
-        map(tag("("), |_| Token::LParen),
-        map(tag(")"), |_| Token::RParen),
-        map(tag("{"), |_| Token::LBrace),
-        map(tag("}"), |_| Token::RBrace),
-        map(tag(";"), |_| Token::Semicolon),
-        map(tag(","), |_| Token::Comma),
-        map(tag("=>"), |_| Token::Arrow),
-        map(tag("="), |_| Token::Equal),
-    ))(input)
+    let cases = [
+        ("=>", Token::Arrow),
+        ("==", Token::EqualEqual),
+        ("!=", Token::BangEqual),
+        ("<=", Token::LessEqual),
+        (">=", Token::GreaterEqual),
+        ("&&", Token::AndAnd),
+        ("||", Token::OrOr),
+        ("**", Token::DoubleStar),
+        ("(", Token::LParen),
+        (")", Token::RParen),
+        ("{", Token::LBrace),
+        ("}", Token::RBrace),
+        (";", Token::Semicolon),
+        (",", Token::Comma),
+        ("=", Token::Equal),
+        ("<", Token::Less),
+        (">", Token::Greater),
+        ("+", Token::Plus),
+        ("-", Token::Minus),
+        ("*", Token::Star),
+        ("/", Token::Slash),
+        ("!", Token::Bang),
+    ];
+
+    for (pat, tok) in cases {
+        if let Some(rest) = input.strip_prefix(pat) {
+            return Ok((rest, tok));
+        }
+    }
+
+    Err(nom::Err::Error(NomError::new(
+        input,
+        ErrorKind::Tag,
+    )))
 }
 
 fn string_lit(input: &str) -> IResult<&str, Token> {
@@ -175,6 +245,9 @@ fn ident_or_keyword(input: &str) -> IResult<&str, Token> {
             "if" => Token::If,
             "else" => Token::Else,
             "match" => Token::Match,
+            "true" => Token::True,
+            "false" => Token::False,
+            "null" => Token::Null,
             _ => Token::Ident(s.to_string()),
         },
     )(input)

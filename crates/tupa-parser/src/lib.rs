@@ -28,6 +28,8 @@ pub enum Stmt {
 pub enum Expr {
     Int(i64),
     Str(String),
+    Bool(bool),
+    Null,
     Ident(String),
     Call { callee: String, args: Vec<Expr> },
     If {
@@ -38,6 +40,15 @@ pub enum Expr {
     Match {
         expr: Box<Expr>,
         arms: Vec<MatchArm>,
+    },
+    Unary {
+        op: UnaryOp,
+        expr: Box<Expr>,
+    },
+    Binary {
+        op: BinaryOp,
+        left: Box<Expr>,
+        right: Box<Expr>,
     },
 }
 
@@ -62,6 +73,29 @@ pub enum Pattern {
     Int(i64),
     Str(String),
     Ident(String),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum UnaryOp {
+    Not,
+    Neg,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum BinaryOp {
+    Or,
+    And,
+    Equal,
+    NotEqual,
+    Less,
+    LessEqual,
+    Greater,
+    GreaterEqual,
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Pow,
 }
 
 #[derive(Debug, Error)]
@@ -184,12 +218,67 @@ impl Parser {
     }
 
     fn parse_expr(&mut self) -> Result<Expr, ParserError> {
+        self.parse_precedence(0)
+    }
+
+    fn parse_precedence(&mut self, min_prec: u8) -> Result<Expr, ParserError> {
+        let mut left = self.parse_unary()?;
+
+        loop {
+            let (op, prec, right_assoc) = match self.peek().and_then(Self::token_to_binary_op) {
+                Some(info) => info,
+                None => break,
+            };
+
+            if prec < min_prec {
+                break;
+            }
+
+            self.next();
+            let next_min_prec = if right_assoc { prec } else { prec + 1 };
+            let right = self.parse_precedence(next_min_prec)?;
+            left = Expr::Binary {
+                op,
+                left: Box::new(left),
+                right: Box::new(right),
+            };
+        }
+
+        Ok(left)
+    }
+
+    fn parse_unary(&mut self) -> Result<Expr, ParserError> {
+        match self.peek() {
+            Some(Token::Bang) => {
+                self.next();
+                let expr = self.parse_unary()?;
+                Ok(Expr::Unary {
+                    op: UnaryOp::Not,
+                    expr: Box::new(expr),
+                })
+            }
+            Some(Token::Minus) => {
+                self.next();
+                let expr = self.parse_unary()?;
+                Ok(Expr::Unary {
+                    op: UnaryOp::Neg,
+                    expr: Box::new(expr),
+                })
+            }
+            _ => self.parse_primary(),
+        }
+    }
+
+    fn parse_primary(&mut self) -> Result<Expr, ParserError> {
         match self.next() {
             Some(Token::Int(value)) => value
                 .parse::<i64>()
                 .map(Expr::Int)
                 .map_err(|_| ParserError::Unexpected(Token::Int(value), self.pos.saturating_sub(1))),
             Some(Token::Str(value)) => Ok(Expr::Str(value)),
+            Some(Token::True) => Ok(Expr::Bool(true)),
+            Some(Token::False) => Ok(Expr::Bool(false)),
+            Some(Token::Null) => Ok(Expr::Null),
             Some(Token::Ident(name)) => {
                 if matches!(self.peek(), Some(Token::LParen)) {
                     self.next();
@@ -206,6 +295,11 @@ impl Parser {
                 } else {
                     Ok(Expr::Ident(name))
                 }
+            }
+            Some(Token::LParen) => {
+                let expr = self.parse_expr()?;
+                self.expect(Token::RParen)?;
+                Ok(expr)
             }
             Some(Token::If) => {
                 let condition = self.parse_expr()?;
@@ -258,6 +352,25 @@ impl Parser {
             }
             Some(tok) => Err(ParserError::Unexpected(tok, self.pos.saturating_sub(1))),
             None => Err(ParserError::Eof),
+        }
+    }
+
+    fn token_to_binary_op(token: &Token) -> Option<(BinaryOp, u8, bool)> {
+        match token {
+            Token::OrOr => Some((BinaryOp::Or, 1, false)),
+            Token::AndAnd => Some((BinaryOp::And, 2, false)),
+            Token::EqualEqual => Some((BinaryOp::Equal, 3, false)),
+            Token::BangEqual => Some((BinaryOp::NotEqual, 3, false)),
+            Token::Less => Some((BinaryOp::Less, 4, false)),
+            Token::LessEqual => Some((BinaryOp::LessEqual, 4, false)),
+            Token::Greater => Some((BinaryOp::Greater, 4, false)),
+            Token::GreaterEqual => Some((BinaryOp::GreaterEqual, 4, false)),
+            Token::Plus => Some((BinaryOp::Add, 5, false)),
+            Token::Minus => Some((BinaryOp::Sub, 5, false)),
+            Token::Star => Some((BinaryOp::Mul, 6, false)),
+            Token::Slash => Some((BinaryOp::Div, 6, false)),
+            Token::DoubleStar => Some((BinaryOp::Pow, 7, true)),
+            _ => None,
         }
     }
 
@@ -319,5 +432,42 @@ mod tests {
             Item::Function(func) => func,
         };
         assert_eq!(func.body.len(), 1);
+    }
+
+    #[test]
+    fn parse_binary_precedence() {
+        let src = "fn main() { let x = 1 + 2 * 3; }";
+        let program = parse_program(src).unwrap();
+        let func = match &program.items[0] {
+            Item::Function(func) => func,
+        };
+        let Stmt::Let { expr, .. } = &func.body[0] else {
+            panic!("expected let");
+        };
+        match expr {
+            Expr::Binary { op, left, right } => {
+                assert_eq!(*op, BinaryOp::Add);
+                assert!(matches!(**left, Expr::Int(1)));
+                assert!(matches!(**right, Expr::Binary { op: BinaryOp::Mul, .. }));
+            }
+            _ => panic!("expected binary expression"),
+        }
+    }
+
+    #[test]
+    fn parse_unary_expression() {
+        let src = "fn main() { let x = -1; let y = !false; }";
+        let program = parse_program(src).unwrap();
+        let func = match &program.items[0] {
+            Item::Function(func) => func,
+        };
+        let Stmt::Let { expr, .. } = &func.body[0] else {
+            panic!("expected let");
+        };
+        assert!(matches!(expr, Expr::Unary { op: UnaryOp::Neg, .. }));
+        let Stmt::Let { expr, .. } = &func.body[1] else {
+            panic!("expected let");
+        };
+        assert!(matches!(expr, Expr::Unary { op: UnaryOp::Not, .. }));
     }
 }
