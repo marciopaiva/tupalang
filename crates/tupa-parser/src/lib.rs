@@ -71,6 +71,8 @@ pub enum Expr {
     },
     ArrayLiteral(Vec<Expr>),
     Call { callee: String, args: Vec<Expr> },
+    Await(Box<Expr>),
+    Block(Block),
     If {
         condition: Box<Expr>,
         then_branch: Block,
@@ -268,6 +270,10 @@ impl Parser {
                 let body = self.parse_block()?;
                 Ok(Stmt::For { name, iter, body })
             }
+            Some(Token::LBrace) => {
+                let block = self.parse_block()?;
+                Ok(Stmt::Expr(Expr::Block(block)))
+            }
             Some(Token::If) | Some(Token::Match) => {
                 let expr = self.parse_expr()?;
                 if matches!(self.peek(), Some(Token::Semicolon)) {
@@ -464,6 +470,14 @@ impl Parser {
                 }
                 self.expect(Token::RBracket)?;
                 Ok(Expr::ArrayLiteral(items))
+            }
+            Some(Token::Await) => {
+                let expr = self.parse_expr()?;
+                Ok(Expr::Await(Box::new(expr)))
+            }
+            Some(Token::LBrace) => {
+                let block = self.parse_block()?;
+                Ok(Expr::Block(block))
             }
             Some(Token::If) => {
                 let condition = self.parse_expr()?;
@@ -705,5 +719,30 @@ mod tests {
             panic!("expected let");
         };
         assert!(matches!(expr, Expr::ArrayLiteral(items) if items.len() == 3));
+    }
+
+    #[test]
+    fn parse_match_with_guard() {
+        let src = "fn main() { match x { y if y > 0 => y, _ => 0, } }";
+        let program = parse_program(src).unwrap();
+        let func = match &program.items[0] {
+            Item::Function(func) => func,
+        };
+        assert_eq!(func.body.len(), 1);
+    }
+
+    #[test]
+    fn parse_await_and_block_expr() {
+        let src = "fn main() { let x = await foo(); { return x; } }";
+        let program = parse_program(src).unwrap();
+        let func = match &program.items[0] {
+            Item::Function(func) => func,
+        };
+        assert_eq!(func.body.len(), 2);
+        let Stmt::Let { expr, .. } = &func.body[0] else {
+            panic!("expected let");
+        };
+        assert!(matches!(expr, Expr::Await(_)));
+        assert!(matches!(func.body[1], Stmt::Expr(Expr::Block(_))));
     }
 }

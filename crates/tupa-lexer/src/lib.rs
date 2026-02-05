@@ -21,6 +21,7 @@ pub enum Token {
     While,
     For,
     In,
+    Await,
     True,
     False,
     Null,
@@ -93,7 +94,7 @@ mod tests {
 
     #[test]
     fn lex_keywords_and_idents() {
-        let tokens = lex("fn let if else match while for in return true false null foo bar").unwrap();
+        let tokens = lex("fn let if else match while for in return await true false null foo bar").unwrap();
         assert_eq!(
             tokens,
             vec![
@@ -106,6 +107,7 @@ mod tests {
                 Token::For,
                 Token::In,
                 Token::Return,
+                Token::Await,
                 Token::True,
                 Token::False,
                 Token::Null,
@@ -317,6 +319,7 @@ fn ident_or_keyword(input: &str) -> IResult<&str, Token> {
                 "while" => Token::While,
                 "for" => Token::For,
                 "in" => Token::In,
+                "await" => Token::Await,
                 "true" => Token::True,
                 "false" => Token::False,
                 "null" => Token::Null,
