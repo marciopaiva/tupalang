@@ -2,12 +2,13 @@ use nom::{
     branch::alt,
     bytes::complete::{escaped_transform, is_not, tag, take_while, take_while1},
     character::complete::{char, digit1},
-    combinator::{map, opt, recognize, value},
+    combinator::{map, map_res, opt, recognize, value},
     error::{Error as NomError, ErrorKind},
     sequence::{delimited, pair, tuple},
     IResult,
 };
 use thiserror::Error;
+use unicode_normalization::UnicodeNormalization;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Token {
@@ -174,6 +175,18 @@ mod tests {
     }
 
     #[test]
+    fn reject_incomplete_floats() {
+        assert!(lex("1.").is_err());
+        assert!(lex(".5").is_err());
+    }
+
+    #[test]
+    fn reject_non_nfc_identifiers() {
+        let nfd = "a\u{0303}";
+        assert!(lex(nfd).is_err());
+    }
+
+    #[test]
     fn lex_string_literal() {
         let tokens = lex("\"ola\\n\"").unwrap();
         assert_eq!(tokens, vec![Token::Str("ola\n".into())]);
@@ -268,22 +281,28 @@ fn float_lit(input: &str) -> IResult<&str, Token> {
 }
 
 fn ident_or_keyword(input: &str) -> IResult<&str, Token> {
-    map(
+    map_res(
         recognize(pair(
             take_while1(is_ident_start),
             take_while(is_ident_continue),
         )),
-        |s: &str| match s {
-            "fn" => Token::Fn,
-            "let" => Token::Let,
-            "return" => Token::Return,
-            "if" => Token::If,
-            "else" => Token::Else,
-            "match" => Token::Match,
-            "true" => Token::True,
-            "false" => Token::False,
-            "null" => Token::Null,
-            _ => Token::Ident(s.to_string()),
+        |s: &str| {
+            let normalized = s.nfc().collect::<String>();
+            if normalized != s {
+                return Err(());
+            }
+            Ok(match normalized.as_str() {
+                "fn" => Token::Fn,
+                "let" => Token::Let,
+                "return" => Token::Return,
+                "if" => Token::If,
+                "else" => Token::Else,
+                "match" => Token::Match,
+                "true" => Token::True,
+                "false" => Token::False,
+                "null" => Token::Null,
+                _ => Token::Ident(normalized),
+            })
         },
     )(input)
 }
