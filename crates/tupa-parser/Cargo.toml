@@ -1,0 +1,8 @@
+[package]
+name = "tupa-parser"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tupa-lexer = { path = "../tupa-lexer" }
+thiserror = "1.0"

@@ -7,3 +7,4 @@ jobs:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo test -p tupa-lexer
+      - run: cargo test -p tupa-parser

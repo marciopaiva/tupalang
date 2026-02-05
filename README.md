@@ -3,11 +3,10 @@
 > **Força ancestral, código moderno**  
 > Linguagem brasileira para sistemas críticos e IA evolutiva
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/marciopaiva/tupalang/ci.yml?branch=main&logo=github)](https://github.com/marciopaiva/tupalang/actions)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![MVP](https://img.shields.io/badge/status-MVP%20em%20constru%C3%A7%C3%A3o-orange)](#)
+[![Status](https://img.shields.io/badge/status-spec_v0.1_draft-yellow)](#)
 
-> **Status atual**: este projeto é apenas uma ideia. Ainda não há implementação iniciada nem previsão de início.
+> **Status atual**: Especificação v0.1 completa. Implementação ainda não iniciada, contribuições são bem-vindas para iniciar o lexer.
 
 ```tupa
 // IA responsável desde o primeiro caractere
@@ -133,33 +132,15 @@ fn main() {
 
 ---
 
-## 🤝 Como Contribuir
+## 🚀 Próximos 30 dias (ajude agora!)
 
-### Níveis de envolvimento
+| Tarefa | Arquivo | Dificuldade |
+|--------|---------|-------------|
+| Finalizar gramática EBNF para `match` expressions | `docs/SPEC.md` | ⭐⭐ |
+| Criar lexer mínimo com Rust + `nom` | `crates/tupa-lexer/` | ⭐⭐⭐ |
+| Escrever 5 exemplos de IA responsável | `examples/` | ⭐ |
 
-| Perfil | Como ajudar | Issue label |
-|--------|-------------|-------------|
-| **Curioso** | Teste o MVP, reporte bugs | `good first issue` |
-| **Dev Rust** | Implemente parser/lexer | `help wanted` |
-| **Pesquisador IA** | Projete `@differentiable` semantics | `research` |
-| **Designer** | Crie logo/branding Tupã | `design` |
-| **Escritor** | Documentação em português/inglês | `docs` |
-
-### Primeiros passos
-
-```bash
-# 1. Clone o repositório
-git clone https://github.com/marciopaiva/tupalang
-cd tupalang
-
-# 2. Implementação (futuro)
-# Ainda não há toolchain implementada.
-```
-
-> 💡 **Não sabe Rust?** Comece com:
-> - `docs/SPEC.md` → sugira melhorias na especificação
-> - `examples/` → crie exemplos de uso para IA
-> - Issues → triagem de bugs relatados
+👉 **Comece aqui**: Abra uma issue com `[RFC]` no título para propor mudanças na spec.
 
 ---
 

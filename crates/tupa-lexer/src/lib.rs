@@ -13,6 +13,9 @@ pub enum Token {
     Fn,
     Let,
     Return,
+    If,
+    Else,
+    Match,
     Ident(String),
     Int(String),
     Str(String),
@@ -23,6 +26,7 @@ pub enum Token {
     Semicolon,
     Comma,
     Equal,
+    Arrow,
 }
 
 #[derive(Debug, Error)]
@@ -63,12 +67,16 @@ mod tests {
 
     #[test]
     fn lex_keywords_and_idents() {
-        let tokens = lex("fn let foo bar").unwrap();
+        let tokens = lex("fn let if else match return foo bar").unwrap();
         assert_eq!(
             tokens,
             vec![
                 Token::Fn,
                 Token::Let,
+                Token::If,
+                Token::Else,
+                Token::Match,
+                Token::Return,
                 Token::Ident("foo".into()),
                 Token::Ident("bar".into()),
             ]
@@ -92,6 +100,12 @@ mod tests {
                 Token::RBrace,
             ]
         );
+    }
+
+    #[test]
+    fn lex_arrow() {
+        let tokens = lex("=>").unwrap();
+        assert_eq!(tokens, vec![Token::Arrow]);
     }
 
     #[test]
@@ -124,6 +138,7 @@ fn punct(input: &str) -> IResult<&str, Token> {
         map(tag("}"), |_| Token::RBrace),
         map(tag(";"), |_| Token::Semicolon),
         map(tag(","), |_| Token::Comma),
+        map(tag("=>"), |_| Token::Arrow),
         map(tag("="), |_| Token::Equal),
     ))(input)
 }
@@ -157,6 +172,9 @@ fn ident_or_keyword(input: &str) -> IResult<&str, Token> {
             "fn" => Token::Fn,
             "let" => Token::Let,
             "return" => Token::Return,
+            "if" => Token::If,
+            "else" => Token::Else,
+            "match" => Token::Match,
             _ => Token::Ident(s.to_string()),
         },
     )(input)
