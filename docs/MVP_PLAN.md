@@ -1,20 +1,24 @@
 ﻿# Plano de MVP
 
-Objetivo: entregar um compilador mínimo que parseia, verifica tipos simples e gera um binário nativo para `hello.tp`.
+## Objetivo
 
-## Escopo
-- Lexer: tokens básicos, comentários `//`, strings e números
-- Parser: AST para funções, let, if, match e chamadas simples
-- Type Checker: tipos primitivos (`i64`, `f64`, `bool`, `string`) e inferência básica
-- Codegen (LLVM): funções, aritmética e `print`
-- CLI: `tupa-cli` com `build` e `run`
+Entregar um compilador mínimo que parseia, verifica tipos simples e gera um binário nativo para `hello.tp`.
 
-## Critérios de aceite
-- `examples/hello.tp` compila e executa
-- Erros de tipo claros, com arquivo:linha:coluna
-- Sem dependência de runtime externo para o binário gerado
+## Escopo do MVP
 
-## Como vamos validar
-- Fixtures e snapshots para lexer e parser
-- Casos de tipos com sucesso e erro (E####)
-- Execução do binário em CI (Linux/Windows/macOS)
+1. Lexer
+   - Tokens básicos, comentários `//`, strings e números.
+2. Parser
+   - AST para funções, let, if, match e chamadas simples.
+3. Type Checker
+   - Tipos primitivos (`i64`, `f64`, `bool`, `string`) e inferência básica.
+4. Codegen (LLVM)
+   - Funções, aritmética básica e `print`.
+5. CLI
+   - `tupa-cli` com `build` e `run`.
+
+## Critérios de Aceite (quando houver implementação)
+
+- Compilar e executar `examples/hello.tp`.
+- Erros de tipo claros e localizados.
+- Nenhuma dependência de runtime externo para o binário gerado.

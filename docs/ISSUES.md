@@ -1,21 +1,16 @@
 ﻿# Issues iniciais sugeridas
 
-Quer começar? Aqui estão ótimos pontos de entrada.
-
-## Prioridade P0
-- Lexer básico
-  - Tokens: identificadores, literais, operadores, delimitadores
-  - Teste: fixtures + snapshots
-- Parser de funções
-  - `fn name(args) -> type { ... }`
-  - Teste: AST mínima e erros localizados
-
-## Prioridade P1
-- AST mínima (`fn`, `let`, `return`, `call`)
-- Type checker primitivo (inferência simples e verificação de tipo)
-- CLI `tupa-cli` (`build` e `run`)
-- Exemplo `examples/hello.tp`
-
-## Documentação de erros
-- Padrão E#### com mensagem, arquivo:linha:coluna e sugestão
-- Saída `--json` para integração com ferramentas
+1. Lexer básico
+   - Tokens: identificadores, literais, operadores, delimitadores.
+2. Parser de funções
+   - `fn name(args) -> type { ... }`.
+3. AST mínimo
+   - Nós para `fn`, `let`, `return`, `call`.
+4. Type checker primitivo
+   - Inferência simples e verificação de tipo.
+5. CLI tupa-cli
+   - `build` e `run`.
+6. Exemplo hello.tp
+   - Exemplo canônico e testável.
+7. Documentação de erro
+   - Padrão de mensagem de erro.
