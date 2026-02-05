@@ -177,8 +177,14 @@ Tupã é a **primeira linguagem brasileira com ambição global desde Lua** (199
 # parse e imprime AST
 cargo run -p tupa-cli -- parse examples/hello.tp
 
+# parse via stdin
+cat examples/hello.tp | cargo run -p tupa-cli -- parse --stdin
+
 # parse e valida tipos
 cargo run -p tupa-cli -- check examples/hello.tp
+
+# valida via stdin
+cat examples/hello.tp | cargo run -p tupa-cli -- check --stdin
 ```
 
 ---
