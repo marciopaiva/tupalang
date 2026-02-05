@@ -69,6 +69,7 @@ pub enum Expr {
         name: String,
         expr: Box<Expr>,
     },
+    ArrayLiteral(Vec<Expr>),
     Call { callee: String, args: Vec<Expr> },
     If {
         condition: Box<Expr>,
@@ -449,6 +450,21 @@ impl Parser {
                 self.expect(Token::RParen)?;
                 Ok(expr)
             }
+            Some(Token::LBracket) => {
+                let mut items = Vec::new();
+                if !matches!(self.peek(), Some(Token::RBracket)) {
+                    items.push(self.parse_expr()?);
+                    while matches!(self.peek(), Some(Token::Comma)) {
+                        self.next();
+                        if matches!(self.peek(), Some(Token::RBracket)) {
+                            break;
+                        }
+                        items.push(self.parse_expr()?);
+                    }
+                }
+                self.expect(Token::RBracket)?;
+                Ok(Expr::ArrayLiteral(items))
+            }
             Some(Token::If) => {
                 let condition = self.parse_expr()?;
                 let then_branch = self.parse_block()?;
@@ -676,5 +692,18 @@ mod tests {
         };
         assert!(matches!(func.body[0], Stmt::While { .. }));
         assert!(matches!(func.body[1], Stmt::For { .. }));
+    }
+
+    #[test]
+    fn parse_array_literal() {
+        let src = "fn main() { let xs = [1, 2, 3]; }";
+        let program = parse_program(src).unwrap();
+        let func = match &program.items[0] {
+            Item::Function(func) => func,
+        };
+        let Stmt::Let { expr, .. } = &func.body[0] else {
+            panic!("expected let");
+        };
+        assert!(matches!(expr, Expr::ArrayLiteral(items) if items.len() == 3));
     }
 }
