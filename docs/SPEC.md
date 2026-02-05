@@ -60,6 +60,10 @@ letter     = "a".."z" | "A".."Z" | "\u{0080}".."\u{10FFFF}" ;
 digit      = "0".."9" ;
 ```
 
+**Normalização Unicode (Normative)**:
+- Identificadores são comparados após normalização NFC.
+- O compilador deve rejeitar identificadores que mudem após normalização (para evitar confusão visual).
+
 **Exemplos válidos**: `x`, `_temp`, `ação`, `π_value`  
 **Exemplos inválidos**: `1var`, `@name`, `fn` (keyword)
 
@@ -77,6 +81,7 @@ float_literal   = digit { digit } "." digit { digit } [ ("e" | "E") ["+" | "-"] 
 string_literal  = '"' { unicode_char | escape_sequence } '"' ;
 escape_sequence = "\\" ("n" | "t" | '"' | "\\" | "u{" hex_digit {1,6} "}") ;
 hex_digit       = digit | "a".."f" | "A".."F" ;
+tensor_literal  = "[" expression { "," expression } "]" ;
 ```
 
 **Exemplos**:
@@ -86,6 +91,7 @@ hex_digit       = digit | "a".."f" | "A".."F" ;
 1.5e-3      // scientific notation
 "Olá 🌩️"   // string com Unicode
 "newline\n" // escape sequence
+[1, 2, 3]   // tensor_literal
 ```
 
 ---
@@ -167,6 +173,35 @@ let loss: Safe<f64, !nan, !inf> = compute_loss(predictions, targets)
 - Se **não puder provar**, é erro de compilação (com sugestão de correção).
 - `unsafe { ... }` pode ser usado para assumir responsabilidade explícita.
 
+##### 3.2.4.1 Constraint Resolution (Normative)
+
+Para cada constraint `!c` em `Safe<T, !c>`:
+
+| Constraint | Solver Requirement | Fallback |
+|------------|--------------------|----------|
+| `!nan` | Interval analysis prova `x ∈ [-∞, +∞] \ {NaN}` | `@assume(!nan)` com warning |
+| `!inf` | Limites estáticos provam `abs(x) < f64::MAX` | `@assume(!inf)` com warning |
+| `!hate_speech` | RLHF scorer ≥ 0.95 no dataset definido | ❌ Não permitido |
+
+---
+
+### 3.3 Array Types (Normative)
+
+```ebnf
+array_type = "[" type ";" integer_literal "]" ;  // tamanho fixo
+slice_type = "[" type "]" ;                      // tamanho dinâmico
+```
+
+```tupa
+let fixed: [i64; 5] = [1, 2, 3, 4, 5]
+let dynamic: [i64] = vec![1, 2, 3]
+```
+
+**Semântica (Normative)**:
+- `[T; N]` é alocado na stack quando possível.
+- `[T]` é alocado no heap e é mutável apenas se referenciado por `mut`.
+- Literais `[a, b, c]` inferem `[T; N]` quando `N` é conhecido.
+
 ---
 
 ## 4. Expressions
@@ -184,6 +219,12 @@ let loss: Safe<f64, !nan, !inf> = compute_loss(predictions, targets)
 | 8 | `==` `!=` |
 | 9 | `&&` |
 | 10 | `||` |
+
+### 4.1 Evaluation Rules (Normative)
+- `if` avalia apenas o branch selecionado.
+- `a && b` usa short-circuit: `b` só é avaliado se `a` for `true`.
+- `a || b` usa short-circuit: `b` só é avaliado se `a` for `false`.
+- `match` avalia o corpo somente do primeiro padrão correspondente.
 
 ### 4.1 Full Grammar
 ```ebnf
@@ -250,6 +291,16 @@ let (d_pred, d_target) = ∇mse(0.8, 1.0)  // → (-0.4, 0.4)
 - Para `f: (T1, ..., Tn) -> R`, `∇f(args)` retorna `(dT1, ..., dTn)`.
 - Para `n = 1`, o retorno é escalar `dT1`.
 - O valor de `f(args)` pode ser obtido chamando `f(args)` separadamente.
+
+##### Pureza Formal (Normative)
+
+Uma função `f` é **pura** sse:
+
+1. Não contém chamadas a funções com atributo `@side_effects(...)`.
+2. Não acessa nem modifica variáveis mutáveis não-locais (`static mut`, globals).
+3. Não contém operações de I/O (`print`, `file.read`, `http.get`).
+4. Não contém non-determinismo (`rand()`, `time.now()`, `thread_id()`).
+5. Todas as funções chamadas por `f` são puras (recursão de pureza).
 
 > **Regra de pureza**: `∇` só funciona em expressões *puras* (sem side effects). Compilador rejeita:
 > ```tupa
@@ -363,6 +414,35 @@ for i in 0..10 {
 }
 ```
 
+### 5.5 Escopo e Shadowing (Normative)
+
+- Resolução de nomes é léxica, do bloco mais interno para o mais externo.
+- Shadowing é permitido (estilo Rust).
+- Redeclaração do mesmo nome no mesmo escopo é erro.
+
+Exemplo:
+```tupa
+let x = 10
+fn foo() {
+	let x = 20
+	print(x)  // 20
+}
+```
+
+---
+
+## 6. Numeric Semantics (Normative)
+
+### 6.1 Integer Overflow
+- Overflow em `i64` gera erro em runtime (panic).
+- `wrap_add`, `wrap_sub`, `wrap_mul` devem ser usados para overflow intencional.
+
+Exemplo:
+```tupa
+let x: i64 = i64::MAX
+let y = x.wrap_add(1)
+```
+
 ---
 
 ## 6. Concurrency
@@ -432,6 +512,13 @@ fn main() {
 	unsafe { free(ptr) }
 }
 ```
+
+**ABI mínima (Normative)**:
+- Tipos obrigatórios: `usize`, `*const T`, `*mut T`.
+- Inteiros C: `i8`, `u8`, `i16`, `u16`, `i32`, `u32`, `i64`, `u64`.
+- Ponteiros opacos: `*void`.
+- `usize` tem o mesmo tamanho do ponteiro de dados da plataforma.
+- Ponteiros não podem ser desreferenciados fora de `unsafe`.
 
 > **Regra**: `unsafe` requer bloco explícito, o que facilita auditoria.
 
@@ -511,6 +598,7 @@ primary_expr    = literal
 				| "await" expression ;
 
 literal         = integer_literal | float_literal | string_literal | "true" | "false" | "null" ;
+tensor_literal  = "[" expression { "," expression } "]" ;
 argument_list   = expression { "," expression } ;
 
 (* ===== STATEMENTS ===== *)
@@ -576,6 +664,8 @@ Para `∇f(x)` onde `f` é pura:
    - Backward pass: derivadas simbólicas via regras de diferenciação automática (chain rule, product rule)
 4. Runtime seleciona caminho baseado no uso de `∇`
 
+Nota: Para funções puras pequenas (<100 ops), usar diferenciação simbólica sem tape. Para funções grandes, permitir fallback para tape-based com arena allocator.
+
 **Exemplo LLVM IR gerado** para `fn square(x: f64) -> f64 { x * x }`:
 ```llvm
 ; Forward pass
@@ -612,6 +702,33 @@ Para `Safe<T, !constraint>`:
 - Erros devem incluir: código, mensagem, local e sugestão.
 - Formato mínimo: `E####: mensagem (arquivo:linha:coluna)`.
 - Exemplo: `E2001: constraint !nan não provada (main.tp:12:5)`.
+
+**Códigos recomendados**:
+- `E1001`: erro léxico
+- `E2001`: erro de tipos
+- `E2002`: constraint não provada
+- `E3001`: erro de borrow/mutabilidade
+- `E4001`: uso de `unsafe` inválido
+
+Exemplo:
+`E2001: tipos incompatíveis em atribuição (main.tp:8:12)`
+
+Exemplo visual:
+```
+error[E2001]: tipos incompatíveis
+	--> main.tp:8:12
+	 |
+ 8 | let x: i64 = "texto"
+	 |            ^^^^^^^^
+```
+
+---
+
+## 10. Type Conversions (Normative)
+
+- Conversões implícitas são proibidas entre tipos numéricos.
+- Conversões explícitas usam `as` (ex.: `i64 as f64`).
+- Conversão de `bool` para numérico é proibida.
 
 ---
 
