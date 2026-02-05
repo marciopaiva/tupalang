@@ -3,7 +3,7 @@ use nom::{
     bytes::complete::{escaped_transform, is_not, tag, take_while, take_while1},
     character::complete::{char, digit1},
     combinator::{map, recognize, value},
-    sequence::delimited,
+    sequence::{delimited, pair},
     IResult,
 };
 use thiserror::Error;
@@ -96,7 +96,7 @@ fn int_lit(input: &str) -> IResult<&str, Token> {
 
 fn ident_or_keyword(input: &str) -> IResult<&str, Token> {
     map(
-        recognize((
+        recognize(pair(
             take_while1(is_ident_start),
             take_while(is_ident_continue),
         )),
