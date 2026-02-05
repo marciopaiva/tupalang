@@ -374,3 +374,44 @@ impl TypeEnv {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tupa_parser::parse_program;
+
+    #[test]
+    fn typecheck_simple_let() {
+        let program = parse_program("fn main() { let x: i64 = 1; } ").unwrap();
+        assert!(typecheck_program(&program).is_ok());
+    }
+
+    #[test]
+    fn typecheck_mismatch_is_error() {
+        let program = parse_program("fn main() { let x: i64 = true; } ").unwrap();
+        assert!(typecheck_program(&program).is_err());
+    }
+
+    #[test]
+    fn typecheck_return_mismatch() {
+        let program = parse_program("fn main(): i64 { return true; } ").unwrap();
+        assert!(matches!(
+            typecheck_program(&program),
+            Err(TypeError::ReturnMismatch { .. })
+        ));
+    }
+
+    #[test]
+    fn typecheck_while_condition_bool() {
+        let program = parse_program("fn main() { let x: i64 = 1; while x { return; } } ").unwrap();
+        assert!(typecheck_program(&program).is_err());
+    }
+
+    #[test]
+    fn typecheck_array_literal_types() {
+        let ok = parse_program("fn main() { let xs = [1, 2, 3]; } ").unwrap();
+        let err = parse_program("fn main() { let xs = [1, true]; } ").unwrap();
+        assert!(typecheck_program(&ok).is_ok());
+        assert!(typecheck_program(&err).is_err());
+    }
+}
