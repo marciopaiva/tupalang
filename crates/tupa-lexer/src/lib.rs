@@ -53,6 +53,8 @@ pub enum Token {
     Star,
     Slash,
     DoubleStar,
+    DotDot,
+    Dot,
     Bang,
 }
 
@@ -72,8 +74,20 @@ pub fn lex(input: &str) -> Result<Vec<Token>, LexerError> {
             break;
         }
 
+        if rest.starts_with('.')
+            && !rest.starts_with("..")
+            && rest.chars().nth(1).is_some_and(|c| c.is_ascii_digit())
+        {
+            let pos = input.len().saturating_sub(rest.len());
+            return Err(LexerError::Unexpected('.', pos));
+        }
+
         match token(rest) {
             Ok((next, tok)) => {
+                if matches!(tok, Token::Int(_)) && next.starts_with('.') && !next.starts_with("..") {
+                    let pos = input.len().saturating_sub(next.len());
+                    return Err(LexerError::Unexpected('.', pos));
+                }
                 tokens.push(tok);
                 rest = next;
             }
@@ -144,7 +158,7 @@ mod tests {
 
     #[test]
     fn lex_operators() {
-        let tokens = lex("== != <= >= && || + - * / ** ! < >").unwrap();
+        let tokens = lex("== != <= >= && || + - * / ** .. . ! < >").unwrap();
         assert_eq!(
             tokens,
             vec![
@@ -159,6 +173,8 @@ mod tests {
                 Token::Star,
                 Token::Slash,
                 Token::DoubleStar,
+                Token::DotDot,
+                Token::Dot,
                 Token::Bang,
                 Token::Less,
                 Token::Greater,
@@ -235,6 +251,8 @@ fn punct(input: &str) -> IResult<&str, Token> {
         ("&&", Token::AndAnd),
         ("||", Token::OrOr),
         ("**", Token::DoubleStar),
+        ("..", Token::DotDot),
+        (".", Token::Dot),
         ("(", Token::LParen),
         (")", Token::RParen),
         ("{", Token::LBrace),

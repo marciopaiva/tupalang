@@ -70,7 +70,9 @@ pub enum Expr {
         expr: Box<Expr>,
     },
     ArrayLiteral(Vec<Expr>),
-    Call { callee: String, args: Vec<Expr> },
+    Call { callee: Box<Expr>, args: Vec<Expr> },
+    Field { expr: Box<Expr>, field: FieldAccess },
+    Index { expr: Box<Expr>, index: Box<Expr> },
     Await(Box<Expr>),
     Block(Block),
     If {
@@ -117,6 +119,12 @@ pub enum Pattern {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub enum FieldAccess {
+    Ident(String),
+    Index(i64),
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum UnaryOp {
     Not,
     Neg,
@@ -124,6 +132,7 @@ pub enum UnaryOp {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum BinaryOp {
+    Range,
     Or,
     And,
     Equal,
@@ -421,7 +430,7 @@ impl Parser {
     }
 
     fn parse_primary(&mut self) -> Result<Expr, ParserError> {
-        match self.next() {
+        let mut expr = match self.next() {
             Some(Token::Int(value)) => value
                 .parse::<i64>()
                 .map(Expr::Int)
@@ -434,23 +443,7 @@ impl Parser {
             Some(Token::True) => Ok(Expr::Bool(true)),
             Some(Token::False) => Ok(Expr::Bool(false)),
             Some(Token::Null) => Ok(Expr::Null),
-            Some(Token::Ident(name)) => {
-                if matches!(self.peek(), Some(Token::LParen)) {
-                    self.next();
-                    let mut args = Vec::new();
-                    if !matches!(self.peek(), Some(Token::RParen)) {
-                        args.push(self.parse_expr()?);
-                        while matches!(self.peek(), Some(Token::Comma)) {
-                            self.next();
-                            args.push(self.parse_expr()?);
-                        }
-                    }
-                    self.expect(Token::RParen)?;
-                    Ok(Expr::Call { callee: name, args })
-                } else {
-                    Ok(Expr::Ident(name))
-                }
-            }
+            Some(Token::Ident(name)) => Ok(Expr::Ident(name)),
             Some(Token::LParen) => {
                 let expr = self.parse_expr()?;
                 self.expect(Token::RParen)?;
@@ -530,11 +523,66 @@ impl Parser {
             }
             Some(tok) => Err(ParserError::Unexpected(tok, self.pos.saturating_sub(1))),
             None => Err(ParserError::Eof),
+        }?;
+
+        loop {
+            match self.peek() {
+                Some(Token::LParen) => {
+                    self.next();
+                    let mut args = Vec::new();
+                    if !matches!(self.peek(), Some(Token::RParen)) {
+                        args.push(self.parse_expr()?);
+                        while matches!(self.peek(), Some(Token::Comma)) {
+                            self.next();
+                            args.push(self.parse_expr()?);
+                        }
+                    }
+                    self.expect(Token::RParen)?;
+                    expr = Expr::Call {
+                        callee: Box::new(expr),
+                        args,
+                    };
+                }
+                Some(Token::Dot) => {
+                    self.next();
+                    let field = match self.next() {
+                        Some(Token::Ident(name)) => FieldAccess::Ident(name),
+                        Some(Token::Int(value)) => value
+                            .parse::<i64>()
+                            .map(FieldAccess::Index)
+                            .map_err(|_| {
+                                ParserError::Unexpected(
+                                    Token::Int(value),
+                                    self.pos.saturating_sub(1),
+                                )
+                            })?,
+                        Some(tok) => return Err(ParserError::Unexpected(tok, self.pos.saturating_sub(1))),
+                        None => return Err(ParserError::Eof),
+                    };
+                    expr = Expr::Field {
+                        expr: Box::new(expr),
+                        field,
+                    };
+                }
+                Some(Token::LBracket) => {
+                    self.next();
+                    let index = self.parse_expr()?;
+                    self.expect(Token::RBracket)?;
+                    expr = Expr::Index {
+                        expr: Box::new(expr),
+                        index: Box::new(index),
+                    };
+                }
+                _ => break,
+            }
         }
+
+        Ok(expr)
     }
 
     fn token_to_binary_op(token: &Token) -> Option<(BinaryOp, u8, bool)> {
         match token {
+            Token::DotDot => Some((BinaryOp::Range, 0, false)),
             Token::OrOr => Some((BinaryOp::Or, 1, false)),
             Token::AndAnd => Some((BinaryOp::And, 2, false)),
             Token::EqualEqual => Some((BinaryOp::Equal, 3, false)),
@@ -722,6 +770,19 @@ mod tests {
     }
 
     #[test]
+    fn parse_range_expression() {
+        let src = "fn main() { let xs = 1..10; }";
+        let program = parse_program(src).unwrap();
+        let func = match &program.items[0] {
+            Item::Function(func) => func,
+        };
+        let Stmt::Let { expr, .. } = &func.body[0] else {
+            panic!("expected let");
+        };
+        assert!(matches!(expr, Expr::Binary { op: BinaryOp::Range, .. }));
+    }
+
+    #[test]
     fn parse_match_with_guard() {
         let src = "fn main() { match x { y if y > 0 => y, _ => 0, } }";
         let program = parse_program(src).unwrap();
@@ -744,5 +805,18 @@ mod tests {
         };
         assert!(matches!(expr, Expr::Await(_)));
         assert!(matches!(func.body[1], Stmt::Expr(Expr::Block(_))));
+    }
+
+    #[test]
+    fn parse_postfix_chain() {
+        let src = "fn main() { let x = foo(1).bar[0]; }";
+        let program = parse_program(src).unwrap();
+        let func = match &program.items[0] {
+            Item::Function(func) => func,
+        };
+        let Stmt::Let { expr, .. } = &func.body[0] else {
+            panic!("expected let");
+        };
+        assert!(matches!(expr, Expr::Index { .. }));
     }
 }
