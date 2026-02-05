@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/tupa-lexer", "crates/tupa-parser", "crates/tupa-typecheck"]
+members = ["crates/tupa-lexer", "crates/tupa-parser", "crates/tupa-typecheck", "crates/tupa-cli"]
 resolver = "2"
 
 [profile.dev]

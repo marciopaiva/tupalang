@@ -9,3 +9,4 @@ jobs:
       - run: cargo test -p tupa-lexer
       - run: cargo test -p tupa-parser
       - run: cargo test -p tupa-typecheck
+      - run: cargo test -p tupa-cli

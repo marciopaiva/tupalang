@@ -171,6 +171,18 @@ Tupã é a **primeira linguagem brasileira com ambição global desde Lua** (199
 
 ---
 
+## 🧰 CLI (dev)
+
+```bash
+# parse e imprime AST
+cargo run -p tupa-cli -- parse examples/hello.tp
+
+# parse e valida tipos
+cargo run -p tupa-cli -- check examples/hello.tp
+```
+
+---
+
 ## ⚖️ Licença
 
 - **Compilador**: Apache License 2.0
