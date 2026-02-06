@@ -28,6 +28,7 @@ Organizar a documentação por público e facilitar a navegação.
 - [Guia de CI](CI_GUIDE.md)
 - [Governança](GOVERNANCE.md)
 - [FAQ de contribuições](CONTRIBUTING_FAQ.md)
+- [Guia de issues](ISSUES_GUIDE.md)
 
 ## Para contribuidores
 
