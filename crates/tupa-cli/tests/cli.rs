@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use assert_cmd::Command;
+use assert_cmd::cargo::cargo_bin_cmd;
 use predicates::str::contains;
 
 fn repo_root() -> &'static Path {
@@ -9,9 +9,8 @@ fn repo_root() -> &'static Path {
 
 #[test]
 fn lex_outputs_tokens() {
-    Command::cargo_bin("tupa-cli")
-        .unwrap()
-        .current_dir(repo_root())
+    let mut cmd = cargo_bin_cmd!("tupa-cli");
+    cmd.current_dir(repo_root())
         .args(["lex", "examples/hello.tp"])
         .assert()
         .success()
@@ -20,9 +19,8 @@ fn lex_outputs_tokens() {
 
 #[test]
 fn parse_outputs_ast() {
-    Command::cargo_bin("tupa-cli")
-        .unwrap()
-        .current_dir(repo_root())
+    let mut cmd = cargo_bin_cmd!("tupa-cli");
+    cmd.current_dir(repo_root())
         .args(["parse", "examples/hello.tp"])
         .assert()
         .success()
@@ -31,9 +29,8 @@ fn parse_outputs_ast() {
 
 #[test]
 fn check_outputs_ok() {
-    Command::cargo_bin("tupa-cli")
-        .unwrap()
-        .current_dir(repo_root())
+    let mut cmd = cargo_bin_cmd!("tupa-cli");
+    cmd.current_dir(repo_root())
         .args(["check", "examples/hello.tp"])
         .assert()
         .success()
