@@ -31,6 +31,7 @@ Organizar a documentação por público e facilitar a navegação.
 - [Diagnostics Checklist](DIAGNOSTICS_CHECKLIST.md)
 - [Glossário de Diagnósticos](DIAGNOSTICS_GLOSSARY.md)
 - [Guia de Testes](TESTING.md)
+- [Guia de mensagens de erro](ERROR_MESSAGES.md)
 
 ## Internals e planejamento
 
