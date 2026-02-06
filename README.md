@@ -33,6 +33,7 @@ fn summarize(article: Text) -> SafeText<!misinformation> {
 - [docs/SYNTAX_GLOSSARY.md](docs/SYNTAX_GLOSSARY.md)
 - [docs/TYPES_GLOSSARY.md](docs/TYPES_GLOSSARY.md)
 - [docs/ENV_SETUP.md](docs/ENV_SETUP.md)
+- [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md)
 - [CONTRIBUTING.md](CONTRIBUTING.md)
 - [docs/DEV_ENV.md](docs/DEV_ENV.md)
 

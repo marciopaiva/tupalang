@@ -17,6 +17,7 @@ Organizar a documentação por público e facilitar a navegação.
 - [Glossário de sintaxe](SYNTAX_GLOSSARY.md)
 - [Glossário de tipos](TYPES_GLOSSARY.md)
 - [Guia de ambiente por OS](ENV_SETUP.md)
+- [Guia de compatibilidade](COMPATIBILITY.md)
 
 ## Para novos contribuidores
 
