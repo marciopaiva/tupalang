@@ -18,7 +18,7 @@ cp "${REPO_ROOT}/CODE_OF_CONDUCT.md" "${WORKDIR}/Code-of-Conduct.md"
 cp "${REPO_ROOT}/examples/README.md" "${WORKDIR}/Examples.md"
 
 cat <<'EOF' > "${WORKDIR}/_Sidebar.md"
-## Start Here
+## Português
 - [[Home]]
 - [[GETTING_STARTED]]
 - [[Examples]]
@@ -36,6 +36,24 @@ cat <<'EOF' > "${WORKDIR}/_Sidebar.md"
 - [[COMPATIBILITY]]
 - [[PROJECT_OVERVIEW]]
 
+## English
+- [[Home.en|Home (EN)]]
+- [[GETTING_STARTED.en|Getting Started]]
+- [[Examples|Examples]]
+- [[DEV_ENV.en|Dev Env]]
+- [[GLOSSARY.en|Glossary]]
+- [[ARCHITECTURE|Architecture]]
+- [[STYLE_GUIDE|Style Guide]]
+- [[FAQ.en|FAQ]]
+- [[COMMON_ERRORS|Common Errors]]
+- [[ROADMAP|Roadmap]]
+- [[EXAMPLES_GUIDE|Examples Guide]]
+- [[SYNTAX_GLOSSARY|Syntax Glossary]]
+- [[TYPES_GLOSSARY|Types Glossary]]
+- [[ENV_SETUP|Environment Setup]]
+- [[COMPATIBILITY|Compatibility]]
+- [[PROJECT_OVERVIEW|Project Overview]]
+
 ## Reference
 - [[SPEC]]
 - [[DIAGNOSTICS_CHECKLIST]]
@@ -45,10 +63,10 @@ cat <<'EOF' > "${WORKDIR}/_Sidebar.md"
 ## Plans
 - [[MVP_PLAN]]
 - [[ADOPTION_PLAN]]
- - [[CHANGELOG]]
- - [[RELEASE_CHECKLIST]]
- - [[RELEASE_GUIDE]]
- - [[VERSIONING]]
+- [[CHANGELOG]]
+- [[RELEASE_CHECKLIST]]
+- [[RELEASE_GUIDE]]
+- [[VERSIONING]]
 
 ## Design Notes
 - [[DESIGN_NOTES]]
