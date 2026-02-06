@@ -12,6 +12,7 @@ Organizar a documentação por público e facilitar a navegação.
 - [Glossário](GLOSSARY.md)
 - [FAQ](FAQ.md)
 - [Roadmap](ROADMAP.md)
+- [Erros comuns](COMMON_ERRORS.md)
 
 ## Para novos contribuidores
 
