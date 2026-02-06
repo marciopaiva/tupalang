@@ -48,6 +48,10 @@ pub enum Stmt {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Type {
     Ident(String),
+    Safe {
+        base: Box<Type>,
+        constraints: Vec<String>,
+    },
     Array {
         elem: Box<Type>,
         len: i64,
@@ -396,7 +400,48 @@ impl Parser {
             Some(TokenSpan {
                 token: Token::Ident(name),
                 ..
-            }) => Ok(Type::Ident(name)),
+            }) => {
+                if name == "Safe" {
+                    self.expect(Token::Less)?;
+                    let base = self.parse_type()?;
+                    self.expect(Token::Comma)?;
+                    let mut constraints = Vec::new();
+                    self.expect(Token::Bang)?;
+                    let first = match self.next() {
+                        Some(TokenSpan {
+                            token: Token::Ident(constraint),
+                            ..
+                        }) => constraint,
+                        Some(TokenSpan { token, span }) => {
+                            return Err(ParserError::Unexpected(token, span))
+                        }
+                        None => return Err(ParserError::Eof(self.eof_pos)),
+                    };
+                    constraints.push(first);
+                    while matches!(self.peek(), Some(Token::Comma)) {
+                        self.next();
+                        self.expect(Token::Bang)?;
+                        let constraint = match self.next() {
+                            Some(TokenSpan {
+                                token: Token::Ident(constraint),
+                                ..
+                            }) => constraint,
+                            Some(TokenSpan { token, span }) => {
+                                return Err(ParserError::Unexpected(token, span))
+                            }
+                            None => return Err(ParserError::Eof(self.eof_pos)),
+                        };
+                        constraints.push(constraint);
+                    }
+                    self.expect(Token::Greater)?;
+                    Ok(Type::Safe {
+                        base: Box::new(base),
+                        constraints,
+                    })
+                } else {
+                    Ok(Type::Ident(name))
+                }
+            }
             Some(TokenSpan {
                 token: Token::Fn,
                 ..
@@ -928,6 +973,25 @@ mod tests {
             panic!("expected let");
         };
         assert!(matches!(ty, Some(Type::Slice { .. })));
+    }
+
+    #[test]
+    fn parse_safe_type() {
+        let src = "fn main() { let x: Safe<i64, !nan, !inf> = 1; }";
+        let program = parse_program(src).unwrap();
+        let func = match &program.items[0] {
+            Item::Function(func) => func,
+        };
+        let Stmt::Let { ty, .. } = &func.body[0] else {
+            panic!("expected let");
+        };
+        assert_eq!(
+            ty,
+            &Some(Type::Safe {
+                base: Box::new(Type::Ident("i64".into())),
+                constraints: vec!["nan".into(), "inf".into()],
+            })
+        );
     }
 
     #[test]

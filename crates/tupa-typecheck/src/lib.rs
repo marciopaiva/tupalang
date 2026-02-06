@@ -61,6 +61,14 @@ pub enum TypeError {
     },
     #[error("expected function body to return a value")]
     MissingReturn,
+    #[error("invalid constraint '{constraint}' for base type {base:?}")]
+    InvalidConstraint {
+        constraint: String,
+        base: Ty,
+        span: Option<Span>,
+    },
+    #[error("cannot prove constraint '{constraint}' at compile time")]
+    UnprovenConstraint { constraint: String, span: Option<Span> },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -68,8 +76,57 @@ pub enum Warning {
     UnusedVar(String),
 }
 
+#[derive(Debug, Clone)]
+struct ExpectedReturn {
+    ty: Ty,
+    constraints: Option<Vec<String>>,
+}
+
 pub fn typecheck_program(program: &Program) -> Result<(), TypeError> {
     let _ = typecheck_program_with_warnings(program)?;
+    Ok(())
+}
+
+fn validate_safe_constraints(
+    constraints: &[String],
+    base: &Ty,
+    expr: &Expr,
+) -> Result<(), TypeError> {
+    for constraint in constraints {
+        match constraint.as_str() {
+            "nan" | "inf" => {
+                if *base != Ty::F64 {
+                    return Err(TypeError::InvalidConstraint {
+                        constraint: constraint.clone(),
+                        base: base.clone(),
+                        span: Some(expr.span),
+                    });
+                }
+                match expr.kind {
+                    ExprKind::Float(value) => {
+                        if !value.is_finite() {
+                            return Err(TypeError::UnprovenConstraint {
+                                constraint: constraint.clone(),
+                                span: Some(expr.span),
+                            });
+                        }
+                    }
+                    _ => {
+                        return Err(TypeError::UnprovenConstraint {
+                            constraint: constraint.clone(),
+                            span: Some(expr.span),
+                        })
+                    }
+                }
+            }
+            _ => {
+                return Err(TypeError::UnprovenConstraint {
+                    constraint: constraint.clone(),
+                    span: Some(expr.span),
+                })
+            }
+        }
+    }
     Ok(())
 }
 
@@ -111,18 +168,26 @@ fn typecheck_function(
         env.insert_var(param.name.clone(), ty);
     }
 
-    let expected_return = func
-        .return_type
-        .as_ref()
-        .map(type_from_ast)
-        .transpose()?
-        .unwrap_or(Ty::Unit);
+    let expected_return = match func.return_type.as_ref() {
+        Some(Type::Safe { base, constraints }) => ExpectedReturn {
+            ty: type_from_ast(base)?,
+            constraints: Some(constraints.clone()),
+        },
+        Some(ty) => ExpectedReturn {
+            ty: type_from_ast(ty)?,
+            constraints: None,
+        },
+        None => ExpectedReturn {
+            ty: Ty::Unit,
+            constraints: None,
+        },
+    };
 
     for stmt in &func.body {
         typecheck_stmt(stmt, &mut env, functions, &expected_return)?;
     }
 
-    if expected_return != Ty::Unit && !block_returns(&func.body) {
+    if expected_return.ty != Ty::Unit && !block_returns(&func.body) {
         return Err(TypeError::MissingReturn);
     }
 
@@ -133,19 +198,25 @@ fn typecheck_stmt(
     stmt: &Stmt,
     env: &mut TypeEnv,
     functions: &HashMap<String, FuncSig>,
-    expected_return: &Ty,
+    expected_return: &ExpectedReturn,
 ) -> Result<(), TypeError> {
     match stmt {
         Stmt::Let { name, ty, expr } => {
             let expr_ty = type_of_expr(expr, env, functions, expected_return)?;
             if let Some(ty) = ty {
-                let declared = type_from_ast(ty)?;
+                let (declared, constraints) = match ty {
+                    Type::Safe { base, constraints } => (type_from_ast(base)?, Some(constraints)),
+                    _ => (type_from_ast(ty)?, None),
+                };
                 if declared != expr_ty {
                     return Err(TypeError::Mismatch {
                         expected: declared,
                         found: expr_ty,
                         span: Some(expr.span),
                     });
+                }
+                if let Some(constraints) = constraints {
+                    validate_safe_constraints(constraints, &declared, expr)?;
                 }
                 env.insert_var(name.clone(), declared);
             } else {
@@ -159,12 +230,17 @@ fn typecheck_stmt(
             } else {
                 Ty::Unit
             };
-            if found != *expected_return {
+            if found != expected_return.ty {
                 return Err(TypeError::ReturnMismatch {
-                    expected: expected_return.clone(),
+                    expected: expected_return.ty.clone(),
                     found,
                     span: expr.as_ref().map(|e| e.span),
                 });
+            }
+            if let (Some(constraints), Some(expr)) =
+                (expected_return.constraints.as_ref(), expr.as_ref())
+            {
+                validate_safe_constraints(constraints, &expected_return.ty, expr)?;
             }
             Ok(())
         }
@@ -216,7 +292,7 @@ fn type_of_expr(
     expr: &Expr,
     env: &mut TypeEnv,
     functions: &HashMap<String, FuncSig>,
-    expected_return: &Ty,
+    expected_return: &ExpectedReturn,
 ) -> Result<Ty, TypeError> {
     let span = Some(expr.span);
     match &expr.kind {
@@ -500,7 +576,7 @@ fn type_of_block_expr(
     stmts: &[Stmt],
     env: &mut TypeEnv,
     functions: &HashMap<String, FuncSig>,
-    expected_return: &Ty,
+    expected_return: &ExpectedReturn,
 ) -> Result<Ty, TypeError> {
     let mut last_ty = Ty::Unit;
     for stmt in stmts {
@@ -598,6 +674,7 @@ fn type_from_ast(ty: &Type) -> Result<Ty, TypeError> {
             "null" => Ok(Ty::Null),
             _ => Err(TypeError::UnknownType(name.clone())),
         },
+        Type::Safe { base, .. } => type_from_ast(base),
         Type::Array { elem, len } => Ok(Ty::Array {
             elem: Box::new(type_from_ast(elem)?),
             len: *len,
@@ -688,6 +765,36 @@ mod tests {
     fn typecheck_simple_let() {
         let program = parse_program("fn main() { let x: i64 = 1; } ").unwrap();
         assert!(typecheck_program(&program).is_ok());
+    }
+
+    #[test]
+    fn typecheck_safe_annotation() {
+        let program = parse_program(
+            "fn main() { let x: Safe<f64, !nan, !inf> = 1.0; let y: f64 = x; } ",
+        )
+        .unwrap();
+        assert!(typecheck_program(&program).is_ok());
+    }
+
+    #[test]
+    fn safe_constraint_invalid_base() {
+        let program = parse_program("fn main() { let x: Safe<i64, !nan> = 1; }").unwrap();
+        assert!(matches!(
+            typecheck_program(&program),
+            Err(TypeError::InvalidConstraint { .. })
+        ));
+    }
+
+    #[test]
+    fn safe_constraint_unproven() {
+        let program = parse_program(
+            "fn main() { let y: f64 = 1.0; let x: Safe<f64, !nan> = y; }",
+        )
+        .unwrap();
+        assert!(matches!(
+            typecheck_program(&program),
+            Err(TypeError::UnprovenConstraint { .. })
+        ));
     }
 
     #[test]

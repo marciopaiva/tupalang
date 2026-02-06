@@ -10,3 +10,6 @@
    - Funções, aritmética básica e `print`.
 5. Mais exemplos
    - Casos reais + edge cases em `examples/`.
+6. Alignment Types: validação de constraints (parcial)
+   - Checagem inicial para `!nan`/`!inf` em literais `f64`.
+   - Pendência: solver/propagação para expressões gerais.

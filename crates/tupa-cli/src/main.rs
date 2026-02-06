@@ -288,6 +288,8 @@ fn type_error_code(err: &TypeError) -> &'static str {
         TypeError::InvalidCallTarget { .. } => "E2005",
         TypeError::ReturnMismatch { .. } => "E2006",
         TypeError::MissingReturn => "E2007",
+        TypeError::InvalidConstraint { .. } => "E3001",
+        TypeError::UnprovenConstraint { .. } => "E3002",
     }
 }
 
@@ -479,7 +481,9 @@ fn type_error_span(err: &TypeError) -> Option<Span> {
         | TypeError::InvalidBinary { span, .. }
         | TypeError::InvalidUnary { span, .. }
         | TypeError::InvalidCallTarget { span, .. }
-        | TypeError::ReturnMismatch { span, .. } => *span,
+        | TypeError::ReturnMismatch { span, .. }
+        | TypeError::InvalidConstraint { span, .. }
+        | TypeError::UnprovenConstraint { span, .. } => *span,
         TypeError::UnknownType(_) | TypeError::MissingReturn => None,
     }
 }
