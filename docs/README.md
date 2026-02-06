@@ -4,6 +4,10 @@
 
 Organizar a documentação por público e facilitar a navegação.
 
+## Fonte única
+
+As páginas do wiki são espelhadas automaticamente a partir de `docs/`. Evite editar o wiki manualmente.
+
 ## Para usuários
 
 - [Guia de Início Rápido](GETTING_STARTED.md)

@@ -9,6 +9,8 @@ rm -rf "${WORKDIR}"
 
 git clone "${WIKI_REPO}" "${WORKDIR}"
 
+find "${WORKDIR}" -maxdepth 1 -type f -name "*.md" -delete
+
 cp "${REPO_ROOT}/README.md" "${WORKDIR}/Home.md"
 cp "${REPO_ROOT}/docs"/*.md "${WORKDIR}/"
 cp "${REPO_ROOT}/CONTRIBUTING.md" "${WORKDIR}/Contributing.md"
@@ -21,15 +23,32 @@ cat <<'EOF' > "${WORKDIR}/_Sidebar.md"
 - [[GETTING_STARTED]]
 - [[Examples]]
 - [[DEV_ENV]]
+- [[GLOSSARY]]
+- [[ARCHITECTURE]]
+- [[STYLE_GUIDE]]
+- [[FAQ]]
+- [[COMMON_ERRORS]]
+- [[ROADMAP]]
+- [[EXAMPLES_GUIDE]]
+- [[SYNTAX_GLOSSARY]]
+- [[TYPES_GLOSSARY]]
+- [[ENV_SETUP]]
+- [[COMPATIBILITY]]
+- [[PROJECT_OVERVIEW]]
 
 ## Reference
 - [[SPEC]]
 - [[DIAGNOSTICS_CHECKLIST]]
+- [[DIAGNOSTICS_GLOSSARY]]
 - [[CODEGEN]]
 
 ## Plans
 - [[MVP_PLAN]]
 - [[ADOPTION_PLAN]]
+ - [[CHANGELOG]]
+ - [[RELEASE_CHECKLIST]]
+ - [[RELEASE_GUIDE]]
+ - [[VERSIONING]]
 
 ## Design Notes
 - [[DESIGN_NOTES]]
@@ -37,6 +56,13 @@ cat <<'EOF' > "${WORKDIR}/_Sidebar.md"
 ## Contribute
 - [[Contributing]]
 - [[Code-of-Conduct]]
+- [[DOCS_CONTRIBUTING]]
+- [[TESTING]]
+- [[CI_GUIDE]]
+- [[ERROR_MESSAGES]]
+- [[GOVERNANCE]]
+- [[CONTRIBUTING_FAQ]]
+- [[ISSUES_GUIDE]]
 EOF
 
 cd "${WORKDIR}"

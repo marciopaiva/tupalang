@@ -1,8 +1,8 @@
 ﻿# Issues
 
-## Objetivo
+Use o [Guia de issues](ISSUES_GUIDE.md) e abra issues em:
 
-Centralizar o acompanhamento de problemas e propostas no GitHub Issues.
+https://github.com/marciopaiva/tupalang/issues
+
 
 Use: https://github.com/marciopaiva/tupalang/issues
-

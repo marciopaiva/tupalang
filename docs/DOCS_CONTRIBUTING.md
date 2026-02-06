@@ -9,6 +9,10 @@ Padronizar mudanças em documentação para manter consistência e qualidade.
 - README, docs e exemplos.
 - Páginas do wiki (espelhadas a partir de docs).
 
+## Fonte única
+
+O conteúdo canônico vive em `docs/`. O wiki é atualizado automaticamente via CI.
+
 ## Padrões de escrita
 
 - Português claro e direto.
