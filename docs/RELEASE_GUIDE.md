@@ -6,26 +6,27 @@ Descrever o processo de release com passos claros e repetíveis.
 
 ## Passo a passo
 
-1) Atualize o [CHANGELOG](CHANGELOG.md).
-1) Rode a suite de testes:
+
+1) Atualize o [CHANGELOG](CHANGELOG.md) e SUMMARY.md.
+2) Rode a suite de testes:
 
 ```bash
 cargo test
 ```
 
-1) Verifique exemplos principais em `examples/`.
-1) Confirme que o CI está verde.
-1) Crie tag e publique:
+3) Verifique exemplos principais em `examples/` e docs bilíngues.
+4) Confirme que o CI está verde.
+5) Crie tag e publique:
 
 ```bash
-git tag -a v0.1.0 -m "v0.1.0"
-git push origin v0.1.0
+git tag -a vX.Y.Z -m "vX.Y.Z"
+git push origin vX.Y.Z
 ```
 
-1) Crie a release no GitHub com notas do CHANGELOG.
+6) Crie a release no GitHub com notas do CHANGELOG.
 
 ## Dicas
 
 - Use versões semânticas (SemVer).
-- Evite releases sem atualização do CHANGELOG.
-- Registre mudanças que impactam a SPEC.
+- Evite releases sem atualização do CHANGELOG e SUMMARY.
+- Registre mudanças que impactam a SPEC, API ou docs principais.

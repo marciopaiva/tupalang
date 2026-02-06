@@ -19,6 +19,11 @@ Adotamos [SemVer](https://semver.org/):
 - Novos recursos compatíveis incrementam MINOR.
 - Correções e ajustes de docs incrementam PATCH.
 
+
 ## Pré-1.0
 
 Antes da 1.0, mudanças podem ocorrer com maior frequência. Ainda assim, manteremos SemVer e documentaremos breaking changes no CHANGELOG.
+
+## Sincronização de documentação
+
+Toda mudança relevante em docs, exemplos ou API deve ser refletida no CHANGELOG e, se aplicável, no SUMMARY.md e README.
