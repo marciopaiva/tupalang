@@ -14,6 +14,7 @@ Organizar a documentação por público e facilitar a navegação.
 - [Roadmap](ROADMAP.md)
 - [Erros comuns](COMMON_ERRORS.md)
 - [Guia de exemplos](EXAMPLES_GUIDE.md)
+- [Glossário de sintaxe](SYNTAX_GLOSSARY.md)
 
 ## Para novos contribuidores
 
