@@ -8,6 +8,7 @@
   <rect width="1200" height="300" fill="url(#bg)"/>
   <g fill="#E66700" font-family="Inter, Segoe UI, Arial, sans-serif" font-weight="700">
     <text x="80" y="140" font-size="56">⚡ TUPÃ</text>
-    <text x="80" y="200" font-size="28" font-weight="400" fill="#f2f2f2">Força ancestral, código moderno</text>
+    <text x="80" y="200" font-size="28" font-weight="700" fill="#f2f2f2">Força ancestral, código moderno</text>
+    <text x="80" y="235" font-size="22" font-weight="400" fill="#f2f2f2">Linguagem brasileira para sistemas críticos e IA evolutiva</text>
   </g>
 </svg>
