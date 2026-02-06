@@ -1,0 +1,35 @@
+declare i32 @printf(i8*, ...)
+@.fmt_int = private unnamed_addr constant [5 x i8] c"%ld\0A\00"
+
+define void @main() {
+entry:
+  %t0 = alloca i64
+  store i64 2, i64* %t0
+  %t1 = load i64, i64* %t0
+  %t2 = alloca i64
+  %t3 = icmp eq i64 %t1, 1
+  br i1 %t3, label %match.arm1, label %match.next2
+match.arm1:
+  store i64 10, i64* %t2
+  br label %match.end0
+match.next2:
+  %t4 = icmp eq i64 %t1, 2
+  br i1 %t4, label %match.arm3, label %match.next4
+match.arm3:
+  store i64 20, i64* %t2
+  br label %match.end0
+match.next4:
+  br label %match.arm5
+match.arm5:
+  store i64 0, i64* %t2
+  br label %match.end0
+match.end0:
+  %t5 = load i64, i64* %t2
+  %t6 = alloca i64
+  store i64 %t5, i64* %t6
+  %t7 = load i64, i64* %t6
+  %t8 = getelementptr inbounds [5 x i8], [5 x i8]* @.fmt_int, i64 0, i64 0
+  call i32 (i8*, ...) @printf(i8* %t8, i64 %t7)
+  ret void
+}
+

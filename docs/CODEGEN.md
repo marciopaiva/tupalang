@@ -48,8 +48,9 @@ Em JSON, a saída vem encapsulada em um objeto:
 - Operadores aritméticos e comparações em `i64` e `f64`
 - `if`/`match` (inclui guardas, bind de identificadores e `match` em `string` via `strcmp`)
 - `while`, `for` em `range`, `break`/`continue`
-- Arrays de `i64`, indexação e atribuição
+- Arrays de `i64` e `f64`, indexação e atribuição
 - Chamadas a funções definidas pelo usuário
+- Concatenação de strings em runtime
 
 ## Próximos passos
 

@@ -276,7 +276,25 @@ impl Parser {
         })
     }
 
-    fn parse_stmt(&mut self) -> Result<Stmt, ParserError> {
+    fn parse_block(&mut self) -> Result<Block, ParserError> {
+        let (body, _) = self.parse_block_with_span()?;
+        Ok(body)
+    }
+
+    fn parse_block_with_span(&mut self) -> Result<(Block, Span), ParserError> {
+        let start = self.expect_span(Token::LBrace)?;
+        let mut body = Vec::new();
+        while let Some(tok) = self.peek() {
+            if *tok == Token::RBrace {
+                break;
+            }
+            body.push(self.parse_stmt_in_block()?);
+        }
+        let end = self.expect_span(Token::RBrace)?;
+        Ok((body, merge_span(start, end)))
+    }
+
+    fn parse_stmt_in_block(&mut self) -> Result<Stmt, ParserError> {
         match self.peek() {
             Some(Token::Let) => {
                 self.next();
@@ -353,28 +371,17 @@ impl Parser {
             }
             _ => {
                 let expr = self.parse_expr()?;
+                if matches!(self.peek(), Some(Token::Semicolon)) {
+                    self.next();
+                    return Ok(Stmt::Expr(expr));
+                }
+                if matches!(self.peek(), Some(Token::RBrace)) {
+                    return Ok(Stmt::Expr(expr));
+                }
                 self.expect(Token::Semicolon)?;
                 Ok(Stmt::Expr(expr))
             }
         }
-    }
-
-    fn parse_block(&mut self) -> Result<Block, ParserError> {
-        let (body, _) = self.parse_block_with_span()?;
-        Ok(body)
-    }
-
-    fn parse_block_with_span(&mut self) -> Result<(Block, Span), ParserError> {
-        let start = self.expect_span(Token::LBrace)?;
-        let mut body = Vec::new();
-        while let Some(tok) = self.peek() {
-            if *tok == Token::RBrace {
-                break;
-            }
-            body.push(self.parse_stmt()?);
-        }
-        let end = self.expect_span(Token::RBrace)?;
-        Ok((body, merge_span(start, end)))
     }
 
     fn parse_params(&mut self) -> Result<Vec<Param>, ParserError> {

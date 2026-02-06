@@ -1,0 +1,5 @@
+fn main() {
+  let xs = [1.0, 2.5, 3.75];
+  let second = xs[1];
+  print(second);
+}

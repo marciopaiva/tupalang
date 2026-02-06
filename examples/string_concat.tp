@@ -1,0 +1,6 @@
+fn main() {
+  let a = "ola";
+  let b = "mundo";
+  let c = a + b;
+  print(c);
+}

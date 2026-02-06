@@ -627,8 +627,12 @@ fn type_of_block_expr(
                     Ty::Unit
                 };
             }
+            Stmt::Expr(expr) => {
+                last_ty = type_of_expr(expr, env, functions, expected_return)?;
+            }
             _ => {
                 typecheck_stmt(stmt, env, functions, expected_return)?;
+                last_ty = Ty::Unit;
             }
         }
     }

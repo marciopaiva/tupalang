@@ -1,0 +1,6 @@
+fn main(x: i64) {
+  match x {
+    v if if v > 0 { true } else { false } => print(v),
+    _ => print(0),
+  }
+}

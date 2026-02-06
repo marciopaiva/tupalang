@@ -212,6 +212,51 @@ fn golden_codegen_float_ops() {
 }
 
 #[test]
+fn golden_codegen_match_expr() {
+    let stdout = run_cli(&["codegen", example_path("match_expr.tp").to_str().unwrap()]);
+    let expected = fs::read_to_string(expected_path("codegen_match_expr.txt")).unwrap();
+    assert_eq!(stdout, expected);
+}
+
+#[test]
+fn golden_codegen_if_expr() {
+    let stdout = run_cli(&["codegen", example_path("if_expr.tp").to_str().unwrap()]);
+    let expected = fs::read_to_string(expected_path("codegen_if_expr.txt")).unwrap();
+    assert_eq!(stdout, expected);
+}
+
+#[test]
+fn golden_codegen_return_if_expr() {
+    let stdout = run_cli(&["codegen", example_path("return_if_expr.tp").to_str().unwrap()]);
+    let expected = fs::read_to_string(expected_path("codegen_return_if_expr.txt")).unwrap();
+    assert_eq!(stdout, expected);
+}
+
+#[test]
+fn golden_codegen_match_guard_if_expr() {
+    let stdout = run_cli(&[
+        "codegen",
+        example_path("match_guard_if_expr.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("codegen_match_guard_if_expr.txt")).unwrap();
+    assert_eq!(stdout, expected);
+}
+
+#[test]
+fn golden_codegen_string_concat() {
+    let stdout = run_cli(&["codegen", example_path("string_concat.tp").to_str().unwrap()]);
+    let expected = fs::read_to_string(expected_path("codegen_string_concat.txt")).unwrap();
+    assert_eq!(stdout, expected);
+}
+
+#[test]
+fn golden_codegen_float_array_ops() {
+    let stdout = run_cli(&["codegen", example_path("float_array_ops.tp").to_str().unwrap()]);
+    let expected = fs::read_to_string(expected_path("codegen_float_array_ops.txt")).unwrap();
+    assert_eq!(stdout, expected);
+}
+
+#[test]
 fn golden_check_invalid_type() {
     let stderr = run_cli_err(&["check", example_path("invalid_type.tp").to_str().unwrap()]);
     let expected = fs::read_to_string(expected_path("check_invalid_type.txt")).unwrap();
