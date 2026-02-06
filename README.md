@@ -167,7 +167,6 @@ Tupã é a **primeira linguagem brasileira com ambição global desde Lua** (199
 |-----------|-----------|
 | [docs/SPEC.md](docs/SPEC.md) | Especificação técnica completa (gramática EBNF) |
 | [docs/MVP_PLAN.md](docs/MVP_PLAN.md) | Plano objetivo do MVP |
-| [docs/ISSUES.md](docs/ISSUES.md) | Lista de issues iniciais sugeridas |
 | [docs/ADOPTION_PLAN.md](docs/ADOPTION_PLAN.md) | Plano técnico mínimo de adoção |
 | [docs/AI_SUPPORT_SUGGESTIONS.md](docs/AI_SUPPORT_SUGGESTIONS.md) | Sugestões adicionais para apoio por IA |
 | [docs/CODEGEN.md](docs/CODEGEN.md) | Status e uso do codegen (stub) |
