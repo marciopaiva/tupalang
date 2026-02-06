@@ -14,6 +14,7 @@ Organizar a documentação por público e facilitar a navegação.
 ## Para novos contribuidores
 
 - [Arquitetura](ARCHITECTURE.md)
+- [Guia de Estilo](STYLE_GUIDE.md)
 
 ## Para contribuidores
 
