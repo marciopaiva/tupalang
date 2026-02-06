@@ -1,0 +1,5 @@
+fn arrays() {
+	let fixed: [i64; 3] = [1, 2, 3];
+	let first = fixed[0];
+	print(first);
+}

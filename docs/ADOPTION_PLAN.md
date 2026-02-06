@@ -9,6 +9,7 @@ Definir um caminho incremental para tornar a linguagem utilizável e confiável,
 - Definir o subset core (sintaxe e tipos básicos).
 - Especificação formal mínima (EBNF + semântica de tipos).
 - Suite de testes de conformidade (parser + type checker).
+- Saída de diagnósticos consumível por ferramentas (JSON).
 
 ## Fase 1: Toolchain básica
 
@@ -38,4 +39,4 @@ Definir um caminho incremental para tornar a linguagem utilizável e confiável,
 
 - SPEC com EBNF e regras de tipos.
 - Testes automatizados de parser/type checker.
-- CLI funcional com exemplos simples.
+- CLI funcional com exemplos simples e `--format pretty|json`.

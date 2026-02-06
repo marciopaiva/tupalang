@@ -17,6 +17,7 @@
 - Testes de regressão para parsing e types.
 - Linters e formatters com regras mínimas.
 - Mensagens de erro com exemplos de correção.
+- Saída JSON para integração com ferramentas e automações.
 
 ## Documentação
 

@@ -1,0 +1,9 @@
+fn classify(code: i64) {
+	let label = match code {
+		200 => "ok",
+		404 => "not_found",
+		other if other >= 500 => "server_error",
+		_ => "other",
+	};
+	print(label);
+}

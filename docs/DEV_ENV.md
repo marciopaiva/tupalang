@@ -54,4 +54,9 @@ cargo --version
 
 ```bash
 cargo test -p tupa-lexer -p tupa-parser
+cargo test -p tupa-typecheck
+cargo test -p tupa-cli
+
+# suite completa
+cargo test
 ```

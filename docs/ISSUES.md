@@ -1,16 +1,12 @@
 ﻿# Issues iniciais sugeridas
 
-1. Lexer básico
-   - Tokens: identificadores, literais, operadores, delimitadores.
-2. Parser de funções
-   - `fn name(args) -> type { ... }`.
-3. AST mínimo
-   - Nós para `fn`, `let`, `return`, `call`.
-4. Type checker primitivo
-   - Inferência simples e verificação de tipo.
-5. CLI tupa-cli
-   - `build` e `run`.
-6. Exemplo hello.tp
-   - Exemplo canônico e testável.
-7. Documentação de erro
-   - Padrão de mensagem de erro.
+1. Diagnósticos com span/linha/coluna (concluído)
+   - Padronizar mensagens de erro no lexer/parser/typechecker.
+2. Type checker v1 (concluído)
+   - Tipos de função, checagem de `return`, `match` e loops.
+3. CLI: formatos de saída (concluído)
+   - `--format pretty|json` para tokens/AST/diagnósticos.
+4. Codegen MVP (LLVM)
+   - Funções, aritmética básica e `print`.
+5. Mais exemplos
+   - Casos reais + edge cases em `examples/`.

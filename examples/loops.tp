@@ -1,0 +1,21 @@
+fn sum(values: [i64; 4]): i64 {
+	let total: i64 = 0;
+	let i: i64 = 0;
+	while i < 4 {
+		total = total + values[i];
+		i = i + 1;
+	}
+	return total;
+}
+
+fn iterate() {
+	for v in [1, 2, 3] {
+		print(v);
+	}
+}
+
+fn iterate_range() {
+	for i in 0..3 {
+		print(i);
+	}
+}

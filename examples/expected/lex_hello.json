@@ -1,0 +1,225 @@
+{
+  "tokens": [
+    {
+      "kind": "Fn",
+      "span": {
+        "end": 2,
+        "start": 0
+      }
+    },
+    {
+      "kind": "Ident",
+      "span": {
+        "end": 7,
+        "start": 3
+      },
+      "value": "main"
+    },
+    {
+      "kind": "LParen",
+      "span": {
+        "end": 8,
+        "start": 7
+      }
+    },
+    {
+      "kind": "RParen",
+      "span": {
+        "end": 9,
+        "start": 8
+      }
+    },
+    {
+      "kind": "LBrace",
+      "span": {
+        "end": 11,
+        "start": 10
+      }
+    },
+    {
+      "kind": "Let",
+      "span": {
+        "end": 16,
+        "start": 13
+      }
+    },
+    {
+      "kind": "Ident",
+      "span": {
+        "end": 21,
+        "start": 17
+      },
+      "value": "name"
+    },
+    {
+      "kind": "Colon",
+      "span": {
+        "end": 22,
+        "start": 21
+      }
+    },
+    {
+      "kind": "Ident",
+      "span": {
+        "end": 29,
+        "start": 23
+      },
+      "value": "string"
+    },
+    {
+      "kind": "Equal",
+      "span": {
+        "end": 31,
+        "start": 30
+      }
+    },
+    {
+      "kind": "Str",
+      "span": {
+        "end": 39,
+        "start": 32
+      },
+      "value": "Tupã"
+    },
+    {
+      "kind": "Semicolon",
+      "span": {
+        "end": 40,
+        "start": 39
+      }
+    },
+    {
+      "kind": "Let",
+      "span": {
+        "end": 45,
+        "start": 42
+      }
+    },
+    {
+      "kind": "Ident",
+      "span": {
+        "end": 51,
+        "start": 46
+      },
+      "value": "idade"
+    },
+    {
+      "kind": "Colon",
+      "span": {
+        "end": 52,
+        "start": 51
+      }
+    },
+    {
+      "kind": "Ident",
+      "span": {
+        "end": 56,
+        "start": 53
+      },
+      "value": "i64"
+    },
+    {
+      "kind": "Equal",
+      "span": {
+        "end": 58,
+        "start": 57
+      }
+    },
+    {
+      "kind": "Int",
+      "span": {
+        "end": 61,
+        "start": 59
+      },
+      "value": "28"
+    },
+    {
+      "kind": "Semicolon",
+      "span": {
+        "end": 62,
+        "start": 61
+      }
+    },
+    {
+      "kind": "Ident",
+      "span": {
+        "end": 69,
+        "start": 64
+      },
+      "value": "print"
+    },
+    {
+      "kind": "LParen",
+      "span": {
+        "end": 70,
+        "start": 69
+      }
+    },
+    {
+      "kind": "Ident",
+      "span": {
+        "end": 74,
+        "start": 70
+      },
+      "value": "name"
+    },
+    {
+      "kind": "RParen",
+      "span": {
+        "end": 75,
+        "start": 74
+      }
+    },
+    {
+      "kind": "Semicolon",
+      "span": {
+        "end": 76,
+        "start": 75
+      }
+    },
+    {
+      "kind": "Ident",
+      "span": {
+        "end": 83,
+        "start": 78
+      },
+      "value": "print"
+    },
+    {
+      "kind": "LParen",
+      "span": {
+        "end": 84,
+        "start": 83
+      }
+    },
+    {
+      "kind": "Ident",
+      "span": {
+        "end": 89,
+        "start": 84
+      },
+      "value": "idade"
+    },
+    {
+      "kind": "RParen",
+      "span": {
+        "end": 90,
+        "start": 89
+      }
+    },
+    {
+      "kind": "Semicolon",
+      "span": {
+        "end": 91,
+        "start": 90
+      }
+    },
+    {
+      "kind": "RBrace",
+      "span": {
+        "end": 93,
+        "start": 92
+      }
+    }
+  ]
+}

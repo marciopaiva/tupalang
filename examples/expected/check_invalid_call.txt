@@ -1,0 +1,5 @@
+error[E2002]: arity mismatch: expected 2, got 1
+  --> examples/invalid_call.tp:6:10
+   |
+ 6 | 	let y = add(1);
+   |          ^^^^^^

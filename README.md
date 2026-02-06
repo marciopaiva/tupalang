@@ -4,9 +4,9 @@
 > Linguagem brasileira para sistemas críticos e IA evolutiva
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/status-spec_v0.1_draft-yellow)](#)
+[![Status](https://img.shields.io/badge/status-impl_em_andamento-orange)](#)
 
-> **Status atual**: Especificação v0.1 completa. Implementação ainda não iniciada, contribuições são bem-vindas para iniciar o lexer.
+> **Status atual**: Especificação v0.1 completa. Implementação em andamento com lexer, parser, typechecker e CLI básicos.
 
 ```tupa
 // IA responsável desde o primeiro caractere
@@ -81,6 +81,9 @@ let model: Tensor<f16, shape=[4096, 4096], density=0.1> = load("llama3.tp")
 let idade = 28          // i64 (inferido)
 let nome: string = "Ana" // string (explícito)
 
+// Tipos de função (first-class)
+let add: fn(i64, i64) -> i64 = soma
+
 // Pattern matching elegante
 match http_status {
 	200 => print("OK"),
@@ -136,9 +139,10 @@ fn main() {
 
 | Tarefa | Arquivo | Dificuldade |
 |--------|---------|-------------|
-| Finalizar gramática EBNF para `match` expressions | `docs/SPEC.md` | ⭐⭐ |
-| Criar lexer mínimo com Rust + `nom` | `crates/tupa-lexer/` | ⭐⭐⭐ |
-| Escrever 5 exemplos de IA responsável | `examples/` | ⭐ |
+| Diagnósticos com span/linha/coluna (spec + implementação) | `docs/SPEC.md` | ⭐⭐ |
+| Evoluir typechecker (retorno, match, loops, tipos de função) | `crates/tupa-typecheck/` | ⭐⭐⭐ |
+| Protótipo de codegen MVP (LLVM) | `crates/tupa-codegen/` | ⭐⭐⭐⭐ |
+| Expandir exemplos reais + edge cases | `examples/` | ⭐ |
 
 👉 **Comece aqui**: Abra uma issue com `[RFC]` no título para propor mudanças na spec.
 
@@ -166,6 +170,7 @@ Tupã é a **primeira linguagem brasileira com ambição global desde Lua** (199
 | [docs/ISSUES.md](docs/ISSUES.md) | Lista de issues iniciais sugeridas |
 | [docs/ADOPTION_PLAN.md](docs/ADOPTION_PLAN.md) | Plano técnico mínimo de adoção |
 | [docs/AI_SUPPORT_SUGGESTIONS.md](docs/AI_SUPPORT_SUGGESTIONS.md) | Sugestões adicionais para apoio por IA |
+| [docs/CODEGEN.md](docs/CODEGEN.md) | Status e uso do codegen (stub) |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Guia para novos contribuidores |
 | [examples/README.md](examples/README.md) | Casos de uso reais (IA, microserviços, sistemas críticos) |
 
@@ -177,8 +182,14 @@ Tupã é a **primeira linguagem brasileira com ambição global desde Lua** (199
 # lex e imprime tokens
 cargo run -p tupa-cli -- lex examples/hello.tp
 
+# lex com saída JSON
+cargo run -p tupa-cli -- lex --format json examples/hello.tp
+
 # parse e imprime AST
 cargo run -p tupa-cli -- parse examples/hello.tp
+
+# parse e imprime AST em JSON
+cargo run -p tupa-cli -- parse --format json examples/hello.tp
 
 # parse via stdin
 cat examples/hello.tp | cargo run -p tupa-cli -- parse --stdin
@@ -189,13 +200,38 @@ cat examples/hello.tp | cargo run -p tupa-cli -- lex --stdin
 # parse e valida tipos
 cargo run -p tupa-cli -- check examples/hello.tp
 
+# valida tipos com saída JSON
+cargo run -p tupa-cli -- check --format json examples/hello.tp
+
 # valida via stdin
 cat examples/hello.tp | cargo run -p tupa-cli -- check --stdin
+
+# gera codegen (stub)
+cargo run -p tupa-cli -- codegen examples/hello.tp
+
+# gera codegen (stub) em JSON
+cargo run -p tupa-cli -- codegen --format json examples/hello.tp
 
 # versão e sobre
 cargo run -p tupa-cli -- version
 cargo run -p tupa-cli -- about
 ```
+
+---
+
+## 🧩 Diagnósticos (exemplo)
+
+Erros agora incluem código e linha/coluna:
+
+```
+error[E2001]: type mismatch: expected I64, got Bool
+	--> examples/invalid_type.tp:2:15
+	 |
+ 2 | 	let x: i64 = true;
+	 |               ^^^^
+```
+
+Saída JSON também está disponível via `--format json` para consumo por ferramentas.
 
 ---
 

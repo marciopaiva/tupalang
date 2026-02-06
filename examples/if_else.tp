@@ -1,0 +1,8 @@
+fn clamp(x: i64): i64 {
+	if x < 0 {
+		return 0;
+	} else if x > 10 {
+		return 10;
+	}
+	return x;
+}

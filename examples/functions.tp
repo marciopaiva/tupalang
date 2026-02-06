@@ -1,0 +1,9 @@
+fn soma(a: i64, b: i64): i64 {
+	return a + b;
+}
+
+fn main() {
+	let add: fn(i64, i64) -> i64 = soma;
+	let result = add(2, 3);
+	print(result);
+}

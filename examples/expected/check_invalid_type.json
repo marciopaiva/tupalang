@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "E2001",
+    "col": 15,
+    "label": "examples/invalid_type.tp",
+    "line": 2,
+    "line_text": "\tlet x: i64 = true;",
+    "message": "type mismatch: expected I64, got Bool",
+    "span": {
+      "end": 30,
+      "start": 26
+    }
+  }
+}

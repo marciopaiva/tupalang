@@ -1,0 +1,107 @@
+Program {
+    items: [
+        Function(
+            Function {
+                name: "main",
+                params: [],
+                return_type: None,
+                body: [
+                    Let {
+                        name: "name",
+                        ty: Some(
+                            Ident(
+                                "string",
+                            ),
+                        ),
+                        expr: Expr {
+                            kind: Str(
+                                "Tupã",
+                            ),
+                            span: Span {
+                                start: 32,
+                                end: 39,
+                            },
+                        },
+                    },
+                    Let {
+                        name: "idade",
+                        ty: Some(
+                            Ident(
+                                "i64",
+                            ),
+                        ),
+                        expr: Expr {
+                            kind: Int(
+                                28,
+                            ),
+                            span: Span {
+                                start: 59,
+                                end: 61,
+                            },
+                        },
+                    },
+                    Expr(
+                        Expr {
+                            kind: Call {
+                                callee: Expr {
+                                    kind: Ident(
+                                        "print",
+                                    ),
+                                    span: Span {
+                                        start: 64,
+                                        end: 69,
+                                    },
+                                },
+                                args: [
+                                    Expr {
+                                        kind: Ident(
+                                            "name",
+                                        ),
+                                        span: Span {
+                                            start: 70,
+                                            end: 74,
+                                        },
+                                    },
+                                ],
+                            },
+                            span: Span {
+                                start: 64,
+                                end: 75,
+                            },
+                        },
+                    ),
+                    Expr(
+                        Expr {
+                            kind: Call {
+                                callee: Expr {
+                                    kind: Ident(
+                                        "print",
+                                    ),
+                                    span: Span {
+                                        start: 78,
+                                        end: 83,
+                                    },
+                                },
+                                args: [
+                                    Expr {
+                                        kind: Ident(
+                                            "idade",
+                                        ),
+                                        span: Span {
+                                            start: 84,
+                                            end: 89,
+                                        },
+                                    },
+                                ],
+                            },
+                            span: Span {
+                                start: 78,
+                                end: 90,
+                            },
+                        },
+                    ),
+                ],
+            },
+        ),
+    ],
+}

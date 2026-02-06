@@ -40,6 +40,7 @@ pub enum Token {
     Colon,
     Equal,
     Arrow,
+    ThinArrow,
     EqualEqual,
     BangEqual,
     Less,
@@ -58,6 +59,18 @@ pub enum Token {
     Bang,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Span {
+    pub start: usize,
+    pub end: usize,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TokenSpan {
+    pub token: Token,
+    pub span: Span,
+}
+
 #[derive(Debug, Error)]
 pub enum LexerError {
     #[error("unexpected character '{0}' at position {1}")]
@@ -65,6 +78,11 @@ pub enum LexerError {
 }
 
 pub fn lex(input: &str) -> Result<Vec<Token>, LexerError> {
+    let tokens = lex_with_spans(input)?;
+    Ok(tokens.into_iter().map(|t| t.token).collect())
+}
+
+pub fn lex_with_spans(input: &str) -> Result<Vec<TokenSpan>, LexerError> {
     let mut rest = input;
     let mut tokens = Vec::new();
 
@@ -82,13 +100,18 @@ pub fn lex(input: &str) -> Result<Vec<Token>, LexerError> {
             return Err(LexerError::Unexpected('.', pos));
         }
 
+        let start = input.len().saturating_sub(rest.len());
         match token(rest) {
             Ok((next, tok)) => {
                 if matches!(tok, Token::Int(_)) && next.starts_with('.') && !next.starts_with("..") {
                     let pos = input.len().saturating_sub(next.len());
                     return Err(LexerError::Unexpected('.', pos));
                 }
-                tokens.push(tok);
+                let end = input.len().saturating_sub(next.len());
+                tokens.push(TokenSpan {
+                    token: tok,
+                    span: Span { start, end },
+                });
                 rest = next;
             }
             Err(_) => {
@@ -152,8 +175,8 @@ mod tests {
 
     #[test]
     fn lex_arrow() {
-        let tokens = lex("=>").unwrap();
-        assert_eq!(tokens, vec![Token::Arrow]);
+        let tokens = lex("=> ->").unwrap();
+        assert_eq!(tokens, vec![Token::Arrow, Token::ThinArrow]);
     }
 
     #[test]
@@ -244,6 +267,7 @@ fn token(input: &str) -> IResult<&str, Token> {
 fn punct(input: &str) -> IResult<&str, Token> {
     let cases = [
         ("=>", Token::Arrow),
+        ("->", Token::ThinArrow),
         ("==", Token::EqualEqual),
         ("!=", Token::BangEqual),
         ("<=", Token::LessEqual),

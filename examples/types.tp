@@ -1,0 +1,11 @@
+fn add(a: i64, b: i64): i64 {
+	let sum: i64 = a + b;
+	return sum;
+}
+
+fn is_adult(age: i64): bool {
+	if age >= 18 {
+		return true;
+	}
+	return false;
+}

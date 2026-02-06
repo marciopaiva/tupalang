@@ -119,7 +119,16 @@ let pair: (i64, string) = (42, "answer")
 let first = pair.0  // 42
 ```
 
-#### 3.2.2 Option / Result (error handling)
+#### 3.2.2 Function Types (Normative)
+```ebnf
+func_type = "fn" "(" [ type { "," type } ] ")" "->" type ;
+```
+```tupa
+let f: fn(i64, i64) -> i64 = add
+let g: fn() -> bool = is_ready
+```
+
+#### 3.2.3 Option / Result (error handling)
 ```ebnf
 option_type = "Option" "<" type ">" ;
 result_type = "Result" "<" type "," type ">" ;
@@ -133,7 +142,7 @@ fn divide(a: f64, b: f64) -> Result<f64, string> {
 }
 ```
 
-#### 3.2.3 Tensors (IA first-class)
+#### 3.2.4 Tensors (IA first-class)
 ```ebnf
 tensor_type = "Tensor" "<" 
 				type "," 
@@ -150,7 +159,7 @@ let image: Tensor<f32, shape=[28, 28]> = load("digit.tp")
 let weights: Tensor<f16, shape=[4096, 4096], density=0.1> = load("llama3.tp")
 ```
 
-#### 3.2.4 Alignment Types (ethical constraints)
+#### 3.2.5 Alignment Types (ethical constraints)
 ```ebnf
 safe_type = "Safe" "<" type "," constraint_list ">" ;
 constraint_list = "!" identifier { "," "!" identifier } ;
@@ -173,7 +182,7 @@ let loss: Safe<f64, !nan, !inf> = compute_loss(predictions, targets)
 - Se **não puder provar**, é erro de compilação (com sugestão de correção).
 - `unsafe { ... }` pode ser usado para assumir responsabilidade explícita.
 
-##### 3.2.4.1 Constraint Resolution (Normative)
+##### 3.2.5.1 Constraint Resolution (Normative)
 
 Para cada constraint `!c` em `Safe<T, !c>`:
 
@@ -796,7 +805,63 @@ fn train_step(batch: [Transaction], targets: [f64], lr: f64) {
 
 ---
 
-## 11. Versioning Policy
+## 11. Diagnostics (Normative)
+
+### 11.1 Error Format
+
+O compilador **deve** reportar erros com:
+
+- Código do erro (`E####`)
+- Mensagem curta
+- Span com linha/coluna (1-based)
+- Trecho de código com destaque
+
+Exemplo:
+
+```
+error[E0003]: expected ';' after expression
+	--> examples/hello.tp:3:18
+	 |
+ 3 | 	let idade = 28
+	 |                 ^
+```
+
+### 11.2 Warning Format
+
+Warnings seguem o mesmo formato, com prefixo `warning[W####]`.
+
+**Nota (informativa)**: Ferramentas podem oferecer saída JSON equivalente contendo `code`, `message`, `label`, `span`, `line` e `col` para integração com editores e automações.
+
+### 11.3 Span Semantics
+
+- O span **deve** apontar para o token causador do erro quando possível.
+- Para erros de EOF, o span **deve** apontar para o fim do arquivo.
+
+### 11.4 Type Diagnostics (Normative)
+
+O compilador **deve** emitir erros de tipo com um código e, quando possível, com span:
+
+```
+error[E2001]: type mismatch: expected I64, got Bool
+	--> examples/invalid_type.tp:2:15
+	 |
+ 2 | 	let x: i64 = true;
+	 |               ^^^^
+```
+
+Para aridade incorreta:
+
+```
+error[E2002]: arity mismatch: expected 2, got 1
+	--> examples/invalid_call.tp:6:10
+	 |
+ 6 | 	let y = add(1);
+	 |          ^^^^^^
+```
+
+---
+
+## 12. Versioning Policy
 
 - **Major** (v1 → v2): Breaking changes na gramática ou sistema de tipos
 - **Minor** (v0.1 → v0.2): Novas features compatíveis (ex: novo atributo)
@@ -806,7 +871,7 @@ fn train_step(batch: [Transaction], targets: [f64], lr: f64) {
 
 ---
 
-## 12. References & Influences
+## 13. References & Influences
 
 | Linguagem/Projeto | Influência em Tupã |
 |-------------------|-------------------|

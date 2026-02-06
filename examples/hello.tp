@@ -1,0 +1,6 @@
+fn main() {
+	let name: string = "Tupã";
+	let idade: i64 = 28;
+	print(name);
+	print(idade);
+}

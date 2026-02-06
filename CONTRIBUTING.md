@@ -21,6 +21,15 @@ Obrigado por considerar contribuir com o projeto Tupã.
 3. Abra o PR com contexto, motivação e escopo.
 4. Aguarde revisão.
 
+## Testes locais
+
+Antes de abrir o PR, rode:
+
+```bash
+cargo test -p tupa-cli
+cargo test
+```
+
 ## Estilo de documentação
 
 - Use português claro.
