@@ -148,6 +148,26 @@ func_type = "fn" "(" [ type { "," type } ] ")" "->" type ;
 ```tupa
 let f: fn(i64, i64) -> i64 = add
 let g: fn() -> bool = is_ready
+// Função anônima (lambda)
+let inc: fn(i64) -> i64 = |x| x + 1
+// Função como valor
+let apply: fn(fn(i64)->i64, i64) -> i64 = |f, x| f(x)
+let r = apply(inc, 10) // r = 11
+// Função com print e concatenação de string
+fn hello(name: string) {
+	print("Olá, " + name)
+}
+hello("Tupã")
+```
+
+**Comparação:**
+
+| Tupã | Python | Rust |
+|------|--------|------|
+| `let inc: fn(i64)->i64 = |x| x+1` | `inc = lambda x: x+1` | `let inc = |x: i64| x+1;` |
+| `print("Olá, " + name)` | `print("Olá, " + name)` | `println!("Olá, {}", name);` |
+
+Veja mais exemplos em [FAQ](FAQ.md) e [examples/README.md](../examples/README.md).
 ```
 
 #### 3.2.3 Option / Result (error handling)
