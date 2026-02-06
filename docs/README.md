@@ -25,6 +25,7 @@ Organizar a documentação por público e facilitar a navegação.
 - [Código de Conduta](../CODE_OF_CONDUCT.md)
 - [Ambiente de Desenvolvimento](DEV_ENV.md)
 - [Diagnostics Checklist](DIAGNOSTICS_CHECKLIST.md)
+- [Glossário de Diagnósticos](DIAGNOSTICS_GLOSSARY.md)
 
 ## Internals e planejamento
 
