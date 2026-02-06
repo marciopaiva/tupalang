@@ -31,6 +31,10 @@ enum Command {
         #[arg(long)]
         stdin: bool,
     },
+    /// Print CLI version
+    Version,
+    /// Print CLI about
+    About,
 }
 
 fn main() {
@@ -54,6 +58,15 @@ fn run(cli: Cli) -> Result<(), String> {
             let program = parse_program(&src).map_err(|e| e.to_string())?;
             typecheck_program(&program).map_err(|e| e.to_string())?;
             println!("OK");
+            Ok(())
+        }
+        Command::Version => {
+            println!(env!("CARGO_PKG_VERSION"));
+            Ok(())
+        }
+        Command::About => {
+            println!("Tupã CLI");
+            println!("Parse and typecheck Tupã source files");
             Ok(())
         }
     }

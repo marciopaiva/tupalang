@@ -185,6 +185,10 @@ cargo run -p tupa-cli -- check examples/hello.tp
 
 # valida via stdin
 cat examples/hello.tp | cargo run -p tupa-cli -- check --stdin
+
+# versão e sobre
+cargo run -p tupa-cli -- version
+cargo run -p tupa-cli -- about
 ```
 
 ---
