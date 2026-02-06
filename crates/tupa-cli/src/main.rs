@@ -455,12 +455,16 @@ fn token_kind(token: &Token) -> String {
         Token::Plus => "Plus",
         Token::PlusEqual => "PlusEqual",
         Token::Minus => "Minus",
+        Token::MinusEqual => "MinusEqual",
         Token::Star => "Star",
+        Token::StarEqual => "StarEqual",
         Token::Slash => "Slash",
+        Token::SlashEqual => "SlashEqual",
         Token::DoubleStar => "DoubleStar",
         Token::DotDot => "DotDot",
         Token::Dot => "Dot",
         Token::Bang => "Bang",
+        Token::Pipe => "Pipe",
     }
     .to_string()
 }

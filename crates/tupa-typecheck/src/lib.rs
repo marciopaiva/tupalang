@@ -322,6 +322,10 @@ fn typecheck_stmt(
             type_of_expr(expr, env, functions, expected_return)?;
             Ok(())
         }
+        Stmt::Lambda { .. } => {
+            // Not supported as a statement; skip or error as needed
+            Ok(())
+        }
     }
 }
 
@@ -348,10 +352,31 @@ fn type_of_expr(
                     ret: Box::new(sig.ret.clone()),
                 });
             }
+            // Built-in: print
+            if name == "print" {
+                // Aceita qualquer tipo como argumento, mas para o typechecker, define como fn(T) -> unit
+                // Aqui, para simplificar, aceita um parâmetro de tipo desconhecido
+                return Ok(Ty::Func {
+                    params: vec![Ty::Unknown],
+                    ret: Box::new(Ty::Unit),
+                });
+            }
             Err(TypeError::UnknownVar {
                 name: name.clone(),
                 span,
             })
+        }
+        ExprKind::Lambda { params, body } => {
+            // Try to infer parameter types from context if available
+            // (e.g., if this lambda is the callee of a call, the expected types are known)
+            // For now, default to Unknown for all params
+            let param_tys = vec![Ty::Unknown; params.len()];
+            let mut inner = env.child();
+            for (name, ty) in params.iter().zip(param_tys.iter()) {
+                inner.insert_var(name.clone(), ty.clone());
+            }
+            let ret_ty = type_of_expr(body, &mut inner, functions, expected_return)?;
+            Ok(Ty::Func { params: param_tys, ret: Box::new(ret_ty) })
         }
         ExprKind::Assign { name, expr } => {
             let rhs = type_of_expr(expr, env, functions, expected_return)?;
@@ -369,6 +394,10 @@ fn type_of_expr(
                 });
             }
             Ok(lhs)
+        }
+        ExprKind::AssignIndex { .. } => {
+            // Not yet supported in typechecker
+            Ok(Ty::Unknown)
         }
         ExprKind::ArrayLiteral(items) => {
             if items.is_empty() {
@@ -394,35 +423,7 @@ fn type_of_expr(
             })
         }
         ExprKind::Call { callee, args } => {
-            let callee_ty = match &callee.kind {
-                ExprKind::Ident(name) => {
-                    if name == "print" {
-                        if args.len() != 1 {
-                            return Err(TypeError::ArityMismatch {
-                                expected: 1,
-                                found: args.len(),
-                                span,
-                            });
-                        }
-                        let _ = type_of_expr(&args[0], env, functions, expected_return)?;
-                        return Ok(Ty::Unit);
-                    }
-                    if let Some(ty) = env.get_var_and_mark(name) {
-                        ty
-                    } else if let Some(sig) = functions.get(name) {
-                        Ty::Func {
-                            params: sig.params.clone(),
-                            ret: Box::new(sig.ret.clone()),
-                        }
-                    } else {
-                        return Err(TypeError::UnknownFunction {
-                            name: name.clone(),
-                            span,
-                        });
-                    }
-                }
-                _ => type_of_expr(callee, env, functions, expected_return)?,
-            };
+            let callee_ty = type_of_expr(callee, env, functions, expected_return)?;
             match callee_ty {
                 Ty::Func { params, ret } => {
                     if params.len() != args.len() {
@@ -434,7 +435,7 @@ fn type_of_expr(
                     }
                     for (arg, expected) in args.iter().zip(params.iter()) {
                         let found = type_of_expr(arg, env, functions, expected_return)?;
-                        if &found != expected {
+                        if &found != expected && *expected != Ty::Unknown {
                             return Err(TypeError::Mismatch {
                                 expected: expected.clone(),
                                 found,

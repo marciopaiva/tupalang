@@ -1,0 +1,10 @@
+fn apply(f: fn(i64) -> i64, v: i64): i64 {
+  f(v)
+}
+
+fn main() {
+  let f = |x| x + 1;
+  let g = |x| x * 2;
+  print(apply(f, 10));
+  print(apply(g, 5));
+}

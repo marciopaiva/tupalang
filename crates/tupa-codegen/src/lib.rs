@@ -11,6 +11,7 @@ enum SimpleTy {
     F64Ptr,
     Str,
     StrPtr,
+    BoolPtr,
     Void,
     Unknown,
 }
@@ -38,6 +39,7 @@ struct Codegen {
     malloc_declared: bool,
     strcpy_declared: bool,
     strcat_declared: bool,
+    snprintf_declared: bool,
     function_sigs: HashMap<String, FuncSig>,
 }
 
@@ -60,6 +62,80 @@ struct FuncSig {
 }
 
 impl Codegen {
+        fn declare_snprintf(&mut self) {
+            if !self.snprintf_declared {
+                self.globals.push("declare i32 @snprintf(i8*, i64, i8*, ...)".to_string());
+                self.snprintf_declared = true;
+            }
+        }
+    // Implementação real de concatenação de strings
+    fn emit_string_concat(&mut self, left: ExprValue, right: ExprValue) -> ExprValue {
+        self.declare_strlen();
+        self.declare_malloc();
+        self.declare_strcpy();
+        self.declare_strcat();
+        // strlen(left)
+        let len_left = self.fresh_temp();
+        self.lines.push(format!("  {len_left} = call i64 @strlen(i8* {})", left.llvm_value));
+        // strlen(right)
+        let len_right = self.fresh_temp();
+        self.lines.push(format!("  {len_right} = call i64 @strlen(i8* {})", right.llvm_value));
+        // total = len_left + len_right + 1
+        let total = self.fresh_temp();
+        self.lines.push(format!("  {total} = add i64 {len_left}, {len_right}"));
+        let total1 = self.fresh_temp();
+        self.lines.push(format!("  {total1} = add i64 {total}, 1"));
+        // malloc(total1)
+        let buf = self.fresh_temp();
+        self.lines.push(format!("  {buf} = call i8* @malloc(i64 {total1})"));
+        // strcpy(buf, left)
+        self.lines.push(format!("  call i8* @strcpy(i8* {buf}, i8* {})", left.llvm_value));
+        // strcat(buf, right)
+        self.lines.push(format!("  call i8* @strcat(i8* {buf}, i8* {})", right.llvm_value));
+        ExprValue::new(SimpleTy::Str, buf)
+    }
+
+    // Implementação real de formatação de valor como string
+    fn emit_format_value(&mut self, val: ExprValue) -> Option<ExprValue> {
+        match val.ty {
+            SimpleTy::I64 => {
+                self.declare_printf();
+                let (fmt, len) = self.intern_format_int();
+                let fmt_ptr = self.fresh_temp();
+                self.lines.push(format!("  {fmt_ptr} = getelementptr inbounds [{len} x i8], [{len} x i8]* {fmt}, i64 0, i64 0"));
+                // Aloca buffer
+                self.declare_malloc();
+                let buf = self.fresh_temp();
+                self.lines.push(format!("  {buf} = call i8* @malloc(i64 32)"));
+                // snprintf
+                self.declare_snprintf();
+                self.lines.push(format!("  call i32 @snprintf(i8* {buf}, i64 32, i8* {fmt_ptr}, i64 {})", val.llvm_value));
+                Some(ExprValue::new(SimpleTy::Str, buf))
+            }
+            SimpleTy::F64 => {
+                self.declare_printf();
+                let (fmt, len) = self.intern_format_float();
+                let fmt_ptr = self.fresh_temp();
+                self.lines.push(format!("  {fmt_ptr} = getelementptr inbounds [{len} x i8], [{len} x i8]* {fmt}, i64 0, i64 0"));
+                self.declare_malloc();
+                let buf = self.fresh_temp();
+                self.lines.push(format!("  {buf} = call i8* @malloc(i64 32)"));
+                self.declare_snprintf();
+                self.lines.push(format!("  call i32 @snprintf(i8* {buf}, i64 32, i8* {fmt_ptr}, double {})", val.llvm_value));
+                Some(ExprValue::new(SimpleTy::Str, buf))
+            }
+            SimpleTy::Bool => {
+                // bool para string: "true" ou "false"
+                let true_str = self.intern_string("true").0;
+                let false_str = self.intern_string("false").0;
+                let select = self.fresh_temp();
+                self.lines.push(format!("  {select} = select i1 {}, i8* {}, i8* {}", val.llvm_value, true_str, false_str));
+                Some(ExprValue::new(SimpleTy::Str, select))
+            }
+            SimpleTy::Str => Some(val),
+            _ => None,
+        }
+    }
     fn emit_program(&mut self, program: &Program) {
         for item in &program.items {
             let func = match item {
@@ -100,6 +176,9 @@ impl Codegen {
             Some(Type::Array { elem, .. }) if matches!(**elem, Type::Ident(ref n) if n == "string") => {
                 SimpleTy::StrPtr
             }
+            Some(Type::Array { elem, .. }) if matches!(**elem, Type::Ident(ref n) if n == "bool") => {
+                SimpleTy::BoolPtr
+            }
             Some(Type::Slice { elem }) if matches!(**elem, Type::Ident(ref n) if n == "i64") => {
                 SimpleTy::I64Ptr
             }
@@ -108,6 +187,9 @@ impl Codegen {
             }
             Some(Type::Slice { elem }) if matches!(**elem, Type::Ident(ref n) if n == "string") => {
                 SimpleTy::StrPtr
+            }
+            Some(Type::Slice { elem }) if matches!(**elem, Type::Ident(ref n) if n == "bool") => {
+                SimpleTy::BoolPtr
             }
             Some(_) => SimpleTy::Unknown,
             None => SimpleTy::Void,
@@ -120,6 +202,7 @@ impl Codegen {
             SimpleTy::F64Ptr => "double*",
             SimpleTy::Str => "i8*",
             SimpleTy::StrPtr => "i8**",
+            SimpleTy::BoolPtr => "i1*",
             _ => "void",
         };
 
@@ -146,6 +229,7 @@ impl Codegen {
                 "double*" => SimpleTy::F64Ptr,
                 "i8*" => SimpleTy::Str,
                 "i8**" => SimpleTy::StrPtr,
+                "i1*" => SimpleTy::BoolPtr,
                 _ => SimpleTy::Unknown,
             };
             let ptr = format!("%{}", param.name);
@@ -200,6 +284,8 @@ impl Codegen {
             self.lines.push("  ret i8* null".to_string());
         } else if ret_ty == SimpleTy::StrPtr {
             self.lines.push("  ret i8** null".to_string());
+        } else if ret_ty == SimpleTy::BoolPtr {
+            self.lines.push("  ret i1* null".to_string());
         } else {
             self.lines.push("  ret void".to_string());
         }
@@ -228,7 +314,7 @@ impl Codegen {
                         ty: value.ty,
                     },
                 );
-                ControlFlow::None
+                return ControlFlow::None;
             }
             Stmt::While { condition, body } => {
                 let head = self.fresh_label("while.head");
@@ -258,10 +344,10 @@ impl Codegen {
                 }
                 self.lines.push(format!("{end_label}:"));
                 self.loop_stack.pop();
-                match body_flow {
+                return match body_flow {
                     ControlFlow::Return => ControlFlow::Return,
                     _ => ControlFlow::None,
-                }
+                };
             }
             Stmt::For { name, iter, body } => {
                 let (start, end) = match self.extract_range(iter, env) {
@@ -333,33 +419,33 @@ impl Codegen {
                 } else {
                     env.remove(name);
                 }
-                match body_flow {
+                return match body_flow {
                     ControlFlow::Return => ControlFlow::Return,
                     _ => ControlFlow::None,
-                }
+                };
             }
             Stmt::Break => {
                 if let Some(labels) = self.loop_stack.last() {
                     self.lines
                         .push(format!("  br label %{}", labels.break_label));
-                    ControlFlow::Break
+                    return ControlFlow::Break;
                 } else {
                     self.lines.push("  ; TODO: break outside loop".to_string());
-                    ControlFlow::None
+                    return ControlFlow::None;
                 }
             }
             Stmt::Continue => {
                 if let Some(labels) = self.loop_stack.last() {
                     self.lines
                         .push(format!("  br label %{}", labels.continue_label));
-                    ControlFlow::Continue
+                    return ControlFlow::Continue;
                 } else {
                     self.lines.push("  ; TODO: continue outside loop".to_string());
-                    ControlFlow::None
+                    return ControlFlow::None;
                 }
             }
             Stmt::Expr(expr) => {
-                self.emit_expr_stmt(expr, env, ret_ty)
+                return self.emit_expr_stmt(expr, env, ret_ty);
             }
             Stmt::Return(expr) => {
                 if let Some(expr) = expr {
@@ -375,7 +461,11 @@ impl Codegen {
                         _ => self.lines.push("  ret void".to_string()),
                     }
                 }
-                ControlFlow::Return
+                return ControlFlow::Return;
+            }
+            Stmt::Lambda { .. } => {
+                // Not supported as a statement; skip or error as needed
+                return ControlFlow::None;
             }
         }
     }
@@ -673,17 +763,27 @@ impl Codegen {
                     SimpleTy::F64Ptr
                 } else if first == SimpleTy::Str {
                     SimpleTy::StrPtr
+                } else if first == SimpleTy::Bool {
+                    SimpleTy::BoolPtr
                 } else {
                     SimpleTy::Unknown
                 }
             }
             ExprKind::Ident(name) => env.get(name).map(|v| v.ty).unwrap_or(SimpleTy::Unknown),
             ExprKind::Assign { expr, .. } => self.infer_expr_ty(expr, env),
+            ExprKind::AssignIndex { expr, .. } => match self.infer_expr_ty(expr, env) {
+                SimpleTy::F64Ptr => SimpleTy::F64,
+                SimpleTy::I64Ptr => SimpleTy::I64,
+                SimpleTy::StrPtr => SimpleTy::Str,
+                SimpleTy::BoolPtr => SimpleTy::Bool,
+                _ => SimpleTy::Unknown,
+            },
             ExprKind::Index { expr, .. } => {
                 match self.infer_expr_ty(expr, env) {
                     SimpleTy::F64Ptr => SimpleTy::F64,
                     SimpleTy::I64Ptr => SimpleTy::I64,
                     SimpleTy::StrPtr => SimpleTy::Str,
+                    SimpleTy::BoolPtr => SimpleTy::Bool,
                     _ => SimpleTy::Unknown,
                 }
             }
@@ -732,6 +832,9 @@ impl Codegen {
                         }
                         _ => SimpleTy::Unknown,
                     },
+                    (SimpleTy::Str, SimpleTy::I64 | SimpleTy::F64 | SimpleTy::Bool)
+                    | (SimpleTy::I64 | SimpleTy::F64 | SimpleTy::Bool, SimpleTy::Str)
+                        if matches!(op, tupa_parser::BinaryOp::Add) => SimpleTy::Str,
                     _ => SimpleTy::Unknown,
                 }
             }
@@ -1086,6 +1189,31 @@ impl Codegen {
                 ));
                 ExprValue::new(SimpleTy::Str, ptr)
             }
+            ExprKind::Lambda { params, body } => {
+                // Minimal: emit a unique function for each lambda
+                let lambda_name = format!("lambda_{}", self.temp);
+                let mut lambda_codegen = Codegen::default();
+                let mut lambda_params = Vec::new();
+                for (i, param) in params.iter().enumerate() {
+                    lambda_params.push(format!("i64 %{}", param));
+                }
+                let param_decls = lambda_params.join(", ");
+                lambda_codegen.lines.push(format!("define i64 @{lambda_name}({param_decls}) {{"));
+                lambda_codegen.lines.push("entry:".to_string());
+                let mut lambda_env = HashMap::new();
+                for param in params {
+                    let alloca = lambda_codegen.fresh_temp();
+                    lambda_codegen.lines.push(format!("  {alloca} = alloca i64"));
+                    lambda_codegen.lines.push(format!("  store i64 %{param}, i64* {alloca}"));
+                    lambda_env.insert(param.clone(), LocalVar { ptr: alloca, ty: SimpleTy::I64 });
+                }
+                let result = lambda_codegen.emit_expr(body, &mut lambda_env);
+                lambda_codegen.lines.push(format!("  ret i64 {}", result.llvm_value));
+                lambda_codegen.lines.push("}".to_string());
+                self.lines.extend(lambda_codegen.lines);
+                // Return a function pointer as an integer (for test purposes)
+                ExprValue::new(SimpleTy::I64, format!("@{}", lambda_name))
+            }
             ExprKind::ArrayLiteral(items) => {
                 if items.is_empty() {
                     self.lines.push("  ; TODO: empty array literal".to_string());
@@ -1157,8 +1285,26 @@ impl Codegen {
                         ));
                         ExprValue::new(SimpleTy::StrPtr, data_ptr)
                     }
+                    SimpleTy::Bool => {
+                        let arr = self.fresh_temp();
+                        self.lines
+                            .push(format!("  {arr} = alloca [{len} x i1]"));
+                        for (idx, value) in values.into_iter().enumerate() {
+                            let elem_ptr = self.fresh_temp();
+                            self.lines.push(format!(
+                                "  {elem_ptr} = getelementptr inbounds [{len} x i1], [{len} x i1]* {arr}, i64 0, i64 {idx}"
+                            ));
+                            self.lines
+                                .push(format!("  store i1 {}, i1* {elem_ptr}", value.llvm_value));
+                        }
+                        let data_ptr = self.fresh_temp();
+                        self.lines.push(format!(
+                            "  {data_ptr} = getelementptr inbounds [{len} x i1], [{len} x i1]* {arr}, i64 0, i64 0"
+                        ));
+                        ExprValue::new(SimpleTy::BoolPtr, data_ptr)
+                    }
                     _ => {
-                        self.lines.push("  ; TODO: non-i64/f64/str array literal".to_string());
+                        self.lines.push("  ; TODO: non-i64/f64/str/bool array literal".to_string());
                         ExprValue::new(SimpleTy::Unknown, "0".to_string())
                     }
                 }
@@ -1183,6 +1329,62 @@ impl Codegen {
                 }
                 self.lines.push("  ; TODO: assign to unknown var".to_string());
                 ExprValue::new(SimpleTy::Unknown, "0".to_string())
+            }
+            ExprKind::AssignIndex { expr, index, value } => {
+                let base = self.emit_expr(expr, env);
+                let idx = self.emit_expr(index, env);
+                let rhs = self.emit_expr(value, env);
+                if idx.ty != SimpleTy::I64 {
+                    self.lines.push("  ; TODO: non-i64 index assign".to_string());
+                    return ExprValue::new(SimpleTy::Unknown, "0".to_string());
+                }
+                match (base.ty, rhs.ty) {
+                    (SimpleTy::I64Ptr, SimpleTy::I64) => {
+                        let elem_ptr = self.fresh_temp();
+                        self.lines.push(format!(
+                            "  {elem_ptr} = getelementptr inbounds i64, i64* {}, i64 {}",
+                            base.llvm_value, idx.llvm_value
+                        ));
+                        self.lines
+                            .push(format!("  store i64 {}, i64* {elem_ptr}", rhs.llvm_value));
+                        ExprValue::new(SimpleTy::I64, rhs.llvm_value)
+                    }
+                    (SimpleTy::F64Ptr, SimpleTy::F64) => {
+                        let elem_ptr = self.fresh_temp();
+                        self.lines.push(format!(
+                            "  {elem_ptr} = getelementptr inbounds double, double* {}, i64 {}",
+                            base.llvm_value, idx.llvm_value
+                        ));
+                        self.lines
+                            .push(format!("  store double {}, double* {elem_ptr}", rhs.llvm_value));
+                        ExprValue::new(SimpleTy::F64, rhs.llvm_value)
+                    }
+                    (SimpleTy::StrPtr, SimpleTy::Str) => {
+                        let elem_ptr = self.fresh_temp();
+                        self.lines.push(format!(
+                            "  {elem_ptr} = getelementptr inbounds i8*, i8** {}, i64 {}",
+                            base.llvm_value, idx.llvm_value
+                        ));
+                        self.lines
+                            .push(format!("  store i8* {}, i8** {elem_ptr}", rhs.llvm_value));
+                        ExprValue::new(SimpleTy::Str, rhs.llvm_value)
+                    }
+                    (SimpleTy::BoolPtr, SimpleTy::Bool) => {
+                        let elem_ptr = self.fresh_temp();
+                        self.lines.push(format!(
+                            "  {elem_ptr} = getelementptr inbounds i1, i1* {}, i64 {}",
+                            base.llvm_value, idx.llvm_value
+                        ));
+                        self.lines
+                            .push(format!("  store i1 {}, i1* {elem_ptr}", rhs.llvm_value));
+                        ExprValue::new(SimpleTy::Bool, rhs.llvm_value)
+                    }
+                    _ => {
+                        self.lines
+                            .push("  ; TODO: unsupported index assignment".to_string());
+                        ExprValue::new(SimpleTy::Unknown, "0".to_string())
+                    }
+                }
             }
             ExprKind::Index { expr, index } => {
                 let base = self.emit_expr(expr, env);
@@ -1219,6 +1421,17 @@ impl Codegen {
                     self.lines
                         .push(format!("  {tmp} = load i8*, i8** {elem_ptr}"));
                     return ExprValue::new(SimpleTy::Str, tmp);
+                }
+                if base.ty == SimpleTy::BoolPtr && idx.ty == SimpleTy::I64 {
+                    let elem_ptr = self.fresh_temp();
+                    self.lines.push(format!(
+                        "  {elem_ptr} = getelementptr inbounds i1, i1* {}, i64 {}",
+                        base.llvm_value, idx.llvm_value
+                    ));
+                    let tmp = self.fresh_temp();
+                    self.lines
+                        .push(format!("  {tmp} = load i1, i1* {elem_ptr}"));
+                    return ExprValue::new(SimpleTy::Bool, tmp);
                 }
                 self.lines.push("  ; TODO: unsupported index".to_string());
                 ExprValue::new(SimpleTy::Unknown, "0".to_string())
@@ -1260,85 +1473,82 @@ impl Codegen {
                 }
             }
             ExprKind::Call { callee, args } => {
+                // Suporte a print
                 if let ExprKind::Ident(name) = &callee.kind {
-                    if name == "print" && args.len() == 1 {
-                        let value = self.emit_expr(&args[0], env);
-                        match value.ty {
-                            SimpleTy::Str => {
-                                self.declare_puts();
-                                self.lines.push(format!("  call i32 @puts(i8* {})", value.llvm_value));
+                    if name == "print" {
+                        if let Some(arg) = args.get(0) {
+                            let val = self.emit_expr(arg, env);
+                            match val.ty {
+                                SimpleTy::Str => {
+                                    self.declare_puts();
+                                    self.lines.push(format!("  call i32 @puts(i8* {})", val.llvm_value));
+                                }
+                                SimpleTy::I64 => {
+                                    self.declare_printf();
+                                    let (fmt, len) = self.intern_format_int();
+                                    let fmt_ptr = self.fresh_temp();
+                                    self.lines.push(format!("  {fmt_ptr} = getelementptr inbounds [{len} x i8], [{len} x i8]* {fmt}, i64 0, i64 0"));
+                                    self.lines.push(format!("  call i32 (i8*, ...) @printf(i8* {fmt_ptr}, i64 {})", val.llvm_value));
+                                }
+                                SimpleTy::F64 => {
+                                    self.declare_printf();
+                                    let (fmt, len) = self.intern_format_float();
+                                    let fmt_ptr = self.fresh_temp();
+                                    self.lines.push(format!("  {fmt_ptr} = getelementptr inbounds [{len} x i8], [{len} x i8]* {fmt}, i64 0, i64 0"));
+                                    self.lines.push(format!("  call i32 (i8*, ...) @printf(i8* {fmt_ptr}, double {})", val.llvm_value));
+                                }
+                                SimpleTy::Bool => {
+                                    self.declare_printf();
+                                    let (fmt, len) = self.intern_format_int();
+                                    let fmt_ptr = self.fresh_temp();
+                                    self.lines.push(format!("  {fmt_ptr} = getelementptr inbounds [{len} x i8], [{len} x i8]* {fmt}, i64 0, i64 0"));
+                                    let zext = self.fresh_temp();
+                                    self.lines.push(format!("  {zext} = zext i1 {} to i64", val.llvm_value));
+                                    self.lines.push(format!("  call i32 (i8*, ...) @printf(i8* {fmt_ptr}, i64 {zext})"));
+                                }
+                                _ => {
+                                    self.lines.push("  ; print de tipo não suportado".to_string());
+                                }
                             }
-                            SimpleTy::I64 => {
-                                self.declare_printf();
-                                let (fmt, len) = self.intern_format_int();
-                                let fmt_ptr = self.fresh_temp();
-                                self.lines.push(format!(
-                                    "  {fmt_ptr} = getelementptr inbounds [{len} x i8], [{len} x i8]* {fmt}, i64 0, i64 0"
-                                ));
-                                self.lines.push(format!(
-                                    "  call i32 (i8*, ...) @printf(i8* {fmt_ptr}, i64 {})",
-                                    value.llvm_value
-                                ));
-                            }
-                            SimpleTy::F64 => {
-                                self.declare_printf();
-                                let (fmt, len) = self.intern_format_float();
-                                let fmt_ptr = self.fresh_temp();
-                                self.lines.push(format!(
-                                    "  {fmt_ptr} = getelementptr inbounds [{len} x i8], [{len} x i8]* {fmt}, i64 0, i64 0"
-                                ));
-                                self.lines.push(format!(
-                                    "  call i32 (i8*, ...) @printf(i8* {fmt_ptr}, double {})",
-                                    value.llvm_value
-                                ));
-                            }
-                            SimpleTy::Bool => {
-                                self.declare_printf();
-                                let (fmt, len) = self.intern_format_int();
-                                let fmt_ptr = self.fresh_temp();
-                                self.lines.push(format!(
-                                    "  {fmt_ptr} = getelementptr inbounds [{len} x i8], [{len} x i8]* {fmt}, i64 0, i64 0"
-                                ));
-                                let as_i64 = self.fresh_temp();
-                                self.lines
-                                    .push(format!("  {as_i64} = zext i1 {} to i64", value.llvm_value));
-                                self.lines.push(format!(
-                                    "  call i32 (i8*, ...) @printf(i8* {fmt_ptr}, i64 {as_i64})"
-                                ));
-                            }
-                            _ => self.lines.push("  ; TODO: unsupported print type".to_string()),
                         }
                         return ExprValue::new(SimpleTy::Void, "0".to_string());
                     }
-                    if let Some(sig) = self.function_sigs.get(name).cloned() {
-                        let mut arg_values = Vec::new();
-                        for arg in args {
-                            arg_values.push(self.emit_expr(arg, env));
-                        }
-                        let args_llvm = sig
-                            .params
-                            .iter()
-                            .zip(arg_values.iter())
-                            .map(|(param_ty, value)| {
-                                format!("{} {}", self.llvm_ty(*param_ty), value.llvm_value)
-                            })
-                            .collect::<Vec<_>>()
-                            .join(", ");
-                        let ret_ty = self.llvm_ty(sig.ret);
-                        if sig.ret == SimpleTy::Void {
-                            self.lines
-                                .push(format!("  call {ret_ty} @{name}({args_llvm})"));
-                            return ExprValue::new(SimpleTy::Void, "0".to_string());
-                        }
-                        let tmp = self.fresh_temp();
-                        self.lines.push(format!(
-                            "  {tmp} = call {ret_ty} @{name}({args_llvm})"
-                        ));
-                        return ExprValue::new(sig.ret, tmp);
-                    }
                 }
-                self.lines.push("  ; TODO: unsupported call".to_string());
-                ExprValue::new(SimpleTy::Unknown, "0".to_string())
+                // Chamada de função/lambda
+                // Se for identificador de função conhecida, use @nome
+                let (is_direct_fn, fn_name) = match &callee.kind {
+                    ExprKind::Ident(name) => {
+                        if self.function_sigs.contains_key(name) {
+                            (true, name.clone())
+                        } else {
+                            (false, String::new())
+                        }
+                    }
+                    _ => (false, String::new()),
+                };
+                let mut arg_values = Vec::new();
+                for arg in args {
+                    arg_values.push(self.emit_expr(arg, env));
+                }
+                let args_llvm = arg_values
+                    .iter()
+                    .map(|v| match v.ty {
+                        SimpleTy::I64 => format!("i64 {}", v.llvm_value),
+                        SimpleTy::F64 => format!("double {}", v.llvm_value),
+                        SimpleTy::Bool => format!("i1 {}", v.llvm_value),
+                        SimpleTy::Str => format!("i8* {}", v.llvm_value),
+                        _ => format!("i64 {}", v.llvm_value),
+                    })
+                    .collect::<Vec<_>>()
+                    .join(", ");
+                let tmp = self.fresh_temp();
+                if is_direct_fn {
+                    self.lines.push(format!("  {tmp} = call i64 @{fn_name}({})", args_llvm));
+                } else {
+                    let callee_val = self.emit_expr(callee, env);
+                    self.lines.push(format!("  {tmp} = call i64 {}({})", callee_val.llvm_value, args_llvm));
+                }
+                ExprValue::new(SimpleTy::I64, tmp)
             }
             ExprKind::Binary { op, left, right } => {
                 if matches!(op, tupa_parser::BinaryOp::Range) {
@@ -1544,40 +1754,7 @@ impl Codegen {
                     (SimpleTy::Str, SimpleTy::Str) => {
                         match op {
                             tupa_parser::BinaryOp::Add => {
-                                self.declare_strlen();
-                                self.declare_malloc();
-                                self.declare_strcpy();
-                                self.declare_strcat();
-                                let len_left = self.fresh_temp();
-                                self.lines.push(format!(
-                                    "  {len_left} = call i64 @strlen(i8* {})",
-                                    left_val.llvm_value
-                                ));
-                                let len_right = self.fresh_temp();
-                                self.lines.push(format!(
-                                    "  {len_right} = call i64 @strlen(i8* {})",
-                                    right_val.llvm_value
-                                ));
-                                let total = self.fresh_temp();
-                                self.lines.push(format!(
-                                    "  {total} = add i64 {len_left}, {len_right}"
-                                ));
-                                let total_plus = self.fresh_temp();
-                                self.lines
-                                    .push(format!("  {total_plus} = add i64 {total}, 1"));
-                                let buf = self.fresh_temp();
-                                self.lines.push(format!(
-                                    "  {buf} = call i8* @malloc(i64 {total_plus})"
-                                ));
-                                self.lines.push(format!(
-                                    "  call i8* @strcpy(i8* {buf}, i8* {})",
-                                    left_val.llvm_value
-                                ));
-                                self.lines.push(format!(
-                                    "  call i8* @strcat(i8* {buf}, i8* {})",
-                                    right_val.llvm_value
-                                ));
-                                return ExprValue::new(SimpleTy::Str, buf);
+                                return self.emit_string_concat(left_val, right_val);
                             }
                             tupa_parser::BinaryOp::Equal | tupa_parser::BinaryOp::NotEqual => {
                                 let op = if matches!(op, tupa_parser::BinaryOp::Equal) {
@@ -1601,6 +1778,18 @@ impl Codegen {
                         }
                         self.lines.push("  ; TODO: unsupported string binary".to_string());
                         return ExprValue::new(SimpleTy::Unknown, "0".to_string());
+                    }
+                    (SimpleTy::Str, SimpleTy::I64 | SimpleTy::F64 | SimpleTy::Bool)
+                        if matches!(op, tupa_parser::BinaryOp::Add) => {
+                        if let Some(rhs_str) = self.emit_format_value(right_val) {
+                            return self.emit_string_concat(left_val, rhs_str);
+                        }
+                    }
+                    (SimpleTy::I64 | SimpleTy::F64 | SimpleTy::Bool, SimpleTy::Str)
+                        if matches!(op, tupa_parser::BinaryOp::Add) => {
+                        if let Some(lhs_str) = self.emit_format_value(left_val) {
+                            return self.emit_string_concat(lhs_str, right_val);
+                        }
                     }
                     _ => {}
                 }
@@ -1629,6 +1818,9 @@ impl Codegen {
             Type::Array { elem, .. } if matches!(**elem, Type::Ident(ref n) if n == "string") => {
                 "i8**".to_string()
             }
+            Type::Array { elem, .. } if matches!(**elem, Type::Ident(ref n) if n == "bool") => {
+                "i1*".to_string()
+            }
             Type::Slice { elem } if matches!(**elem, Type::Ident(ref n) if n == "i64") => {
                 "i64*".to_string()
             }
@@ -1637,6 +1829,9 @@ impl Codegen {
             }
             Type::Slice { elem } if matches!(**elem, Type::Ident(ref n) if n == "string") => {
                 "i8**".to_string()
+            }
+            Type::Slice { elem } if matches!(**elem, Type::Ident(ref n) if n == "bool") => {
+                "i1*".to_string()
             }
             _ => "void".to_string(),
         }
@@ -1657,6 +1852,9 @@ impl Codegen {
             Type::Array { elem, .. } if matches!(**elem, Type::Ident(ref n) if n == "string") => {
                 SimpleTy::StrPtr
             }
+            Type::Array { elem, .. } if matches!(**elem, Type::Ident(ref n) if n == "bool") => {
+                SimpleTy::BoolPtr
+            }
             Type::Slice { elem } if matches!(**elem, Type::Ident(ref n) if n == "i64") => {
                 SimpleTy::I64Ptr
             }
@@ -1665,6 +1863,9 @@ impl Codegen {
             }
             Type::Slice { elem } if matches!(**elem, Type::Ident(ref n) if n == "string") => {
                 SimpleTy::StrPtr
+            }
+            Type::Slice { elem } if matches!(**elem, Type::Ident(ref n) if n == "bool") => {
+                SimpleTy::BoolPtr
             }
             _ => SimpleTy::Unknown,
         }
@@ -1679,6 +1880,7 @@ impl Codegen {
             SimpleTy::F64Ptr => "double*",
             SimpleTy::Str => "i8*",
             SimpleTy::StrPtr => "i8**",
+            SimpleTy::BoolPtr => "i1*",
             SimpleTy::Void => "void",
             SimpleTy::Unknown => "i64",
         }

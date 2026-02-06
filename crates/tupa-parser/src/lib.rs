@@ -45,8 +45,11 @@ pub enum Stmt {
     Break,
     Continue,
     Expr(Expr),
+    Lambda {
+        params: Vec<String>,
+        body: Box<Expr>,
+    },
 }
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum Type {
     Ident(String),
@@ -75,6 +78,10 @@ pub struct Expr {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ExprKind {
+        Lambda {
+            params: Vec<String>,
+            body: Box<Expr>,
+        },
     Int(i64),
     Float(f64),
     Str(String),
@@ -84,6 +91,11 @@ pub enum ExprKind {
     Assign {
         name: String,
         expr: Box<Expr>,
+    },
+    AssignIndex {
+        expr: Box<Expr>,
+        index: Box<Expr>,
+        value: Box<Expr>,
     },
     ArrayLiteral(Vec<Expr>),
     Call { callee: Box<Expr>, args: Vec<Expr> },
@@ -122,6 +134,7 @@ pub enum ElseBranch {
 #[derive(Debug, Clone, PartialEq)]
 pub struct MatchArm {
     pub pattern: Pattern,
+    pub pattern_span: Span,
     pub guard: Option<Expr>,
     pub expr: Expr,
 }
@@ -226,6 +239,34 @@ impl Parser {
 
     fn peek_next(&self) -> Option<&Token> {
         self.tokens.get(self.pos + 1).map(|t| &t.token)
+    }
+
+    fn is_index_assignment(&self) -> bool {
+        if !matches!(self.peek(), Some(Token::Ident(_))) {
+            return false;
+        }
+        if !matches!(self.peek_next(), Some(Token::LBracket)) {
+            return false;
+        }
+        let mut depth = 0usize;
+        let mut idx = self.pos + 1;
+        while idx < self.tokens.len() {
+            match &self.tokens[idx].token {
+                Token::LBracket => depth += 1,
+                Token::RBracket => {
+                    if depth == 1 {
+                        return matches!(
+                            self.tokens.get(idx + 1).map(|t| &t.token),
+                            Some(Token::Equal)
+                        );
+                    }
+                    depth = depth.saturating_sub(1);
+                }
+                _ => {}
+            }
+            idx += 1;
+        }
+        false
     }
 
     fn next(&mut self) -> Option<TokenSpan> {
@@ -521,8 +562,42 @@ impl Parser {
     }
 
     fn parse_expr(&mut self) -> Result<Expr, ParserError> {
+        if self.is_index_assignment() {
+            let ident = self.next().ok_or(ParserError::Eof(self.eof_pos))?;
+            let (name, ident_span) = match ident {
+                TokenSpan {
+                    token: Token::Ident(name),
+                    span,
+                } => (name, span),
+                TokenSpan { token, span } => return Err(ParserError::Unexpected(token, span)),
+            };
+            self.expect(Token::LBracket)?;
+            let index = self.parse_expr()?;
+            self.expect(Token::RBracket)?;
+            self.expect(Token::Equal)?;
+            let value = self.parse_expr()?;
+            let base = Expr::new(ExprKind::Ident(name), ident_span);
+            let span = merge_span(ident_span, value.span);
+            return Ok(Expr::new(
+                ExprKind::AssignIndex {
+                    expr: Box::new(base),
+                    index: Box::new(index),
+                    value: Box::new(value),
+                },
+                span,
+            ));
+        }
         if matches!(self.peek(), Some(Token::Ident(_)))
-            && matches!(self.peek_next(), Some(Token::Equal | Token::PlusEqual))
+            && matches!(
+                self.peek_next(),
+                Some(
+                    Token::Equal
+                        | Token::PlusEqual
+                        | Token::MinusEqual
+                        | Token::StarEqual
+                        | Token::SlashEqual
+                )
+            )
         {
             let ident = self.next().ok_or(ParserError::Eof(self.eof_pos))?;
             let name = match ident {
@@ -558,6 +633,78 @@ impl Parser {
                     let bin = Expr::new(
                         ExprKind::Binary {
                             op: BinaryOp::Add,
+                            left: Box::new(lhs),
+                            right: Box::new(rhs),
+                        },
+                        bin_span,
+                    );
+                    let span = merge_span(name.1, bin.span);
+                    return Ok(Expr::new(
+                        ExprKind::Assign {
+                            name: name.0,
+                            expr: Box::new(bin),
+                        },
+                        span,
+                    ));
+                }
+                TokenSpan {
+                    token: Token::MinusEqual,
+                    ..
+                } => {
+                    let rhs = self.parse_expr()?;
+                    let lhs = Expr::new(ExprKind::Ident(name.0.clone()), name.1);
+                    let bin_span = merge_span(lhs.span, rhs.span);
+                    let bin = Expr::new(
+                        ExprKind::Binary {
+                            op: BinaryOp::Sub,
+                            left: Box::new(lhs),
+                            right: Box::new(rhs),
+                        },
+                        bin_span,
+                    );
+                    let span = merge_span(name.1, bin.span);
+                    return Ok(Expr::new(
+                        ExprKind::Assign {
+                            name: name.0,
+                            expr: Box::new(bin),
+                        },
+                        span,
+                    ));
+                }
+                TokenSpan {
+                    token: Token::StarEqual,
+                    ..
+                } => {
+                    let rhs = self.parse_expr()?;
+                    let lhs = Expr::new(ExprKind::Ident(name.0.clone()), name.1);
+                    let bin_span = merge_span(lhs.span, rhs.span);
+                    let bin = Expr::new(
+                        ExprKind::Binary {
+                            op: BinaryOp::Mul,
+                            left: Box::new(lhs),
+                            right: Box::new(rhs),
+                        },
+                        bin_span,
+                    );
+                    let span = merge_span(name.1, bin.span);
+                    return Ok(Expr::new(
+                        ExprKind::Assign {
+                            name: name.0,
+                            expr: Box::new(bin),
+                        },
+                        span,
+                    ));
+                }
+                TokenSpan {
+                    token: Token::SlashEqual,
+                    ..
+                } => {
+                    let rhs = self.parse_expr()?;
+                    let lhs = Expr::new(ExprKind::Ident(name.0.clone()), name.1);
+                    let bin_span = merge_span(lhs.span, rhs.span);
+                    let bin = Expr::new(
+                        ExprKind::Binary {
+                            op: BinaryOp::Div,
                             left: Box::new(lhs),
                             right: Box::new(rhs),
                         },
@@ -609,32 +756,52 @@ impl Parser {
     }
 
     fn parse_unary(&mut self) -> Result<Expr, ParserError> {
-        match self.peek() {
-            Some(Token::Bang) => {
-                let span = self.next().unwrap().span;
-                let expr = self.parse_unary()?;
-                let full = merge_span(span, expr.span);
-                Ok(Expr::new(
-                    ExprKind::Unary {
-                        op: UnaryOp::Not,
-                        expr: Box::new(expr),
-                    },
-                    full,
-                ))
+        if matches!(self.peek(), Some(Token::Pipe)) {
+            // Lambda: |x, y| expr
+            let start = self.next().unwrap().span;
+            let mut params = Vec::new();
+            loop {
+                match self.next() {
+                    Some(TokenSpan { token: Token::Ident(name), .. }) => params.push(name),
+                    Some(TokenSpan { token: Token::Pipe, .. }) => break,
+                    Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                    None => return Err(ParserError::Eof(self.eof_pos)),
+                }
+                if matches!(self.peek(), Some(Token::Comma)) {
+                    self.next();
+                }
             }
-            Some(Token::Minus) => {
-                let span = self.next().unwrap().span;
-                let expr = self.parse_unary()?;
-                let full = merge_span(span, expr.span);
-                Ok(Expr::new(
-                    ExprKind::Unary {
-                        op: UnaryOp::Neg,
-                        expr: Box::new(expr),
-                    },
-                    full,
-                ))
+            let body = self.parse_expr()?;
+            let span = merge_span(start, body.span);
+            Ok(Expr::new(ExprKind::Lambda { params, body: Box::new(body) }, span))
+        } else {
+            match self.peek() {
+                Some(Token::Bang) => {
+                    let span = self.next().unwrap().span;
+                    let expr = self.parse_unary()?;
+                    let full = merge_span(span, expr.span);
+                    Ok(Expr::new(
+                        ExprKind::Unary {
+                            op: UnaryOp::Not,
+                            expr: Box::new(expr),
+                        },
+                        full,
+                    ))
+                }
+                Some(Token::Minus) => {
+                    let span = self.next().unwrap().span;
+                    let expr = self.parse_unary()?;
+                    let full = merge_span(span, expr.span);
+                    Ok(Expr::new(
+                        ExprKind::Unary {
+                            op: UnaryOp::Neg,
+                            expr: Box::new(expr),
+                        },
+                        full,
+                    ))
+                }
+                _ => self.parse_primary(),
             }
-            _ => self.parse_primary(),
         }
     }
 
@@ -645,52 +812,19 @@ impl Parser {
         }
 
         let mut expr = match self.next() {
-            Some(TokenSpan {
-                token: Token::Int(value),
-                span,
-            }) => value
-                .parse::<i64>()
-                .map(|v| Expr::new(ExprKind::Int(v), span))
-                .map_err(|_| ParserError::Unexpected(Token::Int(value), span)),
-            Some(TokenSpan {
-                token: Token::Float(value),
-                span,
-            }) => value
-                .parse::<f64>()
-                .map(|v| Expr::new(ExprKind::Float(v), span))
-                .map_err(|_| ParserError::Unexpected(Token::Float(value), span)),
-            Some(TokenSpan {
-                token: Token::Str(value),
-                span,
-            }) => Ok(Expr::new(ExprKind::Str(value), span)),
-            Some(TokenSpan {
-                token: Token::True,
-                span,
-            }) => Ok(Expr::new(ExprKind::Bool(true), span)),
-            Some(TokenSpan {
-                token: Token::False,
-                span,
-            }) => Ok(Expr::new(ExprKind::Bool(false), span)),
-            Some(TokenSpan {
-                token: Token::Null,
-                span,
-            }) => Ok(Expr::new(ExprKind::Null, span)),
-            Some(TokenSpan {
-                token: Token::Ident(name),
-                span,
-            }) => Ok(Expr::new(ExprKind::Ident(name), span)),
-            Some(TokenSpan {
-                token: Token::LParen,
-                span,
-            }) => {
+            Some(TokenSpan { token: Token::Int(value), span }) => value.parse::<i64>().map(|v| Expr::new(ExprKind::Int(v), span)).map_err(|_| ParserError::Unexpected(Token::Int(value), span)),
+            Some(TokenSpan { token: Token::Float(value), span }) => value.parse::<f64>().map(|v| Expr::new(ExprKind::Float(v), span)).map_err(|_| ParserError::Unexpected(Token::Float(value), span)),
+            Some(TokenSpan { token: Token::Str(value), span }) => Ok(Expr::new(ExprKind::Str(value), span)),
+            Some(TokenSpan { token: Token::True, span }) => Ok(Expr::new(ExprKind::Bool(true), span)),
+            Some(TokenSpan { token: Token::False, span }) => Ok(Expr::new(ExprKind::Bool(false), span)),
+            Some(TokenSpan { token: Token::Null, span }) => Ok(Expr::new(ExprKind::Null, span)),
+            Some(TokenSpan { token: Token::Ident(name), span }) => Ok(Expr::new(ExprKind::Ident(name), span)),
+            Some(TokenSpan { token: Token::LParen, span }) => {
                 let expr = self.parse_expr()?;
                 let end = self.expect_span(Token::RParen)?;
                 Ok(Expr::new(expr.kind, merge_span(span, end)))
             }
-            Some(TokenSpan {
-                token: Token::LBracket,
-                span,
-            }) => {
+            Some(TokenSpan { token: Token::LBracket, span }) => {
                 let mut items = Vec::new();
                 if !matches!(self.peek(), Some(Token::RBracket)) {
                     items.push(self.parse_expr()?);
@@ -705,20 +839,11 @@ impl Parser {
                 let end = self.expect_span(Token::RBracket)?;
                 Ok(Expr::new(ExprKind::ArrayLiteral(items), merge_span(span, end)))
             }
-            Some(TokenSpan {
-                token: Token::Await,
-                span,
-            }) => {
+            Some(TokenSpan { token: Token::Await, span }) => {
                 let expr = self.parse_expr()?;
-                Ok(Expr::new(
-                    ExprKind::Await(Box::new(expr.clone())),
-                    merge_span(span, expr.span),
-                ))
+                Ok(Expr::new(ExprKind::Await(Box::new(expr.clone())), merge_span(span, expr.span)))
             }
-            Some(TokenSpan {
-                token: Token::If,
-                span,
-            }) => {
+            Some(TokenSpan { token: Token::If, span }) => {
                 let condition = self.parse_expr()?;
                 let (then_branch, then_span) = self.parse_block_with_span()?;
                 let (else_branch, end_span) = if matches!(self.peek(), Some(Token::Else)) {
@@ -734,19 +859,9 @@ impl Parser {
                 } else {
                     (None, then_span)
                 };
-                Ok(Expr::new(
-                    ExprKind::If {
-                        condition: Box::new(condition),
-                        then_branch,
-                        else_branch,
-                    },
-                    merge_span(span, end_span),
-                ))
+                Ok(Expr::new(ExprKind::If { condition: Box::new(condition), then_branch, else_branch }, merge_span(span, end_span)))
             }
-            Some(TokenSpan {
-                token: Token::Match,
-                span,
-            }) => {
+            Some(TokenSpan { token: Token::Match, span }) => {
                 let expr = self.parse_expr()?;
                 self.expect(Token::LBrace)?;
                 let mut arms = Vec::new();
@@ -754,7 +869,7 @@ impl Parser {
                     if *tok == Token::RBrace {
                         break;
                     }
-                    let pattern = self.parse_pattern()?;
+                    let (pattern, pattern_span) = self.parse_pattern()?;
                     let guard = if matches!(self.peek(), Some(Token::If)) {
                         self.next();
                         Some(self.parse_expr()?)
@@ -766,20 +881,10 @@ impl Parser {
                     if matches!(self.peek(), Some(Token::Comma)) {
                         self.next();
                     }
-                    arms.push(MatchArm {
-                        pattern,
-                        guard,
-                        expr: arm_expr,
-                    });
+                    arms.push(MatchArm { pattern, pattern_span, guard, expr: arm_expr });
                 }
                 let end = self.expect_span(Token::RBrace)?;
-                Ok(Expr::new(
-                    ExprKind::Match {
-                        expr: Box::new(expr),
-                        arms,
-                    },
-                    merge_span(span, end),
-                ))
+                Ok(Expr::new(ExprKind::Match { expr: Box::new(expr), arms }, merge_span(span, end)))
             }
             Some(TokenSpan { token, span }) => Err(ParserError::Unexpected(token, span)),
             None => Err(ParserError::Eof(self.eof_pos)),
@@ -799,57 +904,25 @@ impl Parser {
                     }
                     let end = self.expect_span(Token::RParen)?;
                     let span = merge_span(expr.span, end);
-                    expr = Expr::new(
-                        ExprKind::Call {
-                            callee: Box::new(expr),
-                            args,
-                        },
-                        span,
-                    );
+                    expr = Expr::new(ExprKind::Call { callee: Box::new(expr), args }, span);
                 }
                 Some(Token::Dot) => {
                     self.next();
                     let field = match self.next() {
-                        Some(TokenSpan {
-                            token: Token::Ident(name),
-                            span,
-                        }) => (FieldAccess::Ident(name), span),
-                        Some(TokenSpan {
-                            token: Token::Int(value),
-                            span,
-                        }) => (
-                            value
-                                .parse::<i64>()
-                                .map(FieldAccess::Index)
-                                .map_err(|_| ParserError::Unexpected(Token::Int(value), span))?,
-                            span,
-                        ),
-                        Some(TokenSpan { token, span }) => {
-                            return Err(ParserError::Unexpected(token, span))
-                        }
+                        Some(TokenSpan { token: Token::Ident(name), span }) => (FieldAccess::Ident(name), span),
+                        Some(TokenSpan { token: Token::Int(value), span }) => value.parse::<i64>().map(FieldAccess::Index).map_err(|_| ParserError::Unexpected(Token::Int(value), span)).map(|f| (f, span))?,
+                        Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
                         None => return Err(ParserError::Eof(self.eof_pos)),
                     };
                     let span = merge_span(expr.span, field.1);
-                    expr = Expr::new(
-                        ExprKind::Field {
-                            expr: Box::new(expr),
-                            field: field.0,
-                        },
-                        span,
-                    );
+                    expr = Expr::new(ExprKind::Field { expr: Box::new(expr), field: field.0 }, span);
                 }
                 Some(Token::LBracket) => {
                     self.next();
                     let index = self.parse_expr()?;
                     let end = self.expect_span(Token::RBracket)?;
                     let span = merge_span(expr.span, end);
-                    expr = Expr::new(
-                        ExprKind::Index {
-                            expr: Box::new(expr),
-                            index: Box::new(index),
-                        },
-                        span,
-                    );
+                    expr = Expr::new(ExprKind::Index { expr: Box::new(expr), index: Box::new(index) }, span);
                 }
                 _ => break,
             }
@@ -878,16 +951,16 @@ impl Parser {
         }
     }
 
-    fn parse_pattern(&mut self) -> Result<Pattern, ParserError> {
+    fn parse_pattern(&mut self) -> Result<(Pattern, Span), ParserError> {
         match self.next() {
             Some(TokenSpan {
                 token: Token::Ident(name),
-                ..
+                span,
             }) => {
                 if name == "_" {
-                    Ok(Pattern::Wildcard)
+                    Ok((Pattern::Wildcard, span))
                 } else {
-                    Ok(Pattern::Ident(name))
+                    Ok((Pattern::Ident(name), span))
                 }
             }
             Some(TokenSpan {
@@ -895,12 +968,12 @@ impl Parser {
                 span,
             }) => value
                 .parse::<i64>()
-                .map(Pattern::Int)
+                .map(|value| (Pattern::Int(value), span))
                 .map_err(|_| ParserError::Unexpected(Token::Int(value), span)),
             Some(TokenSpan {
                 token: Token::Str(value),
-                ..
-            }) => Ok(Pattern::Str(value)),
+                span,
+            }) => Ok((Pattern::Str(value), span)),
             Some(TokenSpan { token, span }) => Err(ParserError::Unexpected(token, span)),
             None => Err(ParserError::Eof(self.eof_pos)),
         }

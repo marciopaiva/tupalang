@@ -271,6 +271,13 @@ fn golden_codegen_string_array_ops() {
 }
 
 #[test]
+fn golden_codegen_lambda_basic() {
+    let stdout = run_cli(&["codegen", example_path("lambda_basic.tp").to_str().unwrap()]);
+    let expected = fs::read_to_string(expected_path("codegen_lambda_basic.txt")).unwrap();
+    assert_eq!(stdout, expected);
+}
+
+#[test]
 fn golden_codegen_if_unit_expr() {
     let stdout = run_cli(&["codegen", example_path("if_unit_expr.tp").to_str().unwrap()]);
     let expected = fs::read_to_string(expected_path("codegen_if_unit_expr.txt")).unwrap();

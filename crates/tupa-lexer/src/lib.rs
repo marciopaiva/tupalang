@@ -54,12 +54,16 @@ pub enum Token {
     Plus,
     PlusEqual,
     Minus,
+    MinusEqual,
     Star,
+    StarEqual,
     Slash,
+    SlashEqual,
     DoubleStar,
     DotDot,
     Dot,
     Bang,
+    Pipe,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -184,7 +188,7 @@ mod tests {
 
     #[test]
     fn lex_operators() {
-        let tokens = lex("== != <= >= && || + += - * / ** .. . ! < >").unwrap();
+        let tokens = lex("== != <= >= && || + += - -= * *= / /= ** .. . ! < >").unwrap();
         assert_eq!(
             tokens,
             vec![
@@ -197,8 +201,11 @@ mod tests {
                 Token::Plus,
                 Token::PlusEqual,
                 Token::Minus,
+                Token::MinusEqual,
                 Token::Star,
+                Token::StarEqual,
                 Token::Slash,
+                Token::SlashEqual,
                 Token::DoubleStar,
                 Token::DotDot,
                 Token::Dot,
@@ -279,6 +286,9 @@ fn punct(input: &str) -> IResult<&str, Token> {
         ("&&", Token::AndAnd),
         ("||", Token::OrOr),
         ("+=", Token::PlusEqual),
+        ("-=", Token::MinusEqual),
+        ("*=", Token::StarEqual),
+        ("/=", Token::SlashEqual),
         ("**", Token::DoubleStar),
         ("..", Token::DotDot),
         (".", Token::Dot),
@@ -299,6 +309,7 @@ fn punct(input: &str) -> IResult<&str, Token> {
         ("*", Token::Star),
         ("/", Token::Slash),
         ("!", Token::Bang),
+        ("|", Token::Pipe),
     ];
 
     for (pat, tok) in cases {
