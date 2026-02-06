@@ -1,6 +1,7 @@
 # Tutoriais Passo a Passo
 
 ## Objetivo
+
 Guiar usuários de diferentes níveis em tarefas comuns e projetos exemplo com Tupã.
 
 ---
@@ -12,6 +13,7 @@ print("Olá, Tupã!")
 ```
 
 Execute:
+
 ```bash
 cargo run -p tupa-cli -- check examples/hello.tp
 ```
@@ -49,6 +51,7 @@ fn seguro(x: f64): Safe<f64, !nan> {
 ## 5. Projeto Exemplo: Soma de Vetor
 
 Arquivo: `examples/soma_vetor.tp`
+
 ```tupa
 fn soma(v: [int]) -> int {
   let mut total = 0

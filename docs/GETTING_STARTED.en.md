@@ -1,6 +1,7 @@
 # Getting Started
 
 ## Requirements
+
 - Rust (latest stable)
 - Cargo
 
@@ -30,5 +31,6 @@ print(add(2, 3))
 ```
 
 ## More
+
 - See [../README.en.md](../README.en.md)
 - See [docs/FAQ.en.md](FAQ.en.md)
