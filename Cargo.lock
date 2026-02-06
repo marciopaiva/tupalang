@@ -213,6 +213,7 @@ name = "tupa-cli"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "tupa-lexer",
  "tupa-parser",
  "tupa-typecheck",
 ]

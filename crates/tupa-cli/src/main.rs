@@ -5,6 +5,7 @@ use std::path::PathBuf;
 use clap::{Parser, Subcommand};
 use tupa_parser::parse_program;
 use tupa_typecheck::typecheck_program;
+use tupa_lexer::lex;
 
 #[derive(Parser)]
 #[command(name = "tupa", version, about = "Tupã CLI")]
@@ -15,6 +16,14 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
+    /// Lex a .tp file and print tokens
+    Lex {
+        /// Path to the source file
+        file: Option<PathBuf>,
+        /// Read source from stdin
+        #[arg(long)]
+        stdin: bool,
+    },
     /// Parse a .tp file and print the AST
     Parse {
         /// Path to the source file
@@ -47,6 +56,14 @@ fn main() {
 
 fn run(cli: Cli) -> Result<(), String> {
     match cli.command {
+        Command::Lex { file, stdin } => {
+            let src = read_source(file.as_ref(), stdin)?;
+            let tokens = lex(&src).map_err(|e| e.to_string())?;
+            for tok in tokens {
+                println!("{tok:?}");
+            }
+            Ok(())
+        }
         Command::Parse { file, stdin } => {
             let src = read_source(file.as_ref(), stdin)?;
             let program = parse_program(&src).map_err(|e| e.to_string())?;
