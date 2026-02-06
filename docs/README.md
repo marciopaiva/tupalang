@@ -11,6 +11,7 @@ Organizar a documentação por público e facilitar a navegação.
 - [SPEC](SPEC.md)
 - [Glossário](GLOSSARY.md)
 - [FAQ](FAQ.md)
+- [Roadmap](ROADMAP.md)
 
 ## Para novos contribuidores
 
@@ -30,3 +31,4 @@ Organizar a documentação por público e facilitar a navegação.
 - [Plano de MVP](MVP_PLAN.md)
 - [Plano de Adoção](ADOPTION_PLAN.md)
 - [Notas de Design (IA)](DESIGN_NOTES.md)
+- [Changelog](CHANGELOG.md)
