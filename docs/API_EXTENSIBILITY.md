@@ -37,7 +37,7 @@ pub trait CodegenBackend {
 }
 ```
 
-3. Integre ao CLI:
+1. Integre ao CLI:
 
 ```rust
 // ...existing code...

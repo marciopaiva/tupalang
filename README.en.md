@@ -8,33 +8,33 @@
 [![Rust](https://img.shields.io/badge/rust-stable-orange?logo=rust)](https://www.rust-lang.org/)
 [![Brasil](https://img.shields.io/badge/made_in-Brazil-009739?logo=brazil)](https://github.com/marciopaiva/tupalang)
 
-## 🔎 Quick Index
+## Quick Index
 
-- [Status](#-status)
-- [Features](#-features)
-- [Roadmap](#-roadmap)
-- [CLI](#-cli-dev)
+- [Status](#status)
+- [Features](#features)
+- [Roadmap](#roadmap)
+- [CLI](#cli)
 
-## ✅ Status
+## Status
 
 - [x] Basic lexer, parser, typechecker and CLI
 - [x] JSON output in CLI
 - [x] Functional codegen (textual IR)
 - [ ] Language Server
 
-## ❓ Quick FAQ
+## Features
 
 - **Is it production ready?** Not yet, still in development.
 - **Where do I start?** See [docs/GETTING_STARTED.en.md](docs/GETTING_STARTED.en.md).
 - **How to contribute?** Read [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## 🧭 1-minute Architecture
+## Roadmap
 
 - `tupa-lexer` → tokens
 - `tupa-parser` → AST
 - `tupa-typecheck` → types and constraints
 
-## ⚡ Quick Start
+## CLI
 
 ```bash
 cargo run -p tupa-cli -- parse examples/hello.tp

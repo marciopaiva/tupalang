@@ -22,18 +22,26 @@ cd tupalang
 
 ```bash
 cargo run -p tupa-cli -- parse examples/hello.tp
+cargo run -p tupa-cli -- parse examples/lambda_basic.tp
 ```
 
 1) Rode o typechecker:
 
 ```bash
 cargo run -p tupa-cli -- check examples/hello.tp
+cargo run -p tupa-cli -- check examples/lambda_basic.tp
 ```
 
 1) Saída em JSON (opcional):
 
 ```bash
 cargo run -p tupa-cli -- parse --format json examples/hello.tp
+```
+
+1) Rode os testes golden (recomenda-se para validar toda a pipeline):
+
+```bash
+cargo test -p tupa-cli --test cli_golden
 ```
 
 ## Próximos passos

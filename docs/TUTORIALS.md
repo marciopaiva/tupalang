@@ -6,7 +6,7 @@ Guiar usuários de diferentes níveis em tarefas comuns e projetos exemplo com T
 
 ---
 
-## 1. Olá, Mundo!
+## 1. Olá, Mundo
 
 ```tupa
 print("Olá, Tupã!")

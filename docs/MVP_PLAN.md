@@ -18,24 +18,31 @@ Entregar um compilador mínimo que parseia, verifica tipos simples e gera um bin
 1. Lexer
    - Tokens básicos, comentários `//`/`/* */`, strings e números.
 2. Parser
-   - AST para funções, let, if, match, loops, arrays, chamadas e postfix.
+   - AST para funções, let, if, match, loops, arrays, chamadas, postfix e funções anônimas (lambdas).
 3. Type Checker
    - Tipos primitivos (`i64`, `f64`, `bool`, `string`) e inferência básica.
-   - Tipos de função, checagem de chamadas e retorno em todos os caminhos.
-4. CLI
-   - `tupa-cli` com `lex`, `parse`, `check` e stdin.
-5. Diagnósticos
+   - Tipos de função, checagem de chamadas, valores de função, lambdas e retorno em todos os caminhos.
+4. Codegen
+   - Geração de IR funcional (LLVM-like) para funções, lambdas, print, concatenação de strings, arrays, controle de fluxo, etc.
+5. CLI
+   - `tupa-cli` com `lex`, `parse`, `check`, `codegen`, stdin e execução de testes golden.
+6. Diagnósticos
    - Span/linha/coluna em erros do lexer/parser/typechecker.
-6. Type Checker (v1)
-   - Retornos, `match`, loops e tipos de função.
+   - Mensagens para aridade, tipos, print, lambdas, etc.
+
+## MVP
 
 ### Próximos marcos
 
-1. Codegen (LLVM)
-   - Funções, aritmética básica e `print`.
+1. Otimizações no codegen (eliminação de código morto, melhor uso de registradores)
+2. Suporte a closures com captura de variáveis
+
+3. Arrays/slices genéricos e mais tipos
+4. Cobertura de testes e benchmarks
 
 ## Critérios de Aceite (quando houver implementação)
 
-- Compilar e executar `examples/hello.tp`.
+## Roadmap
+
 - Erros de tipo claros e localizados.
 - Nenhuma dependência de runtime externo para o binário gerado.

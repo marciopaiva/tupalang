@@ -19,7 +19,6 @@ O projeto é um workspace Rust com múltiplos crates que implementam etapas do c
 - `docs/`: documentação de produto e especificação.
 - `examples/`: exemplos executáveis e testes golden.
 
-
 ## Fluxo principal
 
 1) **Lexer**: converte texto em tokens.
@@ -28,15 +27,12 @@ O projeto é um workspace Rust com múltiplos crates que implementam etapas do c
 4) **Codegen**: gera IR funcional (LLVM-like) com suporte a todos os recursos do MVP.
 5) **CLI**: integra as etapas, expõe comandos (`lex`, `parse`, `check`, `codegen`) e executa testes golden automatizados.
 
-
 ## Dependências entre crates
 
 - `tupa-parser` depende de `tupa-lexer`.
 - `tupa-typecheck` depende de `tupa-parser`.
 - `tupa-codegen` depende de `tupa-parser` e `tupa-typecheck`.
 - `tupa-cli` depende de todos.
-
-
 
 ## Observações
 

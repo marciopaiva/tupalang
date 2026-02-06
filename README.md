@@ -51,16 +51,31 @@ fn seguro(x: f64): Safe<f64, !nan> {
 }
 ```
 
-## ▶️ Como rodar localmente
+```bash
+
+
+
+```tupa
+// exemplo de código lex
+```
+
+// exemplo de código lex
 
 ```bash
 git clone https://github.com/marciopaiva/tupalang.git
 cd tupalang
 cargo test
+```
 
-# parse
+## parse
+
+```bash
 cargo run -p tupa-cli -- parse examples/hello.tp
-# check
+```
+
+## check
+
+```bash
 cargo run -p tupa-cli -- check examples/hello.tp
 ```
 
@@ -75,9 +90,10 @@ cargo run -p tupa-cli -- check examples/hello.tp
 2. Veja exemplos em [examples/README.md](examples/README.md).
 3. Sugestões e dúvidas: abra uma issue ou discuta no [FAQ](docs/FAQ.md).
 4. Para documentação: siga [docs/DOCS_CONTRIBUTING.md](docs/DOCS_CONTRIBUTING.md).
-cargo run -p tupa-cli -- check examples/hello.tp
 
-# lex
+## lex
+
+```bash
 cargo run -p tupa-cli -- lex examples/hello.tp
 ```
 

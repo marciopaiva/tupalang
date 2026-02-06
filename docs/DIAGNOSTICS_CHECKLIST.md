@@ -15,7 +15,7 @@ Manter uma lista verificável de requisitos de diagnóstico por fase do compilad
 
 - [x] Erro de token inesperado com span válido
 - [x] EOF aponta para fim do arquivo
-- [ ] Mostra token esperado (quando aplicável)
+- [x] Mostra token esperado (quando aplicável)
 
 ## Typechecker
 
@@ -23,9 +23,14 @@ Manter uma lista verificável de requisitos de diagnóstico por fase do compilad
 - [x] Mensagens para aridade incorreta
 - [x] `return` ausente em funções não-`unit`
 - [x] Spans (linha/coluna) quando disponíveis
+- [x] Diagnósticos para funções anônimas (lambdas), valores de função e print
 
 ## CLI
 
 - [x] Formato padrão consistente com SPEC
 - [x] Inclui arquivo/linha/coluna
 - [x] Suporta saída limpa para pipes (sem ruído extra)
+
+## Futuro
+
+- [ ] Mensagens de erro ainda mais detalhadas e sugestões automáticas

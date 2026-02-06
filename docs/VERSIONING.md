@@ -14,12 +14,6 @@ Adotamos [SemVer](https://semver.org/):
 
 ## Política
 
-- Alterações na SPEC que quebram compatibilidade exigem MAJOR.
-- Mudanças de CLI que quebram flags/saídas exigem MAJOR.
-- Novos recursos compatíveis incrementam MINOR.
-- Correções e ajustes de docs incrementam PATCH.
-
-
 ## Pré-1.0
 
 Antes da 1.0, mudanças podem ocorrer com maior frequência. Ainda assim, manteremos SemVer e documentaremos breaking changes no CHANGELOG.

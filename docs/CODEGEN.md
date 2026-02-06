@@ -4,7 +4,7 @@
 
 Descrever o estado atual do `tupa-codegen` e o fluxo `parse -> typecheck -> codegen`.
 
-O `tupa-codegen` gera um IR textual estilo LLVM (não é LLVM completo) para demonstrar o pipeline.
+O `tupa-codegen` gera um IR textual estilo LLVM (não é LLVM completo), funcional e cobrindo todos os recursos do MVP, incluindo funções anônimas (lambdas), valores de função, print como built-in, concatenação de strings, arrays, controle de fluxo, etc.
 
 ## Uso via CLI
 
@@ -44,17 +44,19 @@ Em JSON, a saída vem encapsulada em um objeto:
 ## Recursos suportados
 
 - Literais `i64`, `f64`, `bool` e `string` (strings são constantes globais)
-- `let`, `return`, `print`
+- `let`, `return`, `print` (como built-in)
 - Operadores aritméticos e comparações em `i64` e `f64`
 - `if`/`match` (inclui guardas, bind de identificadores e `match` em `string` via `strcmp`)
 - `while`, `for` em `range`, `break`/`continue`
 - Arrays de `i64`, `f64` e `string`, indexação e atribuição
-- Chamadas a funções definidas pelo usuário
+- Funções definidas pelo usuário e funções anônimas (lambdas)
+- Chamada de funções/lambdas como valores de função
 - Concatenação de strings em runtime
 - `+=` para strings (via concatenação)
+- Testes golden automatizados para garantir estabilidade do IR
 
 ## Próximos passos
 
 - Reduzir `TODO` residuais no codegen
-- Suportar mais tipos e chamadas
+- Suportar mais tipos, closures e otimizações
 - Emitir binário nativo via `llvm`/`inkwell`
