@@ -34,20 +34,33 @@ pub enum TypeError {
     MissingReturn,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Warning {
+    UnusedVar(String),
+}
+
 pub fn typecheck_program(program: &Program) -> Result<(), TypeError> {
-    for item in &program.items {
-        match item {
-            Item::Function(func) => typecheck_function(func)?,
-        }
-    }
+    let _ = typecheck_program_with_warnings(program)?;
     Ok(())
 }
 
-fn typecheck_function(func: &Function) -> Result<(), TypeError> {
+pub fn typecheck_program_with_warnings(
+    program: &Program,
+) -> Result<Vec<Warning>, TypeError> {
+    let mut warnings = Vec::new();
+    for item in &program.items {
+        match item {
+            Item::Function(func) => warnings.extend(typecheck_function(func)?),
+        }
+    }
+    Ok(warnings)
+}
+
+fn typecheck_function(func: &Function) -> Result<Vec<Warning>, TypeError> {
     let mut env = TypeEnv::default();
     for param in &func.params {
         let ty = type_from_ast(&param.ty)?;
-        env.vars.insert(param.name.clone(), ty);
+        env.insert_var(param.name.clone(), ty);
     }
 
     let expected_return = func
@@ -90,7 +103,7 @@ fn typecheck_function(func: &Function) -> Result<(), TypeError> {
         return Err(TypeError::MissingReturn);
     }
 
-    Ok(())
+    Ok(env.collect_warnings())
 }
 
 fn typecheck_stmt(stmt: &Stmt, env: &mut TypeEnv) -> Result<(), TypeError> {
@@ -105,9 +118,9 @@ fn typecheck_stmt(stmt: &Stmt, env: &mut TypeEnv) -> Result<(), TypeError> {
                         found: expr_ty,
                     });
                 }
-                env.vars.insert(name.clone(), declared);
+                env.insert_var(name.clone(), declared);
             } else {
-                env.vars.insert(name.clone(), expr_ty);
+                env.insert_var(name.clone(), expr_ty);
             }
             Ok(())
         }
@@ -141,7 +154,7 @@ fn typecheck_stmt(stmt: &Stmt, env: &mut TypeEnv) -> Result<(), TypeError> {
                 }
             };
             let mut inner = env.child();
-            inner.vars.insert(name.clone(), elem_ty);
+            inner.insert_var(name.clone(), elem_ty);
             for stmt in body {
                 typecheck_stmt(stmt, &mut inner)?;
             }
@@ -162,16 +175,12 @@ fn type_of_expr(expr: &Expr, env: &mut TypeEnv) -> Result<Ty, TypeError> {
         Expr::Bool(_) => Ok(Ty::Bool),
         Expr::Null => Ok(Ty::Null),
         Expr::Ident(name) => env
-            .vars
-            .get(name)
-            .cloned()
+            .get_var_and_mark(name)
             .ok_or_else(|| TypeError::UnknownVar(name.clone())),
         Expr::Assign { name, expr } => {
             let rhs = type_of_expr(expr, env)?;
             let lhs = env
-                .vars
-                .get(name)
-                .cloned()
+                .get_var(name)
                 .ok_or_else(|| TypeError::UnknownVar(name.clone()))?;
             if lhs != rhs {
                 return Err(TypeError::Mismatch {
@@ -364,7 +373,7 @@ fn type_from_ast(ty: &Type) -> Result<Ty, TypeError> {
 
 #[derive(Debug, Default, Clone)]
 struct TypeEnv {
-    vars: HashMap<String, Ty>,
+    vars: HashMap<String, VarInfo>,
 }
 
 impl TypeEnv {
@@ -373,6 +382,47 @@ impl TypeEnv {
             vars: self.vars.clone(),
         }
     }
+
+    fn insert_var(&mut self, name: String, ty: Ty) {
+        self.vars.insert(
+            name,
+            VarInfo {
+                ty,
+                used: false,
+            },
+        );
+    }
+
+    fn get_var(&self, name: &str) -> Option<Ty> {
+        self.vars.get(name).map(|info| info.ty.clone())
+    }
+
+    fn get_var_and_mark(&mut self, name: &str) -> Option<Ty> {
+        if let Some(info) = self.vars.get_mut(name) {
+            info.used = true;
+            return Some(info.ty.clone());
+        }
+        None
+    }
+
+    fn collect_warnings(&self) -> Vec<Warning> {
+        self.vars
+            .iter()
+            .filter_map(|(name, info)| {
+                if !info.used && !name.starts_with('_') {
+                    Some(Warning::UnusedVar(name.clone()))
+                } else {
+                    None
+                }
+            })
+            .collect()
+    }
+}
+
+#[derive(Debug, Clone)]
+struct VarInfo {
+    ty: Ty,
+    used: bool,
 }
 
 #[cfg(test)]
@@ -413,5 +463,12 @@ mod tests {
         let err = parse_program("fn main() { let xs = [1, true]; } ").unwrap();
         assert!(typecheck_program(&ok).is_ok());
         assert!(typecheck_program(&err).is_err());
+    }
+
+    #[test]
+    fn warns_on_unused_vars() {
+        let program = parse_program("fn main() { let x: i64 = 1; } ").unwrap();
+        let warnings = typecheck_program_with_warnings(&program).unwrap();
+        assert!(warnings.contains(&Warning::UnusedVar("x".into())));
     }
 }

@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 use clap::{Parser, Subcommand};
 use tupa_parser::parse_program;
-use tupa_typecheck::typecheck_program;
+use tupa_typecheck::typecheck_program_with_warnings;
 use tupa_lexer::lex;
 
 #[derive(Parser)]
@@ -73,7 +73,10 @@ fn run(cli: Cli) -> Result<(), String> {
         Command::Check { file, stdin } => {
             let src = read_source(file.as_ref(), stdin)?;
             let program = parse_program(&src).map_err(|e| e.to_string())?;
-            typecheck_program(&program).map_err(|e| e.to_string())?;
+            let warnings = typecheck_program_with_warnings(&program).map_err(|e| e.to_string())?;
+            for warning in warnings {
+                eprintln!("warning: {warning:?}");
+            }
             println!("OK");
             Ok(())
         }
