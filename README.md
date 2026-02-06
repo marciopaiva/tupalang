@@ -9,8 +9,6 @@
 [![Release](https://img.shields.io/github/v/release/marciopaiva/tupalang?display_name=tag)](https://github.com/marciopaiva/tupalang/releases)
 [![Brasil](https://img.shields.io/badge/feito_no-Brasil-009739?logo=brazil)](https://github.com/marciopaiva/tupalang)
 
-> **Status atual**: Especificação v0.1 completa. Implementação em andamento com lexer, parser, typechecker e CLI básicos.
-
 **Changelog (resumo)**:
 
 - Organização de docs e wiki com sync automático.
