@@ -11,6 +11,10 @@ Organizar a documentação por público e facilitar a navegação.
 - [SPEC](SPEC.md)
 - [Glossário](GLOSSARY.md)
 
+## Para novos contribuidores
+
+- [Arquitetura](ARCHITECTURE.md)
+
 ## Para contribuidores
 
 - [Como contribuir](../CONTRIBUTING.md)

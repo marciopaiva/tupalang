@@ -24,6 +24,7 @@ fn summarize(article: Text) -> SafeText<!misinformation> {
 - [examples/README.md](examples/README.md)
 - [docs/SPEC.md](docs/SPEC.md)
 - [docs/GLOSSARY.md](docs/GLOSSARY.md)
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - [CONTRIBUTING.md](CONTRIBUTING.md)
 - [docs/DEV_ENV.md](docs/DEV_ENV.md)
 
@@ -191,6 +192,7 @@ Tupã é a **primeira linguagem brasileira com ambição global desde Lua** (199
 - [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 - [docs/DEV_ENV.md](docs/DEV_ENV.md)
 - [docs/DIAGNOSTICS_CHECKLIST.md](docs/DIAGNOSTICS_CHECKLIST.md)
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 
 ### Internals e planejamento
 
