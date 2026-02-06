@@ -1,0 +1,8 @@
+fn main() {
+  let n: i64 = 3;
+  while n > 0 {
+    print(n);
+    let n: i64 = n - 1;
+    print(n);
+  }
+}

@@ -1,0 +1,8 @@
+fn main() {
+  let mood: string = "ok";
+  match mood {
+    "ok" => print("fine"),
+    "no" => print("nope"),
+    _ => print("other"),
+  }
+}

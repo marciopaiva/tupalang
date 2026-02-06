@@ -1,0 +1,28 @@
+declare i32 @printf(i8*, ...)
+@.fmt_int = private unnamed_addr constant [5 x i8] c"%ld\0A\00"
+
+define void @main() {
+entry:
+  %t0 = alloca i64
+  store i64 3, i64* %t0
+  br label %while.head0
+while.head0:
+  %t1 = load i64, i64* %t0
+  %t2 = icmp sgt i64 %t1, 0
+  br i1 %t2, label %while.body1, label %while.end2
+while.body1:
+  %t3 = load i64, i64* %t0
+  %t4 = getelementptr inbounds [5 x i8], [5 x i8]* @.fmt_int, i64 0, i64 0
+  call i32 (i8*, ...) @printf(i8* %t4, i64 %t3)
+  %t5 = load i64, i64* %t0
+  %t6 = sub i64 %t5, 1
+  %t7 = alloca i64
+  store i64 %t6, i64* %t7
+  %t8 = load i64, i64* %t7
+  %t9 = getelementptr inbounds [5 x i8], [5 x i8]* @.fmt_int, i64 0, i64 0
+  call i32 (i8*, ...) @printf(i8* %t9, i64 %t8)
+  br label %while.head0
+while.end2:
+  ret void
+}
+

@@ -153,6 +153,29 @@ impl Codegen {
                 );
                 false
             }
+            Stmt::While { condition, body } => {
+                let head = self.fresh_label("while.head");
+                let body_label = self.fresh_label("while.body");
+                let end_label = self.fresh_label("while.end");
+
+                self.lines.push(format!("  br label %{head}"));
+                self.lines.push(format!("{head}:"));
+                let cond_val = self.emit_expr(condition, env);
+                let cond = if cond_val.ty == SimpleTy::Bool {
+                    cond_val.llvm_value
+                } else {
+                    "0".to_string()
+                };
+                self.lines
+                    .push(format!("  br i1 {cond}, label %{body_label}, label %{end_label}"));
+                self.lines.push(format!("{body_label}:"));
+                let body_returned = self.emit_block(body, env, ret_ty);
+                if !body_returned {
+                    self.lines.push(format!("  br label %{head}"));
+                }
+                self.lines.push(format!("{end_label}:"));
+                body_returned
+            }
             Stmt::Expr(expr) => {
                 self.emit_expr_stmt(expr, env, ret_ty)
             }
@@ -259,8 +282,8 @@ impl Codegen {
         ret_ty: SimpleTy,
     ) -> bool {
         let value = self.emit_expr(scrutinee, env);
-        if value.ty != SimpleTy::I64 {
-            self.lines.push("  ; TODO: match on non-i64".to_string());
+        if value.ty != SimpleTy::I64 && value.ty != SimpleTy::Str {
+            self.lines.push("  ; TODO: match on non-i64/str".to_string());
             return false;
         }
         let end_label = self.fresh_label("match.end");
@@ -278,8 +301,8 @@ impl Codegen {
             } else {
                 &end_label
             };
-            match &arm.pattern {
-                tupa_parser::Pattern::Int(value_literal) => {
+            match (&arm.pattern, value.ty) {
+                (tupa_parser::Pattern::Int(value_literal), SimpleTy::I64) => {
                     let cmp = self.fresh_temp();
                     self.lines.push(format!(
                         "  {cmp} = icmp eq i64 {}, {}",
@@ -290,7 +313,23 @@ impl Codegen {
                         arm_labels[idx], next_label
                     ));
                 }
-                tupa_parser::Pattern::Wildcard | tupa_parser::Pattern::Ident(_) => {
+                (tupa_parser::Pattern::Str(lit), SimpleTy::Str) => {
+                    let (global, len) = self.intern_string(lit);
+                    let ptr = self.fresh_temp();
+                    self.lines.push(format!(
+                        "  {ptr} = getelementptr inbounds [{len} x i8], [{len} x i8]* {global}, i64 0, i64 0"
+                    ));
+                    let cmp = self.fresh_temp();
+                    self.lines.push(format!(
+                        "  {cmp} = icmp eq i8* {}, {ptr}",
+                        value.llvm_value
+                    ));
+                    self.lines.push(format!(
+                        "  br i1 {cmp}, label %{}, label %{}",
+                        arm_labels[idx], next_label
+                    ));
+                }
+                (tupa_parser::Pattern::Wildcard, _) | (tupa_parser::Pattern::Ident(_), _) => {
                     self.lines.push(format!("  br label %{}", arm_labels[idx]));
                 }
                 _ => {

@@ -114,6 +114,20 @@ fn golden_codegen_if_match() {
 }
 
 #[test]
+fn golden_codegen_while() {
+    let stdout = run_cli(&["codegen", example_path("while.tp").to_str().unwrap()]);
+    let expected = fs::read_to_string(expected_path("codegen_while.txt")).unwrap();
+    assert_eq!(stdout, expected);
+}
+
+#[test]
+fn golden_codegen_match_string() {
+    let stdout = run_cli(&["codegen", example_path("match_string.tp").to_str().unwrap()]);
+    let expected = fs::read_to_string(expected_path("codegen_match_string.txt")).unwrap();
+    assert_eq!(stdout, expected);
+}
+
+#[test]
 fn golden_check_invalid_type() {
     let stderr = run_cli_err(&["check", example_path("invalid_type.tp").to_str().unwrap()]);
     let expected = fs::read_to_string(expected_path("check_invalid_type.txt")).unwrap();
