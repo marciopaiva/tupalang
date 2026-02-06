@@ -1,5 +1,9 @@
 ﻿# Como contribuir
 
+## Objetivo
+
+Explicar o fluxo de contribuição e as expectativas para mudanças no projeto.
+
 Obrigado por considerar contribuir com o projeto Tupã.
 
 ## Como começar

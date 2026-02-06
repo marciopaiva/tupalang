@@ -1,5 +1,9 @@
 # Codegen (stub)
 
+## Objetivo
+
+Descrever o estado atual do `tupa-codegen` e o fluxo `parse -> typecheck -> codegen`.
+
 O `tupa-codegen` ainda é um *stub*. O objetivo atual é provar o fluxo `parse -> typecheck -> codegen`.
 
 ## Uso via CLI

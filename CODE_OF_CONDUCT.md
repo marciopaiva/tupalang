@@ -1,5 +1,9 @@
 ﻿# Código de Conduta
 
+## Objetivo
+
+Definir o padrão de convivência e o comportamento esperado na comunidade.
+
 ## Nosso compromisso
 
 Estamos comprometidos em manter um ambiente acolhedor, respeitoso e colaborativo.

@@ -4,6 +4,13 @@
 
 Entregar um compilador mínimo que parseia, verifica tipos simples e gera um binário nativo para `hello.tp`.
 
+## Índice
+
+- [Escopo do MVP](#escopo-do-mvp)
+   - [Concluído](#concluído)
+   - [Próximos marcos](#próximos-marcos)
+- [Critérios de Aceite](#critérios-de-aceite-quando-houver-implementação)
+
 ## Escopo do MVP
 
 ### Concluído

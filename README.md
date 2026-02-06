@@ -17,6 +17,15 @@ fn summarize(article: Text) -> SafeText<!misinformation> {
 
 ---
 
+## ✅ Comece aqui
+
+- [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
+- [docs/README.md](docs/README.md) (mapa da documentação)
+- [examples/README.md](examples/README.md)
+- [docs/SPEC.md](docs/SPEC.md)
+- [CONTRIBUTING.md](CONTRIBUTING.md)
+- [docs/DEV_ENV.md](docs/DEV_ENV.md)
+
 ## 🌩️ Por que Tupã?
 
 Na mitologia tupi-guarani, **Tupã** é a divindade do trovão, uma força bruta canalizada com precisão. Assim é nossa linguagem:
@@ -148,6 +157,11 @@ fn main() {
 
 ---
 
+## 🧭 Roadmap
+
+- [docs/MVP_PLAN.md](docs/MVP_PLAN.md)
+- [docs/ADOPTION_PLAN.md](docs/ADOPTION_PLAN.md)
+
 ## 🌍 Orgulho Brasileiro, Ambição Global
 
 Tupã é a **primeira linguagem brasileira com ambição global desde Lua** (1993). Mas enquanto Lua focou em *embeddability*, Tupã nasce para resolver os maiores desafios da computação moderna:
@@ -163,15 +177,25 @@ Tupã é a **primeira linguagem brasileira com ambição global desde Lua** (199
 
 ## 📚 Recursos
 
-| Documento | Descrição |
-|-----------|-----------|
-| [docs/SPEC.md](docs/SPEC.md) | Especificação técnica completa (gramática EBNF) |
-| [docs/MVP_PLAN.md](docs/MVP_PLAN.md) | Plano objetivo do MVP |
-| [docs/ADOPTION_PLAN.md](docs/ADOPTION_PLAN.md) | Plano técnico mínimo de adoção |
-| [docs/AI_SUPPORT_SUGGESTIONS.md](docs/AI_SUPPORT_SUGGESTIONS.md) | Sugestões adicionais para apoio por IA |
-| [docs/CODEGEN.md](docs/CODEGEN.md) | Status e uso do codegen (stub) |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Guia para novos contribuidores |
-| [examples/README.md](examples/README.md) | Casos de uso reais (IA, microserviços, sistemas críticos) |
+### Para usuários
+
+- [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
+- [examples/README.md](examples/README.md)
+- [docs/SPEC.md](docs/SPEC.md)
+
+### Para contribuidores
+
+- [CONTRIBUTING.md](CONTRIBUTING.md)
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+- [docs/DEV_ENV.md](docs/DEV_ENV.md)
+- [docs/DIAGNOSTICS_CHECKLIST.md](docs/DIAGNOSTICS_CHECKLIST.md)
+
+### Internals e planejamento
+
+- [docs/CODEGEN.md](docs/CODEGEN.md)
+- [docs/MVP_PLAN.md](docs/MVP_PLAN.md)
+- [docs/ADOPTION_PLAN.md](docs/ADOPTION_PLAN.md)
+- [docs/DESIGN_NOTES.md](docs/DESIGN_NOTES.md)
 
 ---
 

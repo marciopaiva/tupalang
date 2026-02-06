@@ -1,5 +1,9 @@
 # Diagnostics Checklist
 
+## Objetivo
+
+Manter uma lista verificável de requisitos de diagnóstico por fase do compilador.
+
 ## Lexer
 - [x] Reporta erro com posição absoluta (byte offset)
 - [x] Converte offset para linha/coluna (1-based)

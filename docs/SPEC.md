@@ -6,6 +6,28 @@
 [![Specification Status](https://img.shields.io/badge/status-draft-orange)](#)
 [![License](https://img.shields.io/badge/license-CC--BY--SA%204.0-ff69b4)](#)
 
+## Objetivo
+
+Definir a especificação formal da linguagem Tupã, incluindo gramática, regras de tipos e semântica.
+
+## Índice
+
+- [1. Philosophy & Design Goals](#1-philosophy--design-goals)
+- [2. Lexical Structure](#2-lexical-structure)
+- [3. Type System](#3-type-system)
+- [4. Expressions](#4-expressions)
+- [5. Statements](#5-statements)
+- [6. Numeric Semantics (Normative)](#6-numeric-semantics-normative)
+- [6. Concurrency](#6-concurrency)
+- [7. Modules & FFI](#7-modules--ffi)
+- [8. Complete EBNF Grammar (Normative)](#8-complete-ebnf-grammar-normative)
+- [9. Semantics & Implementation Notes](#9-semantics--implementation-notes)
+- [10. Type Conversions (Normative)](#10-type-conversions-normative)
+- [10. Validated Examples](#10-validated-examples)
+- [11. Diagnostics (Normative)](#11-diagnostics-normative)
+- [12. Versioning Policy](#12-versioning-policy)
+- [13. References & Influences](#13-references--influences)
+
 ---
 
 ## 1. Philosophy & Design Goals

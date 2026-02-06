@@ -1,6 +1,15 @@
 ﻿# Exemplos
 
+## Objetivo
+
+Reunir exemplos curados que refletem o estado atual do parser e do typechecker.
+
 Exemplos executáveis para o estado atual do parser e typechecker.
+
+## Curadoria e playground
+
+- Use esta pasta para exemplos curados e estáveis.
+- Use [examples/playground](playground/README.md) para testes rápidos e experimentos.
 
 ## Arquivos
 

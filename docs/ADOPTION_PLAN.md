@@ -4,6 +4,15 @@
 
 Definir um caminho incremental para tornar a linguagem utilizável e confiável, sem assumir datas.
 
+## Índice
+
+- [Fase 0: Núcleo mínimo](#fase-0-núcleo-mínimo)
+- [Fase 1: Toolchain básica](#fase-1-toolchain-básica)
+- [Fase 2: Experiência do dev](#fase-2-experiência-do-dev)
+- [Fase 3: Interoperabilidade](#fase-3-interoperabilidade)
+- [Fase 4: Qualidade e confiança](#fase-4-qualidade-e-confiança)
+- [Entregáveis mínimos](#entregáveis-mínimos)
+
 ## Fase 0: Núcleo mínimo
 
 - Definir o subset core (sintaxe e tipos básicos).
