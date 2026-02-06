@@ -1,1 +1,20 @@
-// TODO: LLVM codegen stub
+@.str0 = private unnamed_addr constant [6 x i8] c"Tup\C3\A3\00"
+declare i32 @puts(i8*)
+declare i32 @printf(i8*, ...)
+@.fmt_int = private unnamed_addr constant [5 x i8] c"%ld\0A\00"
+
+define void @main() {
+entry:
+  %t0 = getelementptr inbounds [6 x i8], [6 x i8]* @.str0, i64 0, i64 0
+  %t1 = alloca i8*
+  store i8* %t0, i8** %t1
+  %t2 = alloca i64
+  store i64 28, i64* %t2
+  %t3 = load i8*, i8** %t1
+  call i32 @puts(i8* %t3)
+  %t4 = load i64, i64* %t2
+  %t5 = getelementptr inbounds [5 x i8], [5 x i8]* @.fmt_int, i64 0, i64 0
+  call i32 (i8*, ...) @printf(i8* %t5, i64 %t4)
+  ret void
+}
+

@@ -10,3 +10,7 @@ tupa-lexer = { path = "../tupa-lexer" }
 tupa-parser = { path = "../tupa-parser" }
 tupa-typecheck = { path = "../tupa-typecheck" }
 tupa-codegen = { path = "../tupa-codegen" }
+
+[dev-dependencies]
+assert_cmd = "2.0"
+predicates = "3.1"

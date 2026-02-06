@@ -1,16 +1,12 @@
 ﻿# ⚡ Tupã
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/status-impl_em_andamento-orange)](docs/ROADMAP.md)
+[![Status](https://img.shields.io/badge/status-wip-orange)](docs/ROADMAP.md)
 [![Wiki](https://img.shields.io/badge/wiki-Tup%C3%A3-7b5cff)](https://github.com/marciopaiva/tupalang/wiki)
 [![CI](https://github.com/marciopaiva/tupalang/actions/workflows/ci.yml/badge.svg)](https://github.com/marciopaiva/tupalang/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/marciopaiva/tupalang?display_name=tag)](https://github.com/marciopaiva/tupalang/releases)
 [![Rust](https://img.shields.io/badge/rust-stable-orange?logo=rust)](https://www.rust-lang.org/)
 [![Brasil](https://img.shields.io/badge/feito_no-Brasil-009739?logo=brazil)](https://github.com/marciopaiva/tupalang)
-
-Links rápidos: [Guia rápido](docs/GETTING_STARTED.md) · [SPEC](docs/SPEC.md)
-
-**Changelog**: [docs/CHANGELOG.md](docs/CHANGELOG.md)
 
 ## 🔎 Índice rápido
 
