@@ -7,8 +7,8 @@ Entregar um compilador mínimo que parseia, verifica tipos simples e gera um bin
 ## Índice
 
 - [Escopo do MVP](#escopo-do-mvp)
-   - [Concluído](#concluído)
-   - [Próximos marcos](#próximos-marcos)
+- [Concluído](#concluído)
+- [Próximos marcos](#próximos-marcos)
 - [Critérios de Aceite](#critérios-de-aceite-quando-houver-implementação)
 
 ## Escopo do MVP
