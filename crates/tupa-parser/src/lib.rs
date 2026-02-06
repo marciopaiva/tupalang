@@ -170,6 +170,8 @@ pub enum ParserError {
     Lexer(String),
     #[error("unexpected token {0:?} at {1:?}")]
     Unexpected(Token, Span),
+    #[error("expected ';' after expression")]
+    MissingSemicolon(Span),
     #[error("unexpected end of input at position {0}")]
     Eof(usize),
 }
@@ -378,8 +380,7 @@ impl Parser {
                 if matches!(self.peek(), Some(Token::RBrace)) {
                     return Ok(Stmt::Expr(expr));
                 }
-                self.expect(Token::Semicolon)?;
-                Ok(Stmt::Expr(expr))
+                Err(ParserError::MissingSemicolon(expr.span))
             }
         }
     }
@@ -520,7 +521,9 @@ impl Parser {
     }
 
     fn parse_expr(&mut self) -> Result<Expr, ParserError> {
-        if matches!(self.peek(), Some(Token::Ident(_))) && matches!(self.peek_next(), Some(Token::Equal)) {
+        if matches!(self.peek(), Some(Token::Ident(_)))
+            && matches!(self.peek_next(), Some(Token::Equal | Token::PlusEqual))
+        {
             let ident = self.next().ok_or(ParserError::Eof(self.eof_pos))?;
             let name = match ident {
                 TokenSpan {
@@ -529,16 +532,48 @@ impl Parser {
                 } => (name, span),
                 TokenSpan { token, span } => return Err(ParserError::Unexpected(token, span)),
             };
-            self.next();
-            let expr = self.parse_expr()?;
-            let span = merge_span(name.1, expr.span);
-            return Ok(Expr::new(
-                ExprKind::Assign {
-                    name: name.0,
-                    expr: Box::new(expr),
-                },
-                span,
-            ));
+            let op = self.next().ok_or(ParserError::Eof(self.eof_pos))?;
+            match op {
+                TokenSpan {
+                    token: Token::Equal,
+                    ..
+                } => {
+                    let expr = self.parse_expr()?;
+                    let span = merge_span(name.1, expr.span);
+                    return Ok(Expr::new(
+                        ExprKind::Assign {
+                            name: name.0,
+                            expr: Box::new(expr),
+                        },
+                        span,
+                    ));
+                }
+                TokenSpan {
+                    token: Token::PlusEqual,
+                    ..
+                } => {
+                    let rhs = self.parse_expr()?;
+                    let lhs = Expr::new(ExprKind::Ident(name.0.clone()), name.1);
+                    let bin_span = merge_span(lhs.span, rhs.span);
+                    let bin = Expr::new(
+                        ExprKind::Binary {
+                            op: BinaryOp::Add,
+                            left: Box::new(lhs),
+                            right: Box::new(rhs),
+                        },
+                        bin_span,
+                    );
+                    let span = merge_span(name.1, bin.span);
+                    return Ok(Expr::new(
+                        ExprKind::Assign {
+                            name: name.0,
+                            expr: Box::new(bin),
+                        },
+                        span,
+                    ));
+                }
+                TokenSpan { token, span } => return Err(ParserError::Unexpected(token, span)),
+            }
         }
         self.parse_precedence(0)
     }

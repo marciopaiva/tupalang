@@ -257,6 +257,27 @@ fn golden_codegen_float_array_ops() {
 }
 
 #[test]
+fn golden_codegen_string_plus_eq() {
+    let stdout = run_cli(&["codegen", example_path("string_plus_eq.tp").to_str().unwrap()]);
+    let expected = fs::read_to_string(expected_path("codegen_string_plus_eq.txt")).unwrap();
+    assert_eq!(stdout, expected);
+}
+
+#[test]
+fn golden_codegen_string_array_ops() {
+    let stdout = run_cli(&["codegen", example_path("string_array_ops.tp").to_str().unwrap()]);
+    let expected = fs::read_to_string(expected_path("codegen_string_array_ops.txt")).unwrap();
+    assert_eq!(stdout, expected);
+}
+
+#[test]
+fn golden_codegen_if_unit_expr() {
+    let stdout = run_cli(&["codegen", example_path("if_unit_expr.tp").to_str().unwrap()]);
+    let expected = fs::read_to_string(expected_path("codegen_if_unit_expr.txt")).unwrap();
+    assert_eq!(stdout, expected);
+}
+
+#[test]
 fn golden_check_invalid_type() {
     let stderr = run_cli_err(&["check", example_path("invalid_type.tp").to_str().unwrap()]);
     let expected = fs::read_to_string(expected_path("check_invalid_type.txt")).unwrap();

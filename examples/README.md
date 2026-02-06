@@ -15,12 +15,14 @@ Reunir exemplos curados que refletem o estado atual do parser, typechecker e cod
 - `functions.tp`: tipos de função e chamadas via variável.
 - `if_else.tp`: fluxo de controle com `if/else if/else`.
 - `if_expr.tp`: `if` como expressão.
+- `if_unit_expr.tp`: `if` sem `else` (unit).
 - `return_if_expr.tp`: `return` com `if` como expressão.
 - `guards.tp`: `match` com guardas.
 - `match.tp`: `match` com guardas e wildcard.
 - `match_guard_if_expr.tp`: `match` com guarda usando `if` como expressão.
 - `arrays.tp`: literais de array, indexação e tipos `[T; N]`.
 - `float_array_ops.tp`: arrays de `f64` e indexação.
+- `string_array_ops.tp`: arrays de `string` e indexação.
 - `loops.tp`: `while` e `for in` com range (`..`).
 - `types.tp`: anotações de tipo e retornos explícitos.
 - `arith.tp`: aritmética e concatenação básica.
@@ -38,6 +40,7 @@ Reunir exemplos curados que refletem o estado atual do parser, typechecker e cod
 - `match_expr.tp`: `match` como expressão.
 - `string_eq.tp`: igualdade/inegualdade de strings.
 - `string_concat.tp`: concatenação de strings em runtime.
+- `string_plus_eq.tp`: concatenação com `+=`.
 - `function_call.tp`: chamada de função definida pelo usuário.
 - `float_ops.tp`: operações e comparação com `f64`.
 

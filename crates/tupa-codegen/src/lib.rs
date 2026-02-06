@@ -10,6 +10,7 @@ enum SimpleTy {
     I64Ptr,
     F64Ptr,
     Str,
+    StrPtr,
     Void,
     Unknown,
 }
@@ -96,11 +97,17 @@ impl Codegen {
             Some(Type::Array { elem, .. }) if matches!(**elem, Type::Ident(ref n) if n == "f64") => {
                 SimpleTy::F64Ptr
             }
+            Some(Type::Array { elem, .. }) if matches!(**elem, Type::Ident(ref n) if n == "string") => {
+                SimpleTy::StrPtr
+            }
             Some(Type::Slice { elem }) if matches!(**elem, Type::Ident(ref n) if n == "i64") => {
                 SimpleTy::I64Ptr
             }
             Some(Type::Slice { elem }) if matches!(**elem, Type::Ident(ref n) if n == "f64") => {
                 SimpleTy::F64Ptr
+            }
+            Some(Type::Slice { elem }) if matches!(**elem, Type::Ident(ref n) if n == "string") => {
+                SimpleTy::StrPtr
             }
             Some(_) => SimpleTy::Unknown,
             None => SimpleTy::Void,
@@ -112,6 +119,7 @@ impl Codegen {
             SimpleTy::I64Ptr => "i64*",
             SimpleTy::F64Ptr => "double*",
             SimpleTy::Str => "i8*",
+            SimpleTy::StrPtr => "i8**",
             _ => "void",
         };
 
@@ -137,6 +145,7 @@ impl Codegen {
                 "i64*" => SimpleTy::I64Ptr,
                 "double*" => SimpleTy::F64Ptr,
                 "i8*" => SimpleTy::Str,
+                "i8**" => SimpleTy::StrPtr,
                 _ => SimpleTy::Unknown,
             };
             let ptr = format!("%{}", param.name);
@@ -189,6 +198,8 @@ impl Codegen {
             self.lines.push("  ret double* null".to_string());
         } else if ret_ty == SimpleTy::Str {
             self.lines.push("  ret i8* null".to_string());
+        } else if ret_ty == SimpleTy::StrPtr {
+            self.lines.push("  ret i8** null".to_string());
         } else {
             self.lines.push("  ret void".to_string());
         }
@@ -660,6 +671,8 @@ impl Codegen {
                     SimpleTy::I64Ptr
                 } else if first == SimpleTy::F64 {
                     SimpleTy::F64Ptr
+                } else if first == SimpleTy::Str {
+                    SimpleTy::StrPtr
                 } else {
                     SimpleTy::Unknown
                 }
@@ -670,6 +683,7 @@ impl Codegen {
                 match self.infer_expr_ty(expr, env) {
                     SimpleTy::F64Ptr => SimpleTy::F64,
                     SimpleTy::I64Ptr => SimpleTy::I64,
+                    SimpleTy::StrPtr => SimpleTy::Str,
                     _ => SimpleTy::Unknown,
                 }
             }
@@ -1125,8 +1139,26 @@ impl Codegen {
                         ));
                         ExprValue::new(SimpleTy::F64Ptr, data_ptr)
                     }
+                    SimpleTy::Str => {
+                        let arr = self.fresh_temp();
+                        self.lines
+                            .push(format!("  {arr} = alloca [{len} x i8*]"));
+                        for (idx, value) in values.into_iter().enumerate() {
+                            let elem_ptr = self.fresh_temp();
+                            self.lines.push(format!(
+                                "  {elem_ptr} = getelementptr inbounds [{len} x i8*], [{len} x i8*]* {arr}, i64 0, i64 {idx}"
+                            ));
+                            self.lines
+                                .push(format!("  store i8* {}, i8** {elem_ptr}", value.llvm_value));
+                        }
+                        let data_ptr = self.fresh_temp();
+                        self.lines.push(format!(
+                            "  {data_ptr} = getelementptr inbounds [{len} x i8*], [{len} x i8*]* {arr}, i64 0, i64 0"
+                        ));
+                        ExprValue::new(SimpleTy::StrPtr, data_ptr)
+                    }
                     _ => {
-                        self.lines.push("  ; TODO: non-i64/f64 array literal".to_string());
+                        self.lines.push("  ; TODO: non-i64/f64/str array literal".to_string());
                         ExprValue::new(SimpleTy::Unknown, "0".to_string())
                     }
                 }
@@ -1176,6 +1208,17 @@ impl Codegen {
                     self.lines
                         .push(format!("  {tmp} = load double, double* {elem_ptr}"));
                     return ExprValue::new(SimpleTy::F64, tmp);
+                }
+                if base.ty == SimpleTy::StrPtr && idx.ty == SimpleTy::I64 {
+                    let elem_ptr = self.fresh_temp();
+                    self.lines.push(format!(
+                        "  {elem_ptr} = getelementptr inbounds i8*, i8** {}, i64 {}",
+                        base.llvm_value, idx.llvm_value
+                    ));
+                    let tmp = self.fresh_temp();
+                    self.lines
+                        .push(format!("  {tmp} = load i8*, i8** {elem_ptr}"));
+                    return ExprValue::new(SimpleTy::Str, tmp);
                 }
                 self.lines.push("  ; TODO: unsupported index".to_string());
                 ExprValue::new(SimpleTy::Unknown, "0".to_string())
@@ -1583,11 +1626,17 @@ impl Codegen {
             Type::Array { elem, .. } if matches!(**elem, Type::Ident(ref n) if n == "f64") => {
                 "double*".to_string()
             }
+            Type::Array { elem, .. } if matches!(**elem, Type::Ident(ref n) if n == "string") => {
+                "i8**".to_string()
+            }
             Type::Slice { elem } if matches!(**elem, Type::Ident(ref n) if n == "i64") => {
                 "i64*".to_string()
             }
             Type::Slice { elem } if matches!(**elem, Type::Ident(ref n) if n == "f64") => {
                 "double*".to_string()
+            }
+            Type::Slice { elem } if matches!(**elem, Type::Ident(ref n) if n == "string") => {
+                "i8**".to_string()
             }
             _ => "void".to_string(),
         }
@@ -1605,11 +1654,17 @@ impl Codegen {
             Type::Array { elem, .. } if matches!(**elem, Type::Ident(ref n) if n == "f64") => {
                 SimpleTy::F64Ptr
             }
+            Type::Array { elem, .. } if matches!(**elem, Type::Ident(ref n) if n == "string") => {
+                SimpleTy::StrPtr
+            }
             Type::Slice { elem } if matches!(**elem, Type::Ident(ref n) if n == "i64") => {
                 SimpleTy::I64Ptr
             }
             Type::Slice { elem } if matches!(**elem, Type::Ident(ref n) if n == "f64") => {
                 SimpleTy::F64Ptr
+            }
+            Type::Slice { elem } if matches!(**elem, Type::Ident(ref n) if n == "string") => {
+                SimpleTy::StrPtr
             }
             _ => SimpleTy::Unknown,
         }
@@ -1623,6 +1678,7 @@ impl Codegen {
             SimpleTy::I64Ptr => "i64*",
             SimpleTy::F64Ptr => "double*",
             SimpleTy::Str => "i8*",
+            SimpleTy::StrPtr => "i8**",
             SimpleTy::Void => "void",
             SimpleTy::Unknown => "i64",
         }

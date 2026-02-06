@@ -52,6 +52,7 @@ pub enum Token {
     AndAnd,
     OrOr,
     Plus,
+    PlusEqual,
     Minus,
     Star,
     Slash,
@@ -183,7 +184,7 @@ mod tests {
 
     #[test]
     fn lex_operators() {
-        let tokens = lex("== != <= >= && || + - * / ** .. . ! < >").unwrap();
+        let tokens = lex("== != <= >= && || + += - * / ** .. . ! < >").unwrap();
         assert_eq!(
             tokens,
             vec![
@@ -194,6 +195,7 @@ mod tests {
                 Token::AndAnd,
                 Token::OrOr,
                 Token::Plus,
+                Token::PlusEqual,
                 Token::Minus,
                 Token::Star,
                 Token::Slash,
@@ -276,6 +278,7 @@ fn punct(input: &str) -> IResult<&str, Token> {
         (">=", Token::GreaterEqual),
         ("&&", Token::AndAnd),
         ("||", Token::OrOr),
+        ("+=", Token::PlusEqual),
         ("**", Token::DoubleStar),
         ("..", Token::DotDot),
         (".", Token::Dot),

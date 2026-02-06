@@ -1,0 +1,30 @@
+@.str0 = private unnamed_addr constant [2 x i8] c"a\00"
+@.str1 = private unnamed_addr constant [2 x i8] c"b\00"
+@.str2 = private unnamed_addr constant [2 x i8] c"c\00"
+declare i32 @puts(i8*)
+
+define void @main() {
+entry:
+  %t0 = getelementptr inbounds [2 x i8], [2 x i8]* @.str0, i64 0, i64 0
+  %t1 = getelementptr inbounds [2 x i8], [2 x i8]* @.str1, i64 0, i64 0
+  %t2 = getelementptr inbounds [2 x i8], [2 x i8]* @.str2, i64 0, i64 0
+  %t3 = alloca [3 x i8*]
+  %t4 = getelementptr inbounds [3 x i8*], [3 x i8*]* %t3, i64 0, i64 0
+  store i8* %t0, i8** %t4
+  %t5 = getelementptr inbounds [3 x i8*], [3 x i8*]* %t3, i64 0, i64 1
+  store i8* %t1, i8** %t5
+  %t6 = getelementptr inbounds [3 x i8*], [3 x i8*]* %t3, i64 0, i64 2
+  store i8* %t2, i8** %t6
+  %t7 = getelementptr inbounds [3 x i8*], [3 x i8*]* %t3, i64 0, i64 0
+  %t8 = alloca i8**
+  store i8** %t7, i8*** %t8
+  %t9 = load i8**, i8*** %t8
+  %t10 = getelementptr inbounds i8*, i8** %t9, i64 1
+  %t11 = load i8*, i8** %t10
+  %t12 = alloca i8*
+  store i8* %t11, i8** %t12
+  %t13 = load i8*, i8** %t12
+  call i32 @puts(i8* %t13)
+  ret void
+}
+
