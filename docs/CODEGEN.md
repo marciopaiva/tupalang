@@ -27,7 +27,7 @@ Em JSON, a saída vem encapsulada em um objeto:
 
 ```json
 {
-	"codegen": "// TODO: LLVM codegen stub"
+  "codegen": "// TODO: LLVM codegen stub"
 }
 ```
 

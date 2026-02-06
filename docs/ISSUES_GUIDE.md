@@ -23,6 +23,7 @@ Padronizar a criação de issues com informações úteis para triagem.
 **Título**: `Parser falha com match aninhado`
 
 **Descrição**:
+
 - Passos: `tupa-cli -- parse examples/match.tp`
 - Esperado: AST válido
 - Atual: erro `unexpected token`
@@ -32,6 +33,7 @@ Padronizar a criação de issues com informações úteis para triagem.
 **Título**: `[RFC] Tipos opcionais`
 
 **Descrição**:
+
 - Motivação
 - Alternativas
 - Impacto na SPEC

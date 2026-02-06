@@ -6,7 +6,7 @@ Descrever o fluxo para reportar vulnerabilidades de forma responsável.
 
 ## Reporte
 
-Envie um e-mail para: security@tupalang.org
+Envie um e-mail para: [security@tupalang.org](mailto:security@tupalang.org)
 
 ## Escopo
 

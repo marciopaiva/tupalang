@@ -8,7 +8,7 @@ Apresentar exemplos mínimos das construções básicas da linguagem.
 
 ```tupa
 fn soma(a: i64, b: i64) -> i64 {
-	return a + b
+  return a + b
 }
 ```
 
@@ -23,9 +23,9 @@ let y = 20
 
 ```tupa
 if x > 0 {
-	print("positivo")
+  print("positivo")
 } else {
-	print("não-positivo")
+  print("não-positivo")
 }
 ```
 
@@ -33,9 +33,9 @@ if x > 0 {
 
 ```tupa
 match status {
-	200 => print("OK"),
-	404 => print("Not Found"),
-	_ => print("Outro")
+  200 => print("OK"),
+  404 => print("Not Found"),
+  _ => print("Outro")
 }
 ```
 
@@ -49,11 +49,11 @@ let xs = [1, 2, 3]
 
 ```tupa
 while i < 10 {
-	i = i + 1
+  i = i + 1
 }
 
 for i in 0..10 {
-	print(i)
+  print(i)
 }
 ```
 

@@ -13,16 +13,16 @@ Padronizar o conteúdo e o formato das mensagens de erro.
 
 ## Exemplos
 
-**Type mismatch**
+### Type mismatch
 
-```
+```text
 error[E2001]: type mismatch: expected I64, got F64
   --> examples/types.tp:4:10
 ```
 
-**Variável não definida**
+### Variável não definida
 
-```
+```text
 error[E1002]: undefined variable 'x'
   --> examples/types.tp:2:1
 ```

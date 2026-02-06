@@ -1,0 +1,7 @@
+<svg width="640" height="180" viewBox="0 0 640 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Demo">
+  <rect width="640" height="180" fill="#0f0f12"/>
+  <rect x="16" y="16" width="608" height="148" fill="#16161a" stroke="#2a2a31"/>
+  <text x="32" y="60" fill="#f2f2f2" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="20">$ tupa-cli -- check examples/hello.tp</text>
+  <text x="32" y="95" fill="#9ee493" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="18">✔ ok</text>
+  <text x="32" y="130" fill="#f2f2f2" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="16">Compilando hello.tp → binário nativo</text>
+</svg>

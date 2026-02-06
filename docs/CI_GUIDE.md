@@ -7,6 +7,7 @@ Descrever os workflows de CI e quando eles são executados.
 ## Workflows
 
 ### CI (tests)
+
 Arquivo: `.github/workflows/ci.yml`
 
 - Executa em `push` e `pull_request`.
@@ -17,6 +18,7 @@ Arquivo: `.github/workflows/ci.yml`
   - `tupa-cli`
 
 ### Docs Lint
+
 Arquivo: `.github/workflows/docs-lint.yml`
 
 - Executa em `push` e `pull_request` quando arquivos `.md` mudam.
@@ -25,6 +27,7 @@ Arquivo: `.github/workflows/docs-lint.yml`
   - `link-check` (verificação de links)
 
 ### Sync Wiki
+
 Arquivo: `.github/workflows/wiki-sync.yml`
 
 - Executa em `push` na `main` quando docs/README/examples/README mudam.

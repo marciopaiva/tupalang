@@ -14,6 +14,7 @@ Entregar um compilador mínimo que parseia, verifica tipos simples e gera um bin
 ## Escopo do MVP
 
 ### Concluído
+
 1. Lexer
    - Tokens básicos, comentários `//`/`/* */`, strings e números.
 2. Parser
@@ -29,7 +30,8 @@ Entregar um compilador mínimo que parseia, verifica tipos simples e gera um bin
    - Retornos, `match`, loops e tipos de função.
 
 ### Próximos marcos
-7. Codegen (LLVM)
+
+1. Codegen (LLVM)
    - Funções, aritmética básica e `print`.
 
 ## Critérios de Aceite (quando houver implementação)

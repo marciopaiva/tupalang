@@ -13,7 +13,7 @@ Definir convenções de nomenclatura, formatação e padrões de exemplo para a 
 
 ## Formatação
 
-- Indentação com tab (\t) em exemplos.
+- Indentação com 2 espaços em exemplos.
 - Um espaço após `,` e `:`.
 - Chaves em linha separada apenas para blocos multilinha.
 
@@ -32,7 +32,7 @@ Definir convenções de nomenclatura, formatação e padrões de exemplo para a 
 
 ```tupa
 fn soma(a: i64, b: i64) -> i64 {
-	return a + b
+  return a + b
 }
 
 let score: Safe<f64, !nan> = risk_score(tx)

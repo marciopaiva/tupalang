@@ -9,15 +9,16 @@
 **Changelog completo**: [docs/CHANGELOG.md](docs/CHANGELOG.md)
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/status-impl_em_andamento-orange)](#)
+[![Status](https://img.shields.io/badge/status-impl_em_andamento-orange)](docs/ROADMAP.md)
 [![Wiki](https://img.shields.io/badge/wiki-Tup%C3%A3-7b5cff)](https://github.com/marciopaiva/tupalang/wiki)
 [![CI](https://github.com/marciopaiva/tupalang/actions/workflows/ci.yml/badge.svg)](https://github.com/marciopaiva/tupalang/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/marciopaiva/tupalang?display_name=tag)](https://github.com/marciopaiva/tupalang/releases)
-[![Brasil](https://img.shields.io/badge/feito_no-Brasil-009739?logo=brazil)](#)
+[![Brasil](https://img.shields.io/badge/feito_no-Brasil-009739?logo=brazil)](https://github.com/marciopaiva/tupalang)
 
 > **Status atual**: Especificação v0.1 completa. Implementação em andamento com lexer, parser, typechecker e CLI básicos.
 
 **Changelog (resumo)**:
+
 - Organização de docs e wiki com sync automático.
 - Novos guias (arquitetura, FAQ, testes, CI, release).
 - Melhorias de README e navegação.
@@ -25,7 +26,7 @@
 ## 🔎 Índice rápido
 
 - [Status](#-status)
-- [Documentação](#-documenta%C3%A7%C3%A3o)
+- [Recursos](#-recursos)
 - [Roadmap](#-roadmap)
 - [CLI](#-cli-dev)
 
@@ -48,7 +49,7 @@
 - `tupa-parser` → AST
 - `tupa-typecheck` → tipos e constraints
 
-**Quick Start**
+## ⚡ Quick Start
 
 ```bash
 cargo run -p tupa-cli -- parse examples/hello.tp
@@ -58,7 +59,7 @@ cargo run -p tupa-cli -- check examples/hello.tp
 ```tupa
 // IA responsável desde o primeiro caractere
 fn summarize(article: Text) -> SafeText<!misinformation> {
-	return llm.generate(f"Resuma objetivamente: {article}")
+  return llm.generate(f"Resuma objetivamente: {article}")
 }
 ```
 
@@ -68,7 +69,6 @@ fn summarize(article: Text) -> SafeText<!misinformation> {
 git clone https://github.com/marciopaiva/tupalang.git
 cd tupalang
 cargo test
-```
 
 # parse
 cargo run -p tupa-cli -- parse examples/hello.tp
@@ -78,8 +78,11 @@ cargo run -p tupa-cli -- check examples/hello.tp
 
 # lex
 cargo run -p tupa-cli -- lex examples/hello.tp
+```
+
+```tupa
 // Inferência de tipos com tipagem explícita opcional
-let idade = 28          // i64 (inferido)
+let idade = 28           // i64 (inferido)
 let nome: string = "Ana" // string (explícito)
 
 // Tipos de função (first-class)
@@ -87,16 +90,16 @@ let add: fn(i64, i64) -> i64 = soma
 
 // Pattern matching elegante
 match http_status {
-	200 => print("OK"),
-	404 => print("Não encontrado"),
-	code if code >= 500 => print(f"Erro servidor: {code}"),
-	_ => print("Outro status")
+  200 => print("OK"),
+  404 => print("Não encontrado"),
+  code if code >= 500 => print(f"Erro servidor: {code}"),
+  _ => print("Outro status")
 }
 
 // Concorrência leve com segurança garantida
 spawn async fn worker(id: i64) {
-	let data = await db.query(id)
-	process(data)  // Zero data races pelo sistema de tipos
+  let data = await db.query(id)
+  process(data)  // Zero data races pelo sistema de tipos
 }
 ```
 
@@ -112,24 +115,25 @@ spawn async fn worker(id: i64) {
 // fraud_detector.tp
 @differentiable
 fn risk_score(tx: Transaction) -> f64 {
-	let neural = fraud_net.infer(tx.features)  // Tensor<f16, density=0.15>
-	let symbolic = if tx.country == "BR" && tx.amount > 1000 { 0.8 } else { 0.2 }
-	return 0.7 * neural + 0.3 * symbolic  // Fusão neurosimbólica nativa
+  let neural = fraud_net.infer(tx.features)  // Tensor<f16, density=0.15>
+  let symbolic = if tx.country == "BR" && tx.amount > 1000 { 0.8 } else { 0.2 }
+  return 0.7 * neural + 0.3 * symbolic  // Fusão neurosimbólica nativa
 }
 
 @service(port=8080)
 fn main() {
-	route.post("/predict", |req: Request| {
-		// Safe<f64, !nan> garante que score nunca é NaN (crítico para produção)
-		let score: Safe<f64, !nan> = risk_score(req.transaction)
-		return Response::json(score)
-	})
+  route.post("/predict", |req: Request| {
+    // Safe<f64, !nan> garante que score nunca é NaN (crítico para produção)
+    let score: Safe<f64, !nan> = risk_score(req.transaction)
+    return Response::json(score)
+  })
 }
 ```
 
 **Resultados esperados** (vs Python + PyTorch):
+
 | Métrica | Python | Tupã | Ganho |
-|---------|--------|------|-------|
+| ------- | ------ | ---- | ----- |
 | Latência P99 | 45 ms | 8 ms | **5.6x mais rápido** |
 | Consumo energia | 100% | 12% | **88% menos carbono** |
 | Vazamento dados | Possível (runtime) | Impossível (compile-time) | **Segurança formal** |
@@ -139,7 +143,7 @@ fn main() {
 ## 🚀 Próximos 30 dias (ajude agora!)
 
 | Tarefa | Arquivo | Dificuldade |
-|--------|---------|-------------|
+| ------ | ------- | ----------- |
 | Diagnósticos com span/linha/coluna (spec + implementação) | `docs/SPEC.md` | ⭐⭐ |
 | Evoluir typechecker (retorno, match, loops, tipos de função) | `crates/tupa-typecheck/` | ⭐⭐⭐ |
 | Protótipo de codegen MVP (LLVM) | `crates/tupa-codegen/` | ⭐⭐⭐⭐ |
@@ -218,7 +222,7 @@ Tupã é a **primeira linguagem brasileira com ambição global desde Lua** (199
 
 ## 🧰 CLI (dev)
 
-Demo: [assets/demo.svg](assets/demo.svg)
+Demo: ![Demo](assets/demo.svg)
 
 ```bash
 # lex e imprime tokens
@@ -265,12 +269,12 @@ cargo run -p tupa-cli -- about
 
 Erros agora incluem código e linha/coluna:
 
-```
+```text
 error[E2001]: type mismatch: expected I64, got Bool
-	--> examples/invalid_type.tp:2:15
-	 |
- 2 | 	let x: i64 = true;
-	 |               ^^^^
+  --> examples/invalid_type.tp:2:15
+   |
+ 2 |   let x: i64 = true;
+   |               ^^^^
 ```
 
 Saída JSON também está disponível via `--format json` para consumo por ferramentas.
@@ -308,7 +312,7 @@ Em breve.
 ## 🧪 Matriz de suporte
 
 | Sistema | Status |
-|--------|--------|
+| ------- | ------ |
 | Linux | ✅ |
 | macOS | ✅ |
 | Windows (WSL) | ✅ |
@@ -317,7 +321,6 @@ Em breve.
 
 ## 💬 Comunidade
 
-- [GitHub Discussions](https://github.com/marciopaiva/tupalang/discussions): RFCs e debates técnicos
 - [GitHub Issues](https://github.com/marciopaiva/tupalang/issues): bugs e melhorias
 - [Twitter @tupalang](https://twitter.com/tupalang): atualizações e demos
 

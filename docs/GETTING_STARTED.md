@@ -18,19 +18,19 @@ git clone https://github.com/marciopaiva/tupalang.git
 cd tupalang
 ```
 
-2) Execute o exemplo básico:
+1) Execute o exemplo básico:
 
 ```bash
 cargo run -p tupa-cli -- parse examples/hello.tp
 ```
 
-3) Rode o typechecker:
+1) Rode o typechecker:
 
 ```bash
 cargo run -p tupa-cli -- check examples/hello.tp
 ```
 
-4) Saída em JSON (opcional):
+1) Saída em JSON (opcional):
 
 ```bash
 cargo run -p tupa-cli -- parse --format json examples/hello.tp
