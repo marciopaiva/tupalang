@@ -8,6 +8,7 @@
 - [SPEC](docs/SPEC.md)
 - [Erros Comuns](docs/COMMON_ERRORS.md)
 - [Checklist de Diagnósticos](docs/DIAGNOSTICS_CHECKLIST.md)
+- [Detalhes do Typechecker](docs/TYPECHECKER_DETAILS.md)
 - [Changelog](docs/CHANGELOG.md)
 - [Plano MVP](docs/MVP_PLAN.md)
 - [Guia de Contribuição](CONTRIBUTING.md)

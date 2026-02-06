@@ -8,6 +8,7 @@
 - [SPEC](SPEC.md)
 - [Common Errors](COMMON_ERRORS.md)
 - [Diagnostics Checklist](DIAGNOSTICS_CHECKLIST.md)
+- [Typechecker Details](TYPECHECKER_DETAILS.md)
 - [Changelog](CHANGELOG.md)
 - [MVP Plan](MVP_PLAN.md)
 - [Contribution Guide](../CONTRIBUTING.md)
