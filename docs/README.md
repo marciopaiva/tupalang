@@ -13,6 +13,7 @@ Organizar a documentação por público e facilitar a navegação.
 - [FAQ](FAQ.md)
 - [Roadmap](ROADMAP.md)
 - [Erros comuns](COMMON_ERRORS.md)
+- [Guia de exemplos](EXAMPLES_GUIDE.md)
 
 ## Para novos contribuidores
 

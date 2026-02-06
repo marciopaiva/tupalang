@@ -29,6 +29,7 @@ fn summarize(article: Text) -> SafeText<!misinformation> {
 - [docs/FAQ.md](docs/FAQ.md)
 - [docs/ROADMAP.md](docs/ROADMAP.md)
 - [docs/COMMON_ERRORS.md](docs/COMMON_ERRORS.md)
+- [docs/EXAMPLES_GUIDE.md](docs/EXAMPLES_GUIDE.md)
 - [CONTRIBUTING.md](CONTRIBUTING.md)
 - [docs/DEV_ENV.md](docs/DEV_ENV.md)
 
