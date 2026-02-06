@@ -1,3 +1,5 @@
+- [Detalhes do Typechecker](docs/TYPECHECKER_DETAILS.md)
+- [API e Extensibilidade](docs/API_EXTENSIBILITY.md)
 # Índice da Documentação
 
 ## Português
