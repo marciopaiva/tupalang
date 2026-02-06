@@ -1,11 +1,11 @@
-﻿![Tupã Banner](assets/banner.svg)
+﻿# ⚡ Tupã
 
-# ⚡ Tupã
+![Tupã Banner](assets/banner.svg)
 
 > **Força ancestral, código moderno**  
 > Linguagem brasileira para sistemas críticos e IA evolutiva
 
-**Wiki**: https://github.com/marciopaiva/tupalang/wiki
+**Wiki**: [github.com/marciopaiva/tupalang/wiki](https://github.com/marciopaiva/tupalang/wiki)
 **Changelog completo**: [docs/CHANGELOG.md](docs/CHANGELOG.md)
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
@@ -324,4 +324,4 @@ Em breve.
 ---
 
 > **🌩️ Tupã: onde a sabedoria ancestral encontra a engenharia do futuro**  
-> *github.com/marciopaiva/tupalang*
+> *[github.com/marciopaiva/tupalang](https://github.com/marciopaiva/tupalang)*

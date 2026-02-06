@@ -12,7 +12,7 @@ on:
       - scripts/sync-wiki.sh
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   sync-wiki:
