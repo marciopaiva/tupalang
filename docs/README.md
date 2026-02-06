@@ -9,6 +9,7 @@ Organizar a documentação por público e facilitar a navegação.
 - [Guia de Início Rápido](GETTING_STARTED.md)
 - [Exemplos](../examples/README.md)
 - [SPEC](SPEC.md)
+- [Glossário](GLOSSARY.md)
 
 ## Para contribuidores
 
