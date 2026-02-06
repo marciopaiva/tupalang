@@ -16,6 +16,7 @@ Organizar a documentação por público e facilitar a navegação.
 - [Guia de exemplos](EXAMPLES_GUIDE.md)
 - [Glossário de sintaxe](SYNTAX_GLOSSARY.md)
 - [Glossário de tipos](TYPES_GLOSSARY.md)
+- [Guia de ambiente por OS](ENV_SETUP.md)
 
 ## Para novos contribuidores
 
