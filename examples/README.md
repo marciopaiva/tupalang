@@ -2,9 +2,7 @@
 
 ## Objetivo
 
-Reunir exemplos curados que refletem o estado atual do parser e do typechecker.
-
-Exemplos executáveis para o estado atual do parser e typechecker.
+Reunir exemplos curados que refletem o estado atual do parser, typechecker e codegen.
 
 ## Curadoria e playground
 
@@ -21,7 +19,21 @@ Exemplos executáveis para o estado atual do parser e typechecker.
 - `arrays.tp`: literais de array, indexação e tipos `[T; N]`.
 - `loops.tp`: `while` e `for in` com range (`..`).
 - `types.tp`: anotações de tipo e retornos explícitos.
-- `hello.codegen.txt`: saída esperada (stub) do `codegen` para `hello.tp`.
+- `arith.tp`: aritmética e concatenação básica.
+- `if_match.tp`: `if` e `match` com strings.
+- `while.tp`: laço `while`.
+- `for_range.tp`: `for` com range.
+- `break_continue.tp`: controle de loop.
+- `array_ops.tp`: arrays, indexação e atribuição.
+- `bool_print.tp`: impressão de booleanos.
+- `bool_ops.tp`: `&&`, `||`, `==`, `!=`.
+- `unary_ops.tp`: `-` e `!`.
+- `pow_ops.tp`: potência `**` em `i64`.
+- `match_guard.tp`: `match` com guardas.
+- `match_bind.tp`: bind de identificadores em `match`.
+- `string_eq.tp`: igualdade/inegualdade de strings.
+- `function_call.tp`: chamada de função definida pelo usuário.
+- `float_ops.tp`: operações e comparação com `f64`.
 
 ### Casos negativos (devem falhar)
 

@@ -142,6 +142,76 @@ fn golden_codegen_break_continue() {
 }
 
 #[test]
+fn golden_codegen_array_ops() {
+    let stdout = run_cli(&["codegen", example_path("array_ops.tp").to_str().unwrap()]);
+    let expected = fs::read_to_string(expected_path("codegen_array_ops.txt")).unwrap();
+    assert_eq!(stdout, expected);
+}
+
+#[test]
+fn golden_codegen_bool_print() {
+    let stdout = run_cli(&["codegen", example_path("bool_print.tp").to_str().unwrap()]);
+    let expected = fs::read_to_string(expected_path("codegen_bool_print.txt")).unwrap();
+    assert_eq!(stdout, expected);
+}
+
+#[test]
+fn golden_codegen_bool_ops() {
+    let stdout = run_cli(&["codegen", example_path("bool_ops.tp").to_str().unwrap()]);
+    let expected = fs::read_to_string(expected_path("codegen_bool_ops.txt")).unwrap();
+    assert_eq!(stdout, expected);
+}
+
+#[test]
+fn golden_codegen_unary_ops() {
+    let stdout = run_cli(&["codegen", example_path("unary_ops.tp").to_str().unwrap()]);
+    let expected = fs::read_to_string(expected_path("codegen_unary_ops.txt")).unwrap();
+    assert_eq!(stdout, expected);
+}
+
+#[test]
+fn golden_codegen_pow_ops() {
+    let stdout = run_cli(&["codegen", example_path("pow_ops.tp").to_str().unwrap()]);
+    let expected = fs::read_to_string(expected_path("codegen_pow_ops.txt")).unwrap();
+    assert_eq!(stdout, expected);
+}
+
+#[test]
+fn golden_codegen_string_eq() {
+    let stdout = run_cli(&["codegen", example_path("string_eq.tp").to_str().unwrap()]);
+    let expected = fs::read_to_string(expected_path("codegen_string_eq.txt")).unwrap();
+    assert_eq!(stdout, expected);
+}
+
+#[test]
+fn golden_codegen_match_guard() {
+    let stdout = run_cli(&["codegen", example_path("match_guard.tp").to_str().unwrap()]);
+    let expected = fs::read_to_string(expected_path("codegen_match_guard.txt")).unwrap();
+    assert_eq!(stdout, expected);
+}
+
+#[test]
+fn golden_codegen_function_call() {
+    let stdout = run_cli(&["codegen", example_path("function_call.tp").to_str().unwrap()]);
+    let expected = fs::read_to_string(expected_path("codegen_function_call.txt")).unwrap();
+    assert_eq!(stdout, expected);
+}
+
+#[test]
+fn golden_codegen_match_bind() {
+    let stdout = run_cli(&["codegen", example_path("match_bind.tp").to_str().unwrap()]);
+    let expected = fs::read_to_string(expected_path("codegen_match_bind.txt")).unwrap();
+    assert_eq!(stdout, expected);
+}
+
+#[test]
+fn golden_codegen_float_ops() {
+    let stdout = run_cli(&["codegen", example_path("float_ops.tp").to_str().unwrap()]);
+    let expected = fs::read_to_string(expected_path("codegen_float_ops.txt")).unwrap();
+    assert_eq!(stdout, expected);
+}
+
+#[test]
 fn golden_check_invalid_type() {
     let stderr = run_cli_err(&["check", example_path("invalid_type.tp").to_str().unwrap()]);
     let expected = fs::read_to_string(expected_path("check_invalid_type.txt")).unwrap();

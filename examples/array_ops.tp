@@ -1,0 +1,9 @@
+fn main() {
+  let arr: [i64; 3] = [10, 20, 30];
+  let second: i64 = arr[1];
+  print(second);
+
+  let total: i64 = 0;
+  total = total + arr[2];
+  print(total);
+}

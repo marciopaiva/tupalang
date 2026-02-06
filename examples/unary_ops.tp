@@ -1,0 +1,7 @@
+fn main() {
+  let a = 7;
+  let b = -a;
+  let c = !true;
+  print(b);
+  print(c);
+}

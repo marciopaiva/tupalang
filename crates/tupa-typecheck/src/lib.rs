@@ -195,6 +195,9 @@ fn typecheck_function(
         if let Some(Stmt::Expr(expr)) = func.body.last() {
             let found = type_of_expr(expr, &mut env, functions, &expected_return)?;
             if found != expected_return.ty {
+                if found == Ty::Unit {
+                    return Err(TypeError::MissingReturn);
+                }
                 return Err(TypeError::ReturnMismatch {
                     expected: expected_return.ty.clone(),
                     found,

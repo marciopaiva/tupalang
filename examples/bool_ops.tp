@@ -1,0 +1,12 @@
+fn main() {
+  let a = true;
+  let b = false;
+  let c = a && b;
+  let d = a || b;
+  let e = a == b;
+  let f = a != b;
+  print(c);
+  print(d);
+  print(e);
+  print(f);
+}

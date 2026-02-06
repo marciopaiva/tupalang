@@ -19,7 +19,7 @@
 
 - [x] Lexer, parser, typechecker e CLI básicos
 - [x] Saída JSON no CLI
-- [ ] Codegen funcional (além de stub)
+- [x] Codegen funcional (IR textual)
 - [ ] Language Server
 
 ## ❓ FAQ rápido
