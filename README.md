@@ -26,6 +26,7 @@ fn summarize(article: Text) -> SafeText<!misinformation> {
 - [docs/GLOSSARY.md](docs/GLOSSARY.md)
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - [docs/STYLE_GUIDE.md](docs/STYLE_GUIDE.md)
+- [docs/FAQ.md](docs/FAQ.md)
 - [CONTRIBUTING.md](CONTRIBUTING.md)
 - [docs/DEV_ENV.md](docs/DEV_ENV.md)
 
@@ -186,6 +187,7 @@ Tupã é a **primeira linguagem brasileira com ambição global desde Lua** (199
 - [examples/README.md](examples/README.md)
 - [docs/SPEC.md](docs/SPEC.md)
 - [docs/GLOSSARY.md](docs/GLOSSARY.md)
+- [docs/FAQ.md](docs/FAQ.md)
 
 ### Para contribuidores
 

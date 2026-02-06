@@ -10,6 +10,7 @@ Organizar a documentação por público e facilitar a navegação.
 - [Exemplos](../examples/README.md)
 - [SPEC](SPEC.md)
 - [Glossário](GLOSSARY.md)
+- [FAQ](FAQ.md)
 
 ## Para novos contribuidores
 
