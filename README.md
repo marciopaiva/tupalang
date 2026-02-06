@@ -2,12 +2,6 @@
 
 ![Tupã Banner](assets/banner.svg)
 
-> **Força ancestral, código moderno**  
-> Linguagem brasileira para sistemas críticos e IA evolutiva
-
-**Wiki**: [github.com/marciopaiva/tupalang/wiki](https://github.com/marciopaiva/tupalang/wiki)
-**Changelog completo**: [docs/CHANGELOG.md](docs/CHANGELOG.md)
-
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/status-impl_em_andamento-orange)](docs/ROADMAP.md)
 [![Wiki](https://img.shields.io/badge/wiki-Tup%C3%A3-7b5cff)](https://github.com/marciopaiva/tupalang/wiki)
