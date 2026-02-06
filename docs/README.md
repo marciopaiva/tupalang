@@ -40,3 +40,4 @@ Organizar a documentação por público e facilitar a navegação.
 - [Notas de Design (IA)](DESIGN_NOTES.md)
 - [Changelog](CHANGELOG.md)
 - [Checklist de Release](RELEASE_CHECKLIST.md)
+- [Guia de Release](RELEASE_GUIDE.md)
