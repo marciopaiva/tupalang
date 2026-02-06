@@ -290,6 +290,8 @@ fn type_error_code(err: &TypeError) -> &'static str {
         TypeError::MissingReturn => "E2007",
         TypeError::InvalidConstraint { .. } => "E3001",
         TypeError::UnprovenConstraint { .. } => "E3002",
+        TypeError::BreakOutsideLoop { .. } => "E4001",
+        TypeError::ContinueOutsideLoop { .. } => "E4002",
     }
 }
 
@@ -406,6 +408,8 @@ fn token_kind(token: &Token) -> String {
         Token::Match => "Match",
         Token::While => "While",
         Token::For => "For",
+        Token::Break => "Break",
+        Token::Continue => "Continue",
         Token::In => "In",
         Token::Await => "Await",
         Token::True => "True",
@@ -483,7 +487,9 @@ fn type_error_span(err: &TypeError) -> Option<Span> {
         | TypeError::InvalidCallTarget { span, .. }
         | TypeError::ReturnMismatch { span, .. }
         | TypeError::InvalidConstraint { span, .. }
-        | TypeError::UnprovenConstraint { span, .. } => *span,
+        | TypeError::UnprovenConstraint { span, .. }
+        | TypeError::BreakOutsideLoop { span, .. }
+        | TypeError::ContinueOutsideLoop { span, .. } => *span,
         TypeError::UnknownType(_) | TypeError::MissingReturn => None,
     }
 }

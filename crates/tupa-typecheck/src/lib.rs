@@ -69,6 +69,10 @@ pub enum TypeError {
     },
     #[error("cannot prove constraint '{constraint}' at compile time")]
     UnprovenConstraint { constraint: String, span: Option<Span> },
+    #[error("break outside of loop")]
+    BreakOutsideLoop { span: Option<Span> },
+    #[error("continue outside of loop")]
+    ContinueOutsideLoop { span: Option<Span> },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -268,6 +272,7 @@ fn typecheck_stmt(
                 });
             }
             let mut inner = env.child();
+            inner.loop_depth += 1;
             for stmt in body {
                 typecheck_stmt(stmt, &mut inner, functions, expected_return)?;
             }
@@ -289,11 +294,26 @@ fn typecheck_stmt(
                 }
             };
             let mut inner = env.child();
+            inner.loop_depth += 1;
             inner.insert_var(name.clone(), elem_ty);
             for stmt in body {
                 typecheck_stmt(stmt, &mut inner, functions, expected_return)?;
             }
             Ok(())
+        }
+        Stmt::Break => {
+            if env.loop_depth == 0 {
+                Err(TypeError::BreakOutsideLoop { span: None })
+            } else {
+                Ok(())
+            }
+        }
+        Stmt::Continue => {
+            if env.loop_depth == 0 {
+                Err(TypeError::ContinueOutsideLoop { span: None })
+            } else {
+                Ok(())
+            }
         }
         Stmt::Expr(expr) => {
             type_of_expr(expr, env, functions, expected_return)?;
@@ -715,6 +735,7 @@ fn type_from_ast(ty: &Type) -> Result<Ty, TypeError> {
 #[derive(Debug, Default, Clone)]
 struct TypeEnv {
     vars: HashMap<String, VarInfo>,
+    loop_depth: usize,
 }
 
 #[derive(Debug, Clone)]
@@ -727,6 +748,7 @@ impl TypeEnv {
     fn child(&self) -> TypeEnv {
         TypeEnv {
             vars: self.vars.clone(),
+            loop_depth: self.loop_depth,
         }
     }
 

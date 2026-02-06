@@ -24,6 +24,7 @@ struct Codegen {
     string_pool: HashMap<String, (String, usize)>,
     temp: usize,
     label: usize,
+    loop_stack: Vec<LoopLabels>,
     fmt_int_emitted: bool,
     printf_declared: bool,
     puts_declared: bool,
@@ -33,6 +34,12 @@ struct Codegen {
 struct LocalVar {
     ptr: String,
     ty: SimpleTy,
+}
+
+#[derive(Debug, Clone)]
+struct LoopLabels {
+    break_label: String,
+    continue_label: String,
 }
 
 impl Codegen {
@@ -108,7 +115,9 @@ impl Codegen {
                     }
                 }
             }
-            returned = self.emit_stmt(stmt, &mut env, ret_ty);
+            if self.emit_stmt(stmt, &mut env, ret_ty) == ControlFlow::Return {
+                returned = true;
+            }
         }
 
         if returned {
@@ -135,7 +144,7 @@ impl Codegen {
         stmt: &Stmt,
         env: &mut HashMap<String, LocalVar>,
         ret_ty: SimpleTy,
-    ) -> bool {
+    ) -> ControlFlow {
         match stmt {
             Stmt::Let { name, expr, .. } => {
                 let value = self.emit_expr(expr, env);
@@ -151,12 +160,17 @@ impl Codegen {
                         ty: value.ty,
                     },
                 );
-                false
+                ControlFlow::None
             }
             Stmt::While { condition, body } => {
                 let head = self.fresh_label("while.head");
                 let body_label = self.fresh_label("while.body");
                 let end_label = self.fresh_label("while.end");
+
+                self.loop_stack.push(LoopLabels {
+                    break_label: end_label.clone(),
+                    continue_label: head.clone(),
+                });
 
                 self.lines.push(format!("  br label %{head}"));
                 self.lines.push(format!("{head}:"));
@@ -169,12 +183,112 @@ impl Codegen {
                 self.lines
                     .push(format!("  br i1 {cond}, label %{body_label}, label %{end_label}"));
                 self.lines.push(format!("{body_label}:"));
-                let body_returned = self.emit_block(body, env, ret_ty);
-                if !body_returned {
+                let body_flow = self.emit_block(body, env, ret_ty);
+                let body_terminates = matches!(body_flow, ControlFlow::Break | ControlFlow::Continue | ControlFlow::Return);
+                if !body_terminates {
                     self.lines.push(format!("  br label %{head}"));
                 }
                 self.lines.push(format!("{end_label}:"));
-                body_returned
+                self.loop_stack.pop();
+                match body_flow {
+                    ControlFlow::Return => ControlFlow::Return,
+                    _ => ControlFlow::None,
+                }
+            }
+            Stmt::For { name, iter, body } => {
+                let (start, end) = match self.extract_range(iter, env) {
+                    Some(range) => range,
+                    None => {
+                        self.lines.push("  ; TODO: unsupported for iterator".to_string());
+                        return ControlFlow::None;
+                    }
+                };
+
+                let idx_alloca = self.fresh_temp();
+                self.lines.push("  ; for-range".to_string());
+                self.lines.push(format!("  {idx_alloca} = alloca i64"));
+                self.lines
+                    .push(format!("  store i64 {}, i64* {idx_alloca}", start.llvm_value));
+
+                let loop_var_alloca = self.fresh_temp();
+                self.lines.push(format!("  {loop_var_alloca} = alloca i64"));
+                let previous = env.insert(
+                    name.clone(),
+                    LocalVar {
+                        ptr: loop_var_alloca.clone(),
+                        ty: SimpleTy::I64,
+                    },
+                );
+
+                let head = self.fresh_label("for.head");
+                let body_label = self.fresh_label("for.body");
+                let step_label = self.fresh_label("for.step");
+                let end_label = self.fresh_label("for.end");
+
+                self.loop_stack.push(LoopLabels {
+                    break_label: end_label.clone(),
+                    continue_label: step_label.clone(),
+                });
+
+                self.lines.push(format!("  br label %{head}"));
+                self.lines.push(format!("{head}:"));
+                let idx_val = self.fresh_temp();
+                self.lines
+                    .push(format!("  {idx_val} = load i64, i64* {idx_alloca}"));
+                let cmp = self.fresh_temp();
+                self.lines.push(format!(
+                    "  {cmp} = icmp slt i64 {idx_val}, {}",
+                    end.llvm_value
+                ));
+                self.lines
+                    .push(format!("  br i1 {cmp}, label %{body_label}, label %{end_label}"));
+
+                self.lines.push(format!("{body_label}:"));
+                self.lines
+                    .push(format!("  store i64 {idx_val}, i64* {loop_var_alloca}"));
+                let body_flow = self.emit_block(body, env, ret_ty);
+                if !matches!(body_flow, ControlFlow::Break | ControlFlow::Continue | ControlFlow::Return) {
+                    self.lines.push(format!("  br label %{step_label}"));
+                }
+
+                self.lines.push(format!("{step_label}:"));
+                let idx_next = self.fresh_temp();
+                self.lines.push(format!("  {idx_next} = add i64 {idx_val}, 1"));
+                self.lines
+                    .push(format!("  store i64 {idx_next}, i64* {idx_alloca}"));
+                self.lines.push(format!("  br label %{head}"));
+
+                self.lines.push(format!("{end_label}:"));
+                self.loop_stack.pop();
+                if let Some(prev) = previous {
+                    env.insert(name.clone(), prev);
+                } else {
+                    env.remove(name);
+                }
+                match body_flow {
+                    ControlFlow::Return => ControlFlow::Return,
+                    _ => ControlFlow::None,
+                }
+            }
+            Stmt::Break => {
+                if let Some(labels) = self.loop_stack.last() {
+                    self.lines
+                        .push(format!("  br label %{}", labels.break_label));
+                    ControlFlow::Break
+                } else {
+                    self.lines.push("  ; TODO: break outside loop".to_string());
+                    ControlFlow::None
+                }
+            }
+            Stmt::Continue => {
+                if let Some(labels) = self.loop_stack.last() {
+                    self.lines
+                        .push(format!("  br label %{}", labels.continue_label));
+                    ControlFlow::Continue
+                } else {
+                    self.lines.push("  ; TODO: continue outside loop".to_string());
+                    ControlFlow::None
+                }
             }
             Stmt::Expr(expr) => {
                 self.emit_expr_stmt(expr, env, ret_ty)
@@ -192,11 +306,7 @@ impl Codegen {
                         _ => self.lines.push("  ret void".to_string()),
                     }
                 }
-                true
-            }
-            _ => {
-                self.lines.push("  ; TODO: unsupported statement".to_string());
-                false
+                ControlFlow::Return
             }
         }
     }
@@ -206,7 +316,7 @@ impl Codegen {
         expr: &Expr,
         env: &mut HashMap<String, LocalVar>,
         ret_ty: SimpleTy,
-    ) -> bool {
+    ) -> ControlFlow {
         match &expr.kind {
             ExprKind::If {
                 condition,
@@ -216,7 +326,7 @@ impl Codegen {
             ExprKind::Match { expr, arms } => self.emit_match_stmt(expr, arms, env, ret_ty),
             _ => {
                 self.emit_expr(expr, env);
-                false
+                ControlFlow::None
             }
         }
     }
@@ -226,13 +336,14 @@ impl Codegen {
         stmts: &[Stmt],
         env: &mut HashMap<String, LocalVar>,
         ret_ty: SimpleTy,
-    ) -> bool {
+    ) -> ControlFlow {
         for stmt in stmts {
-            if self.emit_stmt(stmt, env, ret_ty) {
-                return true;
+            let flow = self.emit_stmt(stmt, env, ret_ty);
+            if flow != ControlFlow::None {
+                return flow;
             }
         }
-        false
+        ControlFlow::None
     }
 
     fn emit_if_stmt(
@@ -242,7 +353,7 @@ impl Codegen {
         else_branch: Option<&tupa_parser::ElseBranch>,
         env: &mut HashMap<String, LocalVar>,
         ret_ty: SimpleTy,
-    ) -> bool {
+    ) -> ControlFlow {
         let cond_val = self.emit_expr(condition, env);
         let cond = if cond_val.ty == SimpleTy::Bool {
             cond_val.llvm_value
@@ -257,21 +368,24 @@ impl Codegen {
             "  br i1 {cond}, label %{then_label}, label %{else_label}"
         ));
         self.lines.push(format!("{then_label}:"));
-        let then_returned = self.emit_block(then_branch, env, ret_ty);
-        if !then_returned {
+        let then_flow = self.emit_block(then_branch, env, ret_ty);
+        if then_flow == ControlFlow::None {
             self.lines.push(format!("  br label %{end_label}"));
         }
         self.lines.push(format!("{else_label}:"));
-        let else_returned = match else_branch {
+        let else_flow = match else_branch {
             Some(tupa_parser::ElseBranch::Block(block)) => self.emit_block(block, env, ret_ty),
             Some(tupa_parser::ElseBranch::If(expr)) => self.emit_expr_stmt(expr, env, ret_ty),
-            None => false,
+            None => ControlFlow::None,
         };
-        if !else_returned {
+        if else_flow == ControlFlow::None {
             self.lines.push(format!("  br label %{end_label}"));
         }
         self.lines.push(format!("{end_label}:"));
-        then_returned && else_returned
+        match (then_flow, else_flow) {
+            (ControlFlow::Return, ControlFlow::Return) => ControlFlow::Return,
+            _ => ControlFlow::None,
+        }
     }
 
     fn emit_match_stmt(
@@ -280,11 +394,11 @@ impl Codegen {
         arms: &[tupa_parser::MatchArm],
         env: &mut HashMap<String, LocalVar>,
         ret_ty: SimpleTy,
-    ) -> bool {
+    ) -> ControlFlow {
         let value = self.emit_expr(scrutinee, env);
         if value.ty != SimpleTy::I64 && value.ty != SimpleTy::Str {
             self.lines.push("  ; TODO: match on non-i64/str".to_string());
-            return false;
+            return ControlFlow::None;
         }
         let end_label = self.fresh_label("match.end");
         let mut arm_labels: Vec<String> = Vec::new();
@@ -343,7 +457,7 @@ impl Codegen {
                 ExprKind::Block(stmts) => self.emit_block(stmts, env, ret_ty),
                 _ => self.emit_expr_stmt(&arm.expr, env, ret_ty),
             };
-            if !returned {
+            if returned == ControlFlow::None {
                 self.lines.push(format!("  br label %{end_label}"));
             }
             if idx + 1 < arms.len() {
@@ -352,7 +466,7 @@ impl Codegen {
         }
 
         self.lines.push(format!("{end_label}:"));
-        false
+        ControlFlow::None
     }
 
     fn emit_expr(&mut self, expr: &Expr, env: &mut HashMap<String, LocalVar>) -> ExprValue {
@@ -410,6 +524,10 @@ impl Codegen {
                 ExprValue::new(SimpleTy::Unknown, "0".to_string())
             }
             ExprKind::Binary { op, left, right } => {
+                if matches!(op, tupa_parser::BinaryOp::Range) {
+                    self.lines.push("  ; TODO: range expression".to_string());
+                    return ExprValue::new(SimpleTy::Unknown, "0".to_string());
+                }
                 if matches!(op, tupa_parser::BinaryOp::Add) {
                     if let (ExprKind::Str(lhs), ExprKind::Str(rhs)) = (&left.kind, &right.kind) {
                         let combined = format!("{lhs}{rhs}");
@@ -541,6 +659,24 @@ impl Codegen {
         name
     }
 
+    fn extract_range(
+        &mut self,
+        iter: &Expr,
+        env: &mut HashMap<String, LocalVar>,
+    ) -> Option<(ExprValue, ExprValue)> {
+        if let ExprKind::Binary { op, left, right } = &iter.kind {
+            if *op != tupa_parser::BinaryOp::Range {
+                return None;
+            }
+            let start = self.emit_expr(left, env);
+            let end = self.emit_expr(right, env);
+            if start.ty == SimpleTy::I64 && end.ty == SimpleTy::I64 {
+                return Some((start, end));
+            }
+        }
+        None
+    }
+
     fn finish(mut self) -> String {
         if !self.globals.is_empty() {
             self.globals.push(String::new());
@@ -553,6 +689,14 @@ impl Codegen {
 struct ExprValue {
     ty: SimpleTy,
     llvm_value: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ControlFlow {
+    None,
+    Break,
+    Continue,
+    Return,
 }
 
 impl ExprValue {

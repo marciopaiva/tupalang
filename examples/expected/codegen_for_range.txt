@@ -1,0 +1,28 @@
+declare i32 @printf(i8*, ...)
+@.fmt_int = private unnamed_addr constant [5 x i8] c"%ld\0A\00"
+
+define void @main() {
+entry:
+  ; for-range
+  %t0 = alloca i64
+  store i64 0, i64* %t0
+  %t1 = alloca i64
+  br label %for.head0
+for.head0:
+  %t2 = load i64, i64* %t0
+  %t3 = icmp slt i64 %t2, 3
+  br i1 %t3, label %for.body1, label %for.end3
+for.body1:
+  store i64 %t2, i64* %t1
+  %t4 = load i64, i64* %t1
+  %t5 = getelementptr inbounds [5 x i8], [5 x i8]* @.fmt_int, i64 0, i64 0
+  call i32 (i8*, ...) @printf(i8* %t5, i64 %t4)
+  br label %for.step2
+for.step2:
+  %t6 = add i64 %t2, 1
+  store i64 %t6, i64* %t0
+  br label %for.head0
+for.end3:
+  ret void
+}
+

@@ -1,0 +1,17 @@
+define void @main() {
+entry:
+  br label %while.head0
+while.head0:
+  br i1 1, label %while.body1, label %while.end2
+while.body1:
+  br i1 1, label %if.then3, label %if.else4
+if.then3:
+  br label %while.end2
+if.else4:
+  br label %if.end5
+if.end5:
+  br label %while.head0
+while.end2:
+  ret void
+}
+

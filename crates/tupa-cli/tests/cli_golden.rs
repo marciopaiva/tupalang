@@ -114,6 +114,13 @@ fn golden_codegen_if_match() {
 }
 
 #[test]
+fn golden_codegen_for_range() {
+    let stdout = run_cli(&["codegen", example_path("for_range.tp").to_str().unwrap()]);
+    let expected = fs::read_to_string(expected_path("codegen_for_range.txt")).unwrap();
+    assert_eq!(stdout, expected);
+}
+
+#[test]
 fn golden_codegen_while() {
     let stdout = run_cli(&["codegen", example_path("while.tp").to_str().unwrap()]);
     let expected = fs::read_to_string(expected_path("codegen_while.txt")).unwrap();
@@ -124,6 +131,13 @@ fn golden_codegen_while() {
 fn golden_codegen_match_string() {
     let stdout = run_cli(&["codegen", example_path("match_string.tp").to_str().unwrap()]);
     let expected = fs::read_to_string(expected_path("codegen_match_string.txt")).unwrap();
+    assert_eq!(stdout, expected);
+}
+
+#[test]
+fn golden_codegen_break_continue() {
+    let stdout = run_cli(&["codegen", example_path("break_continue.tp").to_str().unwrap()]);
+    let expected = fs::read_to_string(expected_path("codegen_break_continue.txt")).unwrap();
     assert_eq!(stdout, expected);
 }
 

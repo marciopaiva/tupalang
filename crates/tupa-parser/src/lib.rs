@@ -42,6 +42,8 @@ pub enum Stmt {
         iter: Expr,
         body: Block,
     },
+    Break,
+    Continue,
     Expr(Expr),
 }
 
@@ -327,6 +329,16 @@ impl Parser {
                 let iter = self.parse_expr()?;
                 let body = self.parse_block()?;
                 Ok(Stmt::For { name, iter, body })
+            }
+            Some(Token::Break) => {
+                self.next();
+                self.expect(Token::Semicolon)?;
+                Ok(Stmt::Break)
+            }
+            Some(Token::Continue) => {
+                self.next();
+                self.expect(Token::Semicolon)?;
+                Ok(Stmt::Continue)
             }
             Some(Token::LBrace) => {
                 let (block, span) = self.parse_block_with_span()?;
