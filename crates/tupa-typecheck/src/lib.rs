@@ -188,7 +188,21 @@ fn typecheck_function(
     }
 
     if expected_return.ty != Ty::Unit && !block_returns(&func.body) {
-        return Err(TypeError::MissingReturn);
+        if let Some(Stmt::Expr(expr)) = func.body.last() {
+            let found = type_of_expr(expr, &mut env, functions, &expected_return)?;
+            if found != expected_return.ty {
+                return Err(TypeError::ReturnMismatch {
+                    expected: expected_return.ty.clone(),
+                    found,
+                    span: Some(expr.span),
+                });
+            }
+            if let Some(constraints) = expected_return.constraints.as_ref() {
+                validate_safe_constraints(constraints, &expected_return.ty, expr)?;
+            }
+        } else {
+            return Err(TypeError::MissingReturn);
+        }
     }
 
     Ok(env.collect_warnings())

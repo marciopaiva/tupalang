@@ -1,0 +1,47 @@
+@.str0 = private unnamed_addr constant [4 x i8] c"big\00"
+declare i32 @puts(i8*)
+@.str1 = private unnamed_addr constant [6 x i8] c"small\00"
+@.str2 = private unnamed_addr constant [4 x i8] c"one\00"
+@.str3 = private unnamed_addr constant [6 x i8] c"three\00"
+@.str4 = private unnamed_addr constant [6 x i8] c"other\00"
+
+define void @main() {
+entry:
+  %t0 = alloca i64
+  store i64 3, i64* %t0
+  %t1 = load i64, i64* %t0
+  %t2 = icmp sgt i64 %t1, 2
+  br i1 %t2, label %if.then0, label %if.else1
+if.then0:
+  %t3 = getelementptr inbounds [4 x i8], [4 x i8]* @.str0, i64 0, i64 0
+  call i32 @puts(i8* %t3)
+  br label %if.end2
+if.else1:
+  %t4 = getelementptr inbounds [6 x i8], [6 x i8]* @.str1, i64 0, i64 0
+  call i32 @puts(i8* %t4)
+  br label %if.end2
+if.end2:
+  %t5 = load i64, i64* %t0
+  %t6 = icmp eq i64 %t5, 1
+  br i1 %t6, label %match.arm4, label %match.next5
+match.arm4:
+  %t7 = getelementptr inbounds [4 x i8], [4 x i8]* @.str2, i64 0, i64 0
+  call i32 @puts(i8* %t7)
+  br label %match.end3
+match.next5:
+  %t8 = icmp eq i64 %t5, 3
+  br i1 %t8, label %match.arm6, label %match.next7
+match.arm6:
+  %t9 = getelementptr inbounds [6 x i8], [6 x i8]* @.str3, i64 0, i64 0
+  call i32 @puts(i8* %t9)
+  br label %match.end3
+match.next7:
+  br label %match.arm8
+match.arm8:
+  %t10 = getelementptr inbounds [6 x i8], [6 x i8]* @.str4, i64 0, i64 0
+  call i32 @puts(i8* %t10)
+  br label %match.end3
+match.end3:
+  ret void
+}
+

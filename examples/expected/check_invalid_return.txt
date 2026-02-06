@@ -1,1 +1,5 @@
-error[E2007]: expected function body to return a value
+error[E2006]: return type mismatch: expected I64, got Unit
+  --> examples/invalid_return.tp:2:2
+   |
+ 2 | 	if x > 0 {
+   |  ^^^^^^^^^^^^^^^^^^^^^^^^^

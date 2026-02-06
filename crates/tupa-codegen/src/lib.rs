@@ -5,6 +5,7 @@ use tupa_parser::{Expr, ExprKind, Function, Item, Program, Stmt, Type};
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum SimpleTy {
     I64,
+    Bool,
     Str,
     Void,
     Unknown,
@@ -22,6 +23,7 @@ struct Codegen {
     globals: Vec<String>,
     string_pool: HashMap<String, (String, usize)>,
     temp: usize,
+    label: usize,
     fmt_int_emitted: bool,
     printf_declared: bool,
     puts_declared: bool,
@@ -46,12 +48,14 @@ impl Codegen {
         let mut env: HashMap<String, LocalVar> = HashMap::new();
         let ret_ty = match func.return_type.as_ref() {
             Some(Type::Ident(name)) if name == "i64" => SimpleTy::I64,
+            Some(Type::Ident(name)) if name == "bool" => SimpleTy::Bool,
             Some(Type::Ident(name)) if name == "string" => SimpleTy::Str,
             Some(_) => SimpleTy::Unknown,
             None => SimpleTy::Void,
         };
         let llvm_ret = match ret_ty {
             SimpleTy::I64 => "i64",
+            SimpleTy::Bool => "i1",
             SimpleTy::Str => "i8*",
             _ => "void",
         };
@@ -73,6 +77,7 @@ impl Codegen {
         for param in &func.params {
             let ty = match self.map_type(&param.ty).as_str() {
                 "i64" => SimpleTy::I64,
+                "i1" => SimpleTy::Bool,
                 "i8*" => SimpleTy::Str,
                 _ => SimpleTy::Unknown,
             };
@@ -85,12 +90,37 @@ impl Codegen {
             env.insert(param.name.clone(), LocalVar { ptr: alloca, ty });
         }
 
-        for stmt in &func.body {
-            self.emit_stmt(stmt, &mut env, ret_ty);
+        let mut returned = false;
+        let last_index = func.body.len().saturating_sub(1);
+        for (idx, stmt) in func.body.iter().enumerate() {
+            if returned {
+                break;
+            }
+            if idx == last_index {
+                if let Stmt::Expr(expr) = stmt {
+                    if ret_ty != SimpleTy::Void {
+                        let value = self.emit_expr(expr, &mut env);
+                        let llvm_ty = self.llvm_ty(value.ty);
+                        self.lines
+                            .push(format!("  ret {llvm_ty} {}", value.llvm_value));
+                        returned = true;
+                        break;
+                    }
+                }
+            }
+            returned = self.emit_stmt(stmt, &mut env, ret_ty);
+        }
+
+        if returned {
+            self.lines.push("}".to_string());
+            self.lines.push(String::new());
+            return;
         }
 
         if ret_ty == SimpleTy::I64 {
             self.lines.push("  ret i64 0".to_string());
+        } else if ret_ty == SimpleTy::Bool {
+            self.lines.push("  ret i1 0".to_string());
         } else if ret_ty == SimpleTy::Str {
             self.lines.push("  ret i8* null".to_string());
         } else {
@@ -100,7 +130,12 @@ impl Codegen {
         self.lines.push(String::new());
     }
 
-    fn emit_stmt(&mut self, stmt: &Stmt, env: &mut HashMap<String, LocalVar>, ret_ty: SimpleTy) {
+    fn emit_stmt(
+        &mut self,
+        stmt: &Stmt,
+        env: &mut HashMap<String, LocalVar>,
+        ret_ty: SimpleTy,
+    ) -> bool {
         match stmt {
             Stmt::Let { name, expr, .. } => {
                 let value = self.emit_expr(expr, env);
@@ -116,9 +151,10 @@ impl Codegen {
                         ty: value.ty,
                     },
                 );
+                false
             }
             Stmt::Expr(expr) => {
-                self.emit_expr(expr, env);
+                self.emit_expr_stmt(expr, env, ret_ty)
             }
             Stmt::Return(expr) => {
                 if let Some(expr) = expr {
@@ -128,18 +164,165 @@ impl Codegen {
                 } else {
                     match ret_ty {
                         SimpleTy::I64 => self.lines.push("  ret i64 0".to_string()),
+                        SimpleTy::Bool => self.lines.push("  ret i1 0".to_string()),
                         SimpleTy::Str => self.lines.push("  ret i8* null".to_string()),
                         _ => self.lines.push("  ret void".to_string()),
                     }
                 }
+                true
             }
-            _ => self.lines.push("  ; TODO: unsupported statement".to_string()),
+            _ => {
+                self.lines.push("  ; TODO: unsupported statement".to_string());
+                false
+            }
         }
+    }
+
+    fn emit_expr_stmt(
+        &mut self,
+        expr: &Expr,
+        env: &mut HashMap<String, LocalVar>,
+        ret_ty: SimpleTy,
+    ) -> bool {
+        match &expr.kind {
+            ExprKind::If {
+                condition,
+                then_branch,
+                else_branch,
+            } => self.emit_if_stmt(condition, then_branch, else_branch.as_ref(), env, ret_ty),
+            ExprKind::Match { expr, arms } => self.emit_match_stmt(expr, arms, env, ret_ty),
+            _ => {
+                self.emit_expr(expr, env);
+                false
+            }
+        }
+    }
+
+    fn emit_block(
+        &mut self,
+        stmts: &[Stmt],
+        env: &mut HashMap<String, LocalVar>,
+        ret_ty: SimpleTy,
+    ) -> bool {
+        for stmt in stmts {
+            if self.emit_stmt(stmt, env, ret_ty) {
+                return true;
+            }
+        }
+        false
+    }
+
+    fn emit_if_stmt(
+        &mut self,
+        condition: &Expr,
+        then_branch: &[Stmt],
+        else_branch: Option<&tupa_parser::ElseBranch>,
+        env: &mut HashMap<String, LocalVar>,
+        ret_ty: SimpleTy,
+    ) -> bool {
+        let cond_val = self.emit_expr(condition, env);
+        let cond = if cond_val.ty == SimpleTy::Bool {
+            cond_val.llvm_value
+        } else {
+            "0".to_string()
+        };
+        let then_label = self.fresh_label("if.then");
+        let else_label = self.fresh_label("if.else");
+        let end_label = self.fresh_label("if.end");
+
+        self.lines.push(format!(
+            "  br i1 {cond}, label %{then_label}, label %{else_label}"
+        ));
+        self.lines.push(format!("{then_label}:"));
+        let then_returned = self.emit_block(then_branch, env, ret_ty);
+        if !then_returned {
+            self.lines.push(format!("  br label %{end_label}"));
+        }
+        self.lines.push(format!("{else_label}:"));
+        let else_returned = match else_branch {
+            Some(tupa_parser::ElseBranch::Block(block)) => self.emit_block(block, env, ret_ty),
+            Some(tupa_parser::ElseBranch::If(expr)) => self.emit_expr_stmt(expr, env, ret_ty),
+            None => false,
+        };
+        if !else_returned {
+            self.lines.push(format!("  br label %{end_label}"));
+        }
+        self.lines.push(format!("{end_label}:"));
+        then_returned && else_returned
+    }
+
+    fn emit_match_stmt(
+        &mut self,
+        scrutinee: &Expr,
+        arms: &[tupa_parser::MatchArm],
+        env: &mut HashMap<String, LocalVar>,
+        ret_ty: SimpleTy,
+    ) -> bool {
+        let value = self.emit_expr(scrutinee, env);
+        if value.ty != SimpleTy::I64 {
+            self.lines.push("  ; TODO: match on non-i64".to_string());
+            return false;
+        }
+        let end_label = self.fresh_label("match.end");
+        let mut arm_labels: Vec<String> = Vec::new();
+        let mut fallthrough_labels: Vec<String> = Vec::new();
+
+        for _ in arms {
+            arm_labels.push(self.fresh_label("match.arm"));
+            fallthrough_labels.push(self.fresh_label("match.next"));
+        }
+
+        for (idx, arm) in arms.iter().enumerate() {
+            let next_label = if idx + 1 < arms.len() {
+                &fallthrough_labels[idx]
+            } else {
+                &end_label
+            };
+            match &arm.pattern {
+                tupa_parser::Pattern::Int(value_literal) => {
+                    let cmp = self.fresh_temp();
+                    self.lines.push(format!(
+                        "  {cmp} = icmp eq i64 {}, {}",
+                        value.llvm_value, value_literal
+                    ));
+                    self.lines.push(format!(
+                        "  br i1 {cmp}, label %{}, label %{}",
+                        arm_labels[idx], next_label
+                    ));
+                }
+                tupa_parser::Pattern::Wildcard | tupa_parser::Pattern::Ident(_) => {
+                    self.lines.push(format!("  br label %{}", arm_labels[idx]));
+                }
+                _ => {
+                    self.lines
+                        .push(format!("  br label %{}", next_label));
+                }
+            }
+
+            self.lines.push(format!("{}:", arm_labels[idx]));
+            let returned = match &arm.expr.kind {
+                ExprKind::Block(stmts) => self.emit_block(stmts, env, ret_ty),
+                _ => self.emit_expr_stmt(&arm.expr, env, ret_ty),
+            };
+            if !returned {
+                self.lines.push(format!("  br label %{end_label}"));
+            }
+            if idx + 1 < arms.len() {
+                self.lines.push(format!("{}:", fallthrough_labels[idx]));
+            }
+        }
+
+        self.lines.push(format!("{end_label}:"));
+        false
     }
 
     fn emit_expr(&mut self, expr: &Expr, env: &mut HashMap<String, LocalVar>) -> ExprValue {
         match &expr.kind {
             ExprKind::Int(value) => ExprValue::new(SimpleTy::I64, value.to_string()),
+            ExprKind::Bool(value) => {
+                let literal = if *value { "1" } else { "0" };
+                ExprValue::new(SimpleTy::Bool, literal.to_string())
+            }
             ExprKind::Str(value) => {
                 let (global, len) = self.intern_string(value);
                 let ptr = self.fresh_temp();
@@ -208,10 +391,23 @@ impl Codegen {
                             tupa_parser::BinaryOp::Sub => Some("sub"),
                             tupa_parser::BinaryOp::Mul => Some("mul"),
                             tupa_parser::BinaryOp::Div => Some("sdiv"),
+                            tupa_parser::BinaryOp::Equal => Some("icmp eq"),
+                            tupa_parser::BinaryOp::NotEqual => Some("icmp ne"),
+                            tupa_parser::BinaryOp::Less => Some("icmp slt"),
+                            tupa_parser::BinaryOp::LessEqual => Some("icmp sle"),
+                            tupa_parser::BinaryOp::Greater => Some("icmp sgt"),
+                            tupa_parser::BinaryOp::GreaterEqual => Some("icmp sge"),
                             _ => None,
                         };
                         if let Some(op) = op {
                             let tmp = self.fresh_temp();
+                            if op.starts_with("icmp") {
+                                self.lines.push(format!(
+                                    "  {tmp} = {op} i64 {}, {}",
+                                    left_val.llvm_value, right_val.llvm_value
+                                ));
+                                return ExprValue::new(SimpleTy::Bool, tmp);
+                            }
                             self.lines.push(format!(
                                 "  {tmp} = {op} i64 {}, {}",
                                 left_val.llvm_value, right_val.llvm_value
@@ -238,6 +434,7 @@ impl Codegen {
     fn map_type(&self, ty: &Type) -> String {
         match ty {
             Type::Ident(name) if name == "i64" => "i64".to_string(),
+            Type::Ident(name) if name == "bool" => "i1".to_string(),
             Type::Ident(name) if name == "string" => "i8*".to_string(),
             _ => "void".to_string(),
         }
@@ -246,6 +443,7 @@ impl Codegen {
     fn llvm_ty(&self, ty: SimpleTy) -> &'static str {
         match ty {
             SimpleTy::I64 => "i64",
+            SimpleTy::Bool => "i1",
             SimpleTy::Str => "i8*",
             SimpleTy::Void => "void",
             SimpleTy::Unknown => "i64",
@@ -295,6 +493,12 @@ impl Codegen {
     fn fresh_temp(&mut self) -> String {
         let name = format!("%t{}", self.temp);
         self.temp += 1;
+        name
+    }
+
+    fn fresh_label(&mut self, prefix: &str) -> String {
+        let name = format!("{prefix}{}", self.label);
+        self.label += 1;
         name
     }
 
