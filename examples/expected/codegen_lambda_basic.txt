@@ -1,1 +1,48 @@
-; TODO: lambda codegen not implemented
+declare i32 @printf(i8*, ...)
+@.fmt_int = private unnamed_addr constant [5 x i8] c"%ld\0A\00"
+
+define i64 @apply(void %f, i64 %v) {
+entry:
+  %t0 = alloca void
+  store void %f, void* %t0
+  %t1 = alloca i64
+  store i64 %v, i64* %t1
+  %t2 = load i64, i64* %t1
+  %t4 = load i64, i64* %t0
+  %t3 = call i64 %t4(i64 %t2)
+  ret i64 %t3
+}
+
+define void @main() {
+entry:
+define i64 @lambda_5(i64 %x) {
+entry:
+  %t0 = alloca i64
+  store i64 %x, i64* %t0
+  %t1 = load i64, i64* %t0
+  %t2 = add i64 %t1, 1
+  ret i64 %t2
+}
+  %t5 = alloca i64
+  store i64 @lambda_5, i64* %t5
+define i64 @lambda_6(i64 %x) {
+entry:
+  %t0 = alloca i64
+  store i64 %x, i64* %t0
+  %t1 = load i64, i64* %t0
+  %t2 = mul i64 %t1, 2
+  ret i64 %t2
+}
+  %t6 = alloca i64
+  store i64 @lambda_6, i64* %t6
+  %t7 = load i64, i64* %t5
+  %t8 = call i64 @apply(i64 %t7, i64 10)
+  %t9 = getelementptr inbounds [5 x i8], [5 x i8]* @.fmt_int, i64 0, i64 0
+  call i32 (i8*, ...) @printf(i8* %t9, i64 %t8)
+  %t10 = load i64, i64* %t6
+  %t11 = call i64 @apply(i64 %t10, i64 5)
+  %t12 = getelementptr inbounds [5 x i8], [5 x i8]* @.fmt_int, i64 0, i64 0
+  call i32 (i8*, ...) @printf(i8* %t12, i64 %t11)
+  ret void
+}
+
