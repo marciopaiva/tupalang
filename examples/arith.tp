@@ -1,0 +1,7 @@
+fn main() {
+  let base: i64 = 10;
+  let calc: i64 = base + 2 * 3 - 4 / 2;
+  let message: string = "Ola " + "Tupa";
+  print(calc);
+  print(message);
+}

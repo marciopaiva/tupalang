@@ -187,6 +187,47 @@ impl Codegen {
                 self.lines.push("  ; TODO: unsupported call".to_string());
                 ExprValue::new(SimpleTy::Unknown, "0".to_string())
             }
+            ExprKind::Binary { op, left, right } => {
+                if matches!(op, tupa_parser::BinaryOp::Add) {
+                    if let (ExprKind::Str(lhs), ExprKind::Str(rhs)) = (&left.kind, &right.kind) {
+                        let combined = format!("{lhs}{rhs}");
+                        let (global, len) = self.intern_string(&combined);
+                        let ptr = self.fresh_temp();
+                        self.lines.push(format!(
+                            "  {ptr} = getelementptr inbounds [{len} x i8], [{len} x i8]* {global}, i64 0, i64 0"
+                        ));
+                        return ExprValue::new(SimpleTy::Str, ptr);
+                    }
+                }
+                let left_val = self.emit_expr(left, env);
+                let right_val = self.emit_expr(right, env);
+                match (left_val.ty, right_val.ty) {
+                    (SimpleTy::I64, SimpleTy::I64) => {
+                        let op = match op {
+                            tupa_parser::BinaryOp::Add => Some("add"),
+                            tupa_parser::BinaryOp::Sub => Some("sub"),
+                            tupa_parser::BinaryOp::Mul => Some("mul"),
+                            tupa_parser::BinaryOp::Div => Some("sdiv"),
+                            _ => None,
+                        };
+                        if let Some(op) = op {
+                            let tmp = self.fresh_temp();
+                            self.lines.push(format!(
+                                "  {tmp} = {op} i64 {}, {}",
+                                left_val.llvm_value, right_val.llvm_value
+                            ));
+                            return ExprValue::new(SimpleTy::I64, tmp);
+                        }
+                    }
+                    (SimpleTy::Str, SimpleTy::Str) => {
+                        self.lines.push("  ; TODO: runtime string concat".to_string());
+                        return ExprValue::new(SimpleTy::Str, "null".to_string());
+                    }
+                    _ => {}
+                }
+                self.lines.push("  ; TODO: unsupported binary".to_string());
+                ExprValue::new(SimpleTy::Unknown, "0".to_string())
+            }
             _ => {
                 self.lines.push("  ; TODO: unsupported expression".to_string());
                 ExprValue::new(SimpleTy::Unknown, "0".to_string())

@@ -515,6 +515,8 @@ fn type_of_expr(
                 BinaryOp::Add | BinaryOp::Sub | BinaryOp::Mul | BinaryOp::Div | BinaryOp::Pow => {
                     if l == r && (l == Ty::I64 || l == Ty::F64) {
                         Ok(l)
+                    } else if *op == BinaryOp::Add && l == Ty::String && r == Ty::String {
+                        Ok(Ty::String)
                     } else {
                         Err(TypeError::InvalidBinary {
                             op: op.clone(),

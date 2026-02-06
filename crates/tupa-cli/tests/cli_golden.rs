@@ -100,6 +100,13 @@ fn golden_codegen_hello() {
 }
 
 #[test]
+fn golden_codegen_arith() {
+    let stdout = run_cli(&["codegen", example_path("arith.tp").to_str().unwrap()]);
+    let expected = fs::read_to_string(expected_path("codegen_arith.txt")).unwrap();
+    assert_eq!(stdout, expected);
+}
+
+#[test]
 fn golden_check_invalid_type() {
     let stderr = run_cli_err(&["check", example_path("invalid_type.tp").to_str().unwrap()]);
     let expected = fs::read_to_string(expected_path("check_invalid_type.txt")).unwrap();
