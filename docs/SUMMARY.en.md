@@ -1,3 +1,5 @@
+- [API and Extensibility](API_EXTENSIBILITY.md)
+- [Step-by-step Tutorials](TUTORIALS.md)
 - [Typechecker Details](TYPECHECKER_DETAILS.md)
 - [API and Extensibility](API_EXTENSIBILITY.md)
 # Documentation Index
