@@ -33,3 +33,4 @@ Organizar a documentação por público e facilitar a navegação.
 - [Plano de Adoção](ADOPTION_PLAN.md)
 - [Notas de Design (IA)](DESIGN_NOTES.md)
 - [Changelog](CHANGELOG.md)
+- [Checklist de Release](RELEASE_CHECKLIST.md)
