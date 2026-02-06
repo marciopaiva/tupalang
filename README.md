@@ -34,17 +34,20 @@
 - `tupa-parser` → AST
 - `tupa-typecheck` → tipos e constraints
 
-## ⚡ Quick Start
-
-```bash
-cargo run -p tupa-cli -- parse examples/hello.tp
-cargo run -p tupa-cli -- check examples/hello.tp
-```
+## ⚡ Demonstração rápida
 
 ```tupa
-// IA responsável desde o primeiro caractere
-fn summarize(article: Text) -> SafeText<!misinformation> {
-  return llm.generate(f"Resuma objetivamente: {article}")
+// Função anônima (lambda) e print
+let inc: fn(int) -> int = |x| x + 1
+print(inc(41)) // saída: 42
+
+// Concatenação de strings
+let nome = "Tupã"
+print("Olá, " + nome)
+
+// Função com constraint
+fn seguro(x: f64): Safe<f64, !nan> {
+  return x
 }
 ```
 
@@ -57,8 +60,21 @@ cargo test
 
 # parse
 cargo run -p tupa-cli -- parse examples/hello.tp
-
 # check
+cargo run -p tupa-cli -- check examples/hello.tp
+```
+
+## 🛠️ Status de build e cobertura
+
+![CI](https://github.com/marciopaiva/tupalang/actions/workflows/ci.yml/badge.svg)
+<!-- Adicione badge de cobertura se disponível -->
+
+## 🤝 Como contribuir
+
+1. Leia o [CONTRIBUTING.md](CONTRIBUTING.md) para diretrizes e boas práticas.
+2. Veja exemplos em [examples/README.md](examples/README.md).
+3. Sugestões e dúvidas: abra uma issue ou discuta no [FAQ](docs/FAQ.md).
+4. Para documentação: siga [docs/DOCS_CONTRIBUTING.md](docs/DOCS_CONTRIBUTING.md).
 cargo run -p tupa-cli -- check examples/hello.tp
 
 # lex
