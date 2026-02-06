@@ -26,6 +26,7 @@ Organizar a documentação por público e facilitar a navegação.
 - [Guia de Estilo](STYLE_GUIDE.md)
 - [Contribuir com docs](DOCS_CONTRIBUTING.md)
 - [Guia de CI](CI_GUIDE.md)
+- [Governança](GOVERNANCE.md)
 
 ## Para contribuidores
 
