@@ -212,6 +212,7 @@ Tupã é a **primeira linguagem brasileira com ambição global desde Lua** (199
 - [docs/DOCS_CONTRIBUTING.md](docs/DOCS_CONTRIBUTING.md)
 - [docs/CI_GUIDE.md](docs/CI_GUIDE.md)
 - [docs/GOVERNANCE.md](docs/GOVERNANCE.md)
+- [docs/CONTRIBUTING_FAQ.md](docs/CONTRIBUTING_FAQ.md)
 
 ### Internals e planejamento
 
