@@ -26,6 +26,7 @@ Organizar a documentação por público e facilitar a navegação.
 - [Ambiente de Desenvolvimento](DEV_ENV.md)
 - [Diagnostics Checklist](DIAGNOSTICS_CHECKLIST.md)
 - [Glossário de Diagnósticos](DIAGNOSTICS_GLOSSARY.md)
+- [Guia de Testes](TESTING.md)
 
 ## Internals e planejamento
 
