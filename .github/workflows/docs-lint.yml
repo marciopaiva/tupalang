@@ -1,0 +1,49 @@
+name: Docs Lint
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - "**/*.md"
+      - ".markdownlint.json"
+      - ".github/workflows/docs-lint.yml"
+  pull_request:
+    paths:
+      - "**/*.md"
+      - ".markdownlint.json"
+      - ".github/workflows/docs-lint.yml"
+
+jobs:
+  markdownlint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install markdownlint-cli
+        run: npm install -g markdownlint-cli
+
+      - name: Run markdownlint
+        run: markdownlint "**/*.md"
+
+  link-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Link check
+        uses: lycheeverse/lychee-action@v1
+        with:
+          args: >-
+            --verbose
+            --no-progress
+            --exclude-mail
+            --exclude "^https://img.shields.io/"
+            --exclude "^https://github.com/.+\.wiki\.git$"
+            "**/*.md"
