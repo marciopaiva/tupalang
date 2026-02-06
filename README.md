@@ -1,12 +1,59 @@
-﻿# ⚡ Tupã
+﻿![Tupã Banner](assets/banner.svg)
+
+# ⚡ Tupã
 
 > **Força ancestral, código moderno**  
 > Linguagem brasileira para sistemas críticos e IA evolutiva
 
+**Wiki**: https://github.com/marciopaiva/tupalang/wiki
+**Changelog completo**: [docs/CHANGELOG.md](docs/CHANGELOG.md)
+
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/status-impl_em_andamento-orange)](#)
+[![Wiki](https://img.shields.io/badge/wiki-Tup%C3%A3-7b5cff)](https://github.com/marciopaiva/tupalang/wiki)
+[![CI](https://github.com/marciopaiva/tupalang/actions/workflows/ci.yml/badge.svg)](https://github.com/marciopaiva/tupalang/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/marciopaiva/tupalang?display_name=tag)](https://github.com/marciopaiva/tupalang/releases)
+[![Brasil](https://img.shields.io/badge/feito_no-Brasil-009739?logo=brazil)](#)
 
 > **Status atual**: Especificação v0.1 completa. Implementação em andamento com lexer, parser, typechecker e CLI básicos.
+
+**Changelog (resumo)**:
+- Organização de docs e wiki com sync automático.
+- Novos guias (arquitetura, FAQ, testes, CI, release).
+- Melhorias de README e navegação.
+
+## 🔎 Índice rápido
+
+- [Status](#-status)
+- [Documentação](#-documenta%C3%A7%C3%A3o)
+- [Roadmap](#-roadmap)
+- [CLI](#-cli-dev)
+
+## ✅ Status
+
+- [x] Lexer, parser, typechecker e CLI básicos
+- [x] Saída JSON no CLI
+- [ ] Codegen funcional (além de stub)
+- [ ] Language Server
+
+## ❓ FAQ rápido
+
+- **Já está pronto para produção?** Não, ainda está em implementação.
+- **Onde começo?** Veja [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md).
+- **Como contribuir?** Leia [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## 🧭 Arquitetura em 1 minuto
+
+- `tupa-lexer` → tokens
+- `tupa-parser` → AST
+- `tupa-typecheck` → tipos e constraints
+
+**Quick Start**
+
+```bash
+cargo run -p tupa-cli -- parse examples/hello.tp
+cargo run -p tupa-cli -- check examples/hello.tp
+```
 
 ```tupa
 // IA responsável desde o primeiro caractere
@@ -15,89 +62,22 @@ fn summarize(article: Text) -> SafeText<!misinformation> {
 }
 ```
 
----
+## ▶️ Como rodar localmente
 
-## ✅ Comece aqui
-
-- [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
-- [docs/README.md](docs/README.md) (mapa da documentação)
-- [examples/README.md](examples/README.md)
-- [docs/SPEC.md](docs/SPEC.md)
-- [docs/GLOSSARY.md](docs/GLOSSARY.md)
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- [docs/STYLE_GUIDE.md](docs/STYLE_GUIDE.md)
-- [docs/FAQ.md](docs/FAQ.md)
-- [docs/ROADMAP.md](docs/ROADMAP.md)
-- [docs/COMMON_ERRORS.md](docs/COMMON_ERRORS.md)
-- [docs/EXAMPLES_GUIDE.md](docs/EXAMPLES_GUIDE.md)
-- [docs/SYNTAX_GLOSSARY.md](docs/SYNTAX_GLOSSARY.md)
-- [docs/TYPES_GLOSSARY.md](docs/TYPES_GLOSSARY.md)
-- [docs/ENV_SETUP.md](docs/ENV_SETUP.md)
-- [docs/COMPATIBILITY.md](docs/COMPATIBILITY.md)
-- [docs/PROJECT_OVERVIEW.md](docs/PROJECT_OVERVIEW.md)
-- [CONTRIBUTING.md](CONTRIBUTING.md)
-- [docs/DEV_ENV.md](docs/DEV_ENV.md)
-
-## 🌩️ Por que Tupã?
-
-Na mitologia tupi-guarani, **Tupã** é a divindade do trovão, uma força bruta canalizada com precisão. Assim é nossa linguagem:
-
-| Problema atual das linguagens | Solução Tupã |
-|-------------------------------|--------------|
-| ❌ Python: dinâmico demais → bugs em runtime | ✅ Tipagem gradual com *alignment* em compile-time |
-| ❌ Rust: seguro mas curva acentuada para pesquisadores de IA | ✅ Sintaxe legível + segurança sem sacrifício |
-| ❌ Todas: diferenciabilidade via bibliotecas frágeis | ✅ `∇` (nabla) como operador de primeira classe |
-| ❌ Modelos densos → pegada de carbono insustentável | ✅ Esparsidade declarativa no tipo (`density=0.1`) |
-
-> **Tupã não é apenas mais uma linguagem.** É uma proposta focada em IA e sistemas críticos, onde segurança ética e eficiência energética são requisitos de primeira classe.
-
----
-
-## 🧠 Pilares Técnicos
-
-### 1. Diferenciabilidade Nativa
-```tupa
-fn mse(pred: f64, target: f64) -> f64 {
-	let diff = pred - target
-	return diff * diff
-}
-
-let (d_pred, _) = ∇mse(0.8, 1.0)  // → -0.4 (derivada simbólica em compile-time)
+```bash
+git clone https://github.com/marciopaiva/tupalang.git
+cd tupalang
+cargo test
 ```
-- Zero *graph tracing* em runtime
-- Qualquer função pura é automaticamente derivável
-- Backpropagation nativa no LLVM IR
 
-### 2. Alignment via Sistema de Tipos
-```tupa
-// Compila SOMENTE se safety for provada
-fn generate() -> SafeText<!hate_speech, !misinformation> {
-	return llm.generate(prompt)
-}
-```
-- Restrições éticas verificadas estaticamente
-- Integração com RLHF scorers e verificadores formais
-- Zero *runtime guards* frágeis
+# parse
+cargo run -p tupa-cli -- parse examples/hello.tp
 
-### 3. Esparsidade Declarativa
-```tupa
-// 90% menos energia no inference
-let model: Tensor<f16, shape=[4096, 4096], density=0.1> = load("llama3.tp")
-```
-- Densidade como parte do tipo
-- Kernels sparsos selecionados automaticamente
-- Quantização nativa (`f16` first-class)
+# check
+cargo run -p tupa-cli -- check examples/hello.tp
 
-### 4. Performance Previsível
-- Zero alocações ocultas (como Zig)
-- Binário nativo via LLVM (sem VM)
-- Footprint mínimo (~15 MB RAM idle)
-
----
-
-## 💻 Sintaxe: Legível como Python, Poderosa como Rust
-
-```tupa
+# lex
+cargo run -p tupa-cli -- lex examples/hello.tp
 // Inferência de tipos com tipagem explícita opcional
 let idade = 28          // i64 (inferido)
 let nome: string = "Ana" // string (explícito)
@@ -197,6 +177,8 @@ Tupã é a **primeira linguagem brasileira com ambição global desde Lua** (199
 - [docs/GLOSSARY.md](docs/GLOSSARY.md)
 - [docs/FAQ.md](docs/FAQ.md)
 - [docs/ROADMAP.md](docs/ROADMAP.md)
+- [docs/README.md](docs/README.md) (mapa completo)
+- [Wiki](https://github.com/marciopaiva/tupalang/wiki)
 
 ### Para contribuidores
 
@@ -226,9 +208,17 @@ Tupã é a **primeira linguagem brasileira com ambição global desde Lua** (199
 - [docs/RELEASE_GUIDE.md](docs/RELEASE_GUIDE.md)
 - [docs/VERSIONING.md](docs/VERSIONING.md)
 
+## 🧩 Contributing quick checklist
+
+- [ ] Abra uma issue (ou `[RFC]` para mudanças grandes)
+- [ ] Rode `cargo test`
+- [ ] Atualize docs relevantes
+
 ---
 
 ## 🧰 CLI (dev)
+
+Demo: [assets/demo.svg](assets/demo.svg)
 
 ```bash
 # lex e imprime tokens
@@ -297,39 +287,41 @@ Saída JSON também está disponível via `--format json` para consumo por ferra
 
 ---
 
+## 🤝 Contribuidores
+
+Em breve.
+
+---
+
+## 🛡️ Security
+
+Veja a política em [docs/SECURITY.md](docs/SECURITY.md).
+
+---
+
+## 💚 Sponsors
+
+Em breve.
+
+---
+
+## 🧪 Matriz de suporte
+
+| Sistema | Status |
+|--------|--------|
+| Linux | ✅ |
+| macOS | ✅ |
+| Windows (WSL) | ✅ |
+
+---
+
 ## 💬 Comunidade
 
 - [GitHub Discussions](https://github.com/marciopaiva/tupalang/discussions): RFCs e debates técnicos
+- [GitHub Issues](https://github.com/marciopaiva/tupalang/issues): bugs e melhorias
 - [Twitter @tupalang](https://twitter.com/tupalang): atualizações e demos
 
 ---
 
 > **🌩️ Tupã: onde a sabedoria ancestral encontra a engenharia do futuro**  
 > *github.com/marciopaiva/tupalang*
-
----
-
-## 🎨 Sugestões de customização para seu repositório
-
-1. **Adicione um banner visual** no topo:
-   ```markdown
-   ![Tupã Banner](https://via.placeholder.com/1200x300/1A1A1A/E66700?text=⚡+TUPÃ+-+Força+Ancestral,+Código+Moderno)
-   ```
-
-2. **Inclua um GIF demo** logo após o exemplo de código:
-   ```markdown
-   ![Demo](demo.gif)
-   *Compilando hello.tp → binário nativo em 0.8s*
-   ```
-
-3. **Badge de "Projeto Brasileiro"** (orgulho cultural):
-   ```markdown
-   [![Brasil](https://img.shields.io/badge/feito_no-Brasil-009739?logo=brazil)](#)
-   ```
-
-4. **Seção "Quem usa Tupã?"** (para quando tiver adopters):
-   ```markdown
-   ## 🏢 Early Adopters
-	- [Satellite AI](https://example.com): Detecção de anomalias em redes Red Hat
-	- [Nuvem Tupã](https://example.com): PaaS brasileiro para microserviços IA
-   ```

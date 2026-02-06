@@ -33,6 +33,7 @@ As páginas do wiki são espelhadas automaticamente a partir de `docs/`. Evite e
 - [Governança](GOVERNANCE.md)
 - [FAQ de contribuições](CONTRIBUTING_FAQ.md)
 - [Guia de issues](ISSUES_GUIDE.md)
+- [Security Policy](SECURITY.md)
 
 ## Para contribuidores
 
