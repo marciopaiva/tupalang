@@ -1,0 +1,43 @@
+name: Examples Golden Tests
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  generate-goldens:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Run update-goldens script to generate outputs
+        run: |
+          mkdir -p generated
+          bash scripts/update-goldens.sh
+          cp -r examples/expected generated/expected
+
+      - name: Show diff
+        run: |
+          set -e
+          git --no-pager diff --no-index --unified=3 examples/expected generated/expected > generated/diff.txt || true
+          if [ -s generated/diff.txt ]; then
+            echo "Found differences in goldens"
+            cat generated/diff.txt
+            exit 1
+          else
+            echo "No differences in goldens"
+          fi
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: golden-generated
+          path: generated/
