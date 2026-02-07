@@ -17,6 +17,7 @@ pub enum Ty {
     Array { elem: Box<Ty>, len: i64 },
     Slice { elem: Box<Ty> },
     Func { params: Vec<Ty>, ret: Box<Ty> },
+    Closure { params: Vec<Ty>, ret: Box<Ty>, captured: Vec<String> },
     Enum(String),
     Trait(String),
     Unknown,
@@ -201,6 +202,151 @@ fn collect_vars_block(stmts: &[Stmt], vars: &mut std::collections::HashSet<Strin
             Stmt::Break | Stmt::Continue | Stmt::Return(None) | Stmt::Lambda { .. } => {}
         }
     }
+}
+
+// Infer parameter types for lambda by analyzing usage
+fn infer_lambda_param_types(
+    expr: &Expr,
+    env: &mut TypeEnv,
+    param_types: &mut Vec<Ty>,
+    functions: &HashMap<String, FuncSig>,
+    enums: &HashMap<String, Vec<String>>,
+    traits: &HashMap<String, Vec<Function>>,
+    expected_return: &ExpectedReturn,
+) -> Result<(), TypeError> {
+    match &expr.kind {
+        ExprKind::Ident(_name) => {
+            // If this is a parameter, we can't infer its type from usage here
+            // But we can collect constraints from its usage context
+        }
+        ExprKind::Binary { left, right, .. } => {
+            infer_lambda_param_types(left, env, param_types, functions, enums, traits, expected_return)?;
+            infer_lambda_param_types(right, env, param_types, functions, enums, traits, expected_return)?;
+        }
+        ExprKind::Unary { expr, .. } => {
+            infer_lambda_param_types(expr, env, param_types, functions, enums, traits, expected_return)?;
+        }
+        ExprKind::Call { callee, args } => {
+            // Try to infer parameter types from function call arguments
+            if let ExprKind::Ident(func_name) = &callee.kind {
+                if let Some(sig) = functions.get(func_name) {
+                    for (arg_expr, expected_ty) in args.iter().zip(&sig.params) {
+                        infer_param_type_from_expr(arg_expr, expected_ty.clone(), param_types, env)?;
+                    }
+                }
+            }
+            infer_lambda_param_types(callee, env, param_types, functions, enums, traits, expected_return)?;
+            for arg in args {
+                infer_lambda_param_types(arg, env, param_types, functions, enums, traits, expected_return)?;
+            }
+        }
+        ExprKind::If { condition, then_branch, else_branch } => {
+            infer_lambda_param_types(condition, env, param_types, functions, enums, traits, expected_return)?;
+            infer_lambda_param_types_block(then_branch, env, param_types, functions, enums, traits, expected_return)?;
+            if let Some(else_branch) = else_branch {
+                match else_branch {
+                    tupa_parser::ElseBranch::Block(block) =>
+                        infer_lambda_param_types_block(block, env, param_types, functions, enums, traits, expected_return)?,
+                    tupa_parser::ElseBranch::If(expr) =>
+                        infer_lambda_param_types(expr, env, param_types, functions, enums, traits, expected_return)?,
+                }
+            }
+        }
+        ExprKind::Match { expr, arms } => {
+            infer_lambda_param_types(expr, env, param_types, functions, enums, traits, expected_return)?;
+            for arm in arms {
+                infer_lambda_param_types(&arm.expr, env, param_types, functions, enums, traits, expected_return)?;
+                if let Some(guard) = &arm.guard {
+                    infer_lambda_param_types(guard, env, param_types, functions, enums, traits, expected_return)?;
+                }
+            }
+        }
+        ExprKind::Block(stmts) => {
+            infer_lambda_param_types_block(stmts, env, param_types, functions, enums, traits, expected_return)?;
+        }
+        ExprKind::Lambda { body, .. } => {
+            // Nested lambdas - recurse
+            infer_lambda_param_types(body, env, param_types, functions, enums, traits, expected_return)?;
+        }
+        // Other expressions don't provide parameter type information
+        _ => {}
+    }
+    Ok(())
+}
+
+fn infer_lambda_param_types_block(
+    stmts: &[Stmt],
+    env: &mut TypeEnv,
+    param_types: &mut Vec<Ty>,
+    functions: &HashMap<String, FuncSig>,
+    enums: &HashMap<String, Vec<String>>,
+    traits: &HashMap<String, Vec<Function>>,
+    expected_return: &ExpectedReturn,
+) -> Result<(), TypeError> {
+    for stmt in stmts {
+        match stmt {
+            Stmt::Let { expr, .. } => {
+                infer_lambda_param_types(expr, env, param_types, functions, enums, traits, expected_return)?;
+            }
+            Stmt::While { condition, body } => {
+                infer_lambda_param_types(condition, env, param_types, functions, enums, traits, expected_return)?;
+                infer_lambda_param_types_block(body, env, param_types, functions, enums, traits, expected_return)?;
+            }
+            Stmt::For { iter, body, .. } => {
+                infer_lambda_param_types(iter, env, param_types, functions, enums, traits, expected_return)?;
+                infer_lambda_param_types_block(body, env, param_types, functions, enums, traits, expected_return)?;
+            }
+            Stmt::Expr(expr) => {
+                infer_lambda_param_types(expr, env, param_types, functions, enums, traits, expected_return)?;
+            }
+            Stmt::Return(Some(expr)) => {
+                infer_lambda_param_types(expr, env, param_types, functions, enums, traits, expected_return)?;
+            }
+            _ => {}
+        }
+    }
+    Ok(())
+}
+
+fn infer_param_type_from_expr(
+    expr: &Expr,
+    expected_ty: Ty,
+    param_types: &mut Vec<Ty>,
+    env: &TypeEnv,
+) -> Result<(), TypeError> {
+    match &expr.kind {
+        ExprKind::Ident(name) => {
+            // If this is a parameter, set its type
+            if let Some(idx) = find_param_index(name, env) {
+                if param_types[idx] == Ty::Unknown {
+                    param_types[idx] = expected_ty;
+                } else if param_types[idx] != expected_ty {
+                    // Type conflict - for now, keep the first type we found
+                    // In a more sophisticated system, we'd unify types
+                }
+            }
+        }
+        ExprKind::Binary { left, right, .. } => {
+            infer_param_type_from_expr(left, expected_ty.clone(), param_types, env)?;
+            infer_param_type_from_expr(right, expected_ty, param_types, env)?;
+        }
+        ExprKind::Unary { expr, .. } => {
+            infer_param_type_from_expr(expr, expected_ty, param_types, env)?;
+        }
+        ExprKind::Call { args, .. } => {
+            for arg in args {
+                infer_param_type_from_expr(arg, expected_ty.clone(), param_types, env)?;
+            }
+        }
+        _ => {}
+    }
+    Ok(())
+}
+
+fn find_param_index(_name: &str, _env: &TypeEnv) -> Option<usize> {
+    // This is a simplified version - in practice, we'd need to track parameter positions
+    // For now, return None to indicate we can't determine parameter indices easily
+    None
 }
 
 fn validate_safe_constraints(
@@ -517,24 +663,36 @@ fn type_of_expr(
                 }
             }
 
-            // Try to infer parameter types from context if available
-            let param_tys = vec![Ty::Unknown; params.len()];
+            // Try to infer parameter types by analyzing usage in the body
+            let mut param_types = vec![Ty::Unknown; params.len()];
             let mut inner = env.child();
-            for (name, ty) in params.iter().zip(param_tys.iter()) {
+
+            // First pass: assume all params are Unknown and collect constraints
+            for (name, ty) in params.iter().zip(param_types.iter()) {
                 inner.insert_var(name.clone(), ty.clone());
             }
-            let ret_ty = type_of_expr(body, &mut inner, functions, enums, traits, expected_return)?;
+
+            // Analyze the body to infer parameter types
+            infer_lambda_param_types(body, &mut inner, &mut param_types, functions, enums, traits, expected_return)?;
+
+            // Second pass: use inferred types
+            let mut inner_final = env.child();
+            for (name, ty) in params.iter().zip(param_types.iter()) {
+                inner_final.insert_var(name.clone(), ty.clone());
+            }
+
+            let ret_ty = type_of_expr(body, &mut inner_final, functions, enums, traits, expected_return)?;
 
             // If there are captured variables, this is a closure
             if !captured_vars.is_empty() {
                 Ok(Ty::Func {
-                    params: param_tys,
+                    params: param_types,
                     ret: Box::new(ret_ty),
                 })
             } else {
                 // Regular function type for lambdas without captures
                 Ok(Ty::Func {
-                    params: param_tys,
+                    params: param_types,
                     ret: Box::new(ret_ty),
                 })
             }

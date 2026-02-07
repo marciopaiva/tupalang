@@ -24,6 +24,9 @@ Registrar mudanças relevantes por versão.
 - Sincronização de CHANGELOG, VERSIONING e RELEASE_GUIDE.
 - Detecção de captura de variáveis em lambdas (closures em desenvolvimento).
 - Correção de TODOs residuais no codegen para melhor robustez.
+- Implementação de inferência de tipos para parâmetros de lambda.
+- Suporte básico a closures no codegen (sem captura de ambiente ainda).
+- Correção dos testes golden para casos de erro (removidas mensagens do cargo).
 
 ## 0.1.0
 
