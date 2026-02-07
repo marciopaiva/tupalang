@@ -57,6 +57,7 @@ struct Codegen {
 struct LocalVar {
     ptr: String,
     ty: SimpleTy,
+    used: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -207,6 +208,226 @@ impl Codegen {
         }
     }
 
+    fn collect_usages(&self, stmts: &[Stmt], env: &mut HashMap<String, LocalVar>) {
+        for stmt in stmts {
+            self.collect_usages_stmt(stmt, env);
+        }
+    }
+
+    fn collect_usages_stmt(&self, stmt: &Stmt, env: &mut HashMap<String, LocalVar>) {
+        match stmt {
+            Stmt::Let { name, expr, .. } => {
+                self.collect_usages_expr(expr, env);
+            }
+            Stmt::Expr(expr) => {
+                self.collect_usages_expr(expr, env);
+            }
+            Stmt::Return(expr) => {
+                if let Some(expr) = expr {
+                    self.collect_usages_expr(expr, env);
+                }
+            }
+            Stmt::While { condition, body } => {
+                self.collect_usages_expr(condition, env);
+                self.collect_usages(body, env);
+            }
+            Stmt::For { name, iter, body } => {
+                self.collect_usages_expr(iter, env);
+                self.collect_usages(body, env);
+            }
+            Stmt::Break | Stmt::Continue => {}
+            Stmt::Lambda { body, .. } => {
+                self.collect_usages_expr(body, env);
+            }
+        }
+    }
+
+    fn fold_expr(&self, expr: &Expr) -> Expr {
+        match &expr.kind {
+            ExprKind::Binary { op, left, right } => {
+                let folded_left = self.fold_expr(left);
+                let folded_right = self.fold_expr(right);
+                
+                match (&folded_left.kind, &folded_right.kind, op) {
+                    (ExprKind::Int(a), ExprKind::Int(b), tupa_parser::BinaryOp::Add) => {
+                        Expr {
+                            kind: ExprKind::Int(a + b),
+                            span: expr.span,
+                        }
+                    }
+                    (ExprKind::Int(a), ExprKind::Int(b), tupa_parser::BinaryOp::Sub) => {
+                        Expr {
+                            kind: ExprKind::Int(a - b),
+                            span: expr.span,
+                        }
+                    }
+                    (ExprKind::Int(a), ExprKind::Int(b), tupa_parser::BinaryOp::Mul) => {
+                        Expr {
+                            kind: ExprKind::Int(a * b),
+                            span: expr.span,
+                        }
+                    }
+                    (ExprKind::Int(a), ExprKind::Int(b), tupa_parser::BinaryOp::Div) if *b != 0 => {
+                        Expr {
+                            kind: ExprKind::Int(a / b),
+                            span: expr.span,
+                        }
+                    }
+                    (ExprKind::Float(a), ExprKind::Float(b), tupa_parser::BinaryOp::Add) => {
+                        Expr {
+                            kind: ExprKind::Float(a + b),
+                            span: expr.span,
+                        }
+                    }
+                    (ExprKind::Float(a), ExprKind::Float(b), tupa_parser::BinaryOp::Sub) => {
+                        Expr {
+                            kind: ExprKind::Float(a - b),
+                            span: expr.span,
+                        }
+                    }
+                    (ExprKind::Float(a), ExprKind::Float(b), tupa_parser::BinaryOp::Mul) => {
+                        Expr {
+                            kind: ExprKind::Float(a * b),
+                            span: expr.span,
+                        }
+                    }
+                    (ExprKind::Float(a), ExprKind::Float(b), tupa_parser::BinaryOp::Div) if *b != 0.0 => {
+                        Expr {
+                            kind: ExprKind::Float(a / b),
+                            span: expr.span,
+                        }
+                    }
+                    (ExprKind::Bool(a), ExprKind::Bool(b), tupa_parser::BinaryOp::And) => {
+                        Expr {
+                            kind: ExprKind::Bool(*a && *b),
+                            span: expr.span,
+                        }
+                    }
+                    (ExprKind::Bool(a), ExprKind::Bool(b), tupa_parser::BinaryOp::Or) => {
+                        Expr {
+                            kind: ExprKind::Bool(*a || *b),
+                            span: expr.span,
+                        }
+                    }
+                    _ => Expr {
+                        kind: ExprKind::Binary {
+                            op: op.clone(),
+                            left: Box::new(folded_left),
+                            right: Box::new(folded_right),
+                        },
+                        span: expr.span,
+                    },
+                }
+            }
+            ExprKind::Unary { op, expr: operand } => {
+                let folded_operand = self.fold_expr(operand);
+                
+                match (&folded_operand.kind, op) {
+                    (ExprKind::Int(a), tupa_parser::UnaryOp::Neg) => {
+                        Expr {
+                            kind: ExprKind::Int(-a),
+                            span: expr.span,
+                        }
+                    }
+                    (ExprKind::Float(a), tupa_parser::UnaryOp::Neg) => {
+                        Expr {
+                            kind: ExprKind::Float(-a),
+                            span: expr.span,
+                        }
+                    }
+                    (ExprKind::Bool(a), tupa_parser::UnaryOp::Not) => {
+                        Expr {
+                            kind: ExprKind::Bool(!a),
+                            span: expr.span,
+                        }
+                    }
+                    _ => Expr {
+                        kind: ExprKind::Unary {
+                            op: op.clone(),
+                            expr: Box::new(folded_operand),
+                        },
+                        span: expr.span,
+                    },
+                }
+            }
+            _ => expr.clone(),
+        }
+    }
+
+    fn collect_usages_expr(&self, expr: &Expr, env: &mut HashMap<String, LocalVar>) {
+        match &expr.kind {
+            ExprKind::Int(_) | ExprKind::Float(_) | ExprKind::Str(_) | ExprKind::Bool(_) | ExprKind::Null => {}
+            ExprKind::Ident(name) => {
+                if let Some(var) = env.get_mut(name) {
+                    var.used = true;
+                }
+            }
+            ExprKind::Binary { left, right, .. } => {
+                self.collect_usages_expr(left, env);
+                self.collect_usages_expr(right, env);
+            }
+            ExprKind::Unary { expr: operand, .. } => {
+                self.collect_usages_expr(operand, env);
+            }
+            ExprKind::Call { callee, args } => {
+                self.collect_usages_expr(callee, env);
+                for arg in args {
+                    self.collect_usages_expr(arg, env);
+                }
+            }
+            ExprKind::Assign { name, expr } => {
+                self.collect_usages_expr(expr, env);
+                // Note: we don't mark the assigned variable as used here
+                // because we're only tracking reads, not writes
+            }
+            ExprKind::Index { expr: array, index } => {
+                self.collect_usages_expr(array, env);
+                self.collect_usages_expr(index, env);
+            }
+            ExprKind::ArrayLiteral(elements) => {
+                for elem in elements {
+                    self.collect_usages_expr(elem, env);
+                }
+            }
+            ExprKind::Field { expr: base, .. } => {
+                self.collect_usages_expr(base, env);
+            }
+            ExprKind::Lambda { body, .. } => {
+                self.collect_usages_expr(body, env);
+            }
+            ExprKind::Block(stmts) => {
+                self.collect_usages(stmts, env);
+            }
+            ExprKind::If { condition, then_branch, else_branch } => {
+                self.collect_usages_expr(condition, env);
+                self.collect_usages(then_branch, env);
+                if let Some(else_branch) = else_branch {
+                    match else_branch {
+                        tupa_parser::ElseBranch::Block(block) => self.collect_usages(block, env),
+                        tupa_parser::ElseBranch::If(expr) => self.collect_usages_expr(expr, env),
+                    }
+                }
+            }
+            ExprKind::AssignIndex { expr: array, index, value } => {
+                self.collect_usages_expr(array, env);
+                self.collect_usages_expr(index, env);
+                self.collect_usages_expr(value, env);
+            }
+            ExprKind::Await(expr) => {
+                self.collect_usages_expr(expr, env);
+            }
+            ExprKind::Match { expr: match_expr, arms } => {
+                self.collect_usages_expr(match_expr, env);
+                for arm in arms {
+                    if let Some(guard) = &arm.guard {
+                        self.collect_usages_expr(guard, env);
+                    }
+                    self.collect_usages_expr(&arm.expr, env);
+                }
+            }
+        }
+    }
+
     fn emit_function(&mut self, func: &Function) {
         let mut env: HashMap<String, LocalVar> = HashMap::new();
         let ret_ty = match func.return_type.as_ref() {
@@ -288,8 +509,11 @@ impl Codegen {
                 self.map_type(&param.ty),
                 self.map_type(&param.ty)
             ));
-            env.insert(param.name.clone(), LocalVar { ptr: alloca, ty });
+            env.insert(param.name.clone(), LocalVar { ptr: alloca, ty, used: false });
         }
+
+        // Collect variable usages before emitting code for dead code elimination
+        self.collect_usages(&func.body, &mut env);
 
         let mut returned = false;
         let last_index = func.body.len().saturating_sub(1);
@@ -364,6 +588,7 @@ impl Codegen {
                     LocalVar {
                         ptr: alloca,
                         ty: value.ty,
+                        used: false,
                     },
                 );
                 ControlFlow::None
@@ -429,6 +654,7 @@ impl Codegen {
                     LocalVar {
                         ptr: loop_var_alloca.clone(),
                         ty: SimpleTy::I64,
+                        used: false,
                     },
                 );
 
@@ -709,6 +935,7 @@ impl Codegen {
                         LocalVar {
                             ptr: alloca,
                             ty: value.ty,
+                            used: false,
                         },
                     );
                     bound = true;
@@ -740,6 +967,7 @@ impl Codegen {
                         LocalVar {
                             ptr: alloca,
                             ty: value.ty,
+                            used: false,
                         },
                     );
                 }
@@ -1164,6 +1392,7 @@ impl Codegen {
                         LocalVar {
                             ptr: alloca,
                             ty: value.ty,
+                            used: false,
                         },
                     );
                     bound = true;
@@ -1196,6 +1425,7 @@ impl Codegen {
                         LocalVar {
                             ptr: alloca,
                             ty: value.ty,
+                            used: false,
                         },
                     );
                 }
@@ -1233,7 +1463,9 @@ impl Codegen {
     }
 
     fn emit_expr(&mut self, expr: &Expr, env: &mut HashMap<String, LocalVar>) -> ExprValue {
-        match &expr.kind {
+        // Apply constant folding first
+        let folded_expr = self.fold_expr(expr);
+        match &folded_expr.kind {
             ExprKind::Int(value) => ExprValue::new(SimpleTy::I64, value.to_string()),
             ExprKind::Float(value) => ExprValue::new(SimpleTy::F64, value.to_string()),
             ExprKind::Bool(value) => {
@@ -1327,6 +1559,7 @@ impl Codegen {
                             LocalVar {
                                 ptr: var_value,
                                 ty: *var_ty,
+                                used: false,
                             },
                         );
                     }
@@ -1346,6 +1579,7 @@ impl Codegen {
                         LocalVar {
                             ptr: alloca,
                             ty: SimpleTy::I64,
+                            used: false,
                         },
                     );
                 }
@@ -1502,7 +1736,8 @@ impl Codegen {
                 }
             }
             ExprKind::Ident(name) => {
-                if let Some(var) = env.get(name) {
+                if let Some(var) = env.get_mut(name) {
+                    var.used = true;
                     let llvm_ty = self.llvm_ty(var.ty);
                     let tmp = self.fresh_temp();
                     self.lines
@@ -1512,17 +1747,19 @@ impl Codegen {
                 ExprValue::new(SimpleTy::Unknown, "0".to_string())
             }
             ExprKind::Assign { name, expr } => {
-                if let Some(var) = env.get(name).cloned() {
-                    let value = self.emit_expr(expr, env);
+                let value = self.emit_expr(expr, env);
+                if let Some(var) = env.get_mut(name) {
+                    var.used = true;
                     let llvm_ty = self.llvm_ty(var.ty);
                     self.lines.push(format!(
                         "  store {llvm_ty} {}, {llvm_ty}* {}",
                         value.llvm_value, var.ptr
                     ));
-                    return ExprValue::new(var.ty, value.llvm_value);
+                    ExprValue::new(var.ty, value.llvm_value)
+                } else {
+                    // Assign to unknown variable - this should be caught by typechecker
+                    ExprValue::new(SimpleTy::Unknown, "0".to_string())
                 }
-                // Assign to unknown variable - this should be caught by typechecker
-                ExprValue::new(SimpleTy::Unknown, "0".to_string())
             }
             ExprKind::AssignIndex { expr, index, value } => {
                 let base = self.emit_expr(expr, env);

@@ -29,16 +29,16 @@ Entregar um compilador mínimo que parseia, verifica tipos simples e gera um bin
 6. Diagnósticos
    - Span/linha/coluna em erros do lexer/parser/typechecker.
    - Mensagens para aridade, tipos, print, lambdas, etc.
+7. Closures
+   - Suporte a closures com captura real de variáveis (environment structures, heap allocation).
 
 ## MVP
 
 ### Próximos marcos
 
 1. Otimizações no codegen (eliminação de código morto, melhor uso de registradores)
-2. Suporte a closures com captura de variáveis
-
-3. Arrays/slices genéricos e mais tipos
-4. Cobertura de testes e benchmarks
+2. Arrays/slices genéricos e mais tipos
+3. Cobertura de testes e benchmarks
 
 ## Critérios de Aceite (quando houver implementação)
 

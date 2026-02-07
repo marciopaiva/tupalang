@@ -5,15 +5,25 @@
 
 Registrar mudanças relevantes por versão.
 
+## 0.3.0 (2026-02-07)
+
+- Suporte a closures com captura real de variáveis (environment structures, heap allocation).
+- Melhorias na inferência de tipos para lambdas com parâmetros Unknown.
+- Suporte a compatibilidade de tipos Func com parâmetros Unknown em chamadas de função.
+- Melhorias de qualidade de código: Clippy e rustfmt no CI, correção de warnings.
+- Suporte básico a traits (parsing, typechecking, codegen).
+- Suporte básico a enums (parsing, typechecking, codegen).
+- Testes unitários adicionados ao codegen.
+- Exemplo de enum adicionado à documentação.
+- Índice/SUMMARY centralizado e links internos entre docs.
+- Sincronização de CHANGELOG, VERSIONING e RELEASE_GUIDE.
+- Detecção de captura de variáveis em lambdas (closures em desenvolvimento).
+- Correção de TODOs residuais no codegen para melhor robustez.
+- Implementação de inferência de tipos para parâmetros de lambda.
+- Suporte básico a closures no codegen (sem captura de ambiente ainda).
+- Correção dos testes golden para casos de erro (removidas mensagens do cargo).
+
 ## 0.2.0 (2026-02-06)
-
-- Suporte completo a funções, funções anônimas (lambdas), valores de função e chamadas como valor.
-- Print como built-in, concatenação de strings, arrays, controle de fluxo, etc.
-- Codegen funcional (LLVM-like) cobrindo todos os recursos do MVP.
-- Testes golden automatizados e integração contínua (CI) validando todo o pipeline.
-- Diagnósticos aprimorados para tipos, aridade, print, lambdas, etc.
-
-## Unreleased
 
 - Suporte a closures com captura real de variáveis (environment structures, heap allocation).
 - Melhorias na inferência de tipos para lambdas com parâmetros Unknown.

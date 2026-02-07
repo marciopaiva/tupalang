@@ -8,20 +8,18 @@ entry:
   %t0 = alloca i64
   store i64 10, i64* %t0
   %t1 = load i64, i64* %t0
-  %t2 = mul i64 2, 3
-  %t3 = add i64 %t1, %t2
-  %t4 = sdiv i64 4, 2
-  %t5 = sub i64 %t3, %t4
-  %t6 = alloca i64
-  store i64 %t5, i64* %t6
-  %t7 = getelementptr inbounds [9 x i8], [9 x i8]* @.str0, i64 0, i64 0
-  %t8 = alloca i8*
-  store i8* %t7, i8** %t8
-  %t9 = load i64, i64* %t6
-  %t10 = getelementptr inbounds [5 x i8], [5 x i8]* @.fmt_int, i64 0, i64 0
-  call i32 (i8*, ...) @printf(i8* %t10, i64 %t9)
-  %t11 = load i8*, i8** %t8
-  call i32 @puts(i8* %t11)
+  %t2 = add i64 %t1, 6
+  %t3 = sub i64 %t2, 2
+  %t4 = alloca i64
+  store i64 %t3, i64* %t4
+  %t5 = getelementptr inbounds [9 x i8], [9 x i8]* @.str0, i64 0, i64 0
+  %t6 = alloca i8*
+  store i8* %t5, i8** %t6
+  %t7 = load i64, i64* %t4
+  %t8 = getelementptr inbounds [5 x i8], [5 x i8]* @.fmt_int, i64 0, i64 0
+  call i32 (i8*, ...) @printf(i8* %t8, i64 %t7)
+  %t9 = load i8*, i8** %t6
+  call i32 @puts(i8* %t9)
   ret void
 }
 
