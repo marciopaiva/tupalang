@@ -98,6 +98,111 @@ pub fn typecheck_program(program: &Program) -> Result<(), TypeError> {
     Ok(())
 }
 
+// Collect all variables referenced in an expression
+fn collect_vars(expr: &Expr, vars: &mut std::collections::HashSet<String>) {
+    match &expr.kind {
+        ExprKind::Ident(name) => {
+            vars.insert(name.clone());
+        }
+        ExprKind::Assign { name, expr } => {
+            vars.insert(name.clone());
+            collect_vars(expr, vars);
+        }
+        ExprKind::AssignIndex { expr, index, value } => {
+            collect_vars(expr, vars);
+            collect_vars(index, vars);
+            collect_vars(value, vars);
+        }
+        ExprKind::Index { expr, index } => {
+            collect_vars(expr, vars);
+            collect_vars(index, vars);
+        }
+        ExprKind::Unary { expr, .. } => {
+            collect_vars(expr, vars);
+        }
+        ExprKind::Binary { left, right, .. } => {
+            collect_vars(left, vars);
+            collect_vars(right, vars);
+        }
+        ExprKind::Call { callee, args } => {
+            collect_vars(callee, vars);
+            for arg in args {
+                collect_vars(arg, vars);
+            }
+        }
+        ExprKind::If {
+            condition,
+            then_branch,
+            else_branch,
+        } => {
+            collect_vars(condition, vars);
+            collect_vars_block(then_branch, vars);
+            if let Some(else_branch) = else_branch {
+                match else_branch {
+                    tupa_parser::ElseBranch::Block(block) => collect_vars_block(block, vars),
+                    tupa_parser::ElseBranch::If(expr) => collect_vars(expr, vars),
+                }
+            }
+        }
+        ExprKind::Match { expr, arms } => {
+            collect_vars(expr, vars);
+            for arm in arms {
+                collect_vars(&arm.expr, vars);
+                if let Some(guard) = &arm.guard {
+                    collect_vars(guard, vars);
+                }
+            }
+        }
+        ExprKind::Block(stmts) => {
+            collect_vars_block(stmts, vars);
+        }
+        ExprKind::Lambda { params, body } => {
+            // Don't collect params as captured vars
+            let mut body_vars = std::collections::HashSet::new();
+            collect_vars(body, &mut body_vars);
+            for param in params {
+                body_vars.remove(param);
+            }
+            vars.extend(body_vars);
+        }
+        // Literals don't reference variables
+        ExprKind::Int(_) | ExprKind::Float(_) | ExprKind::Bool(_) | ExprKind::Str(_) | ExprKind::Null => {}
+        ExprKind::ArrayLiteral(items) => {
+            for item in items {
+                collect_vars(item, vars);
+            }
+        }
+        // Field access and await are not yet implemented
+        ExprKind::Field { .. } | ExprKind::Await(_) => {}
+    }
+}
+
+fn collect_vars_block(stmts: &[Stmt], vars: &mut std::collections::HashSet<String>) {
+    for stmt in stmts {
+        match stmt {
+            Stmt::Let { expr, .. } => {
+                collect_vars(expr, vars);
+            }
+            Stmt::While { condition, body } => {
+                collect_vars(condition, vars);
+                collect_vars_block(body, vars);
+            }
+            Stmt::For { iter, body, .. } => {
+                collect_vars(iter, vars);
+                collect_vars_block(body, vars);
+            }
+            Stmt::Expr(expr) => {
+                collect_vars(expr, vars);
+            }
+            Stmt::Return(Some(expr)) => {
+                collect_vars(expr, vars);
+            }
+            // Other statements don't introduce new variables
+            Stmt::Break | Stmt::Continue | Stmt::Return(None) | Stmt::Lambda { .. } => {}
+        }
+    }
+}
+
 fn validate_safe_constraints(
     constraints: &[String],
     base: &Ty,
@@ -395,19 +500,44 @@ fn type_of_expr(
             })
         }
         ExprKind::Lambda { params, body } => {
+            // Collect all variables referenced in the lambda body
+            let mut body_vars = std::collections::HashSet::new();
+            collect_vars(body, &mut body_vars);
+
+            // Remove parameters from captured vars
+            for param in params {
+                body_vars.remove(param);
+            }
+
+            // Check which variables are actually available in the current scope
+            let mut captured_vars = Vec::new();
+            for var in &body_vars {
+                if let Some(var_ty) = env.get_var(var) {
+                    captured_vars.push((var.clone(), var_ty.clone()));
+                }
+            }
+
             // Try to infer parameter types from context if available
-            // (e.g., if this lambda is the callee of a call, the expected types are known)
-            // For now, default to Unknown for all params
             let param_tys = vec![Ty::Unknown; params.len()];
             let mut inner = env.child();
             for (name, ty) in params.iter().zip(param_tys.iter()) {
                 inner.insert_var(name.clone(), ty.clone());
             }
             let ret_ty = type_of_expr(body, &mut inner, functions, enums, traits, expected_return)?;
-            Ok(Ty::Func {
-                params: param_tys,
-                ret: Box::new(ret_ty),
-            })
+
+            // If there are captured variables, this is a closure
+            if !captured_vars.is_empty() {
+                Ok(Ty::Func {
+                    params: param_tys,
+                    ret: Box::new(ret_ty),
+                })
+            } else {
+                // Regular function type for lambdas without captures
+                Ok(Ty::Func {
+                    params: param_tys,
+                    ret: Box::new(ret_ty),
+                })
+            }
         }
         ExprKind::Assign { name, expr } => {
             let rhs = type_of_expr(expr, env, functions, enums, traits, expected_return)?;

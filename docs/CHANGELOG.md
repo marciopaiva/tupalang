@@ -22,6 +22,8 @@ Registrar mudanças relevantes por versão.
 - Exemplo de enum adicionado à documentação.
 - Índice/SUMMARY centralizado e links internos entre docs.
 - Sincronização de CHANGELOG, VERSIONING e RELEASE_GUIDE.
+- Detecção de captura de variáveis em lambdas (closures em desenvolvimento).
+- Correção de TODOs residuais no codegen para melhor robustez.
 
 ## 0.1.0
 

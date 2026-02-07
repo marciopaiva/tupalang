@@ -1,0 +1,15 @@
+// Exemplo básico de lambda
+// Nota: Sistema de tipos para lambdas ainda em desenvolvimento
+
+fn main() {
+    // Lambda que apenas retorna um valor
+    let get_five = |x| 5;
+    print(get_five(10)); // Deve imprimir 5
+
+    // Lambda com bloco que retorna constante
+    let compute = |a| {
+        let temp = 42;
+        temp
+    };
+    print(compute(0)); // Deve imprimir 42
+}

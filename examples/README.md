@@ -18,6 +18,7 @@ Reunir exemplos curados que refletem o estado atual do parser, typechecker e cod
 - `if_unit_expr.tp`: `if` sem `else` (unit).
 - `return_if_expr.tp`: `return` com `if` como expressão.
 - `guards.tp`: `match` com guardas.
+- `closure_basic.tp`: funções anônimas (lambdas) básicas.
 - `match.tp`: `match` com guardas e wildcard.
 - `match_guard_if_expr.tp`: `match` com guarda usando `if` como expressão.
 - `arrays.tp`: literais de array, indexação e tipos `[T; N]`.
