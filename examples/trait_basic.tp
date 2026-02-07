@@ -1,0 +1,8 @@
+// Exemplo básico de trait
+trait Printable {
+    // traits vazios por enquanto
+}
+
+fn main() {
+    // Traits são apenas declarados por enquanto
+}

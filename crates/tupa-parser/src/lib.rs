@@ -10,12 +10,19 @@ pub struct Program {
 pub enum Item {
     Function(Function),
     Enum(EnumDef),
+    Trait(TraitDef),
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct EnumDef {
     pub name: String,
     pub variants: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct TraitDef {
+    pub name: String,
+    pub methods: Vec<Function>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -311,6 +318,7 @@ impl Parser {
         match self.peek() {
             Some(Token::Fn) => Ok(Item::Function(self.parse_function()?)),
             Some(Token::Enum) => Ok(Item::Enum(self.parse_enum()?)),
+            Some(Token::Trait) => Ok(Item::Trait(self.parse_trait()?)),
             Some(token) => {
                 let span = self.tokens.get(self.pos).map(|t| t.span).unwrap_or(Span {
                     start: self.eof_pos,
@@ -382,6 +390,36 @@ impl Parser {
         }
         self.expect(Token::RBrace)?;
         Ok(EnumDef { name, variants })
+    }
+
+    fn parse_trait(&mut self) -> Result<TraitDef, ParserError> {
+        self.expect(Token::Trait)?;
+        let name = match self.next() {
+            Some(TokenSpan {
+                token: Token::Ident(name),
+                ..
+            }) => name,
+            Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+            None => return Err(ParserError::Eof(self.eof_pos)),
+        };
+        self.expect(Token::LBrace)?;
+        let mut methods = Vec::new();
+        while let Some(tok) = self.peek() {
+            if *tok == Token::RBrace {
+                break;
+            }
+            if let Some(Token::Fn) = self.peek() {
+                methods.push(self.parse_function()?);
+            } else {
+                let span = self.tokens.get(self.pos).map(|t| t.span).unwrap_or(Span {
+                    start: self.eof_pos,
+                    end: self.eof_pos,
+                });
+                return Err(ParserError::Unexpected(tok.clone(), span));
+            }
+        }
+        self.expect(Token::RBrace)?;
+        Ok(TraitDef { name, methods })
     }
 
     fn parse_block(&mut self) -> Result<Block, ParserError> {
@@ -1171,6 +1209,7 @@ mod tests {
         let src = "fn main() { let x = 1; return x; }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
@@ -1182,6 +1221,7 @@ mod tests {
         let src = "fn main() { if 1 { return 2; } else { return 3; } }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
@@ -1193,6 +1233,7 @@ mod tests {
         let src = "fn main() { match x { 1 => foo(), _ => bar(), }; }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
@@ -1204,6 +1245,7 @@ mod tests {
         let src = "fn main() { let x = 1 + 2 * 3; }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
@@ -1231,6 +1273,7 @@ mod tests {
         let src = "fn main() { let x = -1; let y = !false; }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
@@ -1261,6 +1304,7 @@ mod tests {
         let src = "fn main() { let x = 3.14; }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
@@ -1275,6 +1319,7 @@ mod tests {
         let src = "fn add(x: i64, y: i64): i64 { let z: i64 = x + y; return z; }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
@@ -1291,6 +1336,7 @@ mod tests {
         let src = "fn main() { let a: [i64; 3] = 0; let b: [i64] = 0; }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
@@ -1309,6 +1355,7 @@ mod tests {
         let src = "fn main() { let x: Safe<i64, !nan, !inf> = 1; }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
@@ -1329,6 +1376,7 @@ mod tests {
         let src = "fn main() { let f: fn(i64, i64) -> i64 = add; }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
@@ -1349,6 +1397,7 @@ mod tests {
         let src = "fn main() { while x < 10 { x = x + 1; } for i in xs { return i; } }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
@@ -1361,6 +1410,7 @@ mod tests {
         let src = "fn main() { let xs = [1, 2, 3]; }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
@@ -1375,6 +1425,7 @@ mod tests {
         let src = "fn main() { let xs = 1..10; }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
@@ -1395,6 +1446,7 @@ mod tests {
         let src = "fn main() { match x { y if y > 0 => y, _ => 0, } }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
@@ -1406,6 +1458,7 @@ mod tests {
         let src = "fn main() { let x = await foo(); { return x; } }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
@@ -1424,6 +1477,7 @@ mod tests {
         let src = "fn main() { let x = foo(1).bar[0]; }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };

@@ -43,6 +43,7 @@ Reunir exemplos curados que refletem o estado atual do parser, typechecker e cod
 - `string_plus_eq.tp`: concatenação com `+=`.
 - `function_call.tp`: chamada de função definida pelo usuário.
 - `enum_basic.tp`: declaração básica de enum.
+- `trait_basic.tp`: declaração básica de trait.
 
 ### Casos negativos (devem falhar)
 

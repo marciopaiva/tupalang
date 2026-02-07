@@ -168,6 +168,7 @@ impl Codegen {
             let func = match item {
                 Item::Function(func) => func,
                 Item::Enum(_) => continue, // enums don't have functions
+                Item::Trait(_) => continue, // traits don't have functions
             };
             let params = func
                 .params
@@ -185,6 +186,7 @@ impl Codegen {
             match item {
                 Item::Function(func) => self.emit_function(func),
                 Item::Enum(_) => {} // enums don't emit code yet
+                Item::Trait(_) => {} // traits don't emit code yet
             }
         }
     }

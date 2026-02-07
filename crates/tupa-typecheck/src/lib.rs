@@ -18,6 +18,7 @@ pub enum Ty {
     Slice { elem: Box<Ty> },
     Func { params: Vec<Ty>, ret: Box<Ty> },
     Enum(String),
+    Trait(String),
     Unknown,
 }
 
@@ -143,18 +144,19 @@ fn validate_safe_constraints(
 pub fn typecheck_program_with_warnings(program: &Program) -> Result<Vec<Warning>, TypeError> {
     let mut functions = HashMap::new();
     let mut enums = HashMap::new();
+    let mut traits = HashMap::new();
     for item in &program.items {
         match item {
             Item::Function(func) => {
                 let params = func
                     .params
                     .iter()
-                    .map(|p| type_from_ast(&p.ty, &enums))
+                    .map(|p| type_from_ast(&p.ty, &enums, &traits))
                     .collect::<Result<Vec<_>, _>>()?;
                 let ret = func
                     .return_type
                     .as_ref()
-                    .map(|ty| type_from_ast(ty, &enums))
+                    .map(|ty| type_from_ast(ty, &enums, &traits))
                     .transpose()?
                     .unwrap_or(Ty::Unit);
                 functions.insert(func.name.clone(), FuncSig { params, ret });
@@ -162,13 +164,17 @@ pub fn typecheck_program_with_warnings(program: &Program) -> Result<Vec<Warning>
             Item::Enum(enum_def) => {
                 enums.insert(enum_def.name.clone(), enum_def.variants.clone());
             }
+            Item::Trait(trait_def) => {
+                traits.insert(trait_def.name.clone(), trait_def.methods.clone());
+            }
         }
     }
     let mut warnings = Vec::new();
     for item in &program.items {
         match item {
-            Item::Function(func) => warnings.extend(typecheck_function(func, &functions, &enums)?),
+            Item::Function(func) => warnings.extend(typecheck_function(func, &functions, &enums, &traits)?),
             Item::Enum(_) => {} // enums don't need typechecking beyond declaration
+            Item::Trait(_) => {} // traits don't need typechecking beyond declaration
         }
     }
     Ok(warnings)
@@ -178,20 +184,21 @@ fn typecheck_function(
     func: &Function,
     functions: &HashMap<String, FuncSig>,
     enums: &HashMap<String, Vec<String>>,
+    traits: &HashMap<String, Vec<Function>>,
 ) -> Result<Vec<Warning>, TypeError> {
     let mut env = TypeEnv::default();
     for param in &func.params {
-        let ty = type_from_ast(&param.ty, enums)?;
+        let ty = type_from_ast(&param.ty, enums, traits)?;
         env.insert_var(param.name.clone(), ty);
     }
 
     let expected_return = match func.return_type.as_ref() {
         Some(Type::Safe { base, constraints }) => ExpectedReturn {
-            ty: type_from_ast(base, enums)?,
+            ty: type_from_ast(base, enums, traits)?,
             constraints: Some(constraints.clone()),
         },
         Some(ty) => ExpectedReturn {
-            ty: type_from_ast(ty, enums)?,
+            ty: type_from_ast(ty, enums, traits)?,
             constraints: None,
         },
         None => ExpectedReturn {
@@ -201,12 +208,12 @@ fn typecheck_function(
     };
 
     for stmt in &func.body {
-        typecheck_stmt(stmt, &mut env, functions, enums, &expected_return)?;
+        typecheck_stmt(stmt, &mut env, functions, enums, traits, &expected_return)?;
     }
 
     if expected_return.ty != Ty::Unit && !block_returns(&func.body) {
         if let Some(Stmt::Expr(expr)) = func.body.last() {
-            let found = type_of_expr(expr, &mut env, functions, enums, &expected_return)?;
+            let found = type_of_expr(expr, &mut env, functions, enums, traits, &expected_return)?;
             if found != expected_return.ty {
                 if found == Ty::Unit {
                     return Err(TypeError::MissingReturn);
@@ -233,17 +240,18 @@ fn typecheck_stmt(
     env: &mut TypeEnv,
     functions: &HashMap<String, FuncSig>,
     enums: &HashMap<String, Vec<String>>,
+    traits: &HashMap<String, Vec<Function>>,
     expected_return: &ExpectedReturn,
 ) -> Result<(), TypeError> {
     match stmt {
         Stmt::Let { name, ty, expr } => {
-            let expr_ty = type_of_expr(expr, env, functions, enums, expected_return)?;
+            let expr_ty = type_of_expr(expr, env, functions, enums, traits, expected_return)?;
             if let Some(ty) = ty {
                 let (declared, constraints) = match ty {
                     Type::Safe { base, constraints } => {
-                        (type_from_ast(base, enums)?, Some(constraints))
+                        (type_from_ast(base, enums, traits)?, Some(constraints))
                     }
-                    _ => (type_from_ast(ty, enums)?, None),
+                    _ => (type_from_ast(ty, enums, traits)?, None),
                 };
                 if declared != expr_ty {
                     return Err(TypeError::Mismatch {
@@ -263,7 +271,7 @@ fn typecheck_stmt(
         }
         Stmt::Return(expr) => {
             let found = if let Some(expr) = expr {
-                type_of_expr(expr, env, functions, enums, expected_return)?
+                type_of_expr(expr, env, functions, enums, traits, expected_return)?
             } else {
                 Ty::Unit
             };
@@ -282,7 +290,7 @@ fn typecheck_stmt(
             Ok(())
         }
         Stmt::While { condition, body } => {
-            let cond_ty = type_of_expr(condition, env, functions, enums, expected_return)?;
+            let cond_ty = type_of_expr(condition, env, functions, enums, traits, expected_return)?;
             if cond_ty != Ty::Bool {
                 return Err(TypeError::Mismatch {
                     expected: Ty::Bool,
@@ -293,12 +301,13 @@ fn typecheck_stmt(
             let mut inner = env.child();
             inner.loop_depth += 1;
             for stmt in body {
-                typecheck_stmt(stmt, &mut inner, functions, enums, expected_return)?;
+                typecheck_stmt(stmt, &mut inner, functions, enums, traits, expected_return)?;
+                typecheck_stmt(stmt, &mut inner, functions, enums, traits, expected_return)?;
             }
             Ok(())
         }
         Stmt::For { name, iter, body } => {
-            let iter_ty = type_of_expr(iter, env, functions, enums, expected_return)?;
+            let iter_ty = type_of_expr(iter, env, functions, enums, traits, expected_return)?;
             let elem_ty = match iter_ty {
                 Ty::Array { elem, .. } => *elem,
                 Ty::Slice { elem } => *elem,
@@ -316,7 +325,8 @@ fn typecheck_stmt(
             inner.loop_depth += 1;
             inner.insert_var(name.clone(), elem_ty);
             for stmt in body {
-                typecheck_stmt(stmt, &mut inner, functions, enums, expected_return)?;
+                typecheck_stmt(stmt, &mut inner, functions, enums, traits, expected_return)?;
+                typecheck_stmt(stmt, &mut inner, functions, enums, traits, expected_return)?;
             }
             Ok(())
         }
@@ -335,7 +345,7 @@ fn typecheck_stmt(
             }
         }
         Stmt::Expr(expr) => {
-            type_of_expr(expr, env, functions, enums, expected_return)?;
+            type_of_expr(expr, env, functions, enums, traits, expected_return)?;
             Ok(())
         }
         Stmt::Lambda { .. } => {
@@ -350,6 +360,7 @@ fn type_of_expr(
     env: &mut TypeEnv,
     functions: &HashMap<String, FuncSig>,
     enums: &HashMap<String, Vec<String>>,
+    traits: &HashMap<String, Vec<Function>>,
     expected_return: &ExpectedReturn,
 ) -> Result<Ty, TypeError> {
     let span = Some(expr.span);
@@ -392,14 +403,14 @@ fn type_of_expr(
             for (name, ty) in params.iter().zip(param_tys.iter()) {
                 inner.insert_var(name.clone(), ty.clone());
             }
-            let ret_ty = type_of_expr(body, &mut inner, functions, enums, expected_return)?;
+            let ret_ty = type_of_expr(body, &mut inner, functions, enums, traits, expected_return)?;
             Ok(Ty::Func {
                 params: param_tys,
                 ret: Box::new(ret_ty),
             })
         }
         ExprKind::Assign { name, expr } => {
-            let rhs = type_of_expr(expr, env, functions, enums, expected_return)?;
+            let rhs = type_of_expr(expr, env, functions, enums, traits, expected_return)?;
             let lhs = env.get_var(name).ok_or_else(|| TypeError::UnknownVar {
                 name: name.clone(),
                 span,
@@ -424,9 +435,9 @@ fn type_of_expr(
                     len: 0,
                 });
             }
-            let first = type_of_expr(&items[0], env, functions, enums, expected_return)?;
+            let first = type_of_expr(&items[0], env, functions, enums, traits, expected_return)?;
             for item in &items[1..] {
-                let ty = type_of_expr(item, env, functions, enums, expected_return)?;
+                let ty = type_of_expr(item, env, functions, enums, traits, expected_return)?;
                 if ty != first {
                     return Err(TypeError::Mismatch {
                         expected: first.clone(),
@@ -441,7 +452,7 @@ fn type_of_expr(
             })
         }
         ExprKind::Call { callee, args } => {
-            let callee_ty = type_of_expr(callee, env, functions, enums, expected_return)?;
+            let callee_ty = type_of_expr(callee, env, functions, enums, traits, expected_return)?;
             match callee_ty {
                 Ty::Func { params, ret } => {
                     if params.len() != args.len() {
@@ -452,7 +463,7 @@ fn type_of_expr(
                         });
                     }
                     for (arg, expected) in args.iter().zip(params.iter()) {
-                        let found = type_of_expr(arg, env, functions, enums, expected_return)?;
+                        let found = type_of_expr(arg, env, functions, enums, traits, expected_return)?;
                         if &found != expected && *expected != Ty::Unknown {
                             return Err(TypeError::Mismatch {
                                 expected: expected.clone(),
@@ -468,21 +479,21 @@ fn type_of_expr(
         }
         ExprKind::Field { .. } => Ok(Ty::Unknown),
         ExprKind::Index { expr, .. } => {
-            let base = type_of_expr(expr, env, functions, enums, expected_return)?;
+            let base = type_of_expr(expr, env, functions, enums, traits, expected_return)?;
             match base {
                 Ty::Array { elem, .. } => Ok(*elem),
                 Ty::Slice { elem } => Ok(*elem),
                 other => Ok(other),
             }
         }
-        ExprKind::Await(expr) => type_of_expr(expr, env, functions, enums, expected_return),
-        ExprKind::Block(stmts) => type_of_block_expr(stmts, env, functions, enums, expected_return),
+        ExprKind::Await(expr) => type_of_expr(expr, env, functions, enums, traits, expected_return),
+        ExprKind::Block(stmts) => type_of_block_expr(stmts, env, functions, enums, traits, expected_return),
         ExprKind::If {
             condition,
             then_branch,
             else_branch,
         } => {
-            let cond = type_of_expr(condition, env, functions, enums, expected_return)?;
+            let cond = type_of_expr(condition, env, functions, enums, traits, expected_return)?;
             if cond != Ty::Bool {
                 return Err(TypeError::Mismatch {
                     expected: Ty::Bool,
@@ -495,6 +506,7 @@ fn type_of_expr(
                 &mut env.child(),
                 functions,
                 enums,
+                traits,
                 expected_return,
             )?;
             let else_ty = match else_branch {
@@ -504,10 +516,11 @@ fn type_of_expr(
                         &mut env.child(),
                         functions,
                         enums,
+                        traits,
                         expected_return,
                     )?,
                     tupa_parser::ElseBranch::If(expr) => {
-                        type_of_expr(expr, env, functions, enums, expected_return)?
+                        type_of_expr(expr, env, functions, enums, traits, expected_return)?
                     }
                 },
                 None => return Ok(Ty::Unit),
@@ -522,14 +535,14 @@ fn type_of_expr(
             Ok(then_ty)
         }
         ExprKind::Match { expr, arms } => {
-            let scrutinee_ty = type_of_expr(expr, env, functions, enums, expected_return)?;
+            let scrutinee_ty = type_of_expr(expr, env, functions, enums, traits, expected_return)?;
             let mut expected_arm_ty: Option<Ty> = None;
             for arm in arms {
                 let mut inner = env.child();
                 typecheck_pattern(&arm.pattern, &scrutinee_ty, &mut inner)?;
                 if let Some(guard) = &arm.guard {
                     let guard_ty =
-                        type_of_expr(guard, &mut inner, functions, enums, expected_return)?;
+                        type_of_expr(guard, &mut inner, functions, enums, traits, expected_return)?;
                     if guard_ty != Ty::Bool {
                         return Err(TypeError::Mismatch {
                             expected: Ty::Bool,
@@ -539,7 +552,7 @@ fn type_of_expr(
                     }
                 }
                 let arm_ty =
-                    type_of_expr(&arm.expr, &mut inner, functions, enums, expected_return)?;
+                    type_of_expr(&arm.expr, &mut inner, functions, enums, traits, expected_return)?;
                 match &expected_arm_ty {
                     Some(expected) if *expected != arm_ty => {
                         return Err(TypeError::Mismatch {
@@ -555,7 +568,7 @@ fn type_of_expr(
             Ok(expected_arm_ty.unwrap_or(Ty::Unit))
         }
         ExprKind::Unary { op, expr } => {
-            let inner = type_of_expr(expr, env, functions, enums, expected_return)?;
+            let inner = type_of_expr(expr, env, functions, enums, traits, expected_return)?;
             match op {
                 UnaryOp::Neg => match inner {
                     Ty::I64 | Ty::F64 => Ok(inner),
@@ -576,8 +589,8 @@ fn type_of_expr(
             }
         }
         ExprKind::Binary { op, left, right } => {
-            let l = type_of_expr(left, env, functions, enums, expected_return)?;
-            let r = type_of_expr(right, env, functions, enums, expected_return)?;
+            let l = type_of_expr(left, env, functions, enums, traits, expected_return)?;
+            let r = type_of_expr(right, env, functions, enums, traits, expected_return)?;
             match op {
                 BinaryOp::Add | BinaryOp::Sub | BinaryOp::Mul | BinaryOp::Div | BinaryOp::Pow => {
                     if l == r && (l == Ty::I64 || l == Ty::F64) {
@@ -646,6 +659,7 @@ fn type_of_block_expr(
     env: &mut TypeEnv,
     functions: &HashMap<String, FuncSig>,
     enums: &HashMap<String, Vec<String>>,
+    traits: &HashMap<String, Vec<Function>>,
     expected_return: &ExpectedReturn,
 ) -> Result<Ty, TypeError> {
     let mut last_ty = Ty::Unit;
@@ -653,16 +667,16 @@ fn type_of_block_expr(
         match stmt {
             Stmt::Return(expr) => {
                 last_ty = if let Some(expr) = expr {
-                    type_of_expr(expr, env, functions, enums, expected_return)?
+                    type_of_expr(expr, env, functions, enums, traits, expected_return)?
                 } else {
                     Ty::Unit
                 };
             }
             Stmt::Expr(expr) => {
-                last_ty = type_of_expr(expr, env, functions, enums, expected_return)?;
+                last_ty = type_of_expr(expr, env, functions, enums, traits, expected_return)?;
             }
             _ => {
-                typecheck_stmt(stmt, env, functions, enums, expected_return)?;
+                typecheck_stmt(stmt, env, functions, enums, traits, expected_return)?;
                 last_ty = Ty::Unit;
             }
         }
@@ -738,7 +752,7 @@ fn typecheck_pattern(
     }
 }
 
-fn type_from_ast(ty: &Type, enums: &HashMap<String, Vec<String>>) -> Result<Ty, TypeError> {
+fn type_from_ast(ty: &Type, enums: &HashMap<String, Vec<String>>, traits: &HashMap<String, Vec<Function>>) -> Result<Ty, TypeError> {
     match ty {
         Type::Ident(name) => match name.as_str() {
             "i64" => Ok(Ty::I64),
@@ -754,20 +768,20 @@ fn type_from_ast(ty: &Type, enums: &HashMap<String, Vec<String>>) -> Result<Ty, 
                 }
             }
         },
-        Type::Safe { base, .. } => type_from_ast(base, enums),
+        Type::Safe { base, .. } => type_from_ast(base, enums, traits),
         Type::Array { elem, len } => Ok(Ty::Array {
-            elem: Box::new(type_from_ast(elem, enums)?),
+            elem: Box::new(type_from_ast(elem, enums, traits)?),
             len: *len,
         }),
         Type::Slice { elem } => Ok(Ty::Slice {
-            elem: Box::new(type_from_ast(elem, enums)?),
+            elem: Box::new(type_from_ast(elem, enums, traits)?),
         }),
         Type::Func { params, ret } => {
             let params = params
                 .iter()
-                .map(|p| type_from_ast(p, enums))
+                .map(|p| type_from_ast(p, enums, traits))
                 .collect::<Result<Vec<_>, _>>()?;
-            let ret = type_from_ast(ret, enums)?;
+            let ret = type_from_ast(ret, enums, traits)?;
             Ok(Ty::Func {
                 params,
                 ret: Box::new(ret),

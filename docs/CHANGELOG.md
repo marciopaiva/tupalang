@@ -15,6 +15,7 @@ Registrar mudanças relevantes por versão.
 
 ## Unreleased
 
+- Suporte básico a traits (parsing, typechecking, codegen).
 - Suporte básico a enums (parsing, typechecking, codegen).
 - Melhorias de qualidade de código: Clippy e rustfmt no CI, correção de warnings.
 - Testes unitários adicionados ao codegen.

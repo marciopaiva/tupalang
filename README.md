@@ -52,6 +52,11 @@ enum Color {
     Blue
 }
 
+// Trait básico
+trait Printable {
+    // métodos do trait
+}
+
 // Função com constraint
 fn seguro(x: f64): Safe<f64, !nan> {
   return x
