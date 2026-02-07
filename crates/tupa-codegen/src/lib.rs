@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use tupa_parser::{Expr, ExprKind, Function, Item, Program, Stmt, Type};
+#[allow(unused_imports)]
 use tupa_typecheck::{typecheck_program_with_warnings, Ty};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -25,8 +26,10 @@ pub fn generate_stub(program: &Program) -> String {
 }
 
 pub fn generate_stub_with_types(program: &Program) -> String {
-    let mut codegen = Codegen::default();
-    codegen.type_info = Some(HashMap::new());
+    let mut codegen = Codegen {
+        type_info: Some(HashMap::new()),
+        ..Default::default()
+    };
     codegen.emit_program(program);
     codegen.finish()
 }
@@ -50,6 +53,7 @@ struct Codegen {
     strcat_declared: bool,
     snprintf_declared: bool,
     function_sigs: HashMap<String, FuncSig>,
+    #[allow(dead_code)]
     type_info: Option<HashMap<String, tupa_typecheck::Ty>>,
 }
 
@@ -60,6 +64,7 @@ struct LocalVar {
     used: bool,
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Clone)]
 struct ClosureEnv {
     vars: Vec<(String, SimpleTy)>, // (name, type) of captured variables
@@ -216,7 +221,7 @@ impl Codegen {
 
     fn collect_usages_stmt(&self, stmt: &Stmt, env: &mut HashMap<String, LocalVar>) {
         match stmt {
-            Stmt::Let { name, expr, .. } => {
+            Stmt::Let { name: _name, expr, .. } => {
                 self.collect_usages_expr(expr, env);
             }
             Stmt::Expr(expr) => {
@@ -231,7 +236,7 @@ impl Codegen {
                 self.collect_usages_expr(condition, env);
                 self.collect_usages(body, env);
             }
-            Stmt::For { name, iter, body } => {
+            Stmt::For { name: _name, iter, body } => {
                 self.collect_usages_expr(iter, env);
                 self.collect_usages(body, env);
             }
@@ -375,7 +380,7 @@ impl Codegen {
                     self.collect_usages_expr(arg, env);
                 }
             }
-            ExprKind::Assign { name, expr } => {
+            ExprKind::Assign { name: _name, expr } => {
                 self.collect_usages_expr(expr, env);
                 // Note: we don't mark the assigned variable as used here
                 // because we're only tracking reads, not writes
@@ -1487,7 +1492,7 @@ impl Codegen {
 
                 // For now, assume all lambdas can capture and create environment
                 // In a full implementation, we'd check which variables are actually captured
-                let env_struct_name = format!("env_{}", lambda_name);
+                let _env_struct_name = format!("env_{}", lambda_name);
 
                 // Create environment struct type
                 let env_struct_name = format!("env_{}", lambda_name);
@@ -1502,7 +1507,7 @@ impl Codegen {
                 }
 
                 let env_var_names = captured_vars.iter().map(|(name, _)| name.clone()).collect::<Vec<_>>();
-                let env_var_types = captured_vars.iter().map(|(_, ty)| *ty).collect::<Vec<_>>();
+                let _env_var_types = captured_vars.iter().map(|(_, ty)| *ty).collect::<Vec<_>>();
 
                 if !captured_vars.is_empty() {
                     // Define environment struct
@@ -1514,8 +1519,10 @@ impl Codegen {
                 }
 
                 // Create lambda function
-                let mut lambda_codegen = Codegen::default();
-                lambda_codegen.temp = self.temp;
+                let mut lambda_codegen = Codegen {
+                    temp: self.temp,
+                    ..Default::default()
+                };
                 self.temp += 100;
 
                 // Lambda parameters: environment pointer, then actual params

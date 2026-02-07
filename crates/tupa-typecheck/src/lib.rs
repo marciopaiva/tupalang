@@ -94,6 +94,7 @@ struct ExpectedReturn {
     constraints: Option<Vec<String>>,
 }
 
+#[allow(clippy::result_large_err)]
 pub fn typecheck_program(program: &Program) -> Result<(), TypeError> {
     let _ = typecheck_program_with_warnings(program)?;
     Ok(())
@@ -205,6 +206,7 @@ fn collect_vars_block(stmts: &[Stmt], vars: &mut std::collections::HashSet<Strin
 }
 
 // Infer parameter types for lambda by analyzing usage
+#[allow(clippy::result_large_err)]
 fn infer_lambda_param_types(
     expr: &Expr,
     env: &mut TypeEnv,
@@ -274,6 +276,7 @@ fn infer_lambda_param_types(
     Ok(())
 }
 
+#[allow(clippy::result_large_err)]
 fn infer_lambda_param_types_block(
     stmts: &[Stmt],
     env: &mut TypeEnv,
@@ -308,6 +311,7 @@ fn infer_lambda_param_types_block(
     Ok(())
 }
 
+#[allow(clippy::result_large_err)]
 fn infer_param_type_from_expr(
     expr: &Expr,
     expected_ty: Ty,
@@ -349,6 +353,7 @@ fn find_param_index(_name: &str, _env: &TypeEnv) -> Option<usize> {
     None
 }
 
+#[allow(clippy::result_large_err)]
 fn validate_safe_constraints(
     constraints: &[String],
     base: &Ty,
@@ -392,6 +397,7 @@ fn validate_safe_constraints(
     Ok(())
 }
 
+#[allow(clippy::result_large_err)]
 pub fn typecheck_program_with_warnings(program: &Program) -> Result<Vec<Warning>, TypeError> {
     let mut functions = HashMap::new();
     let mut enums = HashMap::new();
@@ -431,6 +437,7 @@ pub fn typecheck_program_with_warnings(program: &Program) -> Result<Vec<Warning>
     Ok(warnings)
 }
 
+#[allow(clippy::result_large_err)]
 fn typecheck_function(
     func: &Function,
     functions: &HashMap<String, FuncSig>,
@@ -486,6 +493,7 @@ fn typecheck_function(
     Ok(env.collect_warnings())
 }
 
+#[allow(clippy::result_large_err)]
 fn typecheck_stmt(
     stmt: &Stmt,
     env: &mut TypeEnv,
@@ -606,6 +614,7 @@ fn typecheck_stmt(
     }
 }
 
+#[allow(clippy::result_large_err)]
 fn type_of_expr(
     expr: &Expr,
     env: &mut TypeEnv,
@@ -956,6 +965,7 @@ fn type_of_expr(
     }
 }
 
+#[allow(clippy::result_large_err)]
 fn type_of_block_expr(
     stmts: &[Stmt],
     env: &mut TypeEnv,
@@ -1024,6 +1034,7 @@ fn expr_returns(expr: &Expr) -> bool {
     }
 }
 
+#[allow(clippy::result_large_err)]
 fn typecheck_pattern(
     pattern: &Pattern,
     scrutinee: &Ty,
@@ -1054,6 +1065,7 @@ fn typecheck_pattern(
     }
 }
 
+#[allow(clippy::result_large_err, clippy::only_used_in_recursion)]
 fn type_from_ast(ty: &Type, enums: &HashMap<String, Vec<String>>, traits: &HashMap<String, Vec<Function>>) -> Result<Ty, TypeError> {
     match ty {
         Type::Ident(name) => match name.as_str() {
