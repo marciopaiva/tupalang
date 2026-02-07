@@ -1,6 +1,15 @@
 name: CI
 on: [push, pull_request]
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - run: rustup component add clippy
+      - run: cargo clippy -- -D warnings
+      - run: rustup component add rustfmt
+      - run: cargo fmt --check
   test:
     runs-on: ubuntu-latest
     steps:

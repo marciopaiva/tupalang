@@ -3,11 +3,16 @@ use std::path::PathBuf;
 use std::process::Command;
 
 fn workspace_root() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("..").join("..")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
+        .join("..")
 }
 
 fn expected_path(name: &str) -> PathBuf {
-    workspace_root().join("examples").join("expected").join(name)
+    workspace_root()
+        .join("examples")
+        .join("expected")
+        .join(name)
 }
 
 fn example_path(name: &str) -> PathBuf {
@@ -136,7 +141,10 @@ fn golden_codegen_match_string() {
 
 #[test]
 fn golden_codegen_break_continue() {
-    let stdout = run_cli(&["codegen", example_path("break_continue.tp").to_str().unwrap()]);
+    let stdout = run_cli(&[
+        "codegen",
+        example_path("break_continue.tp").to_str().unwrap(),
+    ]);
     let expected = fs::read_to_string(expected_path("codegen_break_continue.txt")).unwrap();
     assert_eq!(stdout, expected);
 }
@@ -192,7 +200,10 @@ fn golden_codegen_match_guard() {
 
 #[test]
 fn golden_codegen_function_call() {
-    let stdout = run_cli(&["codegen", example_path("function_call.tp").to_str().unwrap()]);
+    let stdout = run_cli(&[
+        "codegen",
+        example_path("function_call.tp").to_str().unwrap(),
+    ]);
     let expected = fs::read_to_string(expected_path("codegen_function_call.txt")).unwrap();
     assert_eq!(stdout, expected);
 }
@@ -227,7 +238,10 @@ fn golden_codegen_if_expr() {
 
 #[test]
 fn golden_codegen_return_if_expr() {
-    let stdout = run_cli(&["codegen", example_path("return_if_expr.tp").to_str().unwrap()]);
+    let stdout = run_cli(&[
+        "codegen",
+        example_path("return_if_expr.tp").to_str().unwrap(),
+    ]);
     let expected = fs::read_to_string(expected_path("codegen_return_if_expr.txt")).unwrap();
     assert_eq!(stdout, expected);
 }
@@ -244,28 +258,40 @@ fn golden_codegen_match_guard_if_expr() {
 
 #[test]
 fn golden_codegen_string_concat() {
-    let stdout = run_cli(&["codegen", example_path("string_concat.tp").to_str().unwrap()]);
+    let stdout = run_cli(&[
+        "codegen",
+        example_path("string_concat.tp").to_str().unwrap(),
+    ]);
     let expected = fs::read_to_string(expected_path("codegen_string_concat.txt")).unwrap();
     assert_eq!(stdout, expected);
 }
 
 #[test]
 fn golden_codegen_float_array_ops() {
-    let stdout = run_cli(&["codegen", example_path("float_array_ops.tp").to_str().unwrap()]);
+    let stdout = run_cli(&[
+        "codegen",
+        example_path("float_array_ops.tp").to_str().unwrap(),
+    ]);
     let expected = fs::read_to_string(expected_path("codegen_float_array_ops.txt")).unwrap();
     assert_eq!(stdout, expected);
 }
 
 #[test]
 fn golden_codegen_string_plus_eq() {
-    let stdout = run_cli(&["codegen", example_path("string_plus_eq.tp").to_str().unwrap()]);
+    let stdout = run_cli(&[
+        "codegen",
+        example_path("string_plus_eq.tp").to_str().unwrap(),
+    ]);
     let expected = fs::read_to_string(expected_path("codegen_string_plus_eq.txt")).unwrap();
     assert_eq!(stdout, expected);
 }
 
 #[test]
 fn golden_codegen_string_array_ops() {
-    let stdout = run_cli(&["codegen", example_path("string_array_ops.tp").to_str().unwrap()]);
+    let stdout = run_cli(&[
+        "codegen",
+        example_path("string_array_ops.tp").to_str().unwrap(),
+    ]);
     let expected = fs::read_to_string(expected_path("codegen_string_array_ops.txt")).unwrap();
     assert_eq!(stdout, expected);
 }

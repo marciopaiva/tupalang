@@ -244,17 +244,17 @@ fn format_parse_error(label: &str, src: &str, err: ParserError) -> String {
             &format!("error: unexpected token {token:?}"),
             span,
         ),
-        ParserError::MissingSemicolon(span) => format_diagnostic(
-            label,
-            src,
-            "error: expected ';' after expression",
-            span,
-        ),
+        ParserError::MissingSemicolon(span) => {
+            format_diagnostic(label, src, "error: expected ';' after expression", span)
+        }
         ParserError::Eof(pos) => format_diagnostic(
             label,
             src,
             "error: unexpected end of input",
-            Span { start: pos, end: pos },
+            Span {
+                start: pos,
+                end: pos,
+            },
         ),
         ParserError::Lexer(message) => message,
     }
@@ -280,12 +280,13 @@ fn format_parse_error_json(label: &str, src: &str, err: ParserError) -> String {
             label,
             src,
             "unexpected end of input",
-            Some(Span { start: pos, end: pos }),
+            Some(Span {
+                start: pos,
+                end: pos,
+            }),
             None,
         ),
-        ParserError::Lexer(message) => {
-            json!({"error": {"message": message}}).to_string()
-        }
+        ParserError::Lexer(message) => json!({"error": {"message": message}}).to_string(),
     }
 }
 
@@ -354,9 +355,7 @@ fn format_diagnostic(label: &str, src: &str, message: &str, span: Span) -> Strin
     }
     caret.push_str(&"^".repeat(caret_len));
 
-    format!(
-        "{message}\n  --> {label}:{line}:{col}\n   |\n {line} | {line_text}\n   | {caret}"
-    )
+    format!("{message}\n  --> {label}:{line}:{col}\n   |\n {line} | {line_text}\n   | {caret}")
 }
 
 fn diagnostic_json(
@@ -414,6 +413,8 @@ fn token_span_json(token: &TokenSpan) -> Value {
 fn token_kind(token: &Token) -> String {
     match token {
         Token::Fn => "Fn",
+        Token::Enum => "Enum",
+        Token::Trait => "Trait",
         Token::Let => "Let",
         Token::Return => "Return",
         Token::If => "If",

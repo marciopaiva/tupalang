@@ -1,0 +1,11 @@
+// Exemplo básico de enum
+enum Color {
+    Red,
+    Green,
+    Blue
+}
+
+fn main() {
+    // Por enquanto, enums são apenas declarados
+    // Futuramente: let c = Color::Red;
+}

@@ -1,25 +1,3 @@
-warning: unused variable: `i`
-    --> crates/tupa-codegen/src/lib.rs:1197:22
-     |
-1197 |                 for (i, param) in params.iter().enumerate() {
-     |                      ^ help: if this is intentional, prefix it with an underscore: `_i`
-     |
-     = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
-
-warning: field `params` is never read
-  --> crates/tupa-codegen/src/lib.rs:60:5
-   |
-59 | struct FuncSig {
-   |        ------- field in this struct
-60 |     params: Vec<SimpleTy>,
-   |     ^^^^^^
-   |
-   = note: `FuncSig` has derived impls for the traits `Clone` and `Debug`, but these are intentionally ignored during dead code analysis
-   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
-
-warning: `tupa-codegen` (lib) generated 2 warnings (run `cargo fix --lib -p tupa-codegen` to apply 1 suggestion)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.01s
-     Running `target/debug/tupa-cli check examples/invalid_type.tp`
 error[E2001]: type mismatch: expected I64, got Bool
   --> examples/invalid_type.tp:2:15
    |

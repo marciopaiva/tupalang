@@ -416,6 +416,7 @@ dependencies = [
 name = "tupa-codegen"
 version = "0.1.0"
 dependencies = [
+ "tupa-lexer",
  "tupa-parser",
 ]
 

@@ -57,17 +57,19 @@ struct LoopLabels {
 
 #[derive(Debug, Clone)]
 struct FuncSig {
+    #[allow(dead_code)]
     params: Vec<SimpleTy>,
     ret: SimpleTy,
 }
 
 impl Codegen {
-        fn declare_snprintf(&mut self) {
-            if !self.snprintf_declared {
-                self.globals.push("declare i32 @snprintf(i8*, i64, i8*, ...)".to_string());
-                self.snprintf_declared = true;
-            }
+    fn declare_snprintf(&mut self) {
+        if !self.snprintf_declared {
+            self.globals
+                .push("declare i32 @snprintf(i8*, i64, i8*, ...)".to_string());
+            self.snprintf_declared = true;
         }
+    }
     // Implementação real de concatenação de strings
     fn emit_string_concat(&mut self, left: ExprValue, right: ExprValue) -> ExprValue {
         self.declare_strlen();
@@ -76,22 +78,36 @@ impl Codegen {
         self.declare_strcat();
         // strlen(left)
         let len_left = self.fresh_temp();
-        self.lines.push(format!("  {len_left} = call i64 @strlen(i8* {})", left.llvm_value));
+        self.lines.push(format!(
+            "  {len_left} = call i64 @strlen(i8* {})",
+            left.llvm_value
+        ));
         // strlen(right)
         let len_right = self.fresh_temp();
-        self.lines.push(format!("  {len_right} = call i64 @strlen(i8* {})", right.llvm_value));
+        self.lines.push(format!(
+            "  {len_right} = call i64 @strlen(i8* {})",
+            right.llvm_value
+        ));
         // total = len_left + len_right + 1
         let total = self.fresh_temp();
-        self.lines.push(format!("  {total} = add i64 {len_left}, {len_right}"));
+        self.lines
+            .push(format!("  {total} = add i64 {len_left}, {len_right}"));
         let total1 = self.fresh_temp();
         self.lines.push(format!("  {total1} = add i64 {total}, 1"));
         // malloc(total1)
         let buf = self.fresh_temp();
-        self.lines.push(format!("  {buf} = call i8* @malloc(i64 {total1})"));
+        self.lines
+            .push(format!("  {buf} = call i8* @malloc(i64 {total1})"));
         // strcpy(buf, left)
-        self.lines.push(format!("  call i8* @strcpy(i8* {buf}, i8* {})", left.llvm_value));
+        self.lines.push(format!(
+            "  call i8* @strcpy(i8* {buf}, i8* {})",
+            left.llvm_value
+        ));
         // strcat(buf, right)
-        self.lines.push(format!("  call i8* @strcat(i8* {buf}, i8* {})", right.llvm_value));
+        self.lines.push(format!(
+            "  call i8* @strcat(i8* {buf}, i8* {})",
+            right.llvm_value
+        ));
         ExprValue::new(SimpleTy::Str, buf)
     }
 
@@ -106,10 +122,14 @@ impl Codegen {
                 // Aloca buffer
                 self.declare_malloc();
                 let buf = self.fresh_temp();
-                self.lines.push(format!("  {buf} = call i8* @malloc(i64 32)"));
+                self.lines
+                    .push(format!("  {buf} = call i8* @malloc(i64 32)"));
                 // snprintf
                 self.declare_snprintf();
-                self.lines.push(format!("  call i32 @snprintf(i8* {buf}, i64 32, i8* {fmt_ptr}, i64 {})", val.llvm_value));
+                self.lines.push(format!(
+                    "  call i32 @snprintf(i8* {buf}, i64 32, i8* {fmt_ptr}, i64 {})",
+                    val.llvm_value
+                ));
                 Some(ExprValue::new(SimpleTy::Str, buf))
             }
             SimpleTy::F64 => {
@@ -119,9 +139,13 @@ impl Codegen {
                 self.lines.push(format!("  {fmt_ptr} = getelementptr inbounds [{len} x i8], [{len} x i8]* {fmt}, i64 0, i64 0"));
                 self.declare_malloc();
                 let buf = self.fresh_temp();
-                self.lines.push(format!("  {buf} = call i8* @malloc(i64 32)"));
+                self.lines
+                    .push(format!("  {buf} = call i8* @malloc(i64 32)"));
                 self.declare_snprintf();
-                self.lines.push(format!("  call i32 @snprintf(i8* {buf}, i64 32, i8* {fmt_ptr}, double {})", val.llvm_value));
+                self.lines.push(format!(
+                    "  call i32 @snprintf(i8* {buf}, i64 32, i8* {fmt_ptr}, double {})",
+                    val.llvm_value
+                ));
                 Some(ExprValue::new(SimpleTy::Str, buf))
             }
             SimpleTy::Bool => {
@@ -129,7 +153,10 @@ impl Codegen {
                 let true_str = self.intern_string("true").0;
                 let false_str = self.intern_string("false").0;
                 let select = self.fresh_temp();
-                self.lines.push(format!("  {select} = select i1 {}, i8* {}, i8* {}", val.llvm_value, true_str, false_str));
+                self.lines.push(format!(
+                    "  {select} = select i1 {}, i8* {}, i8* {}",
+                    val.llvm_value, true_str, false_str
+                ));
                 Some(ExprValue::new(SimpleTy::Str, select))
             }
             SimpleTy::Str => Some(val),
@@ -140,6 +167,7 @@ impl Codegen {
         for item in &program.items {
             let func = match item {
                 Item::Function(func) => func,
+                Item::Enum(_) => continue, // enums don't have functions
             };
             let params = func
                 .params
@@ -156,6 +184,7 @@ impl Codegen {
         for item in &program.items {
             match item {
                 Item::Function(func) => self.emit_function(func),
+                Item::Enum(_) => {} // enums don't emit code yet
             }
         }
     }
@@ -236,8 +265,11 @@ impl Codegen {
             let alloca = self.fresh_temp();
             self.lines
                 .push(format!("  {alloca} = alloca {}", self.map_type(&param.ty)));
-            self.lines
-                .push(format!("  store {} {ptr}, {}* {alloca}", self.map_type(&param.ty), self.map_type(&param.ty)));
+            self.lines.push(format!(
+                "  store {} {ptr}, {}* {alloca}",
+                self.map_type(&param.ty),
+                self.map_type(&param.ty)
+            ));
             env.insert(param.name.clone(), LocalVar { ptr: alloca, ty });
         }
 
@@ -305,8 +337,10 @@ impl Codegen {
                 let alloca = self.fresh_temp();
                 let llvm_ty = self.llvm_ty(value.ty);
                 self.lines.push(format!("  {alloca} = alloca {llvm_ty}"));
-                self.lines
-                    .push(format!("  store {llvm_ty} {}, {llvm_ty}* {alloca}", value.llvm_value));
+                self.lines.push(format!(
+                    "  store {llvm_ty} {}, {llvm_ty}* {alloca}",
+                    value.llvm_value
+                ));
                 env.insert(
                     name.clone(),
                     LocalVar {
@@ -314,7 +348,7 @@ impl Codegen {
                         ty: value.ty,
                     },
                 );
-                return ControlFlow::None;
+                ControlFlow::None
             }
             Stmt::While { condition, body } => {
                 let head = self.fresh_label("while.head");
@@ -334,26 +368,31 @@ impl Codegen {
                 } else {
                     "0".to_string()
                 };
-                self.lines
-                    .push(format!("  br i1 {cond}, label %{body_label}, label %{end_label}"));
+                self.lines.push(format!(
+                    "  br i1 {cond}, label %{body_label}, label %{end_label}"
+                ));
                 self.lines.push(format!("{body_label}:"));
                 let body_flow = self.emit_block(body, env, ret_ty);
-                let body_terminates = matches!(body_flow, ControlFlow::Break | ControlFlow::Continue | ControlFlow::Return);
+                let body_terminates = matches!(
+                    body_flow,
+                    ControlFlow::Break | ControlFlow::Continue | ControlFlow::Return
+                );
                 if !body_terminates {
                     self.lines.push(format!("  br label %{head}"));
                 }
                 self.lines.push(format!("{end_label}:"));
                 self.loop_stack.pop();
-                return match body_flow {
+                match body_flow {
                     ControlFlow::Return => ControlFlow::Return,
                     _ => ControlFlow::None,
-                };
+                }
             }
             Stmt::For { name, iter, body } => {
                 let (start, end) = match self.extract_range(iter, env) {
                     Some(range) => range,
                     None => {
-                        self.lines.push("  ; TODO: unsupported for iterator".to_string());
+                        self.lines
+                            .push("  ; TODO: unsupported for iterator".to_string());
                         return ControlFlow::None;
                     }
                 };
@@ -361,8 +400,10 @@ impl Codegen {
                 let idx_alloca = self.fresh_temp();
                 self.lines.push("  ; for-range".to_string());
                 self.lines.push(format!("  {idx_alloca} = alloca i64"));
-                self.lines
-                    .push(format!("  store i64 {}, i64* {idx_alloca}", start.llvm_value));
+                self.lines.push(format!(
+                    "  store i64 {}, i64* {idx_alloca}",
+                    start.llvm_value
+                ));
 
                 let loop_var_alloca = self.fresh_temp();
                 self.lines.push(format!("  {loop_var_alloca} = alloca i64"));
@@ -394,20 +435,25 @@ impl Codegen {
                     "  {cmp} = icmp slt i64 {idx_val}, {}",
                     end.llvm_value
                 ));
-                self.lines
-                    .push(format!("  br i1 {cmp}, label %{body_label}, label %{end_label}"));
+                self.lines.push(format!(
+                    "  br i1 {cmp}, label %{body_label}, label %{end_label}"
+                ));
 
                 self.lines.push(format!("{body_label}:"));
                 self.lines
                     .push(format!("  store i64 {idx_val}, i64* {loop_var_alloca}"));
                 let body_flow = self.emit_block(body, env, ret_ty);
-                if !matches!(body_flow, ControlFlow::Break | ControlFlow::Continue | ControlFlow::Return) {
+                if !matches!(
+                    body_flow,
+                    ControlFlow::Break | ControlFlow::Continue | ControlFlow::Return
+                ) {
                     self.lines.push(format!("  br label %{step_label}"));
                 }
 
                 self.lines.push(format!("{step_label}:"));
                 let idx_next = self.fresh_temp();
-                self.lines.push(format!("  {idx_next} = add i64 {idx_val}, 1"));
+                self.lines
+                    .push(format!("  {idx_next} = add i64 {idx_val}, 1"));
                 self.lines
                     .push(format!("  store i64 {idx_next}, i64* {idx_alloca}"));
                 self.lines.push(format!("  br label %{head}"));
@@ -419,39 +465,39 @@ impl Codegen {
                 } else {
                     env.remove(name);
                 }
-                return match body_flow {
+                match body_flow {
                     ControlFlow::Return => ControlFlow::Return,
                     _ => ControlFlow::None,
-                };
+                }
             }
             Stmt::Break => {
                 if let Some(labels) = self.loop_stack.last() {
                     self.lines
                         .push(format!("  br label %{}", labels.break_label));
-                    return ControlFlow::Break;
+                    ControlFlow::Break
                 } else {
                     self.lines.push("  ; TODO: break outside loop".to_string());
-                    return ControlFlow::None;
+                    ControlFlow::None
                 }
             }
             Stmt::Continue => {
                 if let Some(labels) = self.loop_stack.last() {
                     self.lines
                         .push(format!("  br label %{}", labels.continue_label));
-                    return ControlFlow::Continue;
+                    ControlFlow::Continue
                 } else {
-                    self.lines.push("  ; TODO: continue outside loop".to_string());
-                    return ControlFlow::None;
+                    self.lines
+                        .push("  ; TODO: continue outside loop".to_string());
+                    ControlFlow::None
                 }
             }
-            Stmt::Expr(expr) => {
-                return self.emit_expr_stmt(expr, env, ret_ty);
-            }
+            Stmt::Expr(expr) => self.emit_expr_stmt(expr, env, ret_ty),
             Stmt::Return(expr) => {
                 if let Some(expr) = expr {
                     let value = self.emit_expr(expr, env);
                     let llvm_ty = self.llvm_ty(value.ty);
-                    self.lines.push(format!("  ret {llvm_ty} {}", value.llvm_value));
+                    self.lines
+                        .push(format!("  ret {llvm_ty} {}", value.llvm_value));
                 } else {
                     match ret_ty {
                         SimpleTy::I64 => self.lines.push("  ret i64 0".to_string()),
@@ -461,11 +507,11 @@ impl Codegen {
                         _ => self.lines.push("  ret void".to_string()),
                     }
                 }
-                return ControlFlow::Return;
+                ControlFlow::Return
             }
             Stmt::Lambda { .. } => {
                 // Not supported as a statement; skip or error as needed
-                return ControlFlow::None;
+                ControlFlow::None
             }
         }
     }
@@ -556,7 +602,8 @@ impl Codegen {
     ) -> ControlFlow {
         let value = self.emit_expr(scrutinee, env);
         if value.ty != SimpleTy::I64 && value.ty != SimpleTy::Str {
-            self.lines.push("  ; TODO: match on non-i64/str".to_string());
+            self.lines
+                .push("  ; TODO: match on non-i64/str".to_string());
             return ControlFlow::None;
         }
         let end_label = self.fresh_label("match.end");
@@ -582,9 +629,7 @@ impl Codegen {
             } else {
                 &end_label
             };
-            let arm_target = guard_labels[idx]
-                .as_ref()
-                .unwrap_or(&arm_labels[idx]);
+            let arm_target = guard_labels[idx].as_ref().unwrap_or(&arm_labels[idx]);
             let binding_name = match &arm.pattern {
                 tupa_parser::Pattern::Ident(name) => Some(name.clone()),
                 _ => None,
@@ -614,8 +659,7 @@ impl Codegen {
                         value.llvm_value
                     ));
                     let is_eq = self.fresh_temp();
-                    self.lines
-                        .push(format!("  {is_eq} = icmp eq i32 {cmp}, 0"));
+                    self.lines.push(format!("  {is_eq} = icmp eq i32 {cmp}, 0"));
                     self.lines.push(format!(
                         "  br i1 {is_eq}, label %{}, label %{}",
                         arm_target, next_label
@@ -625,8 +669,7 @@ impl Codegen {
                     self.lines.push(format!("  br label %{}", arm_target));
                 }
                 _ => {
-                    self.lines
-                        .push(format!("  br label %{}", next_label));
+                    self.lines.push(format!("  br label %{}", next_label));
                 }
             }
 
@@ -730,11 +773,7 @@ impl Codegen {
         ExprValue::new(SimpleTy::Void, "0".to_string())
     }
 
-    fn infer_block_expr_ty(
-        &self,
-        stmts: &[Stmt],
-        env: &HashMap<String, LocalVar>,
-    ) -> SimpleTy {
+    fn infer_block_expr_ty(&self, stmts: &[Stmt], env: &HashMap<String, LocalVar>) -> SimpleTy {
         for stmt in stmts.iter().rev() {
             match stmt {
                 Stmt::Expr(expr) => return self.infer_expr_ty(expr, env),
@@ -778,15 +817,13 @@ impl Codegen {
                 SimpleTy::BoolPtr => SimpleTy::Bool,
                 _ => SimpleTy::Unknown,
             },
-            ExprKind::Index { expr, .. } => {
-                match self.infer_expr_ty(expr, env) {
-                    SimpleTy::F64Ptr => SimpleTy::F64,
-                    SimpleTy::I64Ptr => SimpleTy::I64,
-                    SimpleTy::StrPtr => SimpleTy::Str,
-                    SimpleTy::BoolPtr => SimpleTy::Bool,
-                    _ => SimpleTy::Unknown,
-                }
-            }
+            ExprKind::Index { expr, .. } => match self.infer_expr_ty(expr, env) {
+                SimpleTy::F64Ptr => SimpleTy::F64,
+                SimpleTy::I64Ptr => SimpleTy::I64,
+                SimpleTy::StrPtr => SimpleTy::Str,
+                SimpleTy::BoolPtr => SimpleTy::Bool,
+                _ => SimpleTy::Unknown,
+            },
             ExprKind::Unary { op, expr } => {
                 let inner = self.infer_expr_ty(expr, env);
                 match (op, inner) {
@@ -834,7 +871,10 @@ impl Codegen {
                     },
                     (SimpleTy::Str, SimpleTy::I64 | SimpleTy::F64 | SimpleTy::Bool)
                     | (SimpleTy::I64 | SimpleTy::F64 | SimpleTy::Bool, SimpleTy::Str)
-                        if matches!(op, tupa_parser::BinaryOp::Add) => SimpleTy::Str,
+                        if matches!(op, tupa_parser::BinaryOp::Add) =>
+                    {
+                        SimpleTy::Str
+                    }
                     _ => SimpleTy::Unknown,
                 }
             }
@@ -934,7 +974,8 @@ impl Codegen {
 
         let result_alloca = self.fresh_temp();
         let llvm_ty = self.llvm_ty(result_ty);
-        self.lines.push(format!("  {result_alloca} = alloca {llvm_ty}"));
+        self.lines
+            .push(format!("  {result_alloca} = alloca {llvm_ty}"));
 
         let cond_val = self.emit_expr(condition, env);
         let cond = if cond_val.ty == SimpleTy::Bool {
@@ -961,9 +1002,7 @@ impl Codegen {
 
         self.lines.push(format!("{else_label}:"));
         let else_val = match else_branch {
-            Some(tupa_parser::ElseBranch::Block(block)) => {
-                self.emit_block_expr(block, env, ret_ty)
-            }
+            Some(tupa_parser::ElseBranch::Block(block)) => self.emit_block_expr(block, env, ret_ty),
             Some(tupa_parser::ElseBranch::If(expr)) => self.emit_expr(expr, env),
             None => ExprValue::new(SimpleTy::Void, "0".to_string()),
         };
@@ -976,8 +1015,9 @@ impl Codegen {
         self.lines.push(format!("  br label %{end_label}"));
         self.lines.push(format!("{end_label}:"));
         let out = self.fresh_temp();
-        self.lines
-            .push(format!("  {out} = load {llvm_ty}, {llvm_ty}* {result_alloca}"));
+        self.lines.push(format!(
+            "  {out} = load {llvm_ty}, {llvm_ty}* {result_alloca}"
+        ));
         ExprValue::new(result_ty, out)
     }
 
@@ -990,7 +1030,8 @@ impl Codegen {
     ) -> ExprValue {
         let value = self.emit_expr(scrutinee, env);
         if value.ty != SimpleTy::I64 && value.ty != SimpleTy::Str {
-            self.lines.push("  ; TODO: match on non-i64/str".to_string());
+            self.lines
+                .push("  ; TODO: match on non-i64/str".to_string());
             return ExprValue::new(SimpleTy::Unknown, "0".to_string());
         }
 
@@ -1017,7 +1058,8 @@ impl Codegen {
 
         let result_alloca = self.fresh_temp();
         let llvm_ty = self.llvm_ty(result_ty);
-        self.lines.push(format!("  {result_alloca} = alloca {llvm_ty}"));
+        self.lines
+            .push(format!("  {result_alloca} = alloca {llvm_ty}"));
 
         let end_label = self.fresh_label("match.end");
         let mut arm_labels: Vec<String> = Vec::new();
@@ -1042,9 +1084,7 @@ impl Codegen {
             } else {
                 &end_label
             };
-            let arm_target = guard_labels[idx]
-                .as_ref()
-                .unwrap_or(&arm_labels[idx]);
+            let arm_target = guard_labels[idx].as_ref().unwrap_or(&arm_labels[idx]);
             let binding_name = match &arm.pattern {
                 tupa_parser::Pattern::Ident(name) => Some(name.clone()),
                 _ => None,
@@ -1074,8 +1114,7 @@ impl Codegen {
                         value.llvm_value
                     ));
                     let is_eq = self.fresh_temp();
-                    self.lines
-                        .push(format!("  {is_eq} = icmp eq i32 {cmp}, 0"));
+                    self.lines.push(format!("  {is_eq} = icmp eq i32 {cmp}, 0"));
                     self.lines.push(format!(
                         "  br i1 {is_eq}, label %{}, label %{}",
                         arm_target, next_label
@@ -1085,8 +1124,7 @@ impl Codegen {
                     self.lines.push(format!("  br label %{}", arm_target));
                 }
                 _ => {
-                    self.lines
-                        .push(format!("  br label %{}", next_label));
+                    self.lines.push(format!("  br label %{}", next_label));
                 }
             }
 
@@ -1097,7 +1135,8 @@ impl Codegen {
                 if let Some(name) = &binding_name {
                     let llvm_val_ty = self.llvm_ty(value.ty);
                     let alloca = self.fresh_temp();
-                    self.lines.push(format!("  {alloca} = alloca {llvm_val_ty}"));
+                    self.lines
+                        .push(format!("  {alloca} = alloca {llvm_val_ty}"));
                     self.lines.push(format!(
                         "  store {llvm_val_ty} {}, {llvm_val_ty}* {alloca}",
                         value.llvm_value
@@ -1128,7 +1167,8 @@ impl Codegen {
                 if let Some(name) = &binding_name {
                     let llvm_val_ty = self.llvm_ty(value.ty);
                     let alloca = self.fresh_temp();
-                    self.lines.push(format!("  {alloca} = alloca {llvm_val_ty}"));
+                    self.lines
+                        .push(format!("  {alloca} = alloca {llvm_val_ty}"));
                     self.lines.push(format!(
                         "  store {llvm_val_ty} {}, {llvm_val_ty}* {alloca}",
                         value.llvm_value
@@ -1168,8 +1208,9 @@ impl Codegen {
 
         self.lines.push(format!("{end_label}:"));
         let out = self.fresh_temp();
-        self.lines
-            .push(format!("  {out} = load {llvm_ty}, {llvm_ty}* {result_alloca}"));
+        self.lines.push(format!(
+            "  {out} = load {llvm_ty}, {llvm_ty}* {result_alloca}"
+        ));
         ExprValue::new(result_ty, out)
     }
 
@@ -1194,21 +1235,35 @@ impl Codegen {
                 let lambda_name = format!("lambda_{}", self.temp);
                 let mut lambda_codegen = Codegen::default();
                 let mut lambda_params = Vec::new();
-                for (i, param) in params.iter().enumerate() {
+                for param in params.iter() {
                     lambda_params.push(format!("i64 %{}", param));
                 }
                 let param_decls = lambda_params.join(", ");
-                lambda_codegen.lines.push(format!("define i64 @{lambda_name}({param_decls}) {{"));
+                lambda_codegen
+                    .lines
+                    .push(format!("define i64 @{lambda_name}({param_decls}) {{"));
                 lambda_codegen.lines.push("entry:".to_string());
                 let mut lambda_env = HashMap::new();
                 for param in params {
                     let alloca = lambda_codegen.fresh_temp();
-                    lambda_codegen.lines.push(format!("  {alloca} = alloca i64"));
-                    lambda_codegen.lines.push(format!("  store i64 %{param}, i64* {alloca}"));
-                    lambda_env.insert(param.clone(), LocalVar { ptr: alloca, ty: SimpleTy::I64 });
+                    lambda_codegen
+                        .lines
+                        .push(format!("  {alloca} = alloca i64"));
+                    lambda_codegen
+                        .lines
+                        .push(format!("  store i64 %{param}, i64* {alloca}"));
+                    lambda_env.insert(
+                        param.clone(),
+                        LocalVar {
+                            ptr: alloca,
+                            ty: SimpleTy::I64,
+                        },
+                    );
                 }
                 let result = lambda_codegen.emit_expr(body, &mut lambda_env);
-                lambda_codegen.lines.push(format!("  ret i64 {}", result.llvm_value));
+                lambda_codegen
+                    .lines
+                    .push(format!("  ret i64 {}", result.llvm_value));
                 lambda_codegen.lines.push("}".to_string());
                 self.lines.extend(lambda_codegen.lines);
                 // Return a function pointer as an integer (for test purposes)
@@ -1226,15 +1281,15 @@ impl Codegen {
                 }
                 let elem_ty = values.first().map(|v| v.ty).unwrap_or(SimpleTy::Unknown);
                 if !values.iter().all(|v| v.ty == elem_ty) {
-                    self.lines.push("  ; TODO: non-uniform array literal".to_string());
+                    self.lines
+                        .push("  ; TODO: non-uniform array literal".to_string());
                     return ExprValue::new(SimpleTy::Unknown, "0".to_string());
                 }
                 let len = values.len();
                 match elem_ty {
                     SimpleTy::I64 => {
                         let arr = self.fresh_temp();
-                        self.lines
-                            .push(format!("  {arr} = alloca [{len} x i64]"));
+                        self.lines.push(format!("  {arr} = alloca [{len} x i64]"));
                         for (idx, value) in values.into_iter().enumerate() {
                             let elem_ptr = self.fresh_temp();
                             self.lines.push(format!(
@@ -1258,8 +1313,10 @@ impl Codegen {
                             self.lines.push(format!(
                                 "  {elem_ptr} = getelementptr inbounds [{len} x double], [{len} x double]* {arr}, i64 0, i64 {idx}"
                             ));
-                            self.lines
-                                .push(format!("  store double {}, double* {elem_ptr}", value.llvm_value));
+                            self.lines.push(format!(
+                                "  store double {}, double* {elem_ptr}",
+                                value.llvm_value
+                            ));
                         }
                         let data_ptr = self.fresh_temp();
                         self.lines.push(format!(
@@ -1269,8 +1326,7 @@ impl Codegen {
                     }
                     SimpleTy::Str => {
                         let arr = self.fresh_temp();
-                        self.lines
-                            .push(format!("  {arr} = alloca [{len} x i8*]"));
+                        self.lines.push(format!("  {arr} = alloca [{len} x i8*]"));
                         for (idx, value) in values.into_iter().enumerate() {
                             let elem_ptr = self.fresh_temp();
                             self.lines.push(format!(
@@ -1287,8 +1343,7 @@ impl Codegen {
                     }
                     SimpleTy::Bool => {
                         let arr = self.fresh_temp();
-                        self.lines
-                            .push(format!("  {arr} = alloca [{len} x i1]"));
+                        self.lines.push(format!("  {arr} = alloca [{len} x i1]"));
                         for (idx, value) in values.into_iter().enumerate() {
                             let elem_ptr = self.fresh_temp();
                             self.lines.push(format!(
@@ -1304,7 +1359,8 @@ impl Codegen {
                         ExprValue::new(SimpleTy::BoolPtr, data_ptr)
                     }
                     _ => {
-                        self.lines.push("  ; TODO: non-i64/f64/str/bool array literal".to_string());
+                        self.lines
+                            .push("  ; TODO: non-i64/f64/str/bool array literal".to_string());
                         ExprValue::new(SimpleTy::Unknown, "0".to_string())
                     }
                 }
@@ -1323,11 +1379,14 @@ impl Codegen {
                 if let Some(var) = env.get(name).cloned() {
                     let value = self.emit_expr(expr, env);
                     let llvm_ty = self.llvm_ty(var.ty);
-                    self.lines
-                        .push(format!("  store {llvm_ty} {}, {llvm_ty}* {}", value.llvm_value, var.ptr));
+                    self.lines.push(format!(
+                        "  store {llvm_ty} {}, {llvm_ty}* {}",
+                        value.llvm_value, var.ptr
+                    ));
                     return ExprValue::new(var.ty, value.llvm_value);
                 }
-                self.lines.push("  ; TODO: assign to unknown var".to_string());
+                self.lines
+                    .push("  ; TODO: assign to unknown var".to_string());
                 ExprValue::new(SimpleTy::Unknown, "0".to_string())
             }
             ExprKind::AssignIndex { expr, index, value } => {
@@ -1335,7 +1394,8 @@ impl Codegen {
                 let idx = self.emit_expr(index, env);
                 let rhs = self.emit_expr(value, env);
                 if idx.ty != SimpleTy::I64 {
-                    self.lines.push("  ; TODO: non-i64 index assign".to_string());
+                    self.lines
+                        .push("  ; TODO: non-i64 index assign".to_string());
                     return ExprValue::new(SimpleTy::Unknown, "0".to_string());
                 }
                 match (base.ty, rhs.ty) {
@@ -1355,8 +1415,10 @@ impl Codegen {
                             "  {elem_ptr} = getelementptr inbounds double, double* {}, i64 {}",
                             base.llvm_value, idx.llvm_value
                         ));
-                        self.lines
-                            .push(format!("  store double {}, double* {elem_ptr}", rhs.llvm_value));
+                        self.lines.push(format!(
+                            "  store double {}, double* {elem_ptr}",
+                            rhs.llvm_value
+                        ));
                         ExprValue::new(SimpleTy::F64, rhs.llvm_value)
                     }
                     (SimpleTy::StrPtr, SimpleTy::Str) => {
@@ -1440,10 +1502,14 @@ impl Codegen {
                 condition,
                 then_branch,
                 else_branch,
-            } => self.emit_if_expr(condition, then_branch, else_branch.as_ref(), env, SimpleTy::Void),
-            ExprKind::Match { expr, arms } => {
-                self.emit_match_expr(expr, arms, env, SimpleTy::Void)
-            }
+            } => self.emit_if_expr(
+                condition,
+                then_branch,
+                else_branch.as_ref(),
+                env,
+                SimpleTy::Void,
+            ),
+            ExprKind::Match { expr, arms } => self.emit_match_expr(expr, arms, env, SimpleTy::Void),
             ExprKind::Unary { op, expr } => {
                 let inner = self.emit_expr(expr, env);
                 match (op, inner.ty) {
@@ -1466,8 +1532,7 @@ impl Codegen {
                         ExprValue::new(SimpleTy::Bool, tmp)
                     }
                     _ => {
-                        self.lines
-                            .push("  ; TODO: unsupported unary".to_string());
+                        self.lines.push("  ; TODO: unsupported unary".to_string());
                         ExprValue::new(SimpleTy::Unknown, "0".to_string())
                     }
                 }
@@ -1476,26 +1541,33 @@ impl Codegen {
                 // Suporte a print
                 if let ExprKind::Ident(name) = &callee.kind {
                     if name == "print" {
-                        if let Some(arg) = args.get(0) {
+                        if let Some(arg) = args.first() {
                             let val = self.emit_expr(arg, env);
                             match val.ty {
                                 SimpleTy::Str => {
                                     self.declare_puts();
-                                    self.lines.push(format!("  call i32 @puts(i8* {})", val.llvm_value));
+                                    self.lines
+                                        .push(format!("  call i32 @puts(i8* {})", val.llvm_value));
                                 }
                                 SimpleTy::I64 => {
                                     self.declare_printf();
                                     let (fmt, len) = self.intern_format_int();
                                     let fmt_ptr = self.fresh_temp();
                                     self.lines.push(format!("  {fmt_ptr} = getelementptr inbounds [{len} x i8], [{len} x i8]* {fmt}, i64 0, i64 0"));
-                                    self.lines.push(format!("  call i32 (i8*, ...) @printf(i8* {fmt_ptr}, i64 {})", val.llvm_value));
+                                    self.lines.push(format!(
+                                        "  call i32 (i8*, ...) @printf(i8* {fmt_ptr}, i64 {})",
+                                        val.llvm_value
+                                    ));
                                 }
                                 SimpleTy::F64 => {
                                     self.declare_printf();
                                     let (fmt, len) = self.intern_format_float();
                                     let fmt_ptr = self.fresh_temp();
                                     self.lines.push(format!("  {fmt_ptr} = getelementptr inbounds [{len} x i8], [{len} x i8]* {fmt}, i64 0, i64 0"));
-                                    self.lines.push(format!("  call i32 (i8*, ...) @printf(i8* {fmt_ptr}, double {})", val.llvm_value));
+                                    self.lines.push(format!(
+                                        "  call i32 (i8*, ...) @printf(i8* {fmt_ptr}, double {})",
+                                        val.llvm_value
+                                    ));
                                 }
                                 SimpleTy::Bool => {
                                     self.declare_printf();
@@ -1503,11 +1575,17 @@ impl Codegen {
                                     let fmt_ptr = self.fresh_temp();
                                     self.lines.push(format!("  {fmt_ptr} = getelementptr inbounds [{len} x i8], [{len} x i8]* {fmt}, i64 0, i64 0"));
                                     let zext = self.fresh_temp();
-                                    self.lines.push(format!("  {zext} = zext i1 {} to i64", val.llvm_value));
-                                    self.lines.push(format!("  call i32 (i8*, ...) @printf(i8* {fmt_ptr}, i64 {zext})"));
+                                    self.lines.push(format!(
+                                        "  {zext} = zext i1 {} to i64",
+                                        val.llvm_value
+                                    ));
+                                    self.lines.push(format!(
+                                        "  call i32 (i8*, ...) @printf(i8* {fmt_ptr}, i64 {zext})"
+                                    ));
                                 }
                                 _ => {
-                                    self.lines.push("  ; print de tipo não suportado".to_string());
+                                    self.lines
+                                        .push("  ; print de tipo não suportado".to_string());
                                 }
                             }
                         }
@@ -1543,10 +1621,14 @@ impl Codegen {
                     .join(", ");
                 let tmp = self.fresh_temp();
                 if is_direct_fn {
-                    self.lines.push(format!("  {tmp} = call i64 @{fn_name}({})", args_llvm));
+                    self.lines
+                        .push(format!("  {tmp} = call i64 @{fn_name}({})", args_llvm));
                 } else {
                     let callee_val = self.emit_expr(callee, env);
-                    self.lines.push(format!("  {tmp} = call i64 {}({})", callee_val.llvm_value, args_llvm));
+                    self.lines.push(format!(
+                        "  {tmp} = call i64 {}({})",
+                        callee_val.llvm_value, args_llvm
+                    ));
                 }
                 ExprValue::new(SimpleTy::I64, tmp)
             }
@@ -1681,76 +1763,74 @@ impl Codegen {
                             return ExprValue::new(SimpleTy::F64, tmp);
                         }
                     }
-                    (SimpleTy::Bool, SimpleTy::Bool) => {
-                        match op {
-                            tupa_parser::BinaryOp::And => {
-                                let result_alloca = self.fresh_temp();
-                                self.lines.push(format!("  {result_alloca} = alloca i1"));
-                                self.lines
-                                    .push(format!("  store i1 0, i1* {result_alloca}"));
-                                let rhs_label = self.fresh_label("and.rhs");
-                                let end_label = self.fresh_label("and.end");
+                    (SimpleTy::Bool, SimpleTy::Bool) => match op {
+                        tupa_parser::BinaryOp::And => {
+                            let result_alloca = self.fresh_temp();
+                            self.lines.push(format!("  {result_alloca} = alloca i1"));
+                            self.lines
+                                .push(format!("  store i1 0, i1* {result_alloca}"));
+                            let rhs_label = self.fresh_label("and.rhs");
+                            let end_label = self.fresh_label("and.end");
+                            self.lines.push(format!(
+                                "  br i1 {}, label %{rhs_label}, label %{end_label}",
+                                left_val.llvm_value
+                            ));
+                            self.lines.push(format!("{rhs_label}:"));
+                            let rhs_val = self.emit_expr(right, env);
+                            if rhs_val.ty == SimpleTy::Bool {
                                 self.lines.push(format!(
-                                    "  br i1 {}, label %{rhs_label}, label %{end_label}",
-                                    left_val.llvm_value
+                                    "  store i1 {}, i1* {result_alloca}",
+                                    rhs_val.llvm_value
                                 ));
-                                self.lines.push(format!("{rhs_label}:"));
-                                let rhs_val = self.emit_expr(right, env);
-                                if rhs_val.ty == SimpleTy::Bool {
-                                    self.lines.push(format!(
-                                        "  store i1 {}, i1* {result_alloca}",
-                                        rhs_val.llvm_value
-                                    ));
-                                }
-                                self.lines.push(format!("  br label %{end_label}"));
-                                self.lines.push(format!("{end_label}:"));
-                                let out = self.fresh_temp();
-                                self.lines
-                                    .push(format!("  {out} = load i1, i1* {result_alloca}"));
-                                return ExprValue::new(SimpleTy::Bool, out);
                             }
-                            tupa_parser::BinaryOp::Or => {
-                                let result_alloca = self.fresh_temp();
-                                self.lines.push(format!("  {result_alloca} = alloca i1"));
-                                self.lines
-                                    .push(format!("  store i1 1, i1* {result_alloca}"));
-                                let rhs_label = self.fresh_label("or.rhs");
-                                let end_label = self.fresh_label("or.end");
-                                self.lines.push(format!(
-                                    "  br i1 {}, label %{end_label}, label %{rhs_label}",
-                                    left_val.llvm_value
-                                ));
-                                self.lines.push(format!("{rhs_label}:"));
-                                let rhs_val = self.emit_expr(right, env);
-                                if rhs_val.ty == SimpleTy::Bool {
-                                    self.lines.push(format!(
-                                        "  store i1 {}, i1* {result_alloca}",
-                                        rhs_val.llvm_value
-                                    ));
-                                }
-                                self.lines.push(format!("  br label %{end_label}"));
-                                self.lines.push(format!("{end_label}:"));
-                                let out = self.fresh_temp();
-                                self.lines
-                                    .push(format!("  {out} = load i1, i1* {result_alloca}"));
-                                return ExprValue::new(SimpleTy::Bool, out);
-                            }
-                            tupa_parser::BinaryOp::Equal | tupa_parser::BinaryOp::NotEqual => {
-                                let op = if matches!(op, tupa_parser::BinaryOp::Equal) {
-                                    "icmp eq"
-                                } else {
-                                    "icmp ne"
-                                };
-                                let tmp = self.fresh_temp();
-                                self.lines.push(format!(
-                                    "  {tmp} = {op} i1 {}, {}",
-                                    left_val.llvm_value, right_val.llvm_value
-                                ));
-                                return ExprValue::new(SimpleTy::Bool, tmp);
-                            }
-                            _ => {}
+                            self.lines.push(format!("  br label %{end_label}"));
+                            self.lines.push(format!("{end_label}:"));
+                            let out = self.fresh_temp();
+                            self.lines
+                                .push(format!("  {out} = load i1, i1* {result_alloca}"));
+                            return ExprValue::new(SimpleTy::Bool, out);
                         }
-                    }
+                        tupa_parser::BinaryOp::Or => {
+                            let result_alloca = self.fresh_temp();
+                            self.lines.push(format!("  {result_alloca} = alloca i1"));
+                            self.lines
+                                .push(format!("  store i1 1, i1* {result_alloca}"));
+                            let rhs_label = self.fresh_label("or.rhs");
+                            let end_label = self.fresh_label("or.end");
+                            self.lines.push(format!(
+                                "  br i1 {}, label %{end_label}, label %{rhs_label}",
+                                left_val.llvm_value
+                            ));
+                            self.lines.push(format!("{rhs_label}:"));
+                            let rhs_val = self.emit_expr(right, env);
+                            if rhs_val.ty == SimpleTy::Bool {
+                                self.lines.push(format!(
+                                    "  store i1 {}, i1* {result_alloca}",
+                                    rhs_val.llvm_value
+                                ));
+                            }
+                            self.lines.push(format!("  br label %{end_label}"));
+                            self.lines.push(format!("{end_label}:"));
+                            let out = self.fresh_temp();
+                            self.lines
+                                .push(format!("  {out} = load i1, i1* {result_alloca}"));
+                            return ExprValue::new(SimpleTy::Bool, out);
+                        }
+                        tupa_parser::BinaryOp::Equal | tupa_parser::BinaryOp::NotEqual => {
+                            let op = if matches!(op, tupa_parser::BinaryOp::Equal) {
+                                "icmp eq"
+                            } else {
+                                "icmp ne"
+                            };
+                            let tmp = self.fresh_temp();
+                            self.lines.push(format!(
+                                "  {tmp} = {op} i1 {}, {}",
+                                left_val.llvm_value, right_val.llvm_value
+                            ));
+                            return ExprValue::new(SimpleTy::Bool, tmp);
+                        }
+                        _ => {}
+                    },
                     (SimpleTy::Str, SimpleTy::Str) => {
                         match op {
                             tupa_parser::BinaryOp::Add => {
@@ -1769,24 +1849,25 @@ impl Codegen {
                                     left_val.llvm_value, right_val.llvm_value
                                 ));
                                 let bool_tmp = self.fresh_temp();
-                                self.lines.push(format!(
-                                    "  {bool_tmp} = {op} i32 {tmp}, 0"
-                                ));
+                                self.lines.push(format!("  {bool_tmp} = {op} i32 {tmp}, 0"));
                                 return ExprValue::new(SimpleTy::Bool, bool_tmp);
                             }
                             _ => {}
                         }
-                        self.lines.push("  ; TODO: unsupported string binary".to_string());
+                        self.lines
+                            .push("  ; TODO: unsupported string binary".to_string());
                         return ExprValue::new(SimpleTy::Unknown, "0".to_string());
                     }
                     (SimpleTy::Str, SimpleTy::I64 | SimpleTy::F64 | SimpleTy::Bool)
-                        if matches!(op, tupa_parser::BinaryOp::Add) => {
+                        if matches!(op, tupa_parser::BinaryOp::Add) =>
+                    {
                         if let Some(rhs_str) = self.emit_format_value(right_val) {
                             return self.emit_string_concat(left_val, rhs_str);
                         }
                     }
                     (SimpleTy::I64 | SimpleTy::F64 | SimpleTy::Bool, SimpleTy::Str)
-                        if matches!(op, tupa_parser::BinaryOp::Add) => {
+                        if matches!(op, tupa_parser::BinaryOp::Add) =>
+                    {
                         if let Some(lhs_str) = self.emit_format_value(left_val) {
                             return self.emit_string_concat(lhs_str, right_val);
                         }
@@ -1797,7 +1878,8 @@ impl Codegen {
                 ExprValue::new(SimpleTy::Unknown, "0".to_string())
             }
             _ => {
-                self.lines.push("  ; TODO: unsupported expression".to_string());
+                self.lines
+                    .push("  ; TODO: unsupported expression".to_string());
                 ExprValue::new(SimpleTy::Unknown, "0".to_string())
             }
         }
@@ -1892,9 +1974,8 @@ impl Codegen {
         }
         let (escaped, len) = escape_llvm_string(value);
         let name = format!("@.str{}", self.string_pool.len());
-        let literal = format!(
-            "{name} = private unnamed_addr constant [{len} x i8] c\"{escaped}\\00\""
-        );
+        let literal =
+            format!("{name} = private unnamed_addr constant [{len} x i8] c\"{escaped}\\00\"");
         self.globals.push(literal);
         self.string_pool
             .insert(value.to_string(), (name.clone(), len));
@@ -1946,16 +2027,14 @@ impl Codegen {
 
     fn declare_strlen(&mut self) {
         if !self.strlen_declared {
-            self.globals
-                .push("declare i64 @strlen(i8*)".to_string());
+            self.globals.push("declare i64 @strlen(i8*)".to_string());
             self.strlen_declared = true;
         }
     }
 
     fn declare_malloc(&mut self) {
         if !self.malloc_declared {
-            self.globals
-                .push("declare i8* @malloc(i64)".to_string());
+            self.globals.push("declare i8* @malloc(i64)".to_string());
             self.malloc_declared = true;
         }
     }
@@ -2050,4 +2129,63 @@ fn escape_llvm_string(value: &str) -> (String, usize) {
         }
     }
     (out, len + 1)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tupa_lexer::Span;
+    use tupa_parser::{Expr, ExprKind, Function, Item, Program, Stmt, Type};
+
+    #[test]
+    fn test_empty_function_codegen() {
+        let program = Program {
+            items: vec![Item::Function(Function {
+                name: "main".to_string(),
+                params: vec![],
+                return_type: None,
+                body: vec![],
+            })],
+        };
+        let code = generate_stub(&program);
+        assert!(code.contains("define void @main()"));
+        assert!(code.contains("entry:"));
+        assert!(code.contains("ret void"));
+    }
+
+    #[test]
+    fn test_function_with_return_codegen() {
+        let program = Program {
+            items: vec![Item::Function(Function {
+                name: "test".to_string(),
+                params: vec![],
+                return_type: Some(Type::Ident("i64".to_string())),
+                body: vec![Stmt::Return(Some(Expr {
+                    kind: ExprKind::Int(42),
+                    span: Span { start: 0, end: 0 },
+                }))],
+            })],
+        };
+        let code = generate_stub(&program);
+        assert!(code.contains("define i64 @test()"));
+        assert!(code.contains("ret i64 42"));
+    }
+
+    #[test]
+    fn test_string_literal_codegen() {
+        let program = Program {
+            items: vec![Item::Function(Function {
+                name: "test".to_string(),
+                params: vec![],
+                return_type: None,
+                body: vec![Stmt::Expr(Expr {
+                    kind: ExprKind::Str("hello".to_string()),
+                    span: Span { start: 0, end: 0 },
+                })],
+            })],
+        };
+        let code = generate_stub(&program);
+        assert!(code.contains("@.str"));
+        assert!(code.contains("hello"));
+    }
 }

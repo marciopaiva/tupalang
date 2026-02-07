@@ -15,9 +15,10 @@ Registrar mudanças relevantes por versão.
 
 ## Unreleased
 
-- Documentação bilíngue (PT/EN) para README, FAQ, Getting Started, índice centralizado.
-- Tutoriais passo a passo para todos os níveis.
-- Documentação técnica avançada (typechecker, API/extensibilidade).
+- Suporte básico a enums (parsing, typechecking, codegen).
+- Melhorias de qualidade de código: Clippy e rustfmt no CI, correção de warnings.
+- Testes unitários adicionados ao codegen.
+- Exemplo de enum adicionado à documentação.
 - Índice/SUMMARY centralizado e links internos entre docs.
 - Sincronização de CHANGELOG, VERSIONING e RELEASE_GUIDE.
 

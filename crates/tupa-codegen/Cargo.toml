@@ -5,3 +5,4 @@ edition = "2021"
 
 [dependencies]
 tupa-parser = { path = "../tupa-parser" }
+tupa-lexer = { path = "../tupa-lexer" }

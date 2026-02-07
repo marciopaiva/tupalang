@@ -13,6 +13,8 @@ use unicode_normalization::UnicodeNormalization;
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Token {
     Fn,
+    Enum,
+    Trait,
     Let,
     Return,
     If,
@@ -110,7 +112,8 @@ pub fn lex_with_spans(input: &str) -> Result<Vec<TokenSpan>, LexerError> {
         let start = input.len().saturating_sub(rest.len());
         match token(rest) {
             Ok((next, tok)) => {
-                if matches!(tok, Token::Int(_)) && next.starts_with('.') && !next.starts_with("..") {
+                if matches!(tok, Token::Int(_)) && next.starts_with('.') && !next.starts_with("..")
+                {
                     let pos = input.len().saturating_sub(next.len());
                     return Err(LexerError::Unexpected('.', pos));
                 }
@@ -138,7 +141,8 @@ mod tests {
 
     #[test]
     fn lex_keywords_and_idents() {
-        let tokens = lex("fn let if else match while for in return await true false null foo bar").unwrap();
+        let tokens =
+            lex("fn let if else match while for in return await true false null foo bar").unwrap();
         assert_eq!(
             tokens,
             vec![
@@ -233,10 +237,7 @@ mod tests {
         let tokens = lex("3.14 1.0e-3").unwrap();
         assert_eq!(
             tokens,
-            vec![
-                Token::Float("3.14".into()),
-                Token::Float("1.0e-3".into()),
-            ]
+            vec![Token::Float("3.14".into()), Token::Float("1.0e-3".into()),]
         );
     }
 
@@ -266,13 +267,7 @@ mod tests {
 }
 
 fn token(input: &str) -> IResult<&str, Token> {
-    alt((
-        punct,
-        string_lit,
-        float_lit,
-        int_lit,
-        ident_or_keyword,
-    ))(input)
+    alt((punct, string_lit, float_lit, int_lit, ident_or_keyword))(input)
 }
 
 fn punct(input: &str) -> IResult<&str, Token> {
@@ -318,10 +313,7 @@ fn punct(input: &str) -> IResult<&str, Token> {
         }
     }
 
-    Err(nom::Err::Error(NomError::new(
-        input,
-        ErrorKind::Tag,
-    )))
+    Err(nom::Err::Error(NomError::new(input, ErrorKind::Tag)))
 }
 
 fn string_lit(input: &str) -> IResult<&str, Token> {
@@ -369,6 +361,8 @@ fn ident_or_keyword(input: &str) -> IResult<&str, Token> {
             }
             Ok(match normalized.as_str() {
                 "fn" => Token::Fn,
+                "enum" => Token::Enum,
+                "trait" => Token::Trait,
                 "let" => Token::Let,
                 "return" => Token::Return,
                 "if" => Token::If,

@@ -42,7 +42,7 @@ Reunir exemplos curados que refletem o estado atual do parser, typechecker e cod
 - `string_concat.tp`: concatenação de strings em runtime.
 - `string_plus_eq.tp`: concatenação com `+=`.
 - `function_call.tp`: chamada de função definida pelo usuário.
-- `float_ops.tp`: operações e comparação com `f64`.
+- `enum_basic.tp`: declaração básica de enum.
 
 ### Casos negativos (devem falhar)
 

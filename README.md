@@ -45,6 +45,13 @@ print(inc(41)) // saída: 42
 let nome = "Tupã"
 print("Olá, " + nome)
 
+// Enum básico
+enum Color {
+    Red,
+    Green,
+    Blue
+}
+
 // Função com constraint
 fn seguro(x: f64): Safe<f64, !nan> {
   return x

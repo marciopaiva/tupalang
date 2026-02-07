@@ -9,6 +9,13 @@ pub struct Program {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Item {
     Function(Function),
+    Enum(EnumDef),
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct EnumDef {
+    pub name: String,
+    pub variants: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -78,10 +85,10 @@ pub struct Expr {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ExprKind {
-        Lambda {
-            params: Vec<String>,
-            body: Box<Expr>,
-        },
+    Lambda {
+        params: Vec<String>,
+        body: Box<Expr>,
+    },
     Int(i64),
     Float(f64),
     Str(String),
@@ -98,9 +105,18 @@ pub enum ExprKind {
         value: Box<Expr>,
     },
     ArrayLiteral(Vec<Expr>),
-    Call { callee: Box<Expr>, args: Vec<Expr> },
-    Field { expr: Box<Expr>, field: FieldAccess },
-    Index { expr: Box<Expr>, index: Box<Expr> },
+    Call {
+        callee: Box<Expr>,
+        args: Vec<Expr>,
+    },
+    Field {
+        expr: Box<Expr>,
+        field: FieldAccess,
+    },
+    Index {
+        expr: Box<Expr>,
+        index: Box<Expr>,
+    },
     Await(Box<Expr>),
     Block(Block),
     If {
@@ -208,7 +224,7 @@ pub fn parse_program(input: &str) -> Result<Program, ParserError> {
     let mut items = Vec::new();
 
     while !parser.is_eof() {
-        items.push(Item::Function(parser.parse_function()?));
+        items.push(parser.parse_item()?);
     }
 
     Ok(Program { items })
@@ -291,6 +307,21 @@ impl Parser {
         }
     }
 
+    fn parse_item(&mut self) -> Result<Item, ParserError> {
+        match self.peek() {
+            Some(Token::Fn) => Ok(Item::Function(self.parse_function()?)),
+            Some(Token::Enum) => Ok(Item::Enum(self.parse_enum()?)),
+            Some(token) => {
+                let span = self.tokens.get(self.pos).map(|t| t.span).unwrap_or(Span {
+                    start: self.eof_pos,
+                    end: self.eof_pos,
+                });
+                Err(ParserError::Unexpected(token.clone(), span))
+            }
+            None => Err(ParserError::Eof(self.eof_pos)),
+        }
+    }
+
     fn parse_function(&mut self) -> Result<Function, ParserError> {
         self.expect(Token::Fn)?;
         let name = match self.next() {
@@ -317,6 +348,40 @@ impl Parser {
             return_type,
             body,
         })
+    }
+
+    fn parse_enum(&mut self) -> Result<EnumDef, ParserError> {
+        self.expect(Token::Enum)?;
+        let name = match self.next() {
+            Some(TokenSpan {
+                token: Token::Ident(name),
+                ..
+            }) => name,
+            Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+            None => return Err(ParserError::Eof(self.eof_pos)),
+        };
+        self.expect(Token::LBrace)?;
+        let mut variants = Vec::new();
+        while let Some(tok) = self.peek() {
+            if *tok == Token::RBrace {
+                break;
+            }
+            match self.next() {
+                Some(TokenSpan {
+                    token: Token::Ident(variant),
+                    ..
+                }) => variants.push(variant),
+                Some(TokenSpan { token, span }) => {
+                    return Err(ParserError::Unexpected(token, span))
+                }
+                None => return Err(ParserError::Eof(self.eof_pos)),
+            }
+            if let Some(Token::Comma) = self.peek() {
+                self.next();
+            }
+        }
+        self.expect(Token::RBrace)?;
+        Ok(EnumDef { name, variants })
     }
 
     fn parse_block(&mut self) -> Result<Block, ParserError> {
@@ -346,7 +411,9 @@ impl Parser {
                         token: Token::Ident(name),
                         ..
                     }) => name,
-                    Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                    Some(TokenSpan { token, span }) => {
+                        return Err(ParserError::Unexpected(token, span))
+                    }
                     None => return Err(ParserError::Eof(self.eof_pos)),
                 };
                 let ty = if matches!(self.peek(), Some(Token::Colon)) {
@@ -383,7 +450,9 @@ impl Parser {
                         token: Token::Ident(name),
                         ..
                     }) => name,
-                    Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                    Some(TokenSpan { token, span }) => {
+                        return Err(ParserError::Unexpected(token, span))
+                    }
                     None => return Err(ParserError::Eof(self.eof_pos)),
                 };
                 self.expect(Token::In)?;
@@ -437,7 +506,9 @@ impl Parser {
                     token: Token::Ident(name),
                     ..
                 }) => name,
-                Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                Some(TokenSpan { token, span }) => {
+                    return Err(ParserError::Unexpected(token, span))
+                }
                 None => return Err(ParserError::Eof(self.eof_pos)),
             };
             self.expect(Token::Colon)?;
@@ -504,8 +575,7 @@ impl Parser {
                 }
             }
             Some(TokenSpan {
-                token: Token::Fn,
-                ..
+                token: Token::Fn, ..
             }) => {
                 self.expect(Token::LParen)?;
                 let mut params = Vec::new();
@@ -553,7 +623,9 @@ impl Parser {
                     })
                 } else {
                     self.expect(Token::RBracket)?;
-                    Ok(Type::Slice { elem: Box::new(elem) })
+                    Ok(Type::Slice {
+                        elem: Box::new(elem),
+                    })
                 }
             }
             Some(TokenSpan { token, span }) => Err(ParserError::Unexpected(token, span)),
@@ -728,12 +800,7 @@ impl Parser {
     fn parse_precedence(&mut self, min_prec: u8) -> Result<Expr, ParserError> {
         let mut left = self.parse_unary()?;
 
-        loop {
-            let (op, prec, right_assoc) = match self.peek().and_then(Self::token_to_binary_op) {
-                Some(info) => info,
-                None => break,
-            };
-
+        while let Some((op, prec, right_assoc)) = self.peek().and_then(Self::token_to_binary_op) {
             if prec < min_prec {
                 break;
             }
@@ -762,9 +829,16 @@ impl Parser {
             let mut params = Vec::new();
             loop {
                 match self.next() {
-                    Some(TokenSpan { token: Token::Ident(name), .. }) => params.push(name),
-                    Some(TokenSpan { token: Token::Pipe, .. }) => break,
-                    Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                    Some(TokenSpan {
+                        token: Token::Ident(name),
+                        ..
+                    }) => params.push(name),
+                    Some(TokenSpan {
+                        token: Token::Pipe, ..
+                    }) => break,
+                    Some(TokenSpan { token, span }) => {
+                        return Err(ParserError::Unexpected(token, span))
+                    }
                     None => return Err(ParserError::Eof(self.eof_pos)),
                 }
                 if matches!(self.peek(), Some(Token::Comma)) {
@@ -773,7 +847,13 @@ impl Parser {
             }
             let body = self.parse_expr()?;
             let span = merge_span(start, body.span);
-            Ok(Expr::new(ExprKind::Lambda { params, body: Box::new(body) }, span))
+            Ok(Expr::new(
+                ExprKind::Lambda {
+                    params,
+                    body: Box::new(body),
+                },
+                span,
+            ))
         } else {
             match self.peek() {
                 Some(Token::Bang) => {
@@ -812,19 +892,52 @@ impl Parser {
         }
 
         let mut expr = match self.next() {
-            Some(TokenSpan { token: Token::Int(value), span }) => value.parse::<i64>().map(|v| Expr::new(ExprKind::Int(v), span)).map_err(|_| ParserError::Unexpected(Token::Int(value), span)),
-            Some(TokenSpan { token: Token::Float(value), span }) => value.parse::<f64>().map(|v| Expr::new(ExprKind::Float(v), span)).map_err(|_| ParserError::Unexpected(Token::Float(value), span)),
-            Some(TokenSpan { token: Token::Str(value), span }) => Ok(Expr::new(ExprKind::Str(value), span)),
-            Some(TokenSpan { token: Token::True, span }) => Ok(Expr::new(ExprKind::Bool(true), span)),
-            Some(TokenSpan { token: Token::False, span }) => Ok(Expr::new(ExprKind::Bool(false), span)),
-            Some(TokenSpan { token: Token::Null, span }) => Ok(Expr::new(ExprKind::Null, span)),
-            Some(TokenSpan { token: Token::Ident(name), span }) => Ok(Expr::new(ExprKind::Ident(name), span)),
-            Some(TokenSpan { token: Token::LParen, span }) => {
+            Some(TokenSpan {
+                token: Token::Int(value),
+                span,
+            }) => value
+                .parse::<i64>()
+                .map(|v| Expr::new(ExprKind::Int(v), span))
+                .map_err(|_| ParserError::Unexpected(Token::Int(value), span)),
+            Some(TokenSpan {
+                token: Token::Float(value),
+                span,
+            }) => value
+                .parse::<f64>()
+                .map(|v| Expr::new(ExprKind::Float(v), span))
+                .map_err(|_| ParserError::Unexpected(Token::Float(value), span)),
+            Some(TokenSpan {
+                token: Token::Str(value),
+                span,
+            }) => Ok(Expr::new(ExprKind::Str(value), span)),
+            Some(TokenSpan {
+                token: Token::True,
+                span,
+            }) => Ok(Expr::new(ExprKind::Bool(true), span)),
+            Some(TokenSpan {
+                token: Token::False,
+                span,
+            }) => Ok(Expr::new(ExprKind::Bool(false), span)),
+            Some(TokenSpan {
+                token: Token::Null,
+                span,
+            }) => Ok(Expr::new(ExprKind::Null, span)),
+            Some(TokenSpan {
+                token: Token::Ident(name),
+                span,
+            }) => Ok(Expr::new(ExprKind::Ident(name), span)),
+            Some(TokenSpan {
+                token: Token::LParen,
+                span,
+            }) => {
                 let expr = self.parse_expr()?;
                 let end = self.expect_span(Token::RParen)?;
                 Ok(Expr::new(expr.kind, merge_span(span, end)))
             }
-            Some(TokenSpan { token: Token::LBracket, span }) => {
+            Some(TokenSpan {
+                token: Token::LBracket,
+                span,
+            }) => {
                 let mut items = Vec::new();
                 if !matches!(self.peek(), Some(Token::RBracket)) {
                     items.push(self.parse_expr()?);
@@ -837,13 +950,25 @@ impl Parser {
                     }
                 }
                 let end = self.expect_span(Token::RBracket)?;
-                Ok(Expr::new(ExprKind::ArrayLiteral(items), merge_span(span, end)))
+                Ok(Expr::new(
+                    ExprKind::ArrayLiteral(items),
+                    merge_span(span, end),
+                ))
             }
-            Some(TokenSpan { token: Token::Await, span }) => {
+            Some(TokenSpan {
+                token: Token::Await,
+                span,
+            }) => {
                 let expr = self.parse_expr()?;
-                Ok(Expr::new(ExprKind::Await(Box::new(expr.clone())), merge_span(span, expr.span)))
+                Ok(Expr::new(
+                    ExprKind::Await(Box::new(expr.clone())),
+                    merge_span(span, expr.span),
+                ))
             }
-            Some(TokenSpan { token: Token::If, span }) => {
+            Some(TokenSpan {
+                token: Token::If,
+                span,
+            }) => {
                 let condition = self.parse_expr()?;
                 let (then_branch, then_span) = self.parse_block_with_span()?;
                 let (else_branch, end_span) = if matches!(self.peek(), Some(Token::Else)) {
@@ -859,9 +984,19 @@ impl Parser {
                 } else {
                     (None, then_span)
                 };
-                Ok(Expr::new(ExprKind::If { condition: Box::new(condition), then_branch, else_branch }, merge_span(span, end_span)))
+                Ok(Expr::new(
+                    ExprKind::If {
+                        condition: Box::new(condition),
+                        then_branch,
+                        else_branch,
+                    },
+                    merge_span(span, end_span),
+                ))
             }
-            Some(TokenSpan { token: Token::Match, span }) => {
+            Some(TokenSpan {
+                token: Token::Match,
+                span,
+            }) => {
                 let expr = self.parse_expr()?;
                 self.expect(Token::LBrace)?;
                 let mut arms = Vec::new();
@@ -881,10 +1016,21 @@ impl Parser {
                     if matches!(self.peek(), Some(Token::Comma)) {
                         self.next();
                     }
-                    arms.push(MatchArm { pattern, pattern_span, guard, expr: arm_expr });
+                    arms.push(MatchArm {
+                        pattern,
+                        pattern_span,
+                        guard,
+                        expr: arm_expr,
+                    });
                 }
                 let end = self.expect_span(Token::RBrace)?;
-                Ok(Expr::new(ExprKind::Match { expr: Box::new(expr), arms }, merge_span(span, end)))
+                Ok(Expr::new(
+                    ExprKind::Match {
+                        expr: Box::new(expr),
+                        arms,
+                    },
+                    merge_span(span, end),
+                ))
             }
             Some(TokenSpan { token, span }) => Err(ParserError::Unexpected(token, span)),
             None => Err(ParserError::Eof(self.eof_pos)),
@@ -904,25 +1050,55 @@ impl Parser {
                     }
                     let end = self.expect_span(Token::RParen)?;
                     let span = merge_span(expr.span, end);
-                    expr = Expr::new(ExprKind::Call { callee: Box::new(expr), args }, span);
+                    expr = Expr::new(
+                        ExprKind::Call {
+                            callee: Box::new(expr),
+                            args,
+                        },
+                        span,
+                    );
                 }
                 Some(Token::Dot) => {
                     self.next();
                     let field = match self.next() {
-                        Some(TokenSpan { token: Token::Ident(name), span }) => (FieldAccess::Ident(name), span),
-                        Some(TokenSpan { token: Token::Int(value), span }) => value.parse::<i64>().map(FieldAccess::Index).map_err(|_| ParserError::Unexpected(Token::Int(value), span)).map(|f| (f, span))?,
-                        Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                        Some(TokenSpan {
+                            token: Token::Ident(name),
+                            span,
+                        }) => (FieldAccess::Ident(name), span),
+                        Some(TokenSpan {
+                            token: Token::Int(value),
+                            span,
+                        }) => value
+                            .parse::<i64>()
+                            .map(FieldAccess::Index)
+                            .map_err(|_| ParserError::Unexpected(Token::Int(value), span))
+                            .map(|f| (f, span))?,
+                        Some(TokenSpan { token, span }) => {
+                            return Err(ParserError::Unexpected(token, span))
+                        }
                         None => return Err(ParserError::Eof(self.eof_pos)),
                     };
                     let span = merge_span(expr.span, field.1);
-                    expr = Expr::new(ExprKind::Field { expr: Box::new(expr), field: field.0 }, span);
+                    expr = Expr::new(
+                        ExprKind::Field {
+                            expr: Box::new(expr),
+                            field: field.0,
+                        },
+                        span,
+                    );
                 }
                 Some(Token::LBracket) => {
                     self.next();
                     let index = self.parse_expr()?;
                     let end = self.expect_span(Token::RBracket)?;
                     let span = merge_span(expr.span, end);
-                    expr = Expr::new(ExprKind::Index { expr: Box::new(expr), index: Box::new(index) }, span);
+                    expr = Expr::new(
+                        ExprKind::Index {
+                            expr: Box::new(expr),
+                            index: Box::new(index),
+                        },
+                        span,
+                    );
                 }
                 _ => break,
             }
@@ -995,6 +1171,7 @@ mod tests {
         let src = "fn main() { let x = 1; return x; }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         assert_eq!(func.body.len(), 2);
@@ -1005,6 +1182,7 @@ mod tests {
         let src = "fn main() { if 1 { return 2; } else { return 3; } }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         assert_eq!(func.body.len(), 1);
@@ -1015,6 +1193,7 @@ mod tests {
         let src = "fn main() { match x { 1 => foo(), _ => bar(), }; }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         assert_eq!(func.body.len(), 1);
@@ -1025,6 +1204,7 @@ mod tests {
         let src = "fn main() { let x = 1 + 2 * 3; }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         let Stmt::Let { expr, .. } = &func.body[0] else {
@@ -1034,7 +1214,13 @@ mod tests {
             ExprKind::Binary { op, left, right } => {
                 assert_eq!(*op, BinaryOp::Add);
                 assert!(matches!(left.kind, ExprKind::Int(1)));
-                assert!(matches!(right.kind, ExprKind::Binary { op: BinaryOp::Mul, .. }));
+                assert!(matches!(
+                    right.kind,
+                    ExprKind::Binary {
+                        op: BinaryOp::Mul,
+                        ..
+                    }
+                ));
             }
             _ => panic!("expected binary expression"),
         }
@@ -1045,16 +1231,29 @@ mod tests {
         let src = "fn main() { let x = -1; let y = !false; }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         let Stmt::Let { expr, .. } = &func.body[0] else {
             panic!("expected let");
         };
-        assert!(matches!(expr.kind, ExprKind::Unary { op: UnaryOp::Neg, .. }));
+        assert!(matches!(
+            expr.kind,
+            ExprKind::Unary {
+                op: UnaryOp::Neg,
+                ..
+            }
+        ));
         let Stmt::Let { expr, .. } = &func.body[1] else {
             panic!("expected let");
         };
-        assert!(matches!(expr.kind, ExprKind::Unary { op: UnaryOp::Not, .. }));
+        assert!(matches!(
+            expr.kind,
+            ExprKind::Unary {
+                op: UnaryOp::Not,
+                ..
+            }
+        ));
     }
 
     #[test]
@@ -1062,6 +1261,7 @@ mod tests {
         let src = "fn main() { let x = 3.14; }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         let Stmt::Let { expr, .. } = &func.body[0] else {
@@ -1075,6 +1275,7 @@ mod tests {
         let src = "fn add(x: i64, y: i64): i64 { let z: i64 = x + y; return z; }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         assert_eq!(func.params.len(), 2);
@@ -1090,6 +1291,7 @@ mod tests {
         let src = "fn main() { let a: [i64; 3] = 0; let b: [i64] = 0; }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         let Stmt::Let { ty, .. } = &func.body[0] else {
@@ -1107,6 +1309,7 @@ mod tests {
         let src = "fn main() { let x: Safe<i64, !nan, !inf> = 1; }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         let Stmt::Let { ty, .. } = &func.body[0] else {
@@ -1126,6 +1329,7 @@ mod tests {
         let src = "fn main() { let f: fn(i64, i64) -> i64 = add; }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         let Stmt::Let { ty, .. } = &func.body[0] else {
@@ -1145,6 +1349,7 @@ mod tests {
         let src = "fn main() { while x < 10 { x = x + 1; } for i in xs { return i; } }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         assert!(matches!(func.body[0], Stmt::While { .. }));
@@ -1156,6 +1361,7 @@ mod tests {
         let src = "fn main() { let xs = [1, 2, 3]; }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         let Stmt::Let { expr, .. } = &func.body[0] else {
@@ -1169,12 +1375,19 @@ mod tests {
         let src = "fn main() { let xs = 1..10; }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         let Stmt::Let { expr, .. } = &func.body[0] else {
             panic!("expected let");
         };
-        assert!(matches!(expr.kind, ExprKind::Binary { op: BinaryOp::Range, .. }));
+        assert!(matches!(
+            expr.kind,
+            ExprKind::Binary {
+                op: BinaryOp::Range,
+                ..
+            }
+        ));
     }
 
     #[test]
@@ -1182,6 +1395,7 @@ mod tests {
         let src = "fn main() { match x { y if y > 0 => y, _ => 0, } }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         assert_eq!(func.body.len(), 1);
@@ -1192,6 +1406,7 @@ mod tests {
         let src = "fn main() { let x = await foo(); { return x; } }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         assert_eq!(func.body.len(), 2);
@@ -1199,7 +1414,9 @@ mod tests {
             panic!("expected let");
         };
         assert!(matches!(expr.kind, ExprKind::Await(_)));
-        assert!(matches!(func.body[1], Stmt::Expr(ref expr) if matches!(expr.kind, ExprKind::Block(_))));
+        assert!(
+            matches!(func.body[1], Stmt::Expr(ref expr) if matches!(expr.kind, ExprKind::Block(_)))
+        );
     }
 
     #[test]
@@ -1207,6 +1424,7 @@ mod tests {
         let src = "fn main() { let x = foo(1).bar[0]; }";
         let program = parse_program(src).unwrap();
         let func = match &program.items[0] {
+            Item::Enum(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         let Stmt::Let { expr, .. } = &func.body[0] else {

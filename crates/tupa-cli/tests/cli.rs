@@ -4,7 +4,11 @@ use assert_cmd::cargo::cargo_bin_cmd;
 use predicates::str::contains;
 
 fn repo_root() -> &'static Path {
-    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap()
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
 }
 
 #[test]
