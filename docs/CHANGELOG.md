@@ -15,9 +15,12 @@ Registrar mudanças relevantes por versão.
 
 ## Unreleased
 
+- Suporte a closures com captura real de variáveis (environment structures, heap allocation).
+- Melhorias na inferência de tipos para lambdas com parâmetros Unknown.
+- Suporte a compatibilidade de tipos Func com parâmetros Unknown em chamadas de função.
+- Melhorias de qualidade de código: Clippy e rustfmt no CI, correção de warnings.
 - Suporte básico a traits (parsing, typechecking, codegen).
 - Suporte básico a enums (parsing, typechecking, codegen).
-- Melhorias de qualidade de código: Clippy e rustfmt no CI, correção de warnings.
 - Testes unitários adicionados ao codegen.
 - Exemplo de enum adicionado à documentação.
 - Índice/SUMMARY centralizado e links internos entre docs.

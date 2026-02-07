@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use tupa_parser::{Expr, ExprKind, Function, Item, Program, Stmt, Type};
+use tupa_typecheck::{typecheck_program_with_warnings, Ty};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum SimpleTy {
@@ -19,6 +20,13 @@ enum SimpleTy {
 
 pub fn generate_stub(program: &Program) -> String {
     let mut codegen = Codegen::default();
+    codegen.emit_program(program);
+    codegen.finish()
+}
+
+pub fn generate_stub_with_types(program: &Program) -> String {
+    let mut codegen = Codegen::default();
+    codegen.type_info = Some(HashMap::new());
     codegen.emit_program(program);
     codegen.finish()
 }
@@ -42,12 +50,19 @@ struct Codegen {
     strcat_declared: bool,
     snprintf_declared: bool,
     function_sigs: HashMap<String, FuncSig>,
+    type_info: Option<HashMap<String, tupa_typecheck::Ty>>,
 }
 
 #[derive(Debug, Clone)]
 struct LocalVar {
     ptr: String,
     ty: SimpleTy,
+}
+
+#[derive(Debug, Clone)]
+struct ClosureEnv {
+    vars: Vec<(String, SimpleTy)>, // (name, type) of captured variables
+    struct_name: String,
 }
 
 #[derive(Debug, Clone)]
@@ -1234,17 +1249,44 @@ impl Codegen {
                 ExprValue::new(SimpleTy::Str, ptr)
             }
             ExprKind::Lambda { params, body } => {
-                // For closures, we need to capture variables from the environment
-                // For now, implement as a simple function pointer (no capture yet)
+                // Check if this is a closure that captures variables
                 let lambda_name = format!("lambda_{}", self.temp);
                 self.temp += 1;
 
-                // Create a new codegen context for the lambda
+                // For now, assume all lambdas can capture and create environment
+                // In a full implementation, we'd check which variables are actually captured
+                let env_struct_name = format!("env_{}", lambda_name);
+
+                // Create environment struct type
+                let env_struct_name = format!("env_{}", lambda_name);
+
+                // Collect all local variables that could be captured
+                // This is a simplified approach - in practice we'd track captured vars
+                let mut captured_vars = Vec::new();
+                for (var_name, var_info) in env.iter() {
+                    if !params.contains(var_name) { // Don't capture parameters
+                        captured_vars.push((var_name.clone(), var_info.ty));
+                    }
+                }
+
+                let env_var_names = captured_vars.iter().map(|(name, _)| name.clone()).collect::<Vec<_>>();
+                let env_var_types = captured_vars.iter().map(|(_, ty)| *ty).collect::<Vec<_>>();
+
+                if !captured_vars.is_empty() {
+                    // Define environment struct
+                    self.globals.push(format!("%{} = type {{", env_struct_name));
+                    for (var_name, var_ty) in &captured_vars {
+                        self.globals.push(format!("  {} {}", self.llvm_ty(*var_ty), var_name));
+                    }
+                    self.globals.push("}".to_string());
+                }
+
+                // Create lambda function
                 let mut lambda_codegen = Codegen::default();
                 lambda_codegen.temp = self.temp;
-                self.temp += 100; // Reserve some temp numbers
+                self.temp += 100;
 
-                // Lambda parameters: first param is environment pointer, then actual params
+                // Lambda parameters: environment pointer, then actual params
                 let mut lambda_params = vec!["i8* %env".to_string()];
                 for param in params.iter() {
                     lambda_params.push(format!("i64 %{}", param));
@@ -1256,17 +1298,41 @@ impl Codegen {
                     .push(format!("define i64 @{lambda_name}({param_decls}) {{"));
                 lambda_codegen.lines.push("entry:".to_string());
 
-                // Set up environment (for now, unused)
-                let env_alloca = lambda_codegen.fresh_temp();
-                lambda_codegen
-                    .lines
-                    .push(format!("  {env_alloca} = alloca i8*"));
-                lambda_codegen
-                    .lines
-                    .push(format!("  store i8* %env, i8** {env_alloca}"));
+                // Set up environment access
+                let mut lambda_env = HashMap::new();
+                if !env_var_names.is_empty() {
+                    // Cast environment pointer to struct pointer
+                    let env_struct_ptr = lambda_codegen.fresh_temp();
+                    lambda_codegen.lines.push(format!(
+                        "  {env_struct_ptr} = bitcast i8* %env to %{}*",
+                        env_struct_name
+                    ));
+
+                    // Load captured variables from environment
+                    for (i, (var_name, var_ty)) in captured_vars.iter().enumerate() {
+                        let var_ptr = lambda_codegen.fresh_temp();
+                        lambda_codegen.lines.push(format!(
+                            "  {var_ptr} = getelementptr inbounds %{}, %{}* {env_struct_ptr}, i32 0, i32 {}",
+                            env_struct_name, env_struct_name, i
+                        ));
+
+                        let var_value = lambda_codegen.fresh_temp();
+                        lambda_codegen.lines.push(format!(
+                            "  {var_value} = load {}, {}* {var_ptr}",
+                            self.llvm_ty(*var_ty), self.llvm_ty(*var_ty)
+                        ));
+
+                        lambda_env.insert(
+                            var_name.clone(),
+                            LocalVar {
+                                ptr: var_value,
+                                ty: *var_ty,
+                            },
+                        );
+                    }
+                }
 
                 // Set up parameters
-                let mut lambda_env = HashMap::new();
                 for param in params {
                     let alloca = lambda_codegen.fresh_temp();
                     lambda_codegen
@@ -1279,7 +1345,7 @@ impl Codegen {
                         param.clone(),
                         LocalVar {
                             ptr: alloca,
-                            ty: SimpleTy::I64, // Assume i64 for now
+                            ty: SimpleTy::I64,
                         },
                     );
                 }
@@ -1291,15 +1357,54 @@ impl Codegen {
                     .push(format!("  ret i64 {}", result.llvm_value));
                 lambda_codegen.lines.push("}".to_string());
 
-                // Add lambda function to globals, not to current function
+                // Add lambda function to globals
                 self.globals.extend(lambda_codegen.lines);
 
-                // Return function pointer as i8* (closure pointer)
-                let bitcast = self.fresh_temp();
-                self.lines.push(format!(
-                    "  {bitcast} = bitcast i64 (i8*, i64)* @{lambda_name} to i8*"
-                ));
-                ExprValue::new(SimpleTy::ClosurePtr, bitcast)
+                // Create closure object
+                if !env_var_names.is_empty() {
+                    // Allocate environment on heap
+                    self.ensure_malloc_declared();
+                    let env_size = self.fresh_temp();
+                    self.lines.push(format!("  {env_size} = call i8* @malloc(i64 {})", env_var_names.len() * 8));
+
+                    let env_struct_ptr = self.fresh_temp();
+                    self.lines.push(format!(
+                        "  {env_struct_ptr} = bitcast i8* {env_size} to %{}*",
+                        env_struct_name
+                    ));
+
+                    // Store captured variables in environment
+                    for (i, var_name) in env_var_names.iter().enumerate() {
+                        if let Some(var_info) = env.get(var_name) {
+                            let field_ptr = self.fresh_temp();
+                            self.lines.push(format!(
+                                "  {field_ptr} = getelementptr inbounds %{}, %{}* {env_struct_ptr}, i32 0, i32 {}",
+                                env_struct_name, env_struct_name, i
+                            ));
+
+                            self.lines.push(format!(
+                                "  store {} {}, {}* {field_ptr}",
+                                self.llvm_ty(var_info.ty), var_info.ptr, self.llvm_ty(var_info.ty)
+                            ));
+                        }
+                    }
+
+                    // Return environment pointer as closure
+                    let bitcast = self.fresh_temp();
+                    self.lines.push(format!(
+                        "  {bitcast} = bitcast %{}* {env_struct_ptr} to i8*",
+                        env_struct_name
+                    ));
+
+                    ExprValue::new(SimpleTy::ClosurePtr, bitcast)
+                } else {
+                    // No captures - return function pointer directly
+                    let bitcast = self.fresh_temp();
+                    self.lines.push(format!(
+                        "  {bitcast} = bitcast i64 (i8*, i64)* @{lambda_name} to i8*"
+                    ));
+                    ExprValue::new(SimpleTy::ClosurePtr, bitcast)
+                }
             }
             ExprKind::ArrayLiteral(items) => {
                 if items.is_empty() {
@@ -2060,6 +2165,13 @@ impl Codegen {
     }
 
     fn declare_malloc(&mut self) {
+        if !self.malloc_declared {
+            self.globals.push("declare i8* @malloc(i64)".to_string());
+            self.malloc_declared = true;
+        }
+    }
+
+    fn ensure_malloc_declared(&mut self) {
         if !self.malloc_declared {
             self.globals.push("declare i8* @malloc(i64)".to_string());
             self.malloc_declared = true;

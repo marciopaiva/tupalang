@@ -1,0 +1,17 @@
+// Exemplo de closures com captura de variáveis
+fn main() {
+    let x = 10;
+    let y = 20;
+
+    // Closure que captura 'x'
+    let add_x = |val| x + val;
+    print(add_x(5)); // Deve imprimir 15
+
+    // Closure que captura 'x' e 'y'
+    let add_both = |val| x + y + val;
+    print(add_both(1)); // Deve imprimir 31
+
+    // Exemplo simples de closure
+    let simple_add = |a| a + 10;
+    print(simple_add(5)); // Deve imprimir 15
+}

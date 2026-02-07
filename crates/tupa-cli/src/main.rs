@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 use clap::{Parser, Subcommand, ValueEnum};
 use serde_json::{json, Value};
-use tupa_codegen::generate_stub;
+use tupa_codegen::generate_stub_with_types;
 use tupa_lexer::{lex, lex_with_spans, LexerError, Span, Token, TokenSpan};
 use tupa_parser::{parse_program, ParserError};
 use tupa_typecheck::{typecheck_program_with_warnings, TypeError, Warning};
@@ -172,7 +172,13 @@ fn run(cli: Cli) -> Result<(), String> {
                     parse_program(&src).map_err(|e| format_parse_error_json(&label, &src, e))?
                 }
             };
-            let output = generate_stub(&program);
+            let _warnings = match format {
+                OutputFormat::Pretty => typecheck_program_with_warnings(&program)
+                    .map_err(|e| format_type_error(&label, &src, &e))?,
+                OutputFormat::Json => typecheck_program_with_warnings(&program)
+                    .map_err(|e| format_type_error_json(&label, &src, &e))?,
+            };
+            let output = generate_stub_with_types(&program);
             match format {
                 OutputFormat::Pretty => println!("{output}"),
                 OutputFormat::Json => println!("{}", format_codegen_json(&output)),

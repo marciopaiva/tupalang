@@ -753,11 +753,21 @@ fn type_of_expr(
                     for (arg, expected) in args.iter().zip(params.iter()) {
                         let found = type_of_expr(arg, env, functions, enums, traits, expected_return)?;
                         if &found != expected && *expected != Ty::Unknown {
-                            return Err(TypeError::Mismatch {
-                                expected: expected.clone(),
-                                found,
-                                span: Some(arg.span),
-                            });
+                            // Special case: allow Func with Unknown params to match Func with known params
+                            let types_match = match (&found, expected) {
+                                (Ty::Func { params: found_params, ret: found_ret }, Ty::Func { params: expected_params, ret: expected_ret }) => {
+                                    found_ret == expected_ret && found_params.len() == expected_params.len() &&
+                                    found_params.iter().zip(expected_params.iter()).all(|(f, e)| f == e || *f == Ty::Unknown)
+                                }
+                                _ => false,
+                            };
+                            if !types_match {
+                                return Err(TypeError::Mismatch {
+                                    expected: expected.clone(),
+                                    found,
+                                    span: Some(arg.span),
+                                });
+                            }
                         }
                     }
                     Ok(*ret)
@@ -882,6 +892,10 @@ fn type_of_expr(
             match op {
                 BinaryOp::Add | BinaryOp::Sub | BinaryOp::Mul | BinaryOp::Div | BinaryOp::Pow => {
                     if l == r && (l == Ty::I64 || l == Ty::F64) {
+                        Ok(l)
+                    } else if l == Ty::Unknown && (r == Ty::I64 || r == Ty::F64) {
+                        Ok(r)
+                    } else if r == Ty::Unknown && (l == Ty::I64 || l == Ty::F64) {
                         Ok(l)
                     } else if *op == BinaryOp::Add && l == Ty::String && r == Ty::String {
                         Ok(Ty::String)
