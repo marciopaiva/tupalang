@@ -14,10 +14,22 @@ pub enum Ty {
     String,
     Null,
     Unit,
-    Array { elem: Box<Ty>, len: i64 },
-    Slice { elem: Box<Ty> },
-    Func { params: Vec<Ty>, ret: Box<Ty> },
-    Closure { params: Vec<Ty>, ret: Box<Ty>, captured: Vec<String> },
+    Array {
+        elem: Box<Ty>,
+        len: i64,
+    },
+    Slice {
+        elem: Box<Ty>,
+    },
+    Func {
+        params: Vec<Ty>,
+        ret: Box<Ty>,
+    },
+    Closure {
+        params: Vec<Ty>,
+        ret: Box<Ty>,
+        captured: Vec<String>,
+    },
     Enum(String),
     Trait(String),
     Unknown,
@@ -168,7 +180,11 @@ fn collect_vars(expr: &Expr, vars: &mut std::collections::HashSet<String>) {
             vars.extend(body_vars);
         }
         // Literals don't reference variables
-        ExprKind::Int(_) | ExprKind::Float(_) | ExprKind::Bool(_) | ExprKind::Str(_) | ExprKind::Null => {}
+        ExprKind::Int(_)
+        | ExprKind::Float(_)
+        | ExprKind::Bool(_)
+        | ExprKind::Str(_)
+        | ExprKind::Null => {}
         ExprKind::ArrayLiteral(items) => {
             for item in items {
                 collect_vars(item, vars);
@@ -222,53 +238,172 @@ fn infer_lambda_param_types(
             // But we can collect constraints from its usage context
         }
         ExprKind::Binary { left, right, .. } => {
-            infer_lambda_param_types(left, env, param_types, functions, enums, traits, expected_return)?;
-            infer_lambda_param_types(right, env, param_types, functions, enums, traits, expected_return)?;
+            infer_lambda_param_types(
+                left,
+                env,
+                param_types,
+                functions,
+                enums,
+                traits,
+                expected_return,
+            )?;
+            infer_lambda_param_types(
+                right,
+                env,
+                param_types,
+                functions,
+                enums,
+                traits,
+                expected_return,
+            )?;
         }
         ExprKind::Unary { expr, .. } => {
-            infer_lambda_param_types(expr, env, param_types, functions, enums, traits, expected_return)?;
+            infer_lambda_param_types(
+                expr,
+                env,
+                param_types,
+                functions,
+                enums,
+                traits,
+                expected_return,
+            )?;
         }
         ExprKind::Call { callee, args } => {
             // Try to infer parameter types from function call arguments
             if let ExprKind::Ident(func_name) = &callee.kind {
                 if let Some(sig) = functions.get(func_name) {
                     for (arg_expr, expected_ty) in args.iter().zip(&sig.params) {
-                        infer_param_type_from_expr(arg_expr, expected_ty.clone(), param_types, env)?;
+                        infer_param_type_from_expr(
+                            arg_expr,
+                            expected_ty.clone(),
+                            param_types,
+                            env,
+                        )?;
                     }
                 }
             }
-            infer_lambda_param_types(callee, env, param_types, functions, enums, traits, expected_return)?;
+            infer_lambda_param_types(
+                callee,
+                env,
+                param_types,
+                functions,
+                enums,
+                traits,
+                expected_return,
+            )?;
             for arg in args {
-                infer_lambda_param_types(arg, env, param_types, functions, enums, traits, expected_return)?;
+                infer_lambda_param_types(
+                    arg,
+                    env,
+                    param_types,
+                    functions,
+                    enums,
+                    traits,
+                    expected_return,
+                )?;
             }
         }
-        ExprKind::If { condition, then_branch, else_branch } => {
-            infer_lambda_param_types(condition, env, param_types, functions, enums, traits, expected_return)?;
-            infer_lambda_param_types_block(then_branch, env, param_types, functions, enums, traits, expected_return)?;
+        ExprKind::If {
+            condition,
+            then_branch,
+            else_branch,
+        } => {
+            infer_lambda_param_types(
+                condition,
+                env,
+                param_types,
+                functions,
+                enums,
+                traits,
+                expected_return,
+            )?;
+            infer_lambda_param_types_block(
+                then_branch,
+                env,
+                param_types,
+                functions,
+                enums,
+                traits,
+                expected_return,
+            )?;
             if let Some(else_branch) = else_branch {
                 match else_branch {
-                    tupa_parser::ElseBranch::Block(block) =>
-                        infer_lambda_param_types_block(block, env, param_types, functions, enums, traits, expected_return)?,
-                    tupa_parser::ElseBranch::If(expr) =>
-                        infer_lambda_param_types(expr, env, param_types, functions, enums, traits, expected_return)?,
+                    tupa_parser::ElseBranch::Block(block) => infer_lambda_param_types_block(
+                        block,
+                        env,
+                        param_types,
+                        functions,
+                        enums,
+                        traits,
+                        expected_return,
+                    )?,
+                    tupa_parser::ElseBranch::If(expr) => infer_lambda_param_types(
+                        expr,
+                        env,
+                        param_types,
+                        functions,
+                        enums,
+                        traits,
+                        expected_return,
+                    )?,
                 }
             }
         }
         ExprKind::Match { expr, arms } => {
-            infer_lambda_param_types(expr, env, param_types, functions, enums, traits, expected_return)?;
+            infer_lambda_param_types(
+                expr,
+                env,
+                param_types,
+                functions,
+                enums,
+                traits,
+                expected_return,
+            )?;
             for arm in arms {
-                infer_lambda_param_types(&arm.expr, env, param_types, functions, enums, traits, expected_return)?;
+                infer_lambda_param_types(
+                    &arm.expr,
+                    env,
+                    param_types,
+                    functions,
+                    enums,
+                    traits,
+                    expected_return,
+                )?;
                 if let Some(guard) = &arm.guard {
-                    infer_lambda_param_types(guard, env, param_types, functions, enums, traits, expected_return)?;
+                    infer_lambda_param_types(
+                        guard,
+                        env,
+                        param_types,
+                        functions,
+                        enums,
+                        traits,
+                        expected_return,
+                    )?;
                 }
             }
         }
         ExprKind::Block(stmts) => {
-            infer_lambda_param_types_block(stmts, env, param_types, functions, enums, traits, expected_return)?;
+            infer_lambda_param_types_block(
+                stmts,
+                env,
+                param_types,
+                functions,
+                enums,
+                traits,
+                expected_return,
+            )?;
         }
         ExprKind::Lambda { body, .. } => {
             // Nested lambdas - recurse
-            infer_lambda_param_types(body, env, param_types, functions, enums, traits, expected_return)?;
+            infer_lambda_param_types(
+                body,
+                env,
+                param_types,
+                functions,
+                enums,
+                traits,
+                expected_return,
+            )?;
         }
         // Other expressions don't provide parameter type information
         _ => {}
@@ -289,21 +424,77 @@ fn infer_lambda_param_types_block(
     for stmt in stmts {
         match stmt {
             Stmt::Let { expr, .. } => {
-                infer_lambda_param_types(expr, env, param_types, functions, enums, traits, expected_return)?;
+                infer_lambda_param_types(
+                    expr,
+                    env,
+                    param_types,
+                    functions,
+                    enums,
+                    traits,
+                    expected_return,
+                )?;
             }
             Stmt::While { condition, body } => {
-                infer_lambda_param_types(condition, env, param_types, functions, enums, traits, expected_return)?;
-                infer_lambda_param_types_block(body, env, param_types, functions, enums, traits, expected_return)?;
+                infer_lambda_param_types(
+                    condition,
+                    env,
+                    param_types,
+                    functions,
+                    enums,
+                    traits,
+                    expected_return,
+                )?;
+                infer_lambda_param_types_block(
+                    body,
+                    env,
+                    param_types,
+                    functions,
+                    enums,
+                    traits,
+                    expected_return,
+                )?;
             }
             Stmt::For { iter, body, .. } => {
-                infer_lambda_param_types(iter, env, param_types, functions, enums, traits, expected_return)?;
-                infer_lambda_param_types_block(body, env, param_types, functions, enums, traits, expected_return)?;
+                infer_lambda_param_types(
+                    iter,
+                    env,
+                    param_types,
+                    functions,
+                    enums,
+                    traits,
+                    expected_return,
+                )?;
+                infer_lambda_param_types_block(
+                    body,
+                    env,
+                    param_types,
+                    functions,
+                    enums,
+                    traits,
+                    expected_return,
+                )?;
             }
             Stmt::Expr(expr) => {
-                infer_lambda_param_types(expr, env, param_types, functions, enums, traits, expected_return)?;
+                infer_lambda_param_types(
+                    expr,
+                    env,
+                    param_types,
+                    functions,
+                    enums,
+                    traits,
+                    expected_return,
+                )?;
             }
             Stmt::Return(Some(expr)) => {
-                infer_lambda_param_types(expr, env, param_types, functions, enums, traits, expected_return)?;
+                infer_lambda_param_types(
+                    expr,
+                    env,
+                    param_types,
+                    functions,
+                    enums,
+                    traits,
+                    expected_return,
+                )?;
             }
             _ => {}
         }
@@ -429,7 +620,9 @@ pub fn typecheck_program_with_warnings(program: &Program) -> Result<Vec<Warning>
     let mut warnings = Vec::new();
     for item in &program.items {
         match item {
-            Item::Function(func) => warnings.extend(typecheck_function(func, &functions, &enums, &traits)?),
+            Item::Function(func) => {
+                warnings.extend(typecheck_function(func, &functions, &enums, &traits)?)
+            }
             Item::Enum(_) => {} // enums don't need typechecking beyond declaration
             Item::Trait(_) => {} // traits don't need typechecking beyond declaration
         }
@@ -682,7 +875,15 @@ fn type_of_expr(
             }
 
             // Analyze the body to infer parameter types
-            infer_lambda_param_types(body, &mut inner, &mut param_types, functions, enums, traits, expected_return)?;
+            infer_lambda_param_types(
+                body,
+                &mut inner,
+                &mut param_types,
+                functions,
+                enums,
+                traits,
+                expected_return,
+            )?;
 
             // Second pass: use inferred types
             let mut inner_final = env.child();
@@ -690,7 +891,14 @@ fn type_of_expr(
                 inner_final.insert_var(name.clone(), ty.clone());
             }
 
-            let ret_ty = type_of_expr(body, &mut inner_final, functions, enums, traits, expected_return)?;
+            let ret_ty = type_of_expr(
+                body,
+                &mut inner_final,
+                functions,
+                enums,
+                traits,
+                expected_return,
+            )?;
 
             // If there are captured variables, this is a closure
             if !captured_vars.is_empty() {
@@ -760,13 +968,27 @@ fn type_of_expr(
                         });
                     }
                     for (arg, expected) in args.iter().zip(params.iter()) {
-                        let found = type_of_expr(arg, env, functions, enums, traits, expected_return)?;
+                        let found =
+                            type_of_expr(arg, env, functions, enums, traits, expected_return)?;
                         if &found != expected && *expected != Ty::Unknown {
                             // Special case: allow Func with Unknown params to match Func with known params
                             let types_match = match (&found, expected) {
-                                (Ty::Func { params: found_params, ret: found_ret }, Ty::Func { params: expected_params, ret: expected_ret }) => {
-                                    found_ret == expected_ret && found_params.len() == expected_params.len() &&
-                                    found_params.iter().zip(expected_params.iter()).all(|(f, e)| f == e || *f == Ty::Unknown)
+                                (
+                                    Ty::Func {
+                                        params: found_params,
+                                        ret: found_ret,
+                                    },
+                                    Ty::Func {
+                                        params: expected_params,
+                                        ret: expected_ret,
+                                    },
+                                ) => {
+                                    found_ret == expected_ret
+                                        && found_params.len() == expected_params.len()
+                                        && found_params
+                                            .iter()
+                                            .zip(expected_params.iter())
+                                            .all(|(f, e)| f == e || *f == Ty::Unknown)
                                 }
                                 _ => false,
                             };
@@ -794,7 +1016,9 @@ fn type_of_expr(
             }
         }
         ExprKind::Await(expr) => type_of_expr(expr, env, functions, enums, traits, expected_return),
-        ExprKind::Block(stmts) => type_of_block_expr(stmts, env, functions, enums, traits, expected_return),
+        ExprKind::Block(stmts) => {
+            type_of_block_expr(stmts, env, functions, enums, traits, expected_return)
+        }
         ExprKind::If {
             condition,
             then_branch,
@@ -858,8 +1082,14 @@ fn type_of_expr(
                         });
                     }
                 }
-                let arm_ty =
-                    type_of_expr(&arm.expr, &mut inner, functions, enums, traits, expected_return)?;
+                let arm_ty = type_of_expr(
+                    &arm.expr,
+                    &mut inner,
+                    functions,
+                    enums,
+                    traits,
+                    expected_return,
+                )?;
                 match &expected_arm_ty {
                     Some(expected) if *expected != arm_ty => {
                         return Err(TypeError::Mismatch {
@@ -1066,7 +1296,11 @@ fn typecheck_pattern(
 }
 
 #[allow(clippy::result_large_err, clippy::only_used_in_recursion)]
-fn type_from_ast(ty: &Type, enums: &HashMap<String, Vec<String>>, traits: &HashMap<String, Vec<Function>>) -> Result<Ty, TypeError> {
+fn type_from_ast(
+    ty: &Type,
+    enums: &HashMap<String, Vec<String>>,
+    traits: &HashMap<String, Vec<Function>>,
+) -> Result<Ty, TypeError> {
     match ty {
         Type::Ident(name) => match name.as_str() {
             "i64" => Ok(Ty::I64),

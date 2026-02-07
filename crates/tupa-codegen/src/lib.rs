@@ -189,7 +189,7 @@ impl Codegen {
         for item in &program.items {
             let func = match item {
                 Item::Function(func) => func,
-                Item::Enum(_) => continue, // enums don't have functions
+                Item::Enum(_) => continue,  // enums don't have functions
                 Item::Trait(_) => continue, // traits don't have functions
             };
             let params = func
@@ -207,7 +207,7 @@ impl Codegen {
         for item in &program.items {
             match item {
                 Item::Function(func) => self.emit_function(func),
-                Item::Enum(_) => {} // enums don't emit code yet
+                Item::Enum(_) => {}  // enums don't emit code yet
                 Item::Trait(_) => {} // traits don't emit code yet
             }
         }
@@ -221,7 +221,9 @@ impl Codegen {
 
     fn collect_usages_stmt(&self, stmt: &Stmt, env: &mut HashMap<String, LocalVar>) {
         match stmt {
-            Stmt::Let { name: _name, expr, .. } => {
+            Stmt::Let {
+                name: _name, expr, ..
+            } => {
                 self.collect_usages_expr(expr, env);
             }
             Stmt::Expr(expr) => {
@@ -236,7 +238,11 @@ impl Codegen {
                 self.collect_usages_expr(condition, env);
                 self.collect_usages(body, env);
             }
-            Stmt::For { name: _name, iter, body } => {
+            Stmt::For {
+                name: _name,
+                iter,
+                body,
+            } => {
                 self.collect_usages_expr(iter, env);
                 self.collect_usages(body, env);
             }
@@ -252,68 +258,54 @@ impl Codegen {
             ExprKind::Binary { op, left, right } => {
                 let folded_left = self.fold_expr(left);
                 let folded_right = self.fold_expr(right);
-                
+
                 match (&folded_left.kind, &folded_right.kind, op) {
-                    (ExprKind::Int(a), ExprKind::Int(b), tupa_parser::BinaryOp::Add) => {
-                        Expr {
-                            kind: ExprKind::Int(a + b),
-                            span: expr.span,
-                        }
-                    }
-                    (ExprKind::Int(a), ExprKind::Int(b), tupa_parser::BinaryOp::Sub) => {
-                        Expr {
-                            kind: ExprKind::Int(a - b),
-                            span: expr.span,
-                        }
-                    }
-                    (ExprKind::Int(a), ExprKind::Int(b), tupa_parser::BinaryOp::Mul) => {
-                        Expr {
-                            kind: ExprKind::Int(a * b),
-                            span: expr.span,
-                        }
-                    }
+                    (ExprKind::Int(a), ExprKind::Int(b), tupa_parser::BinaryOp::Add) => Expr {
+                        kind: ExprKind::Int(a + b),
+                        span: expr.span,
+                    },
+                    (ExprKind::Int(a), ExprKind::Int(b), tupa_parser::BinaryOp::Sub) => Expr {
+                        kind: ExprKind::Int(a - b),
+                        span: expr.span,
+                    },
+                    (ExprKind::Int(a), ExprKind::Int(b), tupa_parser::BinaryOp::Mul) => Expr {
+                        kind: ExprKind::Int(a * b),
+                        span: expr.span,
+                    },
                     (ExprKind::Int(a), ExprKind::Int(b), tupa_parser::BinaryOp::Div) if *b != 0 => {
                         Expr {
                             kind: ExprKind::Int(a / b),
                             span: expr.span,
                         }
                     }
-                    (ExprKind::Float(a), ExprKind::Float(b), tupa_parser::BinaryOp::Add) => {
-                        Expr {
-                            kind: ExprKind::Float(a + b),
-                            span: expr.span,
-                        }
-                    }
-                    (ExprKind::Float(a), ExprKind::Float(b), tupa_parser::BinaryOp::Sub) => {
-                        Expr {
-                            kind: ExprKind::Float(a - b),
-                            span: expr.span,
-                        }
-                    }
-                    (ExprKind::Float(a), ExprKind::Float(b), tupa_parser::BinaryOp::Mul) => {
-                        Expr {
-                            kind: ExprKind::Float(a * b),
-                            span: expr.span,
-                        }
-                    }
-                    (ExprKind::Float(a), ExprKind::Float(b), tupa_parser::BinaryOp::Div) if *b != 0.0 => {
+                    (ExprKind::Float(a), ExprKind::Float(b), tupa_parser::BinaryOp::Add) => Expr {
+                        kind: ExprKind::Float(a + b),
+                        span: expr.span,
+                    },
+                    (ExprKind::Float(a), ExprKind::Float(b), tupa_parser::BinaryOp::Sub) => Expr {
+                        kind: ExprKind::Float(a - b),
+                        span: expr.span,
+                    },
+                    (ExprKind::Float(a), ExprKind::Float(b), tupa_parser::BinaryOp::Mul) => Expr {
+                        kind: ExprKind::Float(a * b),
+                        span: expr.span,
+                    },
+                    (ExprKind::Float(a), ExprKind::Float(b), tupa_parser::BinaryOp::Div)
+                        if *b != 0.0 =>
+                    {
                         Expr {
                             kind: ExprKind::Float(a / b),
                             span: expr.span,
                         }
                     }
-                    (ExprKind::Bool(a), ExprKind::Bool(b), tupa_parser::BinaryOp::And) => {
-                        Expr {
-                            kind: ExprKind::Bool(*a && *b),
-                            span: expr.span,
-                        }
-                    }
-                    (ExprKind::Bool(a), ExprKind::Bool(b), tupa_parser::BinaryOp::Or) => {
-                        Expr {
-                            kind: ExprKind::Bool(*a || *b),
-                            span: expr.span,
-                        }
-                    }
+                    (ExprKind::Bool(a), ExprKind::Bool(b), tupa_parser::BinaryOp::And) => Expr {
+                        kind: ExprKind::Bool(*a && *b),
+                        span: expr.span,
+                    },
+                    (ExprKind::Bool(a), ExprKind::Bool(b), tupa_parser::BinaryOp::Or) => Expr {
+                        kind: ExprKind::Bool(*a || *b),
+                        span: expr.span,
+                    },
                     _ => Expr {
                         kind: ExprKind::Binary {
                             op: op.clone(),
@@ -326,26 +318,20 @@ impl Codegen {
             }
             ExprKind::Unary { op, expr: operand } => {
                 let folded_operand = self.fold_expr(operand);
-                
+
                 match (&folded_operand.kind, op) {
-                    (ExprKind::Int(a), tupa_parser::UnaryOp::Neg) => {
-                        Expr {
-                            kind: ExprKind::Int(-a),
-                            span: expr.span,
-                        }
-                    }
-                    (ExprKind::Float(a), tupa_parser::UnaryOp::Neg) => {
-                        Expr {
-                            kind: ExprKind::Float(-a),
-                            span: expr.span,
-                        }
-                    }
-                    (ExprKind::Bool(a), tupa_parser::UnaryOp::Not) => {
-                        Expr {
-                            kind: ExprKind::Bool(!a),
-                            span: expr.span,
-                        }
-                    }
+                    (ExprKind::Int(a), tupa_parser::UnaryOp::Neg) => Expr {
+                        kind: ExprKind::Int(-a),
+                        span: expr.span,
+                    },
+                    (ExprKind::Float(a), tupa_parser::UnaryOp::Neg) => Expr {
+                        kind: ExprKind::Float(-a),
+                        span: expr.span,
+                    },
+                    (ExprKind::Bool(a), tupa_parser::UnaryOp::Not) => Expr {
+                        kind: ExprKind::Bool(!a),
+                        span: expr.span,
+                    },
                     _ => Expr {
                         kind: ExprKind::Unary {
                             op: op.clone(),
@@ -361,7 +347,11 @@ impl Codegen {
 
     fn collect_usages_expr(&self, expr: &Expr, env: &mut HashMap<String, LocalVar>) {
         match &expr.kind {
-            ExprKind::Int(_) | ExprKind::Float(_) | ExprKind::Str(_) | ExprKind::Bool(_) | ExprKind::Null => {}
+            ExprKind::Int(_)
+            | ExprKind::Float(_)
+            | ExprKind::Str(_)
+            | ExprKind::Bool(_)
+            | ExprKind::Null => {}
             ExprKind::Ident(name) => {
                 if let Some(var) = env.get_mut(name) {
                     var.used = true;
@@ -403,7 +393,11 @@ impl Codegen {
             ExprKind::Block(stmts) => {
                 self.collect_usages(stmts, env);
             }
-            ExprKind::If { condition, then_branch, else_branch } => {
+            ExprKind::If {
+                condition,
+                then_branch,
+                else_branch,
+            } => {
                 self.collect_usages_expr(condition, env);
                 self.collect_usages(then_branch, env);
                 if let Some(else_branch) = else_branch {
@@ -413,7 +407,11 @@ impl Codegen {
                     }
                 }
             }
-            ExprKind::AssignIndex { expr: array, index, value } => {
+            ExprKind::AssignIndex {
+                expr: array,
+                index,
+                value,
+            } => {
                 self.collect_usages_expr(array, env);
                 self.collect_usages_expr(index, env);
                 self.collect_usages_expr(value, env);
@@ -421,7 +419,10 @@ impl Codegen {
             ExprKind::Await(expr) => {
                 self.collect_usages_expr(expr, env);
             }
-            ExprKind::Match { expr: match_expr, arms } => {
+            ExprKind::Match {
+                expr: match_expr,
+                arms,
+            } => {
                 self.collect_usages_expr(match_expr, env);
                 for arm in arms {
                     if let Some(guard) = &arm.guard {
@@ -514,7 +515,14 @@ impl Codegen {
                 self.map_type(&param.ty),
                 self.map_type(&param.ty)
             ));
-            env.insert(param.name.clone(), LocalVar { ptr: alloca, ty, used: false });
+            env.insert(
+                param.name.clone(),
+                LocalVar {
+                    ptr: alloca,
+                    ty,
+                    used: false,
+                },
+            );
         }
 
         // Collect variable usages before emitting code for dead code elimination
@@ -726,7 +734,8 @@ impl Codegen {
                 } else {
                     // Break outside loop - this should be caught by parser/typechecker
                     // For now, we'll treat it as unreachable code
-                    self.lines.push("  ; break outside loop - unreachable".to_string());
+                    self.lines
+                        .push("  ; break outside loop - unreachable".to_string());
                     ControlFlow::None
                 }
             }
@@ -738,7 +747,8 @@ impl Codegen {
                 } else {
                     // Continue outside loop - this should be caught by parser/typechecker
                     // For now, we'll treat it as unreachable code
-                    self.lines.push("  ; continue outside loop - unreachable".to_string());
+                    self.lines
+                        .push("  ; continue outside loop - unreachable".to_string());
                     ControlFlow::None
                 }
             }
@@ -1501,19 +1511,24 @@ impl Codegen {
                 // This is a simplified approach - in practice we'd track captured vars
                 let mut captured_vars = Vec::new();
                 for (var_name, var_info) in env.iter() {
-                    if !params.contains(var_name) { // Don't capture parameters
+                    if !params.contains(var_name) {
+                        // Don't capture parameters
                         captured_vars.push((var_name.clone(), var_info.ty));
                     }
                 }
 
-                let env_var_names = captured_vars.iter().map(|(name, _)| name.clone()).collect::<Vec<_>>();
+                let env_var_names = captured_vars
+                    .iter()
+                    .map(|(name, _)| name.clone())
+                    .collect::<Vec<_>>();
                 let _env_var_types = captured_vars.iter().map(|(_, ty)| *ty).collect::<Vec<_>>();
 
                 if !captured_vars.is_empty() {
                     // Define environment struct
                     self.globals.push(format!("%{} = type {{", env_struct_name));
                     for (var_name, var_ty) in &captured_vars {
-                        self.globals.push(format!("  {} {}", self.llvm_ty(*var_ty), var_name));
+                        self.globals
+                            .push(format!("  {} {}", self.llvm_ty(*var_ty), var_name));
                     }
                     self.globals.push("}".to_string());
                 }
@@ -1558,7 +1573,8 @@ impl Codegen {
                         let var_value = lambda_codegen.fresh_temp();
                         lambda_codegen.lines.push(format!(
                             "  {var_value} = load {}, {}* {var_ptr}",
-                            self.llvm_ty(*var_ty), self.llvm_ty(*var_ty)
+                            self.llvm_ty(*var_ty),
+                            self.llvm_ty(*var_ty)
                         ));
 
                         lambda_env.insert(
@@ -1606,7 +1622,10 @@ impl Codegen {
                     // Allocate environment on heap
                     self.ensure_malloc_declared();
                     let env_size = self.fresh_temp();
-                    self.lines.push(format!("  {env_size} = call i8* @malloc(i64 {})", env_var_names.len() * 8));
+                    self.lines.push(format!(
+                        "  {env_size} = call i8* @malloc(i64 {})",
+                        env_var_names.len() * 8
+                    ));
 
                     let env_struct_ptr = self.fresh_temp();
                     self.lines.push(format!(
@@ -1625,7 +1644,9 @@ impl Codegen {
 
                             self.lines.push(format!(
                                 "  store {} {}, {}* {field_ptr}",
-                                self.llvm_ty(var_info.ty), var_info.ptr, self.llvm_ty(var_info.ty)
+                                self.llvm_ty(var_info.ty),
+                                var_info.ptr,
+                                self.llvm_ty(var_info.ty)
                             ));
                         }
                     }
