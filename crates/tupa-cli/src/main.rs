@@ -298,7 +298,7 @@ fn format_parse_error_json(label: &str, src: &str, err: ParserError) -> String {
 
 fn type_error_code(err: &TypeError) -> &'static str {
     match err {
-        TypeError::UnknownType(_) => "E1001",
+        TypeError::UnknownType { .. } => "E1001",
         TypeError::UnknownVar { .. } => "E1002",
         TypeError::UnknownFunction { .. } => "E1003",
         TypeError::Mismatch { .. } => "E2001",
@@ -317,7 +317,10 @@ fn type_error_code(err: &TypeError) -> &'static str {
 
 fn format_type_error(label: &str, src: &str, err: &TypeError) -> String {
     let code = type_error_code(err);
-    let header = format!("error[{code}]: {err}");
+    let mut header = format!("error[{code}]: {err}");
+    if let Some(help) = type_error_help(err) {
+        header = format!("{header}\n{help}");
+    }
     match type_error_span(err) {
         Some(span) => format_diagnostic(label, src, &header, span),
         None => header,
@@ -326,13 +329,23 @@ fn format_type_error(label: &str, src: &str, err: &TypeError) -> String {
 
 fn format_type_error_json(label: &str, src: &str, err: &TypeError) -> String {
     let code = type_error_code(err);
-    diagnostic_json(
-        label,
-        src,
-        &err.to_string(),
-        type_error_span(err),
-        Some(code),
-    )
+    let mut message = err.to_string();
+    if let Some(help) = type_error_help(err) {
+        message = format!("{message}\n{help}");
+    }
+    diagnostic_json(label, src, &message, type_error_span(err), Some(code))
+}
+
+fn type_error_help(err: &TypeError) -> Option<&'static str> {
+    match err {
+        TypeError::InvalidConstraint { .. } => {
+            Some("help: supported constraints are !nan and !inf on f64 values")
+        }
+        TypeError::UnprovenConstraint { .. } => Some(
+            "help: constraint must be provable at compile time; use a literal f64 or avoid Safe<...> here",
+        ),
+        _ => None,
+    }
 }
 
 fn format_type_warning(warning: &Warning) -> String {
@@ -515,7 +528,7 @@ fn type_error_span(err: &TypeError) -> Option<Span> {
         | TypeError::UnprovenConstraint { span, .. }
         | TypeError::BreakOutsideLoop { span, .. }
         | TypeError::ContinueOutsideLoop { span, .. } => *span,
-        TypeError::UnknownType(_) | TypeError::MissingReturn => None,
+        TypeError::UnknownType { .. } | TypeError::MissingReturn => None,
     }
 }
 

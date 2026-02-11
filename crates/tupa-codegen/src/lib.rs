@@ -52,7 +52,9 @@ struct Codegen {
     strcpy_declared: bool,
     strcat_declared: bool,
     snprintf_declared: bool,
+    powf_declared: bool,
     function_sigs: HashMap<String, FuncSig>,
+    used_vars: HashMap<String, bool>,
     #[allow(dead_code)]
     type_info: Option<HashMap<String, tupa_typecheck::Ty>>,
 }
@@ -90,6 +92,14 @@ impl Codegen {
             self.globals
                 .push("declare i32 @snprintf(i8*, i64, i8*, ...)".to_string());
             self.snprintf_declared = true;
+        }
+    }
+
+    fn declare_powf(&mut self) {
+        if !self.powf_declared {
+            self.globals
+                .push("declare double @llvm.pow.f64(double, double)".to_string());
+            self.powf_declared = true;
         }
     }
     // Implementação real de concatenação de strings
@@ -213,42 +223,65 @@ impl Codegen {
         }
     }
 
-    fn collect_usages(&self, stmts: &[Stmt], env: &mut HashMap<String, LocalVar>) {
-        for stmt in stmts {
-            self.collect_usages_stmt(stmt, env);
+    fn is_var_used(&self, name: &str) -> bool {
+        self.used_vars.get(name).copied().unwrap_or(true)
+    }
+
+    fn collect_used_vars(&self, func: &Function) -> HashMap<String, bool> {
+        let mut env = HashMap::new();
+        for param in &func.params {
+            env.insert(param.name.clone(), false);
+        }
+        self.collect_used_in_block(&func.body, &mut env);
+        env
+    }
+
+    fn merge_used_vars(&self, parent: &mut HashMap<String, bool>, child: &HashMap<String, bool>) {
+        for (name, used) in parent.iter_mut() {
+            if let Some(child_used) = child.get(name) {
+                if *child_used {
+                    *used = true;
+                }
+            }
         }
     }
 
-    fn collect_usages_stmt(&self, stmt: &Stmt, env: &mut HashMap<String, LocalVar>) {
+    fn collect_used_in_block(&self, stmts: &[Stmt], env: &mut HashMap<String, bool>) {
+        for stmt in stmts {
+            self.collect_used_in_stmt(stmt, env);
+        }
+    }
+
+    fn collect_used_in_stmt(&self, stmt: &Stmt, env: &mut HashMap<String, bool>) {
         match stmt {
-            Stmt::Let {
-                name: _name, expr, ..
-            } => {
-                self.collect_usages_expr(expr, env);
+            Stmt::Let { name, expr, .. } => {
+                self.collect_used_in_expr(expr, env);
+                env.insert(name.clone(), false);
             }
             Stmt::Expr(expr) => {
-                self.collect_usages_expr(expr, env);
+                self.collect_used_in_expr(expr, env);
             }
             Stmt::Return(expr) => {
                 if let Some(expr) = expr {
-                    self.collect_usages_expr(expr, env);
+                    self.collect_used_in_expr(expr, env);
                 }
             }
             Stmt::While { condition, body } => {
-                self.collect_usages_expr(condition, env);
-                self.collect_usages(body, env);
+                self.collect_used_in_expr(condition, env);
+                let mut inner = env.clone();
+                self.collect_used_in_block(body, &mut inner);
+                self.merge_used_vars(env, &inner);
             }
-            Stmt::For {
-                name: _name,
-                iter,
-                body,
-            } => {
-                self.collect_usages_expr(iter, env);
-                self.collect_usages(body, env);
+            Stmt::For { name, iter, body } => {
+                self.collect_used_in_expr(iter, env);
+                let mut inner = env.clone();
+                inner.insert(name.clone(), false);
+                self.collect_used_in_block(body, &mut inner);
+                self.merge_used_vars(env, &inner);
             }
             Stmt::Break | Stmt::Continue => {}
             Stmt::Lambda { body, .. } => {
-                self.collect_usages_expr(body, env);
+                self.collect_used_in_expr(body, env);
             }
         }
     }
@@ -278,6 +311,33 @@ impl Codegen {
                             span: expr.span,
                         }
                     }
+                    (ExprKind::Int(a), ExprKind::Int(b), tupa_parser::BinaryOp::Pow) => {
+                        if *b >= 0 {
+                            let Ok(exp) = u32::try_from(*b) else {
+                                return Expr {
+                                    kind: ExprKind::Binary {
+                                        op: op.clone(),
+                                        left: Box::new(folded_left),
+                                        right: Box::new(folded_right),
+                                    },
+                                    span: expr.span,
+                                };
+                            };
+                            Expr {
+                                kind: ExprKind::Int(a.pow(exp)),
+                                span: expr.span,
+                            }
+                        } else {
+                            Expr {
+                                kind: ExprKind::Binary {
+                                    op: op.clone(),
+                                    left: Box::new(folded_left),
+                                    right: Box::new(folded_right),
+                                },
+                                span: expr.span,
+                            }
+                        }
+                    }
                     (ExprKind::Float(a), ExprKind::Float(b), tupa_parser::BinaryOp::Add) => Expr {
                         kind: ExprKind::Float(a + b),
                         span: expr.span,
@@ -298,6 +358,10 @@ impl Codegen {
                             span: expr.span,
                         }
                     }
+                    (ExprKind::Float(a), ExprKind::Float(b), tupa_parser::BinaryOp::Pow) => Expr {
+                        kind: ExprKind::Float(a.powf(*b)),
+                        span: expr.span,
+                    },
                     (ExprKind::Bool(a), ExprKind::Bool(b), tupa_parser::BinaryOp::And) => Expr {
                         kind: ExprKind::Bool(*a && *b),
                         span: expr.span,
@@ -345,7 +409,7 @@ impl Codegen {
         }
     }
 
-    fn collect_usages_expr(&self, expr: &Expr, env: &mut HashMap<String, LocalVar>) {
+    fn collect_used_in_expr(&self, expr: &Expr, env: &mut HashMap<String, bool>) {
         match &expr.kind {
             ExprKind::Int(_)
             | ExprKind::Float(_)
@@ -353,58 +417,73 @@ impl Codegen {
             | ExprKind::Bool(_)
             | ExprKind::Null => {}
             ExprKind::Ident(name) => {
-                if let Some(var) = env.get_mut(name) {
-                    var.used = true;
+                if let Some(used) = env.get_mut(name) {
+                    *used = true;
                 }
             }
             ExprKind::Binary { left, right, .. } => {
-                self.collect_usages_expr(left, env);
-                self.collect_usages_expr(right, env);
+                self.collect_used_in_expr(left, env);
+                self.collect_used_in_expr(right, env);
             }
             ExprKind::Unary { expr: operand, .. } => {
-                self.collect_usages_expr(operand, env);
+                self.collect_used_in_expr(operand, env);
             }
             ExprKind::Call { callee, args } => {
-                self.collect_usages_expr(callee, env);
+                self.collect_used_in_expr(callee, env);
                 for arg in args {
-                    self.collect_usages_expr(arg, env);
+                    self.collect_used_in_expr(arg, env);
                 }
             }
             ExprKind::Assign { name: _name, expr } => {
-                self.collect_usages_expr(expr, env);
-                // Note: we don't mark the assigned variable as used here
-                // because we're only tracking reads, not writes
+                self.collect_used_in_expr(expr, env);
             }
             ExprKind::Index { expr: array, index } => {
-                self.collect_usages_expr(array, env);
-                self.collect_usages_expr(index, env);
+                self.collect_used_in_expr(array, env);
+                self.collect_used_in_expr(index, env);
             }
             ExprKind::ArrayLiteral(elements) => {
                 for elem in elements {
-                    self.collect_usages_expr(elem, env);
+                    self.collect_used_in_expr(elem, env);
                 }
             }
             ExprKind::Field { expr: base, .. } => {
-                self.collect_usages_expr(base, env);
+                self.collect_used_in_expr(base, env);
             }
-            ExprKind::Lambda { body, .. } => {
-                self.collect_usages_expr(body, env);
+            ExprKind::Lambda { params, body } => {
+                let mut inner = env.clone();
+                for param in params {
+                    inner.insert(param.clone(), false);
+                }
+                self.collect_used_in_expr(body, &mut inner);
+                self.merge_used_vars(env, &inner);
             }
             ExprKind::Block(stmts) => {
-                self.collect_usages(stmts, env);
+                let mut inner = env.clone();
+                self.collect_used_in_block(stmts, &mut inner);
+                self.merge_used_vars(env, &inner);
             }
             ExprKind::If {
                 condition,
                 then_branch,
                 else_branch,
             } => {
-                self.collect_usages_expr(condition, env);
-                self.collect_usages(then_branch, env);
+                self.collect_used_in_expr(condition, env);
+                let mut then_env = env.clone();
+                self.collect_used_in_block(then_branch, &mut then_env);
                 if let Some(else_branch) = else_branch {
+                    let mut else_env = env.clone();
                     match else_branch {
-                        tupa_parser::ElseBranch::Block(block) => self.collect_usages(block, env),
-                        tupa_parser::ElseBranch::If(expr) => self.collect_usages_expr(expr, env),
+                        tupa_parser::ElseBranch::Block(block) => {
+                            self.collect_used_in_block(block, &mut else_env)
+                        }
+                        tupa_parser::ElseBranch::If(expr) => {
+                            self.collect_used_in_expr(expr, &mut else_env)
+                        }
                     }
+                    self.merge_used_vars(env, &then_env);
+                    self.merge_used_vars(env, &else_env);
+                } else {
+                    self.merge_used_vars(env, &then_env);
                 }
             }
             ExprKind::AssignIndex {
@@ -412,23 +491,28 @@ impl Codegen {
                 index,
                 value,
             } => {
-                self.collect_usages_expr(array, env);
-                self.collect_usages_expr(index, env);
-                self.collect_usages_expr(value, env);
+                self.collect_used_in_expr(array, env);
+                self.collect_used_in_expr(index, env);
+                self.collect_used_in_expr(value, env);
             }
             ExprKind::Await(expr) => {
-                self.collect_usages_expr(expr, env);
+                self.collect_used_in_expr(expr, env);
             }
             ExprKind::Match {
                 expr: match_expr,
                 arms,
             } => {
-                self.collect_usages_expr(match_expr, env);
+                self.collect_used_in_expr(match_expr, env);
                 for arm in arms {
-                    if let Some(guard) = &arm.guard {
-                        self.collect_usages_expr(guard, env);
+                    let mut arm_env = env.clone();
+                    if let tupa_parser::Pattern::Ident(name) = &arm.pattern {
+                        arm_env.insert(name.clone(), false);
                     }
-                    self.collect_usages_expr(&arm.expr, env);
+                    if let Some(guard) = &arm.guard {
+                        self.collect_used_in_expr(guard, &mut arm_env);
+                    }
+                    self.collect_used_in_expr(&arm.expr, &mut arm_env);
+                    self.merge_used_vars(env, &arm_env);
                 }
             }
         }
@@ -436,6 +520,7 @@ impl Codegen {
 
     fn emit_function(&mut self, func: &Function) {
         let mut env: HashMap<String, LocalVar> = HashMap::new();
+        self.used_vars = self.collect_used_vars(func);
         let ret_ty = match func.return_type.as_ref() {
             Some(Type::Ident(name)) if name == "i64" => SimpleTy::I64,
             Some(Type::Ident(name)) if name == "f64" => SimpleTy::F64,
@@ -495,6 +580,9 @@ impl Codegen {
         self.lines.push("entry:".to_string());
 
         for param in &func.params {
+            if !self.is_var_used(&param.name) {
+                continue;
+            }
             let ty = match self.map_type(&param.ty).as_str() {
                 "i64" => SimpleTy::I64,
                 "double" => SimpleTy::F64,
@@ -524,9 +612,6 @@ impl Codegen {
                 },
             );
         }
-
-        // Collect variable usages before emitting code for dead code elimination
-        self.collect_usages(&func.body, &mut env);
 
         let mut returned = false;
         let last_index = func.body.len().saturating_sub(1);
@@ -588,6 +673,10 @@ impl Codegen {
     ) -> ControlFlow {
         match stmt {
             Stmt::Let { name, expr, .. } => {
+                if !self.is_var_used(name) {
+                    self.emit_expr(expr, env);
+                    return ControlFlow::None;
+                }
                 let value = self.emit_expr(expr, env);
                 let alloca = self.fresh_temp();
                 let llvm_ty = self.llvm_ty(value.ty);
@@ -628,7 +717,12 @@ impl Codegen {
                     "  br i1 {cond}, label %{body_label}, label %{end_label}"
                 ));
                 self.lines.push(format!("{body_label}:"));
+                let mut body_used = HashMap::new();
+                self.collect_used_in_block(body, &mut body_used);
+                let previous_used = std::mem::take(&mut self.used_vars);
+                self.used_vars = body_used;
                 let body_flow = self.emit_block(body, env, ret_ty);
+                self.used_vars = previous_used;
                 let body_terminates = matches!(
                     body_flow,
                     ControlFlow::Break | ControlFlow::Continue | ControlFlow::Return
@@ -652,6 +746,13 @@ impl Codegen {
                     }
                 };
 
+                let mut body_used = HashMap::new();
+                body_used.insert(name.clone(), false);
+                self.collect_used_in_block(body, &mut body_used);
+                let should_bind = body_used.get(name).copied().unwrap_or(false);
+                let previous_used = std::mem::take(&mut self.used_vars);
+                self.used_vars = body_used;
+
                 let idx_alloca = self.fresh_temp();
                 self.lines.push("  ; for-range".to_string());
                 self.lines.push(format!("  {idx_alloca} = alloca i64"));
@@ -660,16 +761,24 @@ impl Codegen {
                     start.llvm_value
                 ));
 
-                let loop_var_alloca = self.fresh_temp();
-                self.lines.push(format!("  {loop_var_alloca} = alloca i64"));
-                let previous = env.insert(
-                    name.clone(),
-                    LocalVar {
-                        ptr: loop_var_alloca.clone(),
-                        ty: SimpleTy::I64,
-                        used: false,
-                    },
-                );
+                let mut previous = None;
+                let mut binding_active = false;
+                let loop_var_alloca = if should_bind {
+                    let alloca = self.fresh_temp();
+                    self.lines.push(format!("  {alloca} = alloca i64"));
+                    previous = env.insert(
+                        name.clone(),
+                        LocalVar {
+                            ptr: alloca.clone(),
+                            ty: SimpleTy::I64,
+                            used: false,
+                        },
+                    );
+                    binding_active = true;
+                    Some(alloca)
+                } else {
+                    None
+                };
 
                 let head = self.fresh_label("for.head");
                 let body_label = self.fresh_label("for.body");
@@ -696,8 +805,10 @@ impl Codegen {
                 ));
 
                 self.lines.push(format!("{body_label}:"));
-                self.lines
-                    .push(format!("  store i64 {idx_val}, i64* {loop_var_alloca}"));
+                if let Some(loop_var_alloca) = &loop_var_alloca {
+                    self.lines
+                        .push(format!("  store i64 {idx_val}, i64* {loop_var_alloca}"));
+                }
                 let body_flow = self.emit_block(body, env, ret_ty);
                 if !matches!(
                     body_flow,
@@ -716,11 +827,14 @@ impl Codegen {
 
                 self.lines.push(format!("{end_label}:"));
                 self.loop_stack.pop();
-                if let Some(prev) = previous {
-                    env.insert(name.clone(), prev);
-                } else {
-                    env.remove(name);
+                if binding_active {
+                    if let Some(prev) = previous {
+                        env.insert(name.clone(), prev);
+                    } else {
+                        env.remove(name);
+                    }
                 }
+                self.used_vars = previous_used;
                 match body_flow {
                     ControlFlow::Return => ControlFlow::Return,
                     _ => ControlFlow::None,
@@ -894,6 +1008,10 @@ impl Codegen {
                 tupa_parser::Pattern::Ident(name) => Some(name.clone()),
                 _ => None,
             };
+            let should_bind = binding_name
+                .as_ref()
+                .map(|name| self.is_var_used(name))
+                .unwrap_or(false);
             match (&arm.pattern, value.ty) {
                 (tupa_parser::Pattern::Int(value_literal), SimpleTy::I64) => {
                     let cmp = self.fresh_temp();
@@ -935,25 +1053,29 @@ impl Codegen {
 
             let mut prev_binding: Option<LocalVar> = None;
             let mut bound = false;
+            let mut binding_active = false;
             if let Some(guard_label) = &guard_labels[idx] {
                 self.lines.push(format!("{guard_label}:"));
                 if let Some(name) = &binding_name {
-                    let llvm_ty = self.llvm_ty(value.ty);
-                    let alloca = self.fresh_temp();
-                    self.lines.push(format!("  {alloca} = alloca {llvm_ty}"));
-                    self.lines.push(format!(
-                        "  store {llvm_ty} {}, {llvm_ty}* {alloca}",
-                        value.llvm_value
-                    ));
-                    prev_binding = env.insert(
-                        name.clone(),
-                        LocalVar {
-                            ptr: alloca,
-                            ty: value.ty,
-                            used: false,
-                        },
-                    );
-                    bound = true;
+                    if should_bind {
+                        let llvm_ty = self.llvm_ty(value.ty);
+                        let alloca = self.fresh_temp();
+                        self.lines.push(format!("  {alloca} = alloca {llvm_ty}"));
+                        self.lines.push(format!(
+                            "  store {llvm_ty} {}, {llvm_ty}* {alloca}",
+                            value.llvm_value
+                        ));
+                        prev_binding = env.insert(
+                            name.clone(),
+                            LocalVar {
+                                ptr: alloca,
+                                ty: value.ty,
+                                used: false,
+                            },
+                        );
+                        bound = true;
+                        binding_active = true;
+                    }
                 }
                 let guard_value = self.emit_expr(arm.guard.as_ref().unwrap(), env);
                 let cond = if guard_value.ty == SimpleTy::Bool {
@@ -970,21 +1092,24 @@ impl Codegen {
             self.lines.push(format!("{}:", arm_labels[idx]));
             if !bound {
                 if let Some(name) = &binding_name {
-                    let llvm_ty = self.llvm_ty(value.ty);
-                    let alloca = self.fresh_temp();
-                    self.lines.push(format!("  {alloca} = alloca {llvm_ty}"));
-                    self.lines.push(format!(
-                        "  store {llvm_ty} {}, {llvm_ty}* {alloca}",
-                        value.llvm_value
-                    ));
-                    prev_binding = env.insert(
-                        name.clone(),
-                        LocalVar {
-                            ptr: alloca,
-                            ty: value.ty,
-                            used: false,
-                        },
-                    );
+                    if should_bind {
+                        let llvm_ty = self.llvm_ty(value.ty);
+                        let alloca = self.fresh_temp();
+                        self.lines.push(format!("  {alloca} = alloca {llvm_ty}"));
+                        self.lines.push(format!(
+                            "  store {llvm_ty} {}, {llvm_ty}* {alloca}",
+                            value.llvm_value
+                        ));
+                        prev_binding = env.insert(
+                            name.clone(),
+                            LocalVar {
+                                ptr: alloca,
+                                ty: value.ty,
+                                used: false,
+                            },
+                        );
+                        binding_active = true;
+                    }
                 }
             }
             let returned = match &arm.expr.kind {
@@ -994,11 +1119,13 @@ impl Codegen {
             if returned == ControlFlow::None {
                 self.lines.push(format!("  br label %{end_label}"));
             }
-            if let Some(name) = &binding_name {
-                if let Some(prev) = prev_binding.take() {
-                    env.insert(name.clone(), prev);
-                } else {
-                    env.remove(name);
+            if binding_active {
+                if let Some(name) = &binding_name {
+                    if let Some(prev) = prev_binding.take() {
+                        env.insert(name.clone(), prev);
+                    } else {
+                        env.remove(name);
+                    }
                 }
             }
             if idx + 1 < arms.len() {
@@ -1350,6 +1477,10 @@ impl Codegen {
                 tupa_parser::Pattern::Ident(name) => Some(name.clone()),
                 _ => None,
             };
+            let should_bind = binding_name
+                .as_ref()
+                .map(|name| self.is_var_used(name))
+                .unwrap_or(false);
             match (&arm.pattern, value.ty) {
                 (tupa_parser::Pattern::Int(value_literal), SimpleTy::I64) => {
                     let cmp = self.fresh_temp();
@@ -1391,26 +1522,30 @@ impl Codegen {
 
             let mut prev_binding: Option<LocalVar> = None;
             let mut bound = false;
+            let mut binding_active = false;
             if let Some(guard_label) = &guard_labels[idx] {
                 self.lines.push(format!("{guard_label}:"));
                 if let Some(name) = &binding_name {
-                    let llvm_val_ty = self.llvm_ty(value.ty);
-                    let alloca = self.fresh_temp();
-                    self.lines
-                        .push(format!("  {alloca} = alloca {llvm_val_ty}"));
-                    self.lines.push(format!(
-                        "  store {llvm_val_ty} {}, {llvm_val_ty}* {alloca}",
-                        value.llvm_value
-                    ));
-                    prev_binding = env.insert(
-                        name.clone(),
-                        LocalVar {
-                            ptr: alloca,
-                            ty: value.ty,
-                            used: false,
-                        },
-                    );
-                    bound = true;
+                    if should_bind {
+                        let llvm_val_ty = self.llvm_ty(value.ty);
+                        let alloca = self.fresh_temp();
+                        self.lines
+                            .push(format!("  {alloca} = alloca {llvm_val_ty}"));
+                        self.lines.push(format!(
+                            "  store {llvm_val_ty} {}, {llvm_val_ty}* {alloca}",
+                            value.llvm_value
+                        ));
+                        prev_binding = env.insert(
+                            name.clone(),
+                            LocalVar {
+                                ptr: alloca,
+                                ty: value.ty,
+                                used: false,
+                            },
+                        );
+                        bound = true;
+                        binding_active = true;
+                    }
                 }
                 let guard_value = self.emit_expr(arm.guard.as_ref().unwrap(), env);
                 let cond = if guard_value.ty == SimpleTy::Bool {
@@ -1427,22 +1562,25 @@ impl Codegen {
             self.lines.push(format!("{}:", arm_labels[idx]));
             if !bound {
                 if let Some(name) = &binding_name {
-                    let llvm_val_ty = self.llvm_ty(value.ty);
-                    let alloca = self.fresh_temp();
-                    self.lines
-                        .push(format!("  {alloca} = alloca {llvm_val_ty}"));
-                    self.lines.push(format!(
-                        "  store {llvm_val_ty} {}, {llvm_val_ty}* {alloca}",
-                        value.llvm_value
-                    ));
-                    prev_binding = env.insert(
-                        name.clone(),
-                        LocalVar {
-                            ptr: alloca,
-                            ty: value.ty,
-                            used: false,
-                        },
-                    );
+                    if should_bind {
+                        let llvm_val_ty = self.llvm_ty(value.ty);
+                        let alloca = self.fresh_temp();
+                        self.lines
+                            .push(format!("  {alloca} = alloca {llvm_val_ty}"));
+                        self.lines.push(format!(
+                            "  store {llvm_val_ty} {}, {llvm_val_ty}* {alloca}",
+                            value.llvm_value
+                        ));
+                        prev_binding = env.insert(
+                            name.clone(),
+                            LocalVar {
+                                ptr: alloca,
+                                ty: value.ty,
+                                used: false,
+                            },
+                        );
+                        binding_active = true;
+                    }
                 }
             }
             let arm_val = match &arm.expr.kind {
@@ -1457,11 +1595,13 @@ impl Codegen {
             }
             self.lines.push(format!("  br label %{end_label}"));
 
-            if let Some(name) = &binding_name {
-                if let Some(prev) = prev_binding.take() {
-                    env.insert(name.clone(), prev);
-                } else {
-                    env.remove(name);
+            if binding_active {
+                if let Some(name) = &binding_name {
+                    if let Some(prev) = prev_binding.take() {
+                        env.insert(name.clone(), prev);
+                    } else {
+                        env.remove(name);
+                    }
                 }
             }
             if idx + 1 < arms.len() {
@@ -1507,12 +1647,15 @@ impl Codegen {
                 // Create environment struct type
                 let env_struct_name = format!("env_{}", lambda_name);
 
-                // Collect all local variables that could be captured
-                // This is a simplified approach - in practice we'd track captured vars
+                let mut used_env: HashMap<String, bool> =
+                    env.keys().map(|name| (name.clone(), false)).collect();
+                self.collect_used_in_expr(body, &mut used_env);
                 let mut captured_vars = Vec::new();
                 for (var_name, var_info) in env.iter() {
-                    if !params.contains(var_name) {
-                        // Don't capture parameters
+                    if params.contains(var_name) {
+                        continue;
+                    }
+                    if used_env.get(var_name).copied().unwrap_or(false) {
                         captured_vars.push((var_name.clone(), var_info.ty));
                     }
                 }
@@ -1577,10 +1720,20 @@ impl Codegen {
                             self.llvm_ty(*var_ty)
                         ));
 
+                        let var_alloca = lambda_codegen.fresh_temp();
+                        lambda_codegen
+                            .lines
+                            .push(format!("  {var_alloca} = alloca {}", self.llvm_ty(*var_ty)));
+                        lambda_codegen.lines.push(format!(
+                            "  store {} {var_value}, {}* {var_alloca}",
+                            self.llvm_ty(*var_ty),
+                            self.llvm_ty(*var_ty)
+                        ));
+
                         lambda_env.insert(
                             var_name.clone(),
                             LocalVar {
-                                ptr: var_value,
+                                ptr: var_alloca,
                                 ty: *var_ty,
                                 used: false,
                             },
@@ -1621,15 +1774,23 @@ impl Codegen {
                 if !env_var_names.is_empty() {
                     // Allocate environment on heap
                     self.ensure_malloc_declared();
+                    let env_size_ptr = self.fresh_temp();
+                    self.lines.push(format!(
+                        "  {env_size_ptr} = getelementptr %{}, %{}* null, i32 1",
+                        env_struct_name, env_struct_name
+                    ));
                     let env_size = self.fresh_temp();
                     self.lines.push(format!(
-                        "  {env_size} = call i8* @malloc(i64 {})",
-                        env_var_names.len() * 8
+                        "  {env_size} = ptrtoint %{}* {env_size_ptr} to i64",
+                        env_struct_name
                     ));
+                    let env_mem = self.fresh_temp();
+                    self.lines
+                        .push(format!("  {env_mem} = call i8* @malloc(i64 {env_size})"));
 
                     let env_struct_ptr = self.fresh_temp();
                     self.lines.push(format!(
-                        "  {env_struct_ptr} = bitcast i8* {env_size} to %{}*",
+                        "  {env_struct_ptr} = bitcast i8* {env_mem} to %{}*",
                         env_struct_name
                     ));
 
@@ -1642,10 +1803,16 @@ impl Codegen {
                                 env_struct_name, env_struct_name, i
                             ));
 
+                            let loaded = self.fresh_temp();
                             self.lines.push(format!(
-                                "  store {} {}, {}* {field_ptr}",
+                                "  {loaded} = load {}, {}* {}",
                                 self.llvm_ty(var_info.ty),
-                                var_info.ptr,
+                                self.llvm_ty(var_info.ty),
+                                var_info.ptr
+                            ));
+                            self.lines.push(format!(
+                                "  store {} {loaded}, {}* {field_ptr}",
+                                self.llvm_ty(var_info.ty),
                                 self.llvm_ty(var_info.ty)
                             ));
                         }
@@ -2132,6 +2299,15 @@ impl Codegen {
                         }
                     }
                     (SimpleTy::F64, SimpleTy::F64) => {
+                        if matches!(op, tupa_parser::BinaryOp::Pow) {
+                            self.declare_powf();
+                            let tmp = self.fresh_temp();
+                            self.lines.push(format!(
+                                "  {tmp} = call double @llvm.pow.f64(double {}, double {})",
+                                left_val.llvm_value, right_val.llvm_value
+                            ));
+                            return ExprValue::new(SimpleTy::F64, tmp);
+                        }
                         let op = match op {
                             tupa_parser::BinaryOp::Add => Some("fadd"),
                             tupa_parser::BinaryOp::Sub => Some("fsub"),
@@ -2539,7 +2715,7 @@ fn escape_llvm_string(value: &str) -> (String, usize) {
 mod tests {
     use super::*;
     use tupa_lexer::Span;
-    use tupa_parser::{Expr, ExprKind, Function, Item, Program, Stmt, Type};
+    use tupa_parser::{BinaryOp, Expr, ExprKind, Function, Item, Param, Program, Stmt, Type};
 
     #[test]
     fn test_empty_function_codegen() {
@@ -2591,5 +2767,148 @@ mod tests {
         let code = generate_stub(&program);
         assert!(code.contains("@.str"));
         assert!(code.contains("hello"));
+    }
+
+    #[test]
+    fn test_f64_pow_codegen() {
+        let program = Program {
+            items: vec![Item::Function(Function {
+                name: "powf".to_string(),
+                params: vec![Param {
+                    name: "x".to_string(),
+                    ty: Type::Ident("f64".to_string()),
+                }],
+                return_type: Some(Type::Ident("f64".to_string())),
+                body: vec![Stmt::Return(Some(Expr {
+                    kind: ExprKind::Binary {
+                        op: BinaryOp::Pow,
+                        left: Box::new(Expr {
+                            kind: ExprKind::Ident("x".to_string()),
+                            span: Span { start: 0, end: 0 },
+                        }),
+                        right: Box::new(Expr {
+                            kind: ExprKind::Float(3.0),
+                            span: Span { start: 0, end: 0 },
+                        }),
+                    },
+                    span: Span { start: 0, end: 0 },
+                }))],
+            })],
+        };
+        let code = generate_stub(&program);
+        assert!(code.contains("declare double @llvm.pow.f64(double, double)"));
+        assert!(code.contains("call double @llvm.pow.f64"));
+    }
+
+    #[test]
+    fn test_f64_pow_folding() {
+        let program = Program {
+            items: vec![Item::Function(Function {
+                name: "powf_const".to_string(),
+                params: vec![],
+                return_type: Some(Type::Ident("f64".to_string())),
+                body: vec![Stmt::Return(Some(Expr {
+                    kind: ExprKind::Binary {
+                        op: BinaryOp::Pow,
+                        left: Box::new(Expr {
+                            kind: ExprKind::Float(2.0),
+                            span: Span { start: 0, end: 0 },
+                        }),
+                        right: Box::new(Expr {
+                            kind: ExprKind::Float(3.0),
+                            span: Span { start: 0, end: 0 },
+                        }),
+                    },
+                    span: Span { start: 0, end: 0 },
+                }))],
+            })],
+        };
+        let code = generate_stub(&program);
+        assert!(code.contains("ret double 8"));
+        assert!(!code.contains("llvm.pow.f64"));
+    }
+
+    #[test]
+    fn test_i64_pow_folding() {
+        let program = Program {
+            items: vec![Item::Function(Function {
+                name: "powi_const".to_string(),
+                params: vec![],
+                return_type: Some(Type::Ident("i64".to_string())),
+                body: vec![Stmt::Return(Some(Expr {
+                    kind: ExprKind::Binary {
+                        op: BinaryOp::Pow,
+                        left: Box::new(Expr {
+                            kind: ExprKind::Int(2),
+                            span: Span { start: 0, end: 0 },
+                        }),
+                        right: Box::new(Expr {
+                            kind: ExprKind::Int(3),
+                            span: Span { start: 0, end: 0 },
+                        }),
+                    },
+                    span: Span { start: 0, end: 0 },
+                }))],
+            })],
+        };
+        let code = generate_stub(&program);
+        assert!(code.contains("ret i64 8"));
+    }
+
+    #[test]
+    fn test_lambda_captures_only_used_vars() {
+        let program = Program {
+            items: vec![Item::Function(Function {
+                name: "main".to_string(),
+                params: vec![],
+                return_type: None,
+                body: vec![
+                    Stmt::Let {
+                        name: "x".to_string(),
+                        ty: None,
+                        expr: Expr {
+                            kind: ExprKind::Int(1),
+                            span: Span { start: 0, end: 0 },
+                        },
+                    },
+                    Stmt::Let {
+                        name: "y".to_string(),
+                        ty: None,
+                        expr: Expr {
+                            kind: ExprKind::Int(2),
+                            span: Span { start: 0, end: 0 },
+                        },
+                    },
+                    Stmt::Let {
+                        name: "f".to_string(),
+                        ty: None,
+                        expr: Expr {
+                            kind: ExprKind::Lambda {
+                                params: vec!["z".to_string()],
+                                body: Box::new(Expr {
+                                    kind: ExprKind::Binary {
+                                        op: BinaryOp::Add,
+                                        left: Box::new(Expr {
+                                            kind: ExprKind::Ident("x".to_string()),
+                                            span: Span { start: 0, end: 0 },
+                                        }),
+                                        right: Box::new(Expr {
+                                            kind: ExprKind::Ident("z".to_string()),
+                                            span: Span { start: 0, end: 0 },
+                                        }),
+                                    },
+                                    span: Span { start: 0, end: 0 },
+                                }),
+                            },
+                            span: Span { start: 0, end: 0 },
+                        },
+                    },
+                ],
+            })],
+        };
+        let code = generate_stub(&program);
+        assert!(code.contains("%env_lambda_"));
+        assert!(code.contains(" i64 x"));
+        assert!(!code.contains(" i64 y"));
     }
 }

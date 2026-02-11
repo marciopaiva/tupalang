@@ -37,12 +37,20 @@ pub enum Ty {
 
 #[derive(Debug, Error)]
 pub enum TypeError {
-    #[error("unknown type '{0}'")]
-    UnknownType(String),
-    #[error("undefined variable '{name}'")]
-    UnknownVar { name: String, span: Option<Span> },
-    #[error("undefined function '{name}'")]
-    UnknownFunction { name: String, span: Option<Span> },
+    #[error("unknown type '{name}'{suggestion}")]
+    UnknownType { name: String, suggestion: String },
+    #[error("undefined variable '{name}'{suggestion}")]
+    UnknownVar {
+        name: String,
+        suggestion: String,
+        span: Option<Span>,
+    },
+    #[error("undefined function '{name}'{suggestion}")]
+    UnknownFunction {
+        name: String,
+        suggestion: String,
+        span: Option<Span>,
+    },
     #[error("type mismatch: expected {expected:?}, got {found:?}")]
     Mismatch {
         expected: Ty,
@@ -190,8 +198,12 @@ fn collect_vars(expr: &Expr, vars: &mut std::collections::HashSet<String>) {
                 collect_vars(item, vars);
             }
         }
-        // Field access and await are not yet implemented
-        ExprKind::Field { .. } | ExprKind::Await(_) => {}
+        ExprKind::Field { expr, .. } => {
+            collect_vars(expr, vars);
+        }
+        ExprKind::Await(expr) => {
+            collect_vars(expr, vars);
+        }
     }
 }
 
@@ -405,6 +417,28 @@ fn infer_lambda_param_types(
                 expected_return,
             )?;
         }
+        ExprKind::Field { expr, .. } => {
+            infer_lambda_param_types(
+                expr,
+                env,
+                param_types,
+                functions,
+                enums,
+                traits,
+                expected_return,
+            )?;
+        }
+        ExprKind::Await(expr) => {
+            infer_lambda_param_types(
+                expr,
+                env,
+                param_types,
+                functions,
+                enums,
+                traits,
+                expected_return,
+            )?;
+        }
         // Other expressions don't provide parameter type information
         _ => {}
     }
@@ -538,10 +572,8 @@ fn infer_param_type_from_expr(
     Ok(())
 }
 
-fn find_param_index(_name: &str, _env: &TypeEnv) -> Option<usize> {
-    // This is a simplified version - in practice, we'd need to track parameter positions
-    // For now, return None to indicate we can't determine parameter indices easily
-    None
+fn find_param_index(name: &str, env: &TypeEnv) -> Option<usize> {
+    env.param_indices.get(name).copied()
 }
 
 #[allow(clippy::result_large_err)]
@@ -550,6 +582,7 @@ fn validate_safe_constraints(
     base: &Ty,
     expr: &Expr,
 ) -> Result<(), TypeError> {
+    let literal = eval_f64_const(expr);
     for constraint in constraints {
         match constraint.as_str() {
             "nan" | "inf" => {
@@ -560,32 +593,106 @@ fn validate_safe_constraints(
                         span: Some(expr.span),
                     });
                 }
-                match expr.kind {
-                    ExprKind::Float(value) => {
-                        if !value.is_finite() {
-                            return Err(TypeError::UnprovenConstraint {
-                                constraint: constraint.clone(),
-                                span: Some(expr.span),
-                            });
-                        }
-                    }
-                    _ => {
-                        return Err(TypeError::UnprovenConstraint {
-                            constraint: constraint.clone(),
-                            span: Some(expr.span),
-                        })
-                    }
+                let Some(value) = literal else {
+                    return Err(TypeError::UnprovenConstraint {
+                        constraint: constraint.clone(),
+                        span: Some(expr.span),
+                    });
+                };
+                if (constraint == "nan" && value.is_nan())
+                    || (constraint == "inf" && value.is_infinite())
+                {
+                    return Err(TypeError::UnprovenConstraint {
+                        constraint: constraint.clone(),
+                        span: Some(expr.span),
+                    });
                 }
             }
             _ => {
-                return Err(TypeError::UnprovenConstraint {
+                return Err(TypeError::InvalidConstraint {
                     constraint: constraint.clone(),
+                    base: base.clone(),
                     span: Some(expr.span),
-                })
+                });
             }
         }
     }
     Ok(())
+}
+
+fn suggestion_message(suggestion: Option<String>) -> String {
+    suggestion
+        .map(|value| format!(" (did you mean '{value}'?)"))
+        .unwrap_or_default()
+}
+
+fn levenshtein(a: &str, b: &str) -> usize {
+    let a_chars: Vec<char> = a.chars().collect();
+    let b_chars: Vec<char> = b.chars().collect();
+    let mut prev: Vec<usize> = (0..=b_chars.len()).collect();
+    for (i, ca) in a_chars.iter().enumerate() {
+        let mut curr = vec![i + 1; b_chars.len() + 1];
+        for (j, cb) in b_chars.iter().enumerate() {
+            let cost = if ca == cb { 0 } else { 1 };
+            let deletion = prev[j + 1] + 1;
+            let insertion = curr[j] + 1;
+            let substitution = prev[j] + cost;
+            curr[j + 1] = deletion.min(insertion).min(substitution);
+        }
+        prev = curr;
+    }
+    prev[b_chars.len()]
+}
+
+fn best_suggestion(target: &str, candidates: impl IntoIterator<Item = String>) -> Option<String> {
+    let mut best: Option<(String, usize)> = None;
+    for candidate in candidates {
+        if candidate == target {
+            continue;
+        }
+        let distance = levenshtein(target, &candidate);
+        let max_len = target.chars().count().max(candidate.chars().count());
+        let threshold = if max_len <= 3 {
+            1
+        } else if max_len <= 6 {
+            2
+        } else {
+            3
+        };
+        if distance <= threshold {
+            match &best {
+                None => best = Some((candidate, distance)),
+                Some((_, best_distance)) if distance < *best_distance => {
+                    best = Some((candidate, distance))
+                }
+                _ => {}
+            }
+        }
+    }
+    best.map(|(name, _)| name)
+}
+
+fn eval_f64_const(expr: &Expr) -> Option<f64> {
+    match &expr.kind {
+        ExprKind::Float(value) => Some(*value),
+        ExprKind::Unary {
+            op: UnaryOp::Neg,
+            expr,
+        } => eval_f64_const(expr).map(|value| -value),
+        ExprKind::Binary { op, left, right } => {
+            let lhs = eval_f64_const(left)?;
+            let rhs = eval_f64_const(right)?;
+            match op {
+                BinaryOp::Add => Some(lhs + rhs),
+                BinaryOp::Sub => Some(lhs - rhs),
+                BinaryOp::Mul => Some(lhs * rhs),
+                BinaryOp::Div => Some(lhs / rhs),
+                BinaryOp::Pow => Some(lhs.powf(rhs)),
+                _ => None,
+            }
+        }
+        _ => None,
+    }
 }
 
 #[allow(clippy::result_large_err)]
@@ -754,8 +861,8 @@ fn typecheck_stmt(
             inner.loop_depth += 1;
             for stmt in body {
                 typecheck_stmt(stmt, &mut inner, functions, enums, traits, expected_return)?;
-                typecheck_stmt(stmt, &mut inner, functions, enums, traits, expected_return)?;
             }
+            env.merge_used(&inner);
             Ok(())
         }
         Stmt::For { name, iter, body } => {
@@ -778,8 +885,8 @@ fn typecheck_stmt(
             inner.insert_var(name.clone(), elem_ty);
             for stmt in body {
                 typecheck_stmt(stmt, &mut inner, functions, enums, traits, expected_return)?;
-                typecheck_stmt(stmt, &mut inner, functions, enums, traits, expected_return)?;
             }
+            env.merge_used(&inner);
             Ok(())
         }
         Stmt::Break => {
@@ -844,6 +951,10 @@ fn type_of_expr(
             }
             Err(TypeError::UnknownVar {
                 name: name.clone(),
+                suggestion: suggestion_message(best_suggestion(
+                    name,
+                    env.vars.keys().cloned().collect::<Vec<_>>(),
+                )),
                 span,
             })
         }
@@ -864,14 +975,17 @@ fn type_of_expr(
                     captured_vars.push((var.clone(), var_ty.clone()));
                 }
             }
+            for (name, _) in &captured_vars {
+                env.get_var_and_mark(name);
+            }
 
             // Try to infer parameter types by analyzing usage in the body
             let mut param_types = vec![Ty::Unknown; params.len()];
             let mut inner = env.child();
 
             // First pass: assume all params are Unknown and collect constraints
-            for (name, ty) in params.iter().zip(param_types.iter()) {
-                inner.insert_var(name.clone(), ty.clone());
+            for (idx, (name, ty)) in params.iter().zip(param_types.iter()).enumerate() {
+                inner.insert_param(name.clone(), ty.clone(), idx);
             }
 
             // Analyze the body to infer parameter types
@@ -887,8 +1001,8 @@ fn type_of_expr(
 
             // Second pass: use inferred types
             let mut inner_final = env.child();
-            for (name, ty) in params.iter().zip(param_types.iter()) {
-                inner_final.insert_var(name.clone(), ty.clone());
+            for (idx, (name, ty)) in params.iter().zip(param_types.iter()).enumerate() {
+                inner_final.insert_param(name.clone(), ty.clone(), idx);
             }
 
             let ret_ty = type_of_expr(
@@ -918,6 +1032,10 @@ fn type_of_expr(
             let rhs = type_of_expr(expr, env, functions, enums, traits, expected_return)?;
             let lhs = env.get_var(name).ok_or_else(|| TypeError::UnknownVar {
                 name: name.clone(),
+                suggestion: suggestion_message(best_suggestion(
+                    name,
+                    env.vars.keys().cloned().collect::<Vec<_>>(),
+                )),
                 span,
             })?;
             if lhs != rhs {
@@ -930,8 +1048,40 @@ fn type_of_expr(
             Ok(lhs)
         }
         ExprKind::AssignIndex { .. } => {
-            // Not yet supported in typechecker
-            Ok(Ty::Unknown)
+            let ExprKind::AssignIndex { expr, index, value } = &expr.kind else {
+                return Ok(Ty::Unknown);
+            };
+            let base_ty = type_of_expr(expr, env, functions, enums, traits, expected_return)?;
+            let index_ty = type_of_expr(index, env, functions, enums, traits, expected_return)?;
+            if index_ty != Ty::I64 && index_ty != Ty::Unknown {
+                return Err(TypeError::Mismatch {
+                    expected: Ty::I64,
+                    found: index_ty,
+                    span: Some(index.span),
+                });
+            }
+            match base_ty {
+                Ty::Array { elem, .. } | Ty::Slice { elem } => {
+                    let value_ty =
+                        type_of_expr(value, env, functions, enums, traits, expected_return)?;
+                    if value_ty != *elem && value_ty != Ty::Unknown && *elem != Ty::Unknown {
+                        return Err(TypeError::Mismatch {
+                            expected: *elem.clone(),
+                            found: value_ty,
+                            span: Some(value.span),
+                        });
+                    }
+                    Ok(*elem)
+                }
+                other => Err(TypeError::Mismatch {
+                    expected: Ty::Array {
+                        elem: Box::new(Ty::Unknown),
+                        len: 0,
+                    },
+                    found: other,
+                    span,
+                }),
+            }
         }
         ExprKind::ArrayLiteral(items) => {
             if items.is_empty() {
@@ -957,6 +1107,17 @@ fn type_of_expr(
             })
         }
         ExprKind::Call { callee, args } => {
+            if let ExprKind::Ident(name) = &callee.kind {
+                if env.get_var(name).is_none() && !functions.contains_key(name) && name != "print" {
+                    let mut candidates = functions.keys().cloned().collect::<Vec<_>>();
+                    candidates.push("print".to_string());
+                    return Err(TypeError::UnknownFunction {
+                        name: name.clone(),
+                        suggestion: suggestion_message(best_suggestion(name, candidates)),
+                        span,
+                    });
+                }
+            }
             let callee_ty = type_of_expr(callee, env, functions, enums, traits, expected_return)?;
             match callee_ty {
                 Ty::Func { params, ret } => {
@@ -1006,13 +1167,45 @@ fn type_of_expr(
                 other => Err(TypeError::InvalidCallTarget { found: other, span }),
             }
         }
-        ExprKind::Field { .. } => Ok(Ty::Unknown),
-        ExprKind::Index { expr, .. } => {
+        ExprKind::Field { expr: base, field } => {
+            let base_ty = type_of_expr(base, env, functions, enums, traits, expected_return)?;
+            match field {
+                tupa_parser::FieldAccess::Index(_) => match base_ty {
+                    Ty::Array { elem, .. } | Ty::Slice { elem } => Ok(*elem),
+                    Ty::Unknown => Ok(Ty::Unknown),
+                    other => Err(TypeError::Mismatch {
+                        expected: Ty::Array {
+                            elem: Box::new(Ty::Unknown),
+                            len: 0,
+                        },
+                        found: other,
+                        span,
+                    }),
+                },
+                tupa_parser::FieldAccess::Ident(_) => Ok(Ty::Unknown),
+            }
+        }
+        ExprKind::Index { expr, index } => {
             let base = type_of_expr(expr, env, functions, enums, traits, expected_return)?;
+            let index_ty = type_of_expr(index, env, functions, enums, traits, expected_return)?;
+            if index_ty != Ty::I64 && index_ty != Ty::Unknown {
+                return Err(TypeError::Mismatch {
+                    expected: Ty::I64,
+                    found: index_ty,
+                    span: Some(index.span),
+                });
+            }
             match base {
                 Ty::Array { elem, .. } => Ok(*elem),
                 Ty::Slice { elem } => Ok(*elem),
-                other => Ok(other),
+                other => Err(TypeError::Mismatch {
+                    expected: Ty::Array {
+                        elem: Box::new(Ty::Unknown),
+                        len: 0,
+                    },
+                    found: other,
+                    span,
+                }),
             }
         }
         ExprKind::Await(expr) => type_of_expr(expr, env, functions, enums, traits, expected_return),
@@ -1032,24 +1225,31 @@ fn type_of_expr(
                     span: Some(condition.span),
                 });
             }
+            let mut then_env = env.child();
             let then_ty = type_of_block_expr(
                 then_branch,
-                &mut env.child(),
+                &mut then_env,
                 functions,
                 enums,
                 traits,
                 expected_return,
             )?;
+            env.merge_used(&then_env);
             let else_ty = match else_branch {
                 Some(branch) => match branch {
-                    tupa_parser::ElseBranch::Block(block) => type_of_block_expr(
-                        block,
-                        &mut env.child(),
-                        functions,
-                        enums,
-                        traits,
-                        expected_return,
-                    )?,
+                    tupa_parser::ElseBranch::Block(block) => {
+                        let mut else_env = env.child();
+                        let else_ty = type_of_block_expr(
+                            block,
+                            &mut else_env,
+                            functions,
+                            enums,
+                            traits,
+                            expected_return,
+                        )?;
+                        env.merge_used(&else_env);
+                        else_ty
+                    }
                     tupa_parser::ElseBranch::If(expr) => {
                         type_of_expr(expr, env, functions, enums, traits, expected_return)?
                     }
@@ -1090,6 +1290,7 @@ fn type_of_expr(
                     traits,
                     expected_return,
                 )?;
+                env.merge_used(&inner);
                 match &expected_arm_ty {
                     Some(expected) if *expected != arm_ty => {
                         return Err(TypeError::Mismatch {
@@ -1312,7 +1513,19 @@ fn type_from_ast(
                 if enums.contains_key(name) {
                     Ok(Ty::Enum(name.clone()))
                 } else {
-                    Err(TypeError::UnknownType(name.clone()))
+                    let mut candidates = vec![
+                        "i64".to_string(),
+                        "f64".to_string(),
+                        "bool".to_string(),
+                        "string".to_string(),
+                        "null".to_string(),
+                    ];
+                    candidates.extend(enums.keys().cloned());
+                    let suggestion = suggestion_message(best_suggestion(name, candidates));
+                    Err(TypeError::UnknownType {
+                        name: name.clone(),
+                        suggestion,
+                    })
                 }
             }
         },
@@ -1342,6 +1555,7 @@ fn type_from_ast(
 struct TypeEnv {
     vars: HashMap<String, VarInfo>,
     loop_depth: usize,
+    param_indices: HashMap<String, usize>,
 }
 
 #[derive(Debug, Clone)]
@@ -1355,11 +1569,17 @@ impl TypeEnv {
         TypeEnv {
             vars: self.vars.clone(),
             loop_depth: self.loop_depth,
+            param_indices: self.param_indices.clone(),
         }
     }
 
     fn insert_var(&mut self, name: String, ty: Ty) {
         self.vars.insert(name, VarInfo { ty, used: false });
+    }
+
+    fn insert_param(&mut self, name: String, ty: Ty, index: usize) {
+        self.vars.insert(name.clone(), VarInfo { ty, used: false });
+        self.param_indices.insert(name, index);
     }
 
     fn get_var(&self, name: &str) -> Option<Ty> {
@@ -1385,6 +1605,16 @@ impl TypeEnv {
                 }
             })
             .collect()
+    }
+
+    fn merge_used(&mut self, other: &TypeEnv) {
+        for (name, info) in &other.vars {
+            if info.used {
+                if let Some(current) = self.vars.get_mut(name) {
+                    current.used = true;
+                }
+            }
+        }
     }
 }
 
@@ -1433,6 +1663,37 @@ mod tests {
     }
 
     #[test]
+    fn safe_constraint_unknown_is_invalid() {
+        let program = parse_program("fn main() { let x: Safe<f64, !foo> = 1.0; }").unwrap();
+        assert!(matches!(
+            typecheck_program(&program),
+            Err(TypeError::InvalidConstraint { constraint, .. }) if constraint == "foo"
+        ));
+    }
+
+    #[test]
+    fn safe_constraint_negative_literal() {
+        let program = parse_program("fn main() { let x: Safe<f64, !nan, !inf> = -1.0; }").unwrap();
+        assert!(typecheck_program(&program).is_ok());
+    }
+
+    #[test]
+    fn safe_constraint_const_expr_ok() {
+        let program =
+            parse_program("fn main() { let x: Safe<f64, !nan, !inf> = 1.0 + 2.0; }").unwrap();
+        assert!(typecheck_program(&program).is_ok());
+    }
+
+    #[test]
+    fn safe_constraint_const_expr_inf_is_error() {
+        let program = parse_program("fn main() { let x: Safe<f64, !inf> = 1.0 / 0.0; }").unwrap();
+        assert!(matches!(
+            typecheck_program(&program),
+            Err(TypeError::UnprovenConstraint { .. })
+        ));
+    }
+
+    #[test]
     fn typecheck_mismatch_is_error() {
         let program = parse_program("fn main() { let x: i64 = true; } ").unwrap();
         assert!(typecheck_program(&program).is_err());
@@ -1462,10 +1723,63 @@ mod tests {
     }
 
     #[test]
+    fn typecheck_assign_index_types() {
+        let ok = parse_program("fn main() { let xs = [1, 2, 3]; xs[1] = 4; }").unwrap();
+        let bad_value = parse_program("fn main() { let xs = [1, 2, 3]; xs[1] = true; }").unwrap();
+        let bad_index = parse_program("fn main() { let xs = [1, 2, 3]; xs[true] = 4; }").unwrap();
+        assert!(typecheck_program(&ok).is_ok());
+        assert!(typecheck_program(&bad_value).is_err());
+        assert!(typecheck_program(&bad_index).is_err());
+    }
+
+    #[test]
+    fn typecheck_index_types() {
+        let ok = parse_program("fn main() { let xs = [1, 2, 3]; let y = xs[1]; }").unwrap();
+        let bad_index =
+            parse_program("fn main() { let xs = [1, 2, 3]; let y = xs[true]; }").unwrap();
+        let bad_base = parse_program("fn main() { let x: i64 = 1; let y = x[0]; }").unwrap();
+        assert!(typecheck_program(&ok).is_ok());
+        assert!(typecheck_program(&bad_index).is_err());
+        assert!(typecheck_program(&bad_base).is_err());
+    }
+
+    #[test]
+    fn typecheck_field_access() {
+        let program = parse_program("fn main() { let xs = [1, 2, 3]; let y = xs.len; }").unwrap();
+        assert!(typecheck_program(&program).is_ok());
+    }
+
+    #[test]
+    fn typecheck_await_expr() {
+        let program =
+            parse_program("fn foo(): i64 { return 1; } fn main() { let x = await foo(); }")
+                .unwrap();
+        assert!(typecheck_program(&program).is_ok());
+    }
+
+    #[test]
     fn warns_on_unused_vars() {
         let program = parse_program("fn main() { let x: i64 = 1; } ").unwrap();
         let warnings = typecheck_program_with_warnings(&program).unwrap();
         assert!(warnings.contains(&Warning::UnusedVar("x".into())));
+    }
+
+    #[test]
+    fn no_warn_on_var_used_in_loop() {
+        let program =
+            parse_program("fn main() { let x: i64 = 1; while true { let y: i64 = x; break; } }")
+                .unwrap();
+        let warnings = typecheck_program_with_warnings(&program).unwrap();
+        assert!(!warnings.contains(&Warning::UnusedVar("x".into())));
+    }
+
+    #[test]
+    fn no_warn_on_var_used_in_lambda() {
+        let program =
+            parse_program("fn main() { let x: i64 = 1; let f = |z| x + z; let y: i64 = f(2); }")
+                .unwrap();
+        let warnings = typecheck_program_with_warnings(&program).unwrap();
+        assert!(!warnings.contains(&Warning::UnusedVar("x".into())));
     }
 
     #[test]
@@ -1526,6 +1840,15 @@ mod tests {
         .unwrap();
         assert!(typecheck_program(&ok).is_ok());
         assert!(typecheck_program(&bad).is_err());
+    }
+
+    #[test]
+    fn typecheck_lambda_param_inference_from_call() {
+        let program = parse_program(
+            "fn add(a: i64, b: i64): i64 { return a + b; } fn main() { let f: fn(i64) -> i64 = |x| add(x, 1); let y: i64 = f(2); }",
+        )
+        .unwrap();
+        assert!(typecheck_program(&program).is_ok());
     }
 
     #[test]

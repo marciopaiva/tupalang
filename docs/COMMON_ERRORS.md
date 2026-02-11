@@ -146,7 +146,12 @@ Mensagem típica:
 ## 8) E3002 — Constraint não provada
 
 **Causa**: o compilador não consegue provar `Safe<T, ...>`.
-**Solução**: use literais finitos ou simplifique a expressão.
+**Solução**: use literais `f64` e expressões constantes simples, ou evite `Safe<...>` nesse ponto.
+
+## 9) E3001 — Constraint inválida
+
+**Causa**: constraint não suportada ou tipo base incompatível.
+**Solução**: use apenas `!nan`/`!inf` com base `f64`.
 
 ## Referências
 

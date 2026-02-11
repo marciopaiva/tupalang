@@ -224,6 +224,11 @@ let loss: Safe<f64, !nan, !inf> = compute_loss(predictions, targets)
 - Se **não puder provar**, é erro de compilação (com sugestão de correção).
 - `unsafe { ... }` pode ser usado para assumir responsabilidade explícita.
 
+**Implementação atual (compiler)**:
+- Apenas `!nan` e `!inf` são aceitas e apenas para base `f64`.
+- A prova é feita apenas com literais e expressões constantes de `f64` (ex.: `1.0`, `-1.0`, `1.0 + 2.0`, `1.0 / 0.0`).
+- Se a prova não for possível, o compilador reporta erro de constraint não provada.
+
 ##### 3.2.5.1 Constraint Resolution (Normative)
 
 Para cada constraint `!c` em `Safe<T, !c>`:

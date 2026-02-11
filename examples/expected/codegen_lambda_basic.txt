@@ -6,21 +6,14 @@ entry:
   %t8 = add i64 %t7, 1
   ret i64 %t8
 }
-%env_lambda_108 = type {
-  i8* f
-}
 define i64 @lambda_108(i8* %env, i64 %x) {
 entry:
-  %t109 = bitcast i8* %env to %env_lambda_108*
-  %t110 = getelementptr inbounds %env_lambda_108, %env_lambda_108* %t109, i32 0, i32 0
-  %t111 = load i8*, i8** %t110
-  %t112 = alloca i64
-  store i64 %x, i64* %t112
-  %t113 = load i64, i64* %t112
-  %t114 = mul i64 %t113, 2
-  ret i64 %t114
+  %t109 = alloca i64
+  store i64 %x, i64* %t109
+  %t110 = load i64, i64* %t109
+  %t111 = mul i64 %t110, 2
+  ret i64 %t111
 }
-declare i8* @malloc(i64)
 declare i32 @printf(i8*, ...)
 @.fmt_int = private unnamed_addr constant [5 x i8] c"%ld\0A\00"
 
@@ -41,21 +34,17 @@ entry:
   %t106 = bitcast i64 (i8*, i64)* @lambda_5 to i8*
   %t107 = alloca i8*
   store i8* %t106, i8** %t107
-  %t209 = call i8* @malloc(i64 8)
-  %t210 = bitcast i8* %t209 to %env_lambda_108*
-  %t211 = getelementptr inbounds %env_lambda_108, %env_lambda_108* %t210, i32 0, i32 0
-  store i8* %t107, i8** %t211
-  %t212 = bitcast %env_lambda_108* %t210 to i8*
-  %t213 = alloca i8*
-  store i8* %t212, i8** %t213
-  %t214 = load i8*, i8** %t107
-  %t215 = call i64 @apply(i64 %t214, i64 10)
+  %t209 = bitcast i64 (i8*, i64)* @lambda_108 to i8*
+  %t210 = alloca i8*
+  store i8* %t209, i8** %t210
+  %t211 = load i8*, i8** %t107
+  %t212 = call i64 @apply(i64 %t211, i64 10)
+  %t213 = getelementptr inbounds [5 x i8], [5 x i8]* @.fmt_int, i64 0, i64 0
+  call i32 (i8*, ...) @printf(i8* %t213, i64 %t212)
+  %t214 = load i8*, i8** %t210
+  %t215 = call i64 @apply(i64 %t214, i64 5)
   %t216 = getelementptr inbounds [5 x i8], [5 x i8]* @.fmt_int, i64 0, i64 0
   call i32 (i8*, ...) @printf(i8* %t216, i64 %t215)
-  %t217 = load i8*, i8** %t213
-  %t218 = call i64 @apply(i64 %t217, i64 5)
-  %t219 = getelementptr inbounds [5 x i8], [5 x i8]* @.fmt_int, i64 0, i64 0
-  call i32 (i8*, ...) @printf(i8* %t219, i64 %t218)
   ret void
 }
 
