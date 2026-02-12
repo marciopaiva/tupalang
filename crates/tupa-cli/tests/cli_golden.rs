@@ -101,10 +101,12 @@ fn golden_parse_hello() {
 fn golden_parse_invalid_missing_semicolon() {
     let stderr = run_cli_err(&[
         "parse",
-        example_path("invalid_parse_missing_semicolon.tp").to_str().unwrap(),
+        example_path("invalid_parse_missing_semicolon.tp")
+            .to_str()
+            .unwrap(),
     ]);
-    let expected = fs::read_to_string(expected_path("parse_invalid_missing_semicolon.txt"))
-        .unwrap();
+    let expected =
+        fs::read_to_string(expected_path("parse_invalid_missing_semicolon.txt")).unwrap();
     assert_eq!(stderr, expected);
 }
 
@@ -114,10 +116,12 @@ fn golden_parse_invalid_missing_semicolon_json() {
         "parse",
         "--format",
         "json",
-        example_path("invalid_parse_missing_semicolon.tp").to_str().unwrap(),
+        example_path("invalid_parse_missing_semicolon.tp")
+            .to_str()
+            .unwrap(),
     ]);
-    let expected = fs::read_to_string(expected_path("parse_invalid_missing_semicolon.json"))
-        .unwrap();
+    let expected =
+        fs::read_to_string(expected_path("parse_invalid_missing_semicolon.json")).unwrap();
     assert_eq!(stderr, expected);
 }
 
@@ -390,7 +394,9 @@ fn golden_check_invalid_unknown_function_json() {
         "check",
         "--format",
         "json",
-        example_path("invalid_unknown_function.tp").to_str().unwrap(),
+        example_path("invalid_unknown_function.tp")
+            .to_str()
+            .unwrap(),
     ]);
     let expected =
         fs::read_to_string(expected_path("check_invalid_unknown_function.json")).unwrap();
@@ -420,10 +426,11 @@ fn golden_check_invalid_return() {
 fn golden_check_invalid_safe_hate_speech() {
     let stderr = run_cli_err(&[
         "check",
-        example_path("invalid_safe_hate_speech.tp").to_str().unwrap(),
+        example_path("invalid_safe_hate_speech.tp")
+            .to_str()
+            .unwrap(),
     ]);
-    let expected =
-        fs::read_to_string(expected_path("check_invalid_safe_hate_speech.txt")).unwrap();
+    let expected = fs::read_to_string(expected_path("check_invalid_safe_hate_speech.txt")).unwrap();
     assert_eq!(stderr, expected);
 }
 
@@ -472,8 +479,7 @@ fn golden_check_invalid_safe_param_base() {
         "check",
         example_path("invalid_safe_param_base.tp").to_str().unwrap(),
     ]);
-    let expected =
-        fs::read_to_string(expected_path("check_invalid_safe_param_base.txt")).unwrap();
+    let expected = fs::read_to_string(expected_path("check_invalid_safe_param_base.txt")).unwrap();
     assert_eq!(stderr, expected);
 }
 
@@ -481,10 +487,11 @@ fn golden_check_invalid_safe_param_base() {
 fn golden_check_invalid_safe_return_base() {
     let stderr = run_cli_err(&[
         "check",
-        example_path("invalid_safe_return_base.tp").to_str().unwrap(),
+        example_path("invalid_safe_return_base.tp")
+            .to_str()
+            .unwrap(),
     ]);
-    let expected =
-        fs::read_to_string(expected_path("check_invalid_safe_return_base.txt")).unwrap();
+    let expected = fs::read_to_string(expected_path("check_invalid_safe_return_base.txt")).unwrap();
     assert_eq!(stderr, expected);
 }
 
@@ -509,7 +516,9 @@ fn golden_check_invalid_unknown_var() {
 fn golden_check_invalid_unknown_function() {
     let stderr = run_cli_err(&[
         "check",
-        example_path("invalid_unknown_function.tp").to_str().unwrap(),
+        example_path("invalid_unknown_function.tp")
+            .to_str()
+            .unwrap(),
     ]);
     let expected = fs::read_to_string(expected_path("check_invalid_unknown_function.txt")).unwrap();
     assert_eq!(stderr, expected);
@@ -696,10 +705,12 @@ fn golden_check_invalid_if_condition() {
 fn golden_check_invalid_assign_index_value() {
     let stderr = run_cli_err(&[
         "check",
-        example_path("invalid_assign_index_value.tp").to_str().unwrap(),
+        example_path("invalid_assign_index_value.tp")
+            .to_str()
+            .unwrap(),
     ]);
-    let expected = fs::read_to_string(expected_path("check_invalid_assign_index_value.txt"))
-        .unwrap();
+    let expected =
+        fs::read_to_string(expected_path("check_invalid_assign_index_value.txt")).unwrap();
     assert_eq!(stderr, expected);
 }
 
@@ -731,7 +742,9 @@ fn golden_check_invalid_safe_hate_speech_json() {
         "check",
         "--format",
         "json",
-        example_path("invalid_safe_hate_speech.tp").to_str().unwrap(),
+        example_path("invalid_safe_hate_speech.tp")
+            .to_str()
+            .unwrap(),
     ]);
     let expected =
         fs::read_to_string(expected_path("check_invalid_safe_hate_speech.json")).unwrap();
@@ -778,10 +791,8 @@ fn golden_check_invalid_safe_misinformation_base_json() {
             .to_str()
             .unwrap(),
     ]);
-    let expected = fs::read_to_string(expected_path(
-        "check_invalid_safe_misinformation_base.json",
-    ))
-    .unwrap();
+    let expected =
+        fs::read_to_string(expected_path("check_invalid_safe_misinformation_base.json")).unwrap();
     assert_eq!(stderr, expected);
 }
 
@@ -793,8 +804,7 @@ fn golden_check_invalid_safe_param_base_json() {
         "json",
         example_path("invalid_safe_param_base.tp").to_str().unwrap(),
     ]);
-    let expected =
-        fs::read_to_string(expected_path("check_invalid_safe_param_base.json")).unwrap();
+    let expected = fs::read_to_string(expected_path("check_invalid_safe_param_base.json")).unwrap();
     assert_eq!(stderr, expected);
 }
 
@@ -804,7 +814,9 @@ fn golden_check_invalid_safe_return_base_json() {
         "check",
         "--format",
         "json",
-        example_path("invalid_safe_return_base.tp").to_str().unwrap(),
+        example_path("invalid_safe_return_base.tp")
+            .to_str()
+            .unwrap(),
     ]);
     let expected =
         fs::read_to_string(expected_path("check_invalid_safe_return_base.json")).unwrap();
@@ -1033,7 +1045,9 @@ fn golden_check_invalid_assign_index_value_json() {
         "check",
         "--format",
         "json",
-        example_path("invalid_assign_index_value.tp").to_str().unwrap(),
+        example_path("invalid_assign_index_value.tp")
+            .to_str()
+            .unwrap(),
     ]);
     let expected =
         fs::read_to_string(expected_path("check_invalid_assign_index_value.json")).unwrap();
