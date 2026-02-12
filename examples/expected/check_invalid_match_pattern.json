@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "E2001",
+    "col": 5,
+    "label": "examples/invalid_match_pattern.tp",
+    "line": 4,
+    "line_text": "    1 => print(\"no\"),",
+    "message": "type mismatch: expected I64, got String",
+    "span": {
+      "end": 59,
+      "start": 58
+    }
+  }
+}

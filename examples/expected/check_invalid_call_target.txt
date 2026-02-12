@@ -1,0 +1,5 @@
+error[E2005]: invalid call target: I64
+  --> examples/invalid_call_target.tp:3:3
+   |
+ 3 |   x(2);
+   |   ^^^^

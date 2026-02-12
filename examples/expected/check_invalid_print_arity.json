@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "E2002",
+    "col": 3,
+    "label": "examples/invalid_print_arity.tp",
+    "line": 2,
+    "line_text": "  print(1, 2);",
+    "message": "arity mismatch: expected 1, got 2",
+    "span": {
+      "end": 25,
+      "start": 14
+    }
+  }
+}

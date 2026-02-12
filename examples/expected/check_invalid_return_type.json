@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "E2006",
+    "col": 10,
+    "label": "examples/invalid_return_type.tp",
+    "line": 2,
+    "line_text": "  return true;",
+    "message": "return type mismatch: expected I64, got Bool",
+    "span": {
+      "end": 30,
+      "start": 26
+    }
+  }
+}

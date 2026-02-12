@@ -5,13 +5,29 @@
 
 Record relevant changes per version.
 
+## 0.5.0 (Unreleased)
+
+- Typechecker constraints completion and validation fixes.
+- Safe<string, ...> constraints: !hate_speech and !misinformation diagnostics.
+- Diagnostics clarity improvements and consistency pass.
+- Expanded test coverage with negative cases.
+- Added misinformation examples and goldens for Safe<string, ...>.
+- Docs updated with safe examples and diagnostics references.
+- Docs aligned with README positioning and roadmap updates.
+- Docs include a draft pipeline orchestration example.
+- Release plan aligned with pipeline governance roadmap.
+- Match diagnostics now point to invalid pattern spans; added negative test coverage.
+- Safe annotations now validate base constraints; added invalid param/return examples.
+- Negative lex/parse cases and JSON error outputs added to goldens.
+- Golden update script now covers all negative examples.
+
 ## 0.4.0 (2026-02-11)
 
-- Closure codegen improvements with real variable capture.
-- Typechecker improvements for constraints and lambda inference.
-- CLI flow updates for updated typecheck/codegen pipeline.
-- SPEC and common errors refreshed for new behavior.
-- Documentation cleanup: canonical English, indices, and PT-BR entrypoint.
+- Closure codegen improvements and environment capture fixes.
+- Typechecker constraint improvements and better lambda inference.
+- CLI flow updates for the typecheck/codegen pipeline.
+- SPEC and common errors refreshed for the new behavior.
+- Documentation cleanup: canonical English, consolidated indices, and PT-BR entrypoint.
 
 ## 0.3.0 (2026-02-07)
 

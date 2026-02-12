@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "E2001",
+    "col": 12,
+    "label": "examples/invalid_for_range_type.tp",
+    "line": 2,
+    "line_text": "  for i in true {",
+    "message": "type mismatch: expected Slice { elem: Unknown }, got Bool",
+    "span": {
+      "end": 27,
+      "start": 23
+    }
+  }
+}

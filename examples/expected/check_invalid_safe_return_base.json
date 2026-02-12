@@ -1,0 +1,11 @@
+{
+  "error": {
+    "code": "E3001",
+    "col": null,
+    "label": "examples/invalid_safe_return_base.tp",
+    "line": null,
+    "line_text": null,
+    "message": "invalid constraint 'nan' for base type I64\nhelp: supported constraints are !nan and !inf on f64 values, and !hate_speech and !misinformation on string values",
+    "span": null
+  }
+}

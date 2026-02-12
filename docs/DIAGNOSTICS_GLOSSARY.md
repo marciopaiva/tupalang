@@ -49,10 +49,12 @@ Emitted when a function should return a value but does not.
 ### E3001 — Invalid constraint
 
 Emitted when a constraint is not compatible with the base type of `Safe<T, ...>`.
+Examples: `Safe<f64, !misinformation>`, `Safe<string, !nan>`.
 
 ### E3002 — Unproven constraint
 
 Emitted when a constraint cannot be proven at compile time.
+Examples: `Safe<string, !misinformation>` without a proven source.
 
 ## Warnings
 

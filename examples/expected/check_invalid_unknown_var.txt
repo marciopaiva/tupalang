@@ -1,0 +1,5 @@
+error[E1002]: undefined variable 'x'
+  --> examples/invalid_unknown_var.tp:2:9
+   |
+ 2 |   print(x)
+   |         ^

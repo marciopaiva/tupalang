@@ -225,8 +225,10 @@ let loss: Safe<f64, !nan, !inf> = compute_loss(predictions, targets)
 - `unsafe { ... }` can be used to assume explicit responsibility.
 
 **Current implementation (compiler)**:
-- Only `!nan` and `!inf` are accepted and only for `f64` base.
+- `!nan` and `!inf` are accepted only for `f64` base.
+- `!hate_speech` and `!misinformation` are accepted only for `string` base.
 - Proof is done only with `f64` literals and constant expressions (for example, `1.0`, `-1.0`, `1.0 + 2.0`, `1.0 / 0.0`).
+- For `string` constraints, the compiler only accepts values already proven `Safe<string, ...>` (propagation from variables/returns).
 - If proof is not possible, the compiler reports an unproven constraint error.
 
 ##### 3.2.5.1 Constraint Resolution (Normative)
@@ -238,6 +240,7 @@ For each constraint `!c` in `Safe<T, !c>`:
 | `!nan` | Interval analysis proves `x ∈ [-∞, +∞] \ {NaN}` | `@assume(!nan)` with warning |
 | `!inf` | Static bounds prove `abs(x) < f64::MAX` | `@assume(!inf)` with warning |
 | `!hate_speech` | RLHF scorer ≥ 0.95 on the defined dataset | ❌ Not allowed |
+| `!misinformation` | RLHF scorer ≥ 0.95 on the defined dataset | ❌ Not allowed |
 
 ---
 
@@ -757,13 +760,13 @@ For `Safe<T, !constraint>`:
 ### 9.5 Diagnostics (Normative)
 - Errors must include: code, message, location, and hint.
 - Minimum format: `E####: message (file:line:column)`.
-- Example: `E2001: constraint !nan not proven (main.tp:12:5)`.
+- Example: `E3002: cannot prove constraint '!nan' at compile time (main.tp:12:5)`.
 
 **Recommended codes**:
 - `E1001`: lexical error
 - `E2001`: type error
-- `E2002`: unproven constraint
-- `E3001`: borrow/mutability error
+- `E3001`: invalid constraint
+- `E3002`: unproven constraint
 - `E4001`: invalid `unsafe` usage
 
 Example:

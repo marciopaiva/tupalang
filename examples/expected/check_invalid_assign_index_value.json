@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "E2001",
+    "col": 11,
+    "label": "examples/invalid_assign_index_value.tp",
+    "line": 3,
+    "line_text": "  xs[1] = true;",
+    "message": "type mismatch: expected I64, got Bool",
+    "span": {
+      "end": 48,
+      "start": 44
+    }
+  }
+}

@@ -1,0 +1,5 @@
+error[E2001]: type mismatch: expected Bool, got I64
+  --> examples/invalid_while_condition.tp:2:9
+   |
+ 2 |   while 1 {
+   |         ^

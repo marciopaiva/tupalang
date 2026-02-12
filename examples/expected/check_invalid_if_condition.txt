@@ -1,0 +1,5 @@
+error[E2001]: type mismatch: expected Bool, got I64
+  --> examples/invalid_if_condition.tp:2:6
+   |
+ 2 |   if 1 {
+   |      ^

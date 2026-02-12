@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "E2007",
+    "col": 2,
+    "label": "examples/invalid_return.tp",
+    "line": 2,
+    "line_text": "\tif x > 0 {",
+    "message": "expected function body to return a value",
+    "span": {
+      "end": 56,
+      "start": 31
+    }
+  }
+}

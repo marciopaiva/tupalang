@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "E2003",
+    "col": 16,
+    "label": "examples/invalid_binary_op.tp",
+    "line": 2,
+    "line_text": "  let x: i64 = 1 + true;",
+    "message": "invalid operand types for Add: I64, Bool",
+    "span": {
+      "end": 35,
+      "start": 27
+    }
+  }
+}

@@ -1,0 +1,1 @@
+error[E1001]: unknown type 'Foo' (did you mean 'bool'?)

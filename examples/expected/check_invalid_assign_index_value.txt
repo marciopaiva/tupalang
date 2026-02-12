@@ -1,0 +1,5 @@
+error[E2001]: type mismatch: expected I64, got Bool
+  --> examples/invalid_assign_index_value.tp:3:11
+   |
+ 3 |   xs[1] = true;
+   |           ^^^^

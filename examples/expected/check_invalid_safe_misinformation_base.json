@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "E3001",
+    "col": 38,
+    "label": "examples/invalid_safe_misinformation_base.tp",
+    "line": 2,
+    "line_text": "\tlet x: Safe<f64, !misinformation> = 1.0;",
+    "message": "invalid constraint 'misinformation' for base type F64\nhelp: supported constraints are !nan and !inf on f64 values, and !hate_speech and !misinformation on string values",
+    "span": {
+      "end": 52,
+      "start": 49
+    }
+  }
+}

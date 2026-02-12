@@ -1,0 +1,5 @@
+error[E2003]: invalid operand types for Add: I64, Bool
+  --> examples/invalid_binary_op.tp:2:16
+   |
+ 2 |   let x: i64 = 1 + true;
+   |                ^^^^^^^^

@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "E2001",
+    "col": 9,
+    "label": "examples/invalid_while_condition.tp",
+    "line": 2,
+    "line_text": "  while 1 {",
+    "message": "type mismatch: expected Bool, got I64",
+    "span": {
+      "end": 21,
+      "start": 20
+    }
+  }
+}

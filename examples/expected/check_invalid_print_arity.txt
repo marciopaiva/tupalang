@@ -1,0 +1,5 @@
+error[E2002]: arity mismatch: expected 1, got 2
+  --> examples/invalid_print_arity.tp:2:3
+   |
+ 2 |   print(1, 2);
+   |   ^^^^^^^^^^^

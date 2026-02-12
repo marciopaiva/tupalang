@@ -146,12 +146,59 @@ Typical message:
 ## 8) E3002 — Unproven constraint
 
 **Cause**: the compiler cannot prove `Safe<T, ...>`.
-**Solution**: use `f64` literals and simple constant expressions, or avoid `Safe<...>` at this point.
+**Solution**: use provable literals/constant expressions for `f64`, or pass a `Safe<...>` value already proven.
+
+**Example:**
+
+```tupa
+let x: Safe<string, !hate_speech> = "ok"
+```
+
+Typical message:
+
+```text
+error[E3002]: cannot prove constraint 'hate_speech' at compile time
+  --> main.tupa:1:33
+```
+
+**Positive example (propagation):**
+
+```tupa
+fn pass(x: Safe<string, !misinformation>) -> Safe<string, !misinformation> {
+  return x
+}
+```
 
 ## 9) E3001 — Invalid constraint
 
 **Cause**: unsupported constraint or incompatible base type.
-**Solution**: use only `!nan`/`!inf` with `f64` base.
+**Solution**: use `!nan`/`!inf` with `f64`, and `!hate_speech`/`!misinformation` with `string`.
+
+**Example:**
+
+```tupa
+let x: Safe<f64, !hate_speech> = 1.0
+```
+
+Typical message:
+
+```text
+error[E3001]: invalid constraint 'hate_speech' for base type F64
+  --> main.tupa:1:32
+```
+
+**Example (misinformation):**
+
+```tupa
+let x: Safe<f64, !misinformation> = 1.0
+```
+
+Typical message:
+
+```text
+error[E3001]: invalid constraint 'misinformation' for base type F64
+  --> main.tupa:1:35
+```
 
 ## References
 

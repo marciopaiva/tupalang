@@ -13,7 +13,7 @@ Not yet. The v0.1 specification is complete, but the compiler is still being imp
 
 ### 2) What is the main focus of the language?
 
-AI and critical systems with formal safety, alignment, and predictable performance.
+Governance and determinism for AI pipelines in critical systems, with formal safety and predictable performance.
 
 ### 3) How do I contribute?
 
@@ -23,9 +23,13 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) and open an issue with context.
 
 In [examples](../examples/README.md) and in [docs/SPEC.md](SPEC.md#exemplos).
 
+### 4.1) Are there safe/alignment examples?
+
+Yes. See the `safe_*` examples in [examples](../examples/README.md) and the `Safe<string, ...>` section in [docs/SPEC.md](SPEC.md#alignment-types-ethical-constraints).
+
 ### 5) What are `Safe<T, ...>` types?
 
-Types with constraints proven at compile time, for example `Safe<f64, !nan>`. See details in [docs/SPEC.md](SPEC.md#alignment-types-ethical-constraints).
+Types with constraints proven at compile time, for example `Safe<f64, !nan>` or `Safe<string, !misinformation>`. See details in [docs/SPEC.md](SPEC.md#alignment-types-ethical-constraints).
 
 ### 6) How do I run the CLI?
 

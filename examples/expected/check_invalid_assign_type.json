@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "E2001",
+    "col": 3,
+    "label": "examples/invalid_assign_type.tp",
+    "line": 3,
+    "line_text": "  x = true;",
+    "message": "type mismatch: expected I64, got Bool",
+    "span": {
+      "end": 40,
+      "start": 32
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": null,
+    "col": 1,
+    "label": "examples/invalid_lex_char.tp",
+    "line": 1,
+    "line_text": "@",
+    "message": "unexpected character '@'",
+    "span": {
+      "end": 1,
+      "start": 0
+    }
+  }
+}

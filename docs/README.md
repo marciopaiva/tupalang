@@ -16,6 +16,7 @@ Wiki pages are automatically mirrored from `docs/`. Avoid editing the wiki manua
 
 - [Quick Start Guide](GETTING_STARTED.md)
 - [Examples](../examples/README.md)
+- [Safe examples (ethical constraints)](../examples/README.md#arquivos)
 - [SPEC](SPEC.md)
 - [Glossary](GLOSSARY.md)
 - [FAQ](FAQ.md)
@@ -56,6 +57,7 @@ Wiki pages are automatically mirrored from `docs/`. Avoid editing the wiki manua
 - [Adoption Plan](ADOPTION_PLAN.md)
 - [Design Notes (AI)](DESIGN_NOTES.md)
 - [Changelog](CHANGELOG.md)
+- [Release Plan](RELEASE_PLAN.md)
 - [Release Checklist](RELEASE_CHECKLIST.md)
 - [Release Guide](RELEASE_GUIDE.md)
 - [Versioning Guide](VERSIONING.md)

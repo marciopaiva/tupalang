@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "E2003",
+    "col": 11,
+    "label": "examples/invalid_range_bounds.tp",
+    "line": 2,
+    "line_text": "  let x = 1.0..2.0;",
+    "message": "invalid operand types for Range: F64, F64",
+    "span": {
+      "end": 30,
+      "start": 22
+    }
+  }
+}

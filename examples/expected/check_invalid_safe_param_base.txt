@@ -1,0 +1,2 @@
+error[E3001]: invalid constraint 'nan' for base type I64
+help: supported constraints are !nan and !inf on f64 values, and !hate_speech and !misinformation on string values

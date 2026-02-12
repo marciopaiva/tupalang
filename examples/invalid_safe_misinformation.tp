@@ -1,0 +1,4 @@
+fn main() {
+	let x: Safe<string, !misinformation> = "ok";
+	print(x);
+}

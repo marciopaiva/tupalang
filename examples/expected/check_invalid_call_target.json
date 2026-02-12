@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "E2005",
+    "col": 3,
+    "label": "examples/invalid_call_target.tp",
+    "line": 3,
+    "line_text": "  x(2);",
+    "message": "invalid call target: I64",
+    "span": {
+      "end": 36,
+      "start": 32
+    }
+  }
+}

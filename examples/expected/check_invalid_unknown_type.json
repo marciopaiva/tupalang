@@ -1,0 +1,11 @@
+{
+  "error": {
+    "code": "E1001",
+    "col": null,
+    "label": "examples/invalid_unknown_type.tp",
+    "line": null,
+    "line_text": null,
+    "message": "unknown type 'Foo' (did you mean 'bool'?)",
+    "span": null
+  }
+}

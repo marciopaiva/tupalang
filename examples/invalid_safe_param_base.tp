@@ -1,0 +1,5 @@
+fn accept(x: Safe<i64, !nan>) {
+  print(x);
+}
+
+fn main() {}

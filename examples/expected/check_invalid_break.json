@@ -1,0 +1,11 @@
+{
+  "error": {
+    "code": "E4001",
+    "col": null,
+    "label": "examples/invalid_break.tp",
+    "line": null,
+    "line_text": null,
+    "message": "break outside of loop",
+    "span": null
+  }
+}

@@ -1,0 +1,5 @@
+error[E2001]: type mismatch: expected Bool, got I64
+  --> examples/invalid_match_guard.tp:4:10
+   |
+ 4 |     1 if 2 => print("ok"),
+   |          ^

@@ -56,4 +56,5 @@ List basic and composite types with minimal examples.
 
   ```tupa
   let score: Safe<f64, !nan> = 0.9
+  let summary: Safe<string, !misinformation> = review(text)
   ```

@@ -44,6 +44,10 @@ print("Welcome, " + name)
 fn safe(x: f64): Safe<f64, !nan> {
   return x
 }
+
+fn safe_text(x: Safe<string, !misinformation>) -> Safe<string, !misinformation> {
+  return x
+}
 ```
 
 ---

@@ -1,0 +1,4 @@
+fn main() {
+	let x: Safe<f64, !misinformation> = 1.0;
+	print(x);
+}

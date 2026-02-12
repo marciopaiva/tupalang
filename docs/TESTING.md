@@ -24,6 +24,13 @@ cargo test -p tupa-cli
 cargo test -p tupa-cli -- tests::cli_golden
 ```
 
+## Ethical constraints
+
+```bash
+cargo run -p tupa-cli -- check examples/invalid_safe_misinformation.tp
+cargo run -p tupa-cli -- check examples/invalid_safe_misinformation_base.tp
+```
+
 ## Triage tips
 
 - Run the isolated test before the full suite.

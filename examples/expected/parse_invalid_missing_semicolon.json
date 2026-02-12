@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": null,
+    "col": 1,
+    "label": "examples/invalid_parse_missing_semicolon.tp",
+    "line": 3,
+    "line_text": "}",
+    "message": "unexpected token RBrace",
+    "span": {
+      "end": 30,
+      "start": 29
+    }
+  }
+}

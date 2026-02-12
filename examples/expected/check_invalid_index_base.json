@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "E2001",
+    "col": 11,
+    "label": "examples/invalid_index_base.tp",
+    "line": 3,
+    "line_text": "  let y = x[0];",
+    "message": "type mismatch: expected Array { elem: Unknown, len: 0 }, got I64",
+    "span": {
+      "end": 44,
+      "start": 40
+    }
+  }
+}

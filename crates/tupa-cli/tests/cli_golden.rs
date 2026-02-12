@@ -72,10 +72,53 @@ fn golden_lex_hello_json() {
 }
 
 #[test]
+fn golden_lex_invalid_char() {
+    let stderr = run_cli_err(&["lex", example_path("invalid_lex_char.tp").to_str().unwrap()]);
+    let expected = fs::read_to_string(expected_path("lex_invalid_char.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_lex_invalid_char_json() {
+    let stderr = run_cli_err(&[
+        "lex",
+        "--format",
+        "json",
+        example_path("invalid_lex_char.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("lex_invalid_char.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
 fn golden_parse_hello() {
     let stdout = run_cli(&["parse", example_path("hello.tp").to_str().unwrap()]);
     let expected = fs::read_to_string(expected_path("parse_hello.txt")).unwrap();
     assert_eq!(stdout, expected);
+}
+
+#[test]
+fn golden_parse_invalid_missing_semicolon() {
+    let stderr = run_cli_err(&[
+        "parse",
+        example_path("invalid_parse_missing_semicolon.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("parse_invalid_missing_semicolon.txt"))
+        .unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_parse_invalid_missing_semicolon_json() {
+    let stderr = run_cli_err(&[
+        "parse",
+        "--format",
+        "json",
+        example_path("invalid_parse_missing_semicolon.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("parse_invalid_missing_semicolon.json"))
+        .unwrap();
+    assert_eq!(stderr, expected);
 }
 
 #[test]
@@ -330,6 +373,43 @@ fn golden_check_invalid_type_json() {
 }
 
 #[test]
+fn golden_check_invalid_unknown_var_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("invalid_unknown_var.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_unknown_var.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_unknown_function_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("invalid_unknown_function.tp").to_str().unwrap(),
+    ]);
+    let expected =
+        fs::read_to_string(expected_path("check_invalid_unknown_function.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_unknown_type_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("invalid_unknown_type.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_unknown_type.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
 fn golden_check_invalid_return() {
     let stderr = run_cli_err(&["check", example_path("invalid_return.tp").to_str().unwrap()]);
     let expected = fs::read_to_string(expected_path("check_invalid_return.txt")).unwrap();
@@ -337,8 +417,637 @@ fn golden_check_invalid_return() {
 }
 
 #[test]
+fn golden_check_invalid_safe_hate_speech() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("invalid_safe_hate_speech.tp").to_str().unwrap(),
+    ]);
+    let expected =
+        fs::read_to_string(expected_path("check_invalid_safe_hate_speech.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_safe_hate_speech_base() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("invalid_safe_hate_speech_base.tp")
+            .to_str()
+            .unwrap(),
+    ]);
+    let expected =
+        fs::read_to_string(expected_path("check_invalid_safe_hate_speech_base.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_safe_misinformation() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("invalid_safe_misinformation.tp")
+            .to_str()
+            .unwrap(),
+    ]);
+    let expected =
+        fs::read_to_string(expected_path("check_invalid_safe_misinformation.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_safe_misinformation_base() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("invalid_safe_misinformation_base.tp")
+            .to_str()
+            .unwrap(),
+    ]);
+    let expected =
+        fs::read_to_string(expected_path("check_invalid_safe_misinformation_base.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_safe_param_base() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("invalid_safe_param_base.tp").to_str().unwrap(),
+    ]);
+    let expected =
+        fs::read_to_string(expected_path("check_invalid_safe_param_base.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_safe_return_base() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("invalid_safe_return_base.tp").to_str().unwrap(),
+    ]);
+    let expected =
+        fs::read_to_string(expected_path("check_invalid_safe_return_base.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
 fn golden_check_invalid_call() {
     let stderr = run_cli_err(&["check", example_path("invalid_call.tp").to_str().unwrap()]);
     let expected = fs::read_to_string(expected_path("check_invalid_call.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_unknown_var() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("invalid_unknown_var.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_unknown_var.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_unknown_function() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("invalid_unknown_function.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_unknown_function.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_unknown_type() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("invalid_unknown_type.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_unknown_type.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_call_target() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("invalid_call_target.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_call_target.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_binary_op() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("invalid_binary_op.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_binary_op.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_unary_op() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("invalid_unary_op.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_unary_op.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_break() {
+    let stderr = run_cli_err(&["check", example_path("invalid_break.tp").to_str().unwrap()]);
+    let expected = fs::read_to_string(expected_path("check_invalid_break.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_continue() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("invalid_continue.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_continue.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_print_arity() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("invalid_print_arity.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_print_arity.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_match_guard() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("invalid_match_guard.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_match_guard.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_match_pattern() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("invalid_match_pattern.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_match_pattern.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_match_arm_type() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("invalid_match_arm_type.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_match_arm_type.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_index_type() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("invalid_index_type.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_index_type.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_array_mixed() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("invalid_array_mixed.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_array_mixed.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_return_type() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("invalid_return_type.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_return_type.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_assign_type() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("invalid_assign_type.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_assign_type.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_while_condition() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("invalid_while_condition.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_while_condition.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_for_range_type() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("invalid_for_range_type.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_for_range_type.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_range_bounds() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("invalid_range_bounds.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_range_bounds.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_if_condition() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("invalid_if_condition.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_if_condition.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_assign_index_value() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("invalid_assign_index_value.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_assign_index_value.txt"))
+        .unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_index_base() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("invalid_index_base.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_index_base.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_return_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("invalid_return.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_return.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_safe_hate_speech_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("invalid_safe_hate_speech.tp").to_str().unwrap(),
+    ]);
+    let expected =
+        fs::read_to_string(expected_path("check_invalid_safe_hate_speech.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_safe_hate_speech_base_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("invalid_safe_hate_speech_base.tp")
+            .to_str()
+            .unwrap(),
+    ]);
+    let expected =
+        fs::read_to_string(expected_path("check_invalid_safe_hate_speech_base.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_safe_misinformation_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("invalid_safe_misinformation.tp")
+            .to_str()
+            .unwrap(),
+    ]);
+    let expected =
+        fs::read_to_string(expected_path("check_invalid_safe_misinformation.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_safe_misinformation_base_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("invalid_safe_misinformation_base.tp")
+            .to_str()
+            .unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path(
+        "check_invalid_safe_misinformation_base.json",
+    ))
+    .unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_safe_param_base_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("invalid_safe_param_base.tp").to_str().unwrap(),
+    ]);
+    let expected =
+        fs::read_to_string(expected_path("check_invalid_safe_param_base.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_safe_return_base_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("invalid_safe_return_base.tp").to_str().unwrap(),
+    ]);
+    let expected =
+        fs::read_to_string(expected_path("check_invalid_safe_return_base.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_call_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("invalid_call.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_call.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_call_target_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("invalid_call_target.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_call_target.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_binary_op_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("invalid_binary_op.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_binary_op.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_unary_op_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("invalid_unary_op.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_unary_op.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_break_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("invalid_break.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_break.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_continue_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("invalid_continue.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_continue.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_print_arity_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("invalid_print_arity.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_print_arity.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_match_guard_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("invalid_match_guard.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_match_guard.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_match_pattern_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("invalid_match_pattern.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_match_pattern.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_match_arm_type_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("invalid_match_arm_type.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_match_arm_type.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_index_type_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("invalid_index_type.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_index_type.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_array_mixed_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("invalid_array_mixed.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_array_mixed.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_return_type_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("invalid_return_type.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_return_type.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_assign_type_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("invalid_assign_type.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_assign_type.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_while_condition_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("invalid_while_condition.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_while_condition.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_for_range_type_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("invalid_for_range_type.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_for_range_type.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_range_bounds_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("invalid_range_bounds.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_range_bounds.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_if_condition_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("invalid_if_condition.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_if_condition.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_assign_index_value_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("invalid_assign_index_value.tp").to_str().unwrap(),
+    ]);
+    let expected =
+        fs::read_to_string(expected_path("check_invalid_assign_index_value.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_invalid_index_base_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("invalid_index_base.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_invalid_index_base.json")).unwrap();
     assert_eq!(stderr, expected);
 }

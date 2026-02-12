@@ -307,7 +307,7 @@ fn type_error_code(err: &TypeError) -> &'static str {
         TypeError::InvalidUnary { .. } => "E2004",
         TypeError::InvalidCallTarget { .. } => "E2005",
         TypeError::ReturnMismatch { .. } => "E2006",
-        TypeError::MissingReturn => "E2007",
+        TypeError::MissingReturn { .. } => "E2007",
         TypeError::InvalidConstraint { .. } => "E3001",
         TypeError::UnprovenConstraint { .. } => "E3002",
         TypeError::BreakOutsideLoop { .. } => "E4001",
@@ -339,10 +339,12 @@ fn format_type_error_json(label: &str, src: &str, err: &TypeError) -> String {
 fn type_error_help(err: &TypeError) -> Option<&'static str> {
     match err {
         TypeError::InvalidConstraint { .. } => {
-            Some("help: supported constraints are !nan and !inf on f64 values")
+            Some(
+                "help: supported constraints are !nan and !inf on f64 values, and !hate_speech and !misinformation on string values",
+            )
         }
         TypeError::UnprovenConstraint { .. } => Some(
-            "help: constraint must be provable at compile time; use a literal f64 or avoid Safe<...> here",
+            "help: constraint must be provable at compile time; use a provable literal or pass a Safe value already proven",
         ),
         _ => None,
     }
@@ -527,8 +529,9 @@ fn type_error_span(err: &TypeError) -> Option<Span> {
         | TypeError::InvalidConstraint { span, .. }
         | TypeError::UnprovenConstraint { span, .. }
         | TypeError::BreakOutsideLoop { span, .. }
-        | TypeError::ContinueOutsideLoop { span, .. } => *span,
-        TypeError::UnknownType { .. } | TypeError::MissingReturn => None,
+        | TypeError::ContinueOutsideLoop { span, .. }
+        | TypeError::MissingReturn { span, .. } => *span,
+        TypeError::UnknownType { .. } => None,
     }
 }
 

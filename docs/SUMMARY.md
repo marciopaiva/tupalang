@@ -13,6 +13,7 @@
 - [API and Extensibility](API_EXTENSIBILITY.md)
 - [Step-by-step Tutorials](TUTORIALS.md)
 - [Changelog](CHANGELOG.md)
+- [Release Plan](RELEASE_PLAN.md)
 - [MVP Plan](MVP_PLAN.md)
 - [Contribution Guide](../CONTRIBUTING.md)
 - [All docs](README.md)

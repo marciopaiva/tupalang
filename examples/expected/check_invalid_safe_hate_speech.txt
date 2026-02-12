@@ -1,0 +1,6 @@
+error[E3002]: cannot prove constraint 'hate_speech' at compile time
+help: constraint must be provable at compile time; use a provable literal or pass a Safe value already proven
+  --> examples/invalid_safe_hate_speech.tp:2:38
+   |
+ 2 | 	let x: Safe<string, !hate_speech> = "ok";
+   |                                      ^^^^

@@ -1,0 +1,6 @@
+error[E3002]: cannot prove constraint 'misinformation' at compile time
+help: constraint must be provable at compile time; use a provable literal or pass a Safe value already proven
+  --> examples/invalid_safe_misinformation.tp:2:41
+   |
+ 2 | 	let x: Safe<string, !misinformation> = "ok";
+   |                                         ^^^^

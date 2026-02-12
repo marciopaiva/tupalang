@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "E2001",
+    "col": 14,
+    "label": "examples/invalid_index_type.tp",
+    "line": 3,
+    "line_text": "  let y = xs[true];",
+    "message": "type mismatch: expected I64, got Bool",
+    "span": {
+      "end": 51,
+      "start": 47
+    }
+  }
+}

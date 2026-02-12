@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "E2004",
+    "col": 16,
+    "label": "examples/invalid_unary_op.tp",
+    "line": 2,
+    "line_text": "  let x: i64 = -true;",
+    "message": "invalid operand type for Neg: Bool",
+    "span": {
+      "end": 32,
+      "start": 27
+    }
+  }
+}

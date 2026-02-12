@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "E2001",
+    "col": 6,
+    "label": "examples/invalid_if_condition.tp",
+    "line": 2,
+    "line_text": "  if 1 {",
+    "message": "type mismatch: expected Bool, got I64",
+    "span": {
+      "end": 18,
+      "start": 17
+    }
+  }
+}

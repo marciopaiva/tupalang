@@ -85,7 +85,7 @@ pub enum TypeError {
         span: Option<Span>,
     },
     #[error("expected function body to return a value")]
-    MissingReturn,
+    MissingReturn { span: Option<Span> },
     #[error("invalid constraint '{constraint}' for base type {base:?}")]
     InvalidConstraint {
         constraint: String,
@@ -110,6 +110,12 @@ pub enum Warning {
 
 #[derive(Debug, Clone)]
 struct ExpectedReturn {
+    ty: Ty,
+    constraints: Option<Vec<String>>,
+}
+
+#[derive(Debug, Clone)]
+struct TypeSig {
     ty: Ty,
     constraints: Option<Vec<String>>,
 }
@@ -287,7 +293,7 @@ fn infer_lambda_param_types(
                     for (arg_expr, expected_ty) in args.iter().zip(&sig.params) {
                         infer_param_type_from_expr(
                             arg_expr,
-                            expected_ty.clone(),
+                            expected_ty.ty.clone(),
                             param_types,
                             env,
                         )?;
@@ -581,8 +587,11 @@ fn validate_safe_constraints(
     constraints: &[String],
     base: &Ty,
     expr: &Expr,
+    env: &TypeEnv,
+    functions: &HashMap<String, FuncSig>,
 ) -> Result<(), TypeError> {
     let literal = eval_f64_const(expr);
+    let proven = expr_constraints(expr, env, functions);
     for constraint in constraints {
         match constraint.as_str() {
             "nan" | "inf" => {
@@ -592,6 +601,12 @@ fn validate_safe_constraints(
                         base: base.clone(),
                         span: Some(expr.span),
                     });
+                }
+                if proven
+                    .as_ref()
+                    .is_some_and(|known| known.iter().any(|known| known == constraint))
+                {
+                    continue;
                 }
                 let Some(value) = literal else {
                     return Err(TypeError::UnprovenConstraint {
@@ -608,6 +623,25 @@ fn validate_safe_constraints(
                     });
                 }
             }
+            "hate_speech" | "misinformation" => {
+                if *base != Ty::String {
+                    return Err(TypeError::InvalidConstraint {
+                        constraint: constraint.clone(),
+                        base: base.clone(),
+                        span: Some(expr.span),
+                    });
+                }
+                if proven
+                    .as_ref()
+                    .is_some_and(|known| known.iter().any(|known| known == constraint))
+                {
+                    continue;
+                }
+                return Err(TypeError::UnprovenConstraint {
+                    constraint: constraint.clone(),
+                    span: Some(expr.span),
+                });
+            }
             _ => {
                 return Err(TypeError::InvalidConstraint {
                     constraint: constraint.clone(),
@@ -618,6 +652,25 @@ fn validate_safe_constraints(
         }
     }
     Ok(())
+}
+
+fn expr_constraints(
+    expr: &Expr,
+    env: &TypeEnv,
+    functions: &HashMap<String, FuncSig>,
+) -> Option<Vec<String>> {
+    match &expr.kind {
+        ExprKind::Ident(name) => env.get_var_constraints(name),
+        ExprKind::Call { callee, .. } => {
+            if let ExprKind::Ident(name) = &callee.kind {
+                return functions
+                    .get(name)
+                    .and_then(|sig| sig.ret.constraints.clone());
+            }
+            None
+        }
+        _ => None,
+    }
 }
 
 fn suggestion_message(suggestion: Option<String>) -> String {
@@ -706,14 +759,15 @@ pub fn typecheck_program_with_warnings(program: &Program) -> Result<Vec<Warning>
                 let params = func
                     .params
                     .iter()
-                    .map(|p| type_from_ast(&p.ty, &enums, &traits))
+                    .map(|p| type_sig_from_ast(&p.ty, &enums, &traits))
                     .collect::<Result<Vec<_>, _>>()?;
-                let ret = func
-                    .return_type
-                    .as_ref()
-                    .map(|ty| type_from_ast(ty, &enums, &traits))
-                    .transpose()?
-                    .unwrap_or(Ty::Unit);
+                let ret = match func.return_type.as_ref() {
+                    Some(ty) => type_sig_from_ast(ty, &enums, &traits)?,
+                    None => TypeSig {
+                        ty: Ty::Unit,
+                        constraints: None,
+                    },
+                };
                 functions.insert(func.name.clone(), FuncSig { params, ret });
             }
             Item::Enum(enum_def) => {
@@ -746,8 +800,8 @@ fn typecheck_function(
 ) -> Result<Vec<Warning>, TypeError> {
     let mut env = TypeEnv::default();
     for param in &func.params {
-        let ty = type_from_ast(&param.ty, enums, traits)?;
-        env.insert_var(param.name.clone(), ty);
+        let sig = type_sig_from_ast(&param.ty, enums, traits)?;
+        env.insert_var(param.name.clone(), sig.ty, sig.constraints);
     }
 
     let expected_return = match func.return_type.as_ref() {
@@ -774,7 +828,9 @@ fn typecheck_function(
             let found = type_of_expr(expr, &mut env, functions, enums, traits, &expected_return)?;
             if found != expected_return.ty {
                 if found == Ty::Unit {
-                    return Err(TypeError::MissingReturn);
+                    return Err(TypeError::MissingReturn {
+                        span: Some(expr.span),
+                    });
                 }
                 return Err(TypeError::ReturnMismatch {
                     expected: expected_return.ty.clone(),
@@ -783,10 +839,11 @@ fn typecheck_function(
                 });
             }
             if let Some(constraints) = expected_return.constraints.as_ref() {
-                validate_safe_constraints(constraints, &expected_return.ty, expr)?;
+                validate_safe_constraints(constraints, &expected_return.ty, expr, &env, functions)?;
             }
         } else {
-            return Err(TypeError::MissingReturn);
+            let span = func.body.last().and_then(stmt_span);
+            return Err(TypeError::MissingReturn { span });
         }
     }
 
@@ -820,11 +877,20 @@ fn typecheck_stmt(
                     });
                 }
                 if let Some(constraints) = constraints {
-                    validate_safe_constraints(constraints, &declared, expr)?;
+                    validate_safe_constraints(
+                        constraints,
+                        &declared,
+                        expr,
+                        env,
+                        functions,
+                    )?;
                 }
-                env.insert_var(name.clone(), declared);
+                let inferred_constraints =
+                    constraints.cloned().or_else(|| expr_constraints(expr, env, functions));
+                env.insert_var(name.clone(), declared, inferred_constraints);
             } else {
-                env.insert_var(name.clone(), expr_ty);
+                let inferred_constraints = expr_constraints(expr, env, functions);
+                env.insert_var(name.clone(), expr_ty, inferred_constraints);
             }
             Ok(())
         }
@@ -844,7 +910,7 @@ fn typecheck_stmt(
             if let (Some(constraints), Some(expr)) =
                 (expected_return.constraints.as_ref(), expr.as_ref())
             {
-                validate_safe_constraints(constraints, &expected_return.ty, expr)?;
+                validate_safe_constraints(constraints, &expected_return.ty, expr, env, functions)?;
             }
             Ok(())
         }
@@ -882,7 +948,7 @@ fn typecheck_stmt(
             };
             let mut inner = env.child();
             inner.loop_depth += 1;
-            inner.insert_var(name.clone(), elem_ty);
+            inner.insert_var(name.clone(), elem_ty, None);
             for stmt in body {
                 typecheck_stmt(stmt, &mut inner, functions, enums, traits, expected_return)?;
             }
@@ -936,8 +1002,8 @@ fn type_of_expr(
             }
             if let Some(sig) = functions.get(name) {
                 return Ok(Ty::Func {
-                    params: sig.params.clone(),
-                    ret: Box::new(sig.ret.clone()),
+                    params: sig.params.iter().map(|param| param.ty.clone()).collect(),
+                    ret: Box::new(sig.ret.ty.clone()),
                 });
             }
             // Built-in: print
@@ -985,7 +1051,7 @@ fn type_of_expr(
 
             // First pass: assume all params are Unknown and collect constraints
             for (idx, (name, ty)) in params.iter().zip(param_types.iter()).enumerate() {
-                inner.insert_param(name.clone(), ty.clone(), idx);
+                inner.insert_param(name.clone(), ty.clone(), None, idx);
             }
 
             // Analyze the body to infer parameter types
@@ -1002,7 +1068,7 @@ fn type_of_expr(
             // Second pass: use inferred types
             let mut inner_final = env.child();
             for (idx, (name, ty)) in params.iter().zip(param_types.iter()).enumerate() {
-                inner_final.insert_param(name.clone(), ty.clone(), idx);
+                inner_final.insert_param(name.clone(), ty.clone(), None, idx);
             }
 
             let ret_ty = type_of_expr(
@@ -1270,7 +1336,7 @@ fn type_of_expr(
             let mut expected_arm_ty: Option<Ty> = None;
             for arm in arms {
                 let mut inner = env.child();
-                typecheck_pattern(&arm.pattern, &scrutinee_ty, &mut inner)?;
+                typecheck_pattern(&arm.pattern, arm.pattern_span, &scrutinee_ty, &mut inner)?;
                 if let Some(guard) = &arm.guard {
                     let guard_ty =
                         type_of_expr(guard, &mut inner, functions, enums, traits, expected_return)?;
@@ -1427,6 +1493,18 @@ fn type_of_block_expr(
     Ok(last_ty)
 }
 
+fn stmt_span(stmt: &Stmt) -> Option<Span> {
+    match stmt {
+        Stmt::Let { expr, .. } => Some(expr.span),
+        Stmt::Return(expr) => expr.as_ref().map(|expr| expr.span),
+        Stmt::While { condition, .. } => Some(condition.span),
+        Stmt::For { iter, .. } => Some(iter.span),
+        Stmt::Break | Stmt::Continue => None,
+        Stmt::Expr(expr) => Some(expr.span),
+        Stmt::Lambda { body, .. } => Some(body.span),
+    }
+}
+
 fn block_returns(stmts: &[Stmt]) -> bool {
     for stmt in stmts {
         if stmt_returns(stmt) {
@@ -1468,13 +1546,14 @@ fn expr_returns(expr: &Expr) -> bool {
 #[allow(clippy::result_large_err)]
 fn typecheck_pattern(
     pattern: &Pattern,
+    pattern_span: Span,
     scrutinee: &Ty,
     env: &mut TypeEnv,
 ) -> Result<(), TypeError> {
     match pattern {
         Pattern::Wildcard => Ok(()),
         Pattern::Ident(name) => {
-            env.insert_var(name.clone(), scrutinee.clone());
+            env.insert_var(name.clone(), scrutinee.clone(), None);
             Ok(())
         }
         Pattern::Int(_) => match scrutinee {
@@ -1482,7 +1561,7 @@ fn typecheck_pattern(
             other => Err(TypeError::Mismatch {
                 expected: Ty::I64,
                 found: other.clone(),
-                span: None,
+                span: Some(pattern_span),
             }),
         },
         Pattern::Str(_) => match scrutinee {
@@ -1490,7 +1569,7 @@ fn typecheck_pattern(
             other => Err(TypeError::Mismatch {
                 expected: Ty::String,
                 found: other.clone(),
-                span: None,
+                span: Some(pattern_span),
             }),
         },
     }
@@ -1551,6 +1630,64 @@ fn type_from_ast(
     }
 }
 
+#[allow(clippy::result_large_err)]
+fn type_sig_from_ast(
+    ty: &Type,
+    enums: &HashMap<String, Vec<String>>,
+    traits: &HashMap<String, Vec<Function>>,
+) -> Result<TypeSig, TypeError> {
+    match ty {
+        Type::Safe { base, constraints } => {
+            let base_ty = type_from_ast(base, enums, traits)?;
+            validate_safe_annotation_constraints(constraints, &base_ty)?;
+            Ok(TypeSig {
+                ty: base_ty,
+                constraints: Some(constraints.clone()),
+            })
+        }
+        _ => Ok(TypeSig {
+            ty: type_from_ast(ty, enums, traits)?,
+            constraints: None,
+        }),
+    }
+}
+
+fn validate_safe_annotation_constraints(
+    constraints: &[String],
+    base: &Ty,
+) -> Result<(), TypeError> {
+    for constraint in constraints {
+        match constraint.as_str() {
+            "nan" | "inf" => {
+                if *base != Ty::F64 {
+                    return Err(TypeError::InvalidConstraint {
+                        constraint: constraint.clone(),
+                        base: base.clone(),
+                        span: None,
+                    });
+                }
+            }
+            "hate_speech" | "misinformation" => {
+                if *base != Ty::String {
+                    return Err(TypeError::InvalidConstraint {
+                        constraint: constraint.clone(),
+                        base: base.clone(),
+                        span: None,
+                    });
+                }
+            }
+            _ => {
+                return Err(TypeError::InvalidConstraint {
+                    constraint: constraint.clone(),
+                    base: base.clone(),
+                    span: None,
+                });
+            }
+        }
+    }
+    Ok(())
+}
+
 #[derive(Debug, Default, Clone)]
 struct TypeEnv {
     vars: HashMap<String, VarInfo>,
@@ -1560,8 +1697,8 @@ struct TypeEnv {
 
 #[derive(Debug, Clone)]
 struct FuncSig {
-    params: Vec<Ty>,
-    ret: Ty,
+    params: Vec<TypeSig>,
+    ret: TypeSig,
 }
 
 impl TypeEnv {
@@ -1573,12 +1710,26 @@ impl TypeEnv {
         }
     }
 
-    fn insert_var(&mut self, name: String, ty: Ty) {
-        self.vars.insert(name, VarInfo { ty, used: false });
+    fn insert_var(&mut self, name: String, ty: Ty, constraints: Option<Vec<String>>) {
+        self.vars.insert(
+            name,
+            VarInfo {
+                ty,
+                constraints,
+                used: false,
+            },
+        );
     }
 
-    fn insert_param(&mut self, name: String, ty: Ty, index: usize) {
-        self.vars.insert(name.clone(), VarInfo { ty, used: false });
+    fn insert_param(&mut self, name: String, ty: Ty, constraints: Option<Vec<String>>, index: usize) {
+        self.vars.insert(
+            name.clone(),
+            VarInfo {
+                ty,
+                constraints,
+                used: false,
+            },
+        );
         self.param_indices.insert(name, index);
     }
 
@@ -1592,6 +1743,10 @@ impl TypeEnv {
             return Some(info.ty.clone());
         }
         None
+    }
+
+    fn get_var_constraints(&self, name: &str) -> Option<Vec<String>> {
+        self.vars.get(name).and_then(|info| info.constraints.clone())
     }
 
     fn collect_warnings(&self) -> Vec<Warning> {
@@ -1621,6 +1776,7 @@ impl TypeEnv {
 #[derive(Debug, Clone)]
 struct VarInfo {
     ty: Ty,
+    constraints: Option<Vec<String>>,
     used: bool,
 }
 
@@ -1663,11 +1819,67 @@ mod tests {
     }
 
     #[test]
+    fn safe_string_constraint_unproven() {
+        let program =
+            parse_program("fn main() { let x: Safe<string, !hate_speech> = \"ok\"; }").unwrap();
+        assert!(matches!(
+            typecheck_program(&program),
+            Err(TypeError::UnprovenConstraint { .. })
+        ));
+    }
+
+    #[test]
+    fn safe_string_constraint_propagates_from_param() {
+        let program = parse_program(
+            "fn accept(x: Safe<string, !hate_speech>) { let y: Safe<string, !hate_speech> = x; }",
+        )
+        .unwrap();
+        assert!(typecheck_program(&program).is_ok());
+    }
+
+    #[test]
+    fn safe_constraint_propagates_from_safe_var() {
+        let program = parse_program(
+            "fn main() { let x: Safe<f64, !nan> = 1.0; let y: Safe<f64, !nan> = x; }",
+        )
+        .unwrap();
+        assert!(typecheck_program(&program).is_ok());
+    }
+
+    #[test]
+    fn safe_constraint_propagates_from_safe_function() {
+        let program = parse_program(
+            "fn ok(): Safe<f64, !nan> { return 1.0; } fn main() { let x: Safe<f64, !nan> = ok(); }",
+        )
+        .unwrap();
+        assert!(typecheck_program(&program).is_ok());
+    }
+
+    #[test]
     fn safe_constraint_unknown_is_invalid() {
         let program = parse_program("fn main() { let x: Safe<f64, !foo> = 1.0; }").unwrap();
         assert!(matches!(
             typecheck_program(&program),
             Err(TypeError::InvalidConstraint { constraint, .. }) if constraint == "foo"
+        ));
+    }
+
+    #[test]
+    fn safe_constraint_invalid_param_base() {
+        let program =
+            parse_program("fn accept(x: Safe<i64, !nan>) { print(x); } fn main() {}").unwrap();
+        assert!(matches!(
+            typecheck_program(&program),
+            Err(TypeError::InvalidConstraint { .. })
+        ));
+    }
+
+    #[test]
+    fn safe_constraint_invalid_return_base() {
+        let program = parse_program("fn main(): Safe<i64, !nan> { return 1; }").unwrap();
+        assert!(matches!(
+            typecheck_program(&program),
+            Err(TypeError::InvalidConstraint { .. })
         ));
     }
 
@@ -1804,6 +2016,18 @@ mod tests {
     }
 
     #[test]
+    fn typecheck_match_pattern_type_mismatch() {
+        let program = parse_program(
+            "fn main() { let mood: string = \"ok\"; match mood { 1 => print(\"no\"), _ => print(\"ok\"), }; }",
+        )
+        .unwrap();
+        assert!(matches!(
+            typecheck_program(&program),
+            Err(TypeError::Mismatch { .. })
+        ));
+    }
+
+    #[test]
     fn typecheck_range_in_for_loop() {
         let program = parse_program("fn main() { for i in 0..10 { let x: i64 = i; } } ").unwrap();
         assert!(typecheck_program(&program).is_ok());
@@ -1856,7 +2080,7 @@ mod tests {
         let program = parse_program("fn main(x: i64): i64 { if x > 0 { return x; } }").unwrap();
         assert!(matches!(
             typecheck_program(&program),
-            Err(TypeError::MissingReturn)
+            Err(TypeError::MissingReturn { .. })
         ));
     }
 

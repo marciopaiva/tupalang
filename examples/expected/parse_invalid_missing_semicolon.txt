@@ -1,0 +1,5 @@
+error: unexpected token RBrace
+  --> examples/invalid_parse_missing_semicolon.tp:3:1
+   |
+ 3 | }
+   | ^

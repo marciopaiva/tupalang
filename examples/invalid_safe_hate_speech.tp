@@ -1,0 +1,4 @@
+fn main() {
+	let x: Safe<string, !hate_speech> = "ok";
+	print(x);
+}

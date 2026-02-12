@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "E1002",
+    "col": 9,
+    "label": "examples/invalid_unknown_var.tp",
+    "line": 2,
+    "line_text": "  print(x)",
+    "message": "undefined variable 'x'",
+    "span": {
+      "end": 21,
+      "start": 20
+    }
+  }
+}

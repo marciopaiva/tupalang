@@ -1,0 +1,4 @@
+fn main() {
+  let xs = [1, true];
+  print(xs);
+}

@@ -1,0 +1,11 @@
+{
+  "error": {
+    "code": "E4002",
+    "col": null,
+    "label": "examples/invalid_continue.tp",
+    "line": null,
+    "line_text": null,
+    "message": "continue outside of loop",
+    "span": null
+  }
+}

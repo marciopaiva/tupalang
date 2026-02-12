@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "E1003",
+    "col": 3,
+    "label": "examples/invalid_unknown_function.tp",
+    "line": 2,
+    "line_text": "  foo(1)",
+    "message": "undefined function 'foo'",
+    "span": {
+      "end": 20,
+      "start": 14
+    }
+  }
+}

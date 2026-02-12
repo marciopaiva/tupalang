@@ -1,0 +1,6 @@
+error[E3001]: invalid constraint 'hate_speech' for base type F64
+help: supported constraints are !nan and !inf on f64 values, and !hate_speech and !misinformation on string values
+  --> examples/invalid_safe_hate_speech_base.tp:2:35
+   |
+ 2 | 	let x: Safe<f64, !hate_speech> = 1.0;
+   |                                   ^^^

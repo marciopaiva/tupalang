@@ -1,0 +1,4 @@
+fn main() {
+	let x: Safe<f64, !hate_speech> = 1.0;
+	print(x);
+}

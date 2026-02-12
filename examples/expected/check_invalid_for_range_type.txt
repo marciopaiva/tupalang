@@ -1,0 +1,5 @@
+error[E2001]: type mismatch: expected Slice { elem: Unknown }, got Bool
+  --> examples/invalid_for_range_type.tp:2:12
+   |
+ 2 |   for i in true {
+   |            ^^^^

@@ -1,0 +1,5 @@
+error[E2003]: invalid operand types for Range: F64, F64
+  --> examples/invalid_range_bounds.tp:2:11
+   |
+ 2 |   let x = 1.0..2.0;
+   |           ^^^^^^^^

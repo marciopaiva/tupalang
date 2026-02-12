@@ -1,0 +1,5 @@
+error[E2006]: return type mismatch: expected I64, got Bool
+  --> examples/invalid_return_type.tp:2:10
+   |
+ 2 |   return true;
+   |          ^^^^

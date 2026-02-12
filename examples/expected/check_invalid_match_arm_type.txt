@@ -1,0 +1,5 @@
+error[E2001]: type mismatch: expected I64, got String
+  --> examples/invalid_match_arm_type.tp:5:10
+   |
+ 5 |     _ => "no",
+   |          ^^^^

@@ -1,0 +1,5 @@
+error[E2001]: type mismatch: expected Array { elem: Unknown, len: 0 }, got I64
+  --> examples/invalid_index_base.tp:3:11
+   |
+ 3 |   let y = x[0];
+   |           ^^^^

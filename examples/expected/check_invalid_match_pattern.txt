@@ -1,0 +1,5 @@
+error[E2001]: type mismatch: expected I64, got String
+  --> examples/invalid_match_pattern.tp:4:5
+   |
+ 4 |     1 => print("no"),
+   |     ^

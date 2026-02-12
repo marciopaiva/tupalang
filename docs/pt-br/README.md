@@ -7,6 +7,7 @@ Esta é a alternativa em português. A versão canônica está em inglês na rai
 ## Status de tradução
 
 - **Em PT-BR**: Índice, README, visão geral.
+- **Atualizado**: referência a constraints éticas em `Safe<string, ...>`.
 - **Pendentes**: páginas técnicas e guias detalhados.
 
 ## Índice

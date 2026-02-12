@@ -1,0 +1,5 @@
+error[E2004]: invalid operand type for Neg: Bool
+  --> examples/invalid_unary_op.tp:2:16
+   |
+ 2 |   let x: i64 = -true;
+   |                ^^^^^

@@ -1,0 +1,5 @@
+fn pass(x: Safe<string, !misinformation>): Safe<string, !misinformation> {
+	return x;
+}
+
+fn main() {}

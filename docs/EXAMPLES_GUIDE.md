@@ -21,6 +21,9 @@ Define curation criteria and standards for examples.
 - Name files by theme (`match.tp`, `types.tp`).
 - Include brief comments when needed.
 - Update `examples/README.md` when adding/removing examples.
+- Prefer `Safe<string, ...>` when illustrating ethical constraints.
+- Mention new `safe_*` examples in `examples/README.md`.
+- Use `safe_misinformation_hate_speech.tp` as the combined-constraints reference.
 
 ## Checklist
 

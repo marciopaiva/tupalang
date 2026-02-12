@@ -14,7 +14,7 @@ The typechecker walks the AST validating types, arity, constraints, and inferrin
 2. For each node:
    - Check expected vs found type.
    - Check arity of functions and lambdas.
-   - Propagate constraints (for example, Safe<T, !nan>).
+   - Propagate constraints (for example, Safe<f64, !nan> or Safe<string, !hate_speech>).
    - Type inference for `let` without annotation.
    - Detailed diagnostics with spans.
 3. Errors are accumulated and reported at the end.
@@ -35,6 +35,7 @@ print("Result: " + y)
 - **Print as a built-in**: simplifies diagnostics and CLI integration.
 - **Detailed spans**: all errors include precise location.
 - **Extensible**: easy to add new types and constraints.
+- **Constraint model**: `f64` constraints (`!nan`, `!inf`) are proven via constants; `string` constraints (`!hate_speech`, `!misinformation`) propagate only from proven `Safe` values.
 
 ## Flow diagram
 

@@ -1,0 +1,3 @@
+fn main(): Safe<i64, !nan> {
+  return 1;
+}

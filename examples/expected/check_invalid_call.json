@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "E2002",
+    "col": 10,
+    "label": "examples/invalid_call.tp",
+    "line": 6,
+    "line_text": "\tlet y = add(1);",
+    "message": "arity mismatch: expected 2, got 1",
+    "span": {
+      "end": 75,
+      "start": 69
+    }
+  }
+}

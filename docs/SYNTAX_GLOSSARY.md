@@ -60,5 +60,6 @@ for i in 0..10 {
 ## Safe types
 
 ```tupa
+let summary: Safe<string, !misinformation> = reviewed_summary
 let score: Safe<f64, !nan> = 0.9
 ```

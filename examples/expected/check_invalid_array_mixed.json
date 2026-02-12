@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "E2001",
+    "col": 16,
+    "label": "examples/invalid_array_mixed.tp",
+    "line": 2,
+    "line_text": "  let xs = [1, true];",
+    "message": "type mismatch: expected I64, got Bool",
+    "span": {
+      "end": 31,
+      "start": 27
+    }
+  }
+}

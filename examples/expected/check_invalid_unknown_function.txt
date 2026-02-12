@@ -1,0 +1,5 @@
+error[E1003]: undefined function 'foo'
+  --> examples/invalid_unknown_function.tp:2:3
+   |
+ 2 |   foo(1)
+   |   ^^^^^^
