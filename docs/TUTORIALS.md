@@ -1,18 +1,18 @@
-# Tutoriais Passo a Passo
+# Step-by-step Tutorials
 
-## Objetivo
+## Purpose
 
-Guiar usuários de diferentes níveis em tarefas comuns e projetos exemplo com Tupã.
+Guide users of different levels through common tasks and sample projects with Tupã.
 
 ---
 
-## 1. Olá, Mundo
+## 1. Hello, World
 
 ```tupa
-print("Olá, Tupã!")
+print("Hello, Tupã!")
 ```
 
-Execute:
+Run:
 
 ```bash
 cargo run -p tupa-cli -- check examples/hello.tp
@@ -20,59 +20,59 @@ cargo run -p tupa-cli -- check examples/hello.tp
 
 ---
 
-## 2. Funções e Lambdas
+## 2. Functions and Lambdas
 
 ```tupa
 let inc: fn(int) -> int = |x| x + 1
-print(inc(41)) // saída: 42
+print(inc(41)) // output: 42
 ```
 
 ---
 
-## 3. Manipulando Strings
+## 3. Working with Strings
 
 ```tupa
-let nome = "Tupã"
-print("Bem-vindo, " + nome)
+let name = "Tupã"
+print("Welcome, " + name)
 ```
 
 ---
 
-## 4. Funções com Tipos Seguros
+## 4. Functions with Safe Types
 
 ```tupa
-fn seguro(x: f64): Safe<f64, !nan> {
+fn safe(x: f64): Safe<f64, !nan> {
   return x
 }
 ```
 
 ---
 
-## 5. Projeto Exemplo: Soma de Vetor
+## 5. Example Project: Vector Sum
 
-Arquivo: `examples/soma_vetor.tp`
+File: `examples/soma_vetor.tp`
 
 ```tupa
-fn soma(v: [int]) -> int {
+fn sum(v: [int]) -> int {
   let mut total = 0
   for x in v {
     total = total + x
   }
   return total
 }
-print(soma([1,2,3,4])) // saída: 10
+print(sum([1,2,3,4])) // output: 10
 ```
 
 ---
 
-## 6. Debug e Diagnóstico
+## 6. Debugging and Diagnostics
 
-- Consulte [docs/COMMON_ERRORS.md](COMMON_ERRORS.md) para exemplos de erros.
-- Use `cargo test` para rodar todos os testes.
+- See [docs/COMMON_ERRORS.md](COMMON_ERRORS.md) for error examples.
+- Use `cargo test` to run all tests.
 
 ---
 
-## 7. Contribuindo com exemplos
+## 7. Contributing examples
 
-- Adicione novos tutoriais em `docs/TUTORIALS.md`.
-- Veja [CONTRIBUTING.md](../CONTRIBUTING.md) para diretrizes.
+- Add new tutorials to `docs/TUTORIALS.md`.
+- See [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines.

@@ -1,16 +1,16 @@
 # Tupã Language Specification v0.1
 
-> **Força ancestral, código moderno**  
-> Linguagem brasileira para sistemas críticos e IA evolutiva
+> **Ancestral strength, modern code**  
+> Brazilian language for critical systems and evolving AI
 
 [![Specification Status](https://img.shields.io/badge/status-draft-orange)](#)
 [![License](https://img.shields.io/badge/license-CC--BY--SA%204.0-ff69b4)](#)
 
-## Objetivo
+## Purpose
 
-Definir a especificação formal da linguagem Tupã, incluindo gramática, regras de tipos e semântica.
+Define the formal specification of the Tupã language, including grammar, type rules, and semantics.
 
-## Índice
+## Index
 
 - [1. Philosophy & Design Goals](#1-philosophy--design-goals)
 - [2. Lexical Structure](#2-lexical-structure)
@@ -33,46 +33,46 @@ Definir a especificação formal da linguagem Tupã, incluindo gramática, regra
 ## 1. Philosophy & Design Goals
 
 ### 1.1 Core Principles
-1. **Performance previsível**: Zero alocações ocultas; custo de execução visível no código-fonte
-2. **Diferenciabilidade nativa**: Qualquer expressão pura é automaticamente derivável via operador `∇`
-3. **Alignment via tipos**: Restrições éticas verificadas em *compile-time*, não runtime
-4. **Esparsidade declarativa**: Densidade de dados é parte do tipo, não otimização pós-processo
+1. **Predictable performance**: Zero hidden allocations; execution cost visible in source code
+2. **Native differentiability**: Any pure expression is automatically differentiable via the `∇` operator
+3. **Alignment via types**: Ethical constraints checked at compile time, not runtime
+4. **Declarative sparsity**: Data density is part of the type, not a post-processing optimization
 
 ### 1.2 Target Audience
-- Pesquisadores de IA que precisam de performance + segurança formal
-- Engenheiros de sistemas críticos (fintech, saúde, infraestrutura)
-- Devs que valorizam produtividade sem sacrificar controle
+- AI researchers who need performance and formal safety
+- Critical systems engineers (fintech, healthcare, infrastructure)
+- Developers who value productivity without sacrificing control
 
 ### 1.3 Non-Goals
-- Substituir Python para scripts rápidos
-- Ser 100% compatível com Rust/Python syntax
-- Suportar programação imperativa não estruturada
+- Replace Python for quick scripts
+- Be 100% compatible with Rust/Python syntax
+- Support unstructured imperative programming
 
 ### 1.4 Document Conventions
-- **Normative**: seções com gramática EBNF, regras de tipos e semântica são obrigatórias.
-- **Informative**: exemplos, notas e comentários servem como guia.
+- **Normative**: sections with EBNF grammar, type rules, and semantics are mandatory.
+- **Informative**: examples, notes, and comments serve as guidance.
 
 ### 1.5 MVP Scope (Core)
-- Lexer + parser para funções, `let`, `if`, `match`, chamadas e literais.
-- Type checker para tipos primitivos e tuplas simples.
-- Semântica de `∇` limitada a funções puras.
-- Geração de código para expressões aritméticas básicas.
+- Lexer + parser for functions, `let`, `if`, `match`, calls, and literals.
+- Type checker for primitive types and simple tuples.
+- `∇` semantics limited to pure functions.
+- Code generation for basic arithmetic expressions.
 
 ---
 
 ## 2. Lexical Structure
 
 ### 2.1 Character Encoding
-- UTF-8 obrigatório
-- Identificadores suportam Unicode letters (`\p{L}`) + `_`
-- Keywords são ASCII-only (case-sensitive)
+- UTF-8 required
+- Identifiers support Unicode letters (`\p{L}`) + `_`
+- Keywords are ASCII-only (case-sensitive)
 
 ### 2.2 Comments
 ```tupa
-// Comentário de linha única
+// Single-line comment
 
-/* Comentário
-   multilinha */
+/* Multi-line
+   comment */
 ```
 
 ### 2.3 Identifiers
@@ -82,12 +82,12 @@ letter     = "a".."z" | "A".."Z" | "\u{0080}".."\u{10FFFF}" ;
 digit      = "0".."9" ;
 ```
 
-**Normalização Unicode (Normative)**:
-- Identificadores são comparados após normalização NFC.
-- O compilador deve rejeitar identificadores que mudem após normalização (para evitar confusão visual).
+**Unicode Normalization (Normative)**:
+- Identifiers are compared after NFC normalization.
+- The compiler must reject identifiers that change after normalization (to avoid visual confusion).
 
-**Exemplos válidos**: `x`, `_temp`, `ação`, `π_value`  
-**Exemplos inválidos**: `1var`, `@name`, `fn` (keyword)
+**Valid examples**: `x`, `_temp`, `ação`, `π_value`  
+**Invalid examples**: `1var`, `@name`, `fn` (keyword)
 
 ### 2.4 Keywords
 ```
@@ -106,12 +106,12 @@ hex_digit       = digit | "a".."f" | "A".."F" ;
 tensor_literal  = "[" expression { "," expression } "]" ;
 ```
 
-**Exemplos**:
+**Examples**:
 ```tupa
 42          // integer_literal
 3.14        // float_literal
 1.5e-3      // scientific notation
-"Olá 🌩️"   // string com Unicode
+"Olá 🌩️"   // string with Unicode
 "newline\n" // escape sequence
 [1, 2, 3]   // tensor_literal
 ```
@@ -148,26 +148,26 @@ func_type = "fn" "(" [ type { "," type } ] ")" "->" type ;
 ```tupa
 let f: fn(i64, i64) -> i64 = add
 let g: fn() -> bool = is_ready
-// Função anônima (lambda)
+// Anonymous function (lambda)
 let inc: fn(i64) -> i64 = |x| x + 1
-// Função como valor
+// Function as a value
 let apply: fn(fn(i64)->i64, i64) -> i64 = |f, x| f(x)
 let r = apply(inc, 10) // r = 11
-// Função com print e concatenação de string
+// Function with print and string concatenation
 fn hello(name: string) {
-	print("Olá, " + name)
+	print("Hello, " + name)
 }
 hello("Tupã")
 ```
 
-**Comparação:**
+**Comparison:**
 
 | Tupã | Python | Rust |
 |------|--------|------|
 | `let inc: fn(i64)->i64 = |x| x+1` | `inc = lambda x: x+1` | `let inc = |x: i64| x+1;` |
-| `print("Olá, " + name)` | `print("Olá, " + name)` | `println!("Olá, {}", name);` |
+| `print("Hello, " + name)` | `print("Hello, " + name)` | `println!("Hello, {}", name);` |
 
-Veja mais exemplos em [FAQ](FAQ.md) e [examples/README.md](../examples/README.md).
+See more examples in [FAQ](FAQ.md) and [examples/README.md](../examples/README.md).
 ```
 
 #### 3.2.3 Option / Result (error handling)
@@ -178,13 +178,13 @@ result_type = "Result" "<" type "," type ">" ;
 ```tupa
 fn divide(a: f64, b: f64) -> Result<f64, string> {
 	if b == 0.0 {
-		return Err("Divisão por zero")
+		return Err("Division by zero")
 	}
 	return Ok(a / b)
 }
 ```
 
-#### 3.2.4 Tensors (IA first-class)
+#### 3.2.4 Tensors (AI first-class)
 ```ebnf
 tensor_type = "Tensor" "<" 
 				type "," 
@@ -194,10 +194,10 @@ tensor_type = "Tensor" "<"
 dimension   = integer_literal | "..." ;  // "..." = dynamic dimension
 ```
 ```tupa
-// Tensor denso 28x28 (MNIST)
+// Dense 28x28 tensor (MNIST)
 let image: Tensor<f32, shape=[28, 28]> = load("digit.tp")
 
-// Tensor esparso 90% (recomendado para LLMs)
+// 90% sparse tensor (recommended for LLMs)
 let weights: Tensor<f16, shape=[4096, 4096], density=0.1> = load("llama3.tp")
 ```
 
@@ -207,45 +207,45 @@ safe_type = "Safe" "<" type "," constraint_list ">" ;
 constraint_list = "!" identifier { "," "!" identifier } ;
 ```
 ```tupa
-// Texto que não pode conter discurso de ódio
+// Text that cannot contain hate speech
 let summary: Safe<string, !hate_speech> = summarize(article)
 
-// Número que não pode ser NaN/Inf (crítico para treinamento estável)
+// Number that cannot be NaN/Inf (critical for stable training)
 let loss: Safe<f64, !nan, !inf> = compute_loss(predictions, targets)
 ```
 
-> **Nota**: Constraints são verificadas via:
-> - Provas formais (para propriedades matemáticas)
-> - RLHF scores (para conteúdo gerado por LLM)
-> - Runtime guards fallback (se compile-time não puder provar)
+> **Note**: Constraints are verified via:
+> - Formal proofs (for mathematical properties)
+> - RLHF scores (for LLM-generated content)
+> - Runtime guard fallback (if compile time cannot prove)
 
-**Semântica**:
-- Se o compilador **provar** a constraint, o tipo `Safe<T, !c>` é válido.
-- Se **não puder provar**, é erro de compilação (com sugestão de correção).
-- `unsafe { ... }` pode ser usado para assumir responsabilidade explícita.
+**Semantics**:
+- If the compiler **proves** the constraint, the `Safe<T, !c>` type is valid.
+- If it **cannot prove**, it is a compile-time error (with a correction hint).
+- `unsafe { ... }` can be used to assume explicit responsibility.
 
-**Implementação atual (compiler)**:
-- Apenas `!nan` e `!inf` são aceitas e apenas para base `f64`.
-- A prova é feita apenas com literais e expressões constantes de `f64` (ex.: `1.0`, `-1.0`, `1.0 + 2.0`, `1.0 / 0.0`).
-- Se a prova não for possível, o compilador reporta erro de constraint não provada.
+**Current implementation (compiler)**:
+- Only `!nan` and `!inf` are accepted and only for `f64` base.
+- Proof is done only with `f64` literals and constant expressions (for example, `1.0`, `-1.0`, `1.0 + 2.0`, `1.0 / 0.0`).
+- If proof is not possible, the compiler reports an unproven constraint error.
 
 ##### 3.2.5.1 Constraint Resolution (Normative)
 
-Para cada constraint `!c` em `Safe<T, !c>`:
+For each constraint `!c` in `Safe<T, !c>`:
 
 | Constraint | Solver Requirement | Fallback |
 |------------|--------------------|----------|
-| `!nan` | Interval analysis prova `x ∈ [-∞, +∞] \ {NaN}` | `@assume(!nan)` com warning |
-| `!inf` | Limites estáticos provam `abs(x) < f64::MAX` | `@assume(!inf)` com warning |
-| `!hate_speech` | RLHF scorer ≥ 0.95 no dataset definido | ❌ Não permitido |
+| `!nan` | Interval analysis proves `x ∈ [-∞, +∞] \ {NaN}` | `@assume(!nan)` with warning |
+| `!inf` | Static bounds prove `abs(x) < f64::MAX` | `@assume(!inf)` with warning |
+| `!hate_speech` | RLHF scorer ≥ 0.95 on the defined dataset | ❌ Not allowed |
 
 ---
 
 ### 3.3 Array Types (Normative)
 
 ```ebnf
-array_type = "[" type ";" integer_literal "]" ;  // tamanho fixo
-slice_type = "[" type "]" ;                      // tamanho dinâmico
+array_type = "[" type ";" integer_literal "]" ;  // fixed size
+slice_type = "[" type "]" ;                      // dynamic size
 ```
 
 ```tupa
@@ -253,17 +253,17 @@ let fixed: [i64; 5] = [1, 2, 3, 4, 5]
 let dynamic: [i64] = vec![1, 2, 3]
 ```
 
-**Semântica (Normative)**:
-- `[T; N]` é alocado na stack quando possível.
-- `[T]` é alocado no heap e é mutável apenas se referenciado por `mut`.
-- Literais `[a, b, c]` inferem `[T; N]` quando `N` é conhecido.
+**Semantics (Normative)**:
+- `[T; N]` is allocated on the stack when possible.
+- `[T]` is allocated on the heap and is mutable only if referenced by `mut`.
+- Literals `[a, b, c]` infer `[T; N]` when `N` is known.
 
 ---
 
 ## 4. Expressions
 
 ### 4.0 Operator Precedence (highest → lowest)
-| Precedência | Operadores |
+| Precedence | Operators |
 |------------|------------|
 | 1 | `()` `.` function call |
 | 2 | `∇` unary | 
@@ -277,10 +277,10 @@ let dynamic: [i64] = vec![1, 2, 3]
 | 10 | `||` |
 
 ### 4.1 Evaluation Rules (Normative)
-- `if` avalia apenas o branch selecionado.
-- `a && b` usa short-circuit: `b` só é avaliado se `a` for `true`.
-- `a || b` usa short-circuit: `b` só é avaliado se `a` for `false`.
-- `match` avalia o corpo somente do primeiro padrão correspondente.
+- `if` evaluates only the selected branch.
+- `a && b` uses short-circuit: `b` is evaluated only if `a` is `true`.
+- `a || b` uses short-circuit: `b` is evaluated only if `a` is `false`.
+- `match` evaluates only the body of the first matching pattern.
 
 ### 4.1 Full Grammar
 ```ebnf
@@ -329,12 +329,12 @@ literal           = integer_literal | float_literal | string_literal | "true" | 
 
 #### 4.2.1 Gradient Operator (`∇`)
 ```tupa
-// Função pura → derivada simbólica gerada pelo compilador
+// Pure function → symbolic derivative generated by the compiler
 fn square(x: f64) -> f64 { x * x }
 
-let grad_at_3 = ∇square(3.0)  // → 6.0 (derivada: 2*x)
+let grad_at_3 = ∇square(3.0)  // → 6.0 (derivative: 2*x)
 
-// Derivada parcial para múltiplos parâmetros
+// Partial derivative for multiple parameters
 fn mse(pred: f64, target: f64) -> f64 {
 	let diff = pred - target
 	return diff * diff
@@ -343,28 +343,28 @@ fn mse(pred: f64, target: f64) -> f64 {
 let (d_pred, d_target) = ∇mse(0.8, 1.0)  // → (-0.4, 0.4)
 ```
 
-**Tipo de retorno**:
-- Para `f: (T1, ..., Tn) -> R`, `∇f(args)` retorna `(dT1, ..., dTn)`.
-- Para `n = 1`, o retorno é escalar `dT1`.
-- O valor de `f(args)` pode ser obtido chamando `f(args)` separadamente.
+**Return type**:
+- For `f: (T1, ..., Tn) -> R`, `∇f(args)` returns `(dT1, ..., dTn)`.
+- For `n = 1`, the return is a scalar `dT1`.
+- The value of `f(args)` can be obtained by calling `f(args)` separately.
 
-##### Pureza Formal (Normative)
+##### Formal Purity (Normative)
 
-Uma função `f` é **pura** sse:
+A function `f` is **pure** iff:
 
-1. Não contém chamadas a funções com atributo `@side_effects(...)`.
-2. Não acessa nem modifica variáveis mutáveis não-locais (`static mut`, globals).
-3. Não contém operações de I/O (`print`, `file.read`, `http.get`).
-4. Não contém non-determinismo (`rand()`, `time.now()`, `thread_id()`).
-5. Todas as funções chamadas por `f` são puras (recursão de pureza).
+1. It does not call functions with the `@side_effects(...)` attribute.
+2. It does not access or modify non-local mutable variables (`static mut`, globals).
+3. It does not perform I/O operations (`print`, `file.read`, `http.get`).
+4. It does not contain non-determinism (`rand()`, `time.now()`, `thread_id()`).
+5. All functions called by `f` are pure (purity recursion).
 
-> **Regra de pureza**: `∇` só funciona em expressões *puras* (sem side effects). Compilador rejeita:
+> **Purity rule**: `∇` only works on *pure* expressions (no side effects). The compiler rejects:
 > ```tupa
 > fn impure(x: f64) -> f64 {
 >     print(x)  // side effect!
 >     return x * 2
 > }
-> let g = ∇impure(3.0)  // ❌ Erro: função não é pura
+> let g = ∇impure(3.0)  // ❌ Error: function is not pure
 > ```
 
 #### 4.2.2 Pattern Matching
@@ -380,7 +380,7 @@ match http_status {
 #### 4.2.3 String Interpolation
 ```tupa
 let name = "Tupã"
-print(f"Olá, {name}!")  // → "Olá, Tupã!"
+print(f"Hello, {name}!")  // → "Hello, Tupã!"
 ```
 
 ---
@@ -420,32 +420,32 @@ range_expr        = expression ".." expression ;  // exclusive end
 
 ### 5.2 Variable Binding
 ```tupa
-// Inferência de tipo
+// Type inference
 let x = 42          // x: i64
 let pi = 3.14       // pi: f64
 
-// Tipo explícito (recomendado para APIs públicas)
+// Explicit type (recommended for public APIs)
 let name: string = "Tupã"
 
-// Mutabilidade explícita (default é imutável)
+// Explicit mutability (default is immutable)
 let mut counter = 0
-counter = counter + 1  // permitido
+counter = counter + 1  // allowed
 ```
 
 ### 5.3 Functions
 ```tupa
-// Função pura (default) → automaticamente diferenciável
+// Pure function (default) → automatically differentiable
 fn relu(x: f64) -> f64 {
 	if x > 0.0 { x } else { 0.0 }
 }
 
-// Função com side effects explícitos
+// Function with explicit side effects
 @side_effects(io)
 fn log(message: string) {
 	print(f"[LOG] {message}")
 }
 
-// Função assíncrona
+// Async function
 async fn fetch_user(id: i64) -> Result<User, string> {
 	let resp = await http.get(f"/api/users/{id}")
 	return parse_user(resp)
@@ -454,8 +454,8 @@ async fn fetch_user(id: i64) -> Result<User, string> {
 
 ### 5.4 Control Flow
 ```tupa
-// if como expressão
-let status = if temp > 100 { "crítico" } else { "normal" }
+// if as expression
+let status = if temp > 100 { "critical" } else { "normal" }
 
 // while loop
 let mut i = 0
@@ -464,19 +464,19 @@ while i < 10 {
 	i = i + 1
 }
 
-// for loop com range
+// for loop with range
 for i in 0..10 {
-	print(i)  // 0, 1, 2, ..., 9 (exclusivo no final)
+print(i)  // 0, 1, 2, ..., 9 (exclusive end)
 }
 ```
 
-### 5.5 Escopo e Shadowing (Normative)
+### 5.5 Scope and Shadowing (Normative)
 
-- Resolução de nomes é léxica, do bloco mais interno para o mais externo.
-- Shadowing é permitido (estilo Rust).
-- Redeclaração do mesmo nome no mesmo escopo é erro.
+- Name resolution is lexical, from the innermost block to the outermost.
+- Shadowing is allowed (Rust style).
+- Redeclaring the same name in the same scope is an error.
 
-Exemplo:
+Example:
 ```tupa
 let x = 10
 fn foo() {
@@ -490,10 +490,10 @@ fn foo() {
 ## 6. Numeric Semantics (Normative)
 
 ### 6.1 Integer Overflow
-- Overflow em `i64` gera erro em runtime (panic).
-- `wrap_add`, `wrap_sub`, `wrap_mul` devem ser usados para overflow intencional.
+- Overflow in `i64` raises a runtime error (panic).
+- `wrap_add`, `wrap_sub`, `wrap_mul` must be used for intentional overflow.
 
-Exemplo:
+Example:
 ```tupa
 let x: i64 = i64::MAX
 let y = x.wrap_add(1)
@@ -513,7 +513,7 @@ spawn async fn worker(id: i64) {
 	process(data)
 }
 
-// Spawn anônimo
+// Anonymous spawn
 spawn async {
 	let result = await heavy_computation()
 	send_to_main(result)
@@ -522,23 +522,23 @@ spawn async {
 
 ### 6.2 Channels
 ```tupa
-// Criação de channel tipado
+// Typed channel creation
 let (tx, rx): (Channel<i64>, Channel<i64>) = channel()
 
-// Envio
+// Send
 await tx.send(42)
 
-// Recebimento (blocking)
+// Receive (blocking)
 let value = await rx.recv()  // value: i64
 
-// Recebimento com timeout
+// Receive with timeout
 match await rx.recv_timeout(1000) {  // 1000ms
-	Some(v) => print(f"Recebido: {v}"),
+	Some(v) => print(f"Received: {v}"),
 	None => print("Timeout!")
 }
 ```
 
-> **Garantia**: Canais são *ownership-based*, o que torna impossível data races pelo sistema de tipos.
+> **Guarantee**: Channels are *ownership-based*, making data races impossible through the type system.
 
 ---
 
@@ -569,14 +569,14 @@ fn main() {
 }
 ```
 
-**ABI mínima (Normative)**:
-- Tipos obrigatórios: `usize`, `*const T`, `*mut T`.
-- Inteiros C: `i8`, `u8`, `i16`, `u16`, `i32`, `u32`, `i64`, `u64`.
-- Ponteiros opacos: `*void`.
-- `usize` tem o mesmo tamanho do ponteiro de dados da plataforma.
-- Ponteiros não podem ser desreferenciados fora de `unsafe`.
+**Minimal ABI (Normative)**:
+- Required types: `usize`, `*const T`, `*mut T`.
+- C integers: `i8`, `u8`, `i16`, `u16`, `i32`, `u32`, `i64`, `u64`.
+- Opaque pointers: `*void`.
+- `usize` has the same size as the platform data pointer.
+- Pointers cannot be dereferenced outside `unsafe`.
 
-> **Regra**: `unsafe` requer bloco explícito, o que facilita auditoria.
+> **Rule**: `unsafe` requires an explicit block, which helps auditing.
 
 ---
 
@@ -712,17 +712,17 @@ Native Binary (ELF/Mach-O/PE)
 ```
 
 ### 9.2 Gradient Compilation Strategy
-Para `∇f(x)` onde `f` é pura:
-1. Parser marca função como `#[pure]` (implícito via análise de efeitos)
-2. Type checker verifica ausência de side effects (I/O, mutação global, non-determinismo)
-3. Codegen gera **dois caminhos** no LLVM IR:
-   - Forward pass: código original
-   - Backward pass: derivadas simbólicas via regras de diferenciação automática (chain rule, product rule)
-4. Runtime seleciona caminho baseado no uso de `∇`
+For `∇f(x)` where `f` is pure:
+1. The parser marks the function as `#[pure]` (implicit via effect analysis)
+2. The type checker verifies absence of side effects (I/O, global mutation, non-determinism)
+3. Codegen emits **two paths** in LLVM IR:
+   - Forward pass: original code
+   - Backward pass: symbolic derivatives via automatic differentiation rules (chain rule, product rule)
+4. Runtime selects the path based on `∇` usage
 
-Nota: Para funções puras pequenas (<100 ops), usar diferenciação simbólica sem tape. Para funções grandes, permitir fallback para tape-based com arena allocator.
+Note: For small pure functions (<100 ops), use symbolic differentiation without a tape. For larger functions, allow fallback to tape-based differentiation with an arena allocator.
 
-**Exemplo LLVM IR gerado** para `fn square(x: f64) -> f64 { x * x }`:
+**Generated LLVM IR example** for `fn square(x: f64) -> f64 { x * x }`:
 ```llvm
 ; Forward pass
 define double @square(double %x) {
@@ -730,7 +730,7 @@ define double @square(double %x) {
   ret double %mul
 }
 
-; Backward pass (gerado automaticamente)
+; Backward pass (generated automatically)
 define { double, double } @square_grad(double %x) {
   %mul = fmul double %x, %x        ; forward
   %grad = fmul double 2.0, %x      ; derivative: 2*x
@@ -741,40 +741,40 @@ define { double, double } @square_grad(double %x) {
 ```
 
 ### 9.3 Alignment Type Verification
-Para `Safe<T, !constraint>`:
-- Compilador consulta **constraint solver** (plugin):
-  - Para `!nan`: análise de intervalo estática + propagação de restrições
-  - Para `!hate_speech`: integração offline com RLHF scorer (threshold configurável)
-- Se solver não pode provar safety → erro de compilação com sugestão de correção
-- Fallback explícito: `unsafe { ... }` com auditoria obrigatória via `@audit(required=true)`
+For `Safe<T, !constraint>`:
+- The compiler consults the **constraint solver** (plugin):
+  - For `!nan`: static interval analysis + constraint propagation
+  - For `!hate_speech`: offline integration with an RLHF scorer (configurable threshold)
+- If the solver cannot prove safety → compile-time error with a correction hint
+- Explicit fallback: `unsafe { ... }` with mandatory auditing via `@audit(required=true)`
 
 ### 9.4 Memory Model
-- **Stack allocation** preferencial para valores pequenos (< 4KB)
-- **Arena allocation** para ASTs e estruturas temporárias (zero GC overhead)
-- **Optional tracing GC** apenas para ciclos de referência (ativado via `@gc` attribute)
-- **Nenhuma alocação oculta**: todas as alocações requerem chamada explícita a `alloc()`
+- **Stack allocation** preferred for small values (< 4KB)
+- **Arena allocation** for ASTs and temporary structures (zero GC overhead)
+- **Optional tracing GC** only for reference cycles (enabled via `@gc` attribute)
+- **No hidden allocations**: all allocations require an explicit `alloc()` call
 
 ### 9.5 Diagnostics (Normative)
-- Erros devem incluir: código, mensagem, local e sugestão.
-- Formato mínimo: `E####: mensagem (arquivo:linha:coluna)`.
-- Exemplo: `E2001: constraint !nan não provada (main.tp:12:5)`.
+- Errors must include: code, message, location, and hint.
+- Minimum format: `E####: message (file:line:column)`.
+- Example: `E2001: constraint !nan not proven (main.tp:12:5)`.
 
-**Códigos recomendados**:
-- `E1001`: erro léxico
-- `E2001`: erro de tipos
-- `E2002`: constraint não provada
-- `E3001`: erro de borrow/mutabilidade
-- `E4001`: uso de `unsafe` inválido
+**Recommended codes**:
+- `E1001`: lexical error
+- `E2001`: type error
+- `E2002`: unproven constraint
+- `E3001`: borrow/mutability error
+- `E4001`: invalid `unsafe` usage
 
-Exemplo:
-`E2001: tipos incompatíveis em atribuição (main.tp:8:12)`
+Example:
+`E2001: incompatible types in assignment (main.tp:8:12)`
 
-Exemplo visual:
+Visual example:
 ```
-error[E2001]: tipos incompatíveis
+error[E2001]: incompatible types
 	--> main.tp:8:12
 	 |
- 8 | let x: i64 = "texto"
+8 | let x: i64 = "text"
 	 |            ^^^^^^^^
 ```
 
@@ -782,9 +782,9 @@ error[E2001]: tipos incompatíveis
 
 ## 10. Type Conversions (Normative)
 
-- Conversões implícitas são proibidas entre tipos numéricos.
-- Conversões explícitas usam `as` (ex.: `i64 as f64`).
-- Conversão de `bool` para numérico é proibida.
+- Implicit conversions are forbidden between numeric types.
+- Explicit conversions use `as` (for example, `i64 as f64`).
+- Converting `bool` to numeric is forbidden.
 
 ---
 
@@ -793,7 +793,7 @@ error[E2001]: tipos incompatíveis
 ### 10.1 Hello World
 ```tupa
 fn main() {
-	print("🌩️ Olá, Tupã!")
+print("🌩️ Hello, Tupã!")
 }
 ```
 
@@ -817,16 +817,16 @@ fn predict(image: Tensor<f32, shape=[28, 28]>) -> i64 {
 ### 10.3 Alignment-Guaranteed Summarization
 ```tupa
 fn summarize(article: string) -> Safe<string, !misinformation, !hate_speech> {
-	// Compilador exige prova de safety via:
-	// 1. RLHF score > 0.95 no dataset de validação
-	// 2. Verificação formal de não geração de conteúdo proibido
-	return llm.generate(f"Resuma objetivamente: {article}")
+	// Compiler requires a proof of safety via:
+	// 1. RLHF score > 0.95 on the validation dataset
+	// 2. Formal verification of not generating forbidden content
+	return llm.generate(f"Summarize objectively: {article}")
 }
 
 fn main() {
 	let article = load_article("news.tp")
-	let summary = summarize(article)  // ✅ Compila só se safety provada
-	publish(summary)  // Nunca publica conteúdo perigoso
+	let summary = summarize(article)  // ✅ Compiles only if safety is proven
+	publish(summary)  // Never publishes dangerous content
 }
 ```
 
@@ -843,7 +843,7 @@ fn risk_score(tx: Transaction) -> f64 {
 	return 0.7 * neural + 0.3 * symbolic
 }
 
-// Treinamento via gradiente descendente
+// Training via gradient descent
 fn train_step(batch: [Transaction], targets: [f64], lr: f64) {
 	let (loss, grad) = ∇compute_loss(batch, targets)
 	update_weights(grad, lr)
@@ -856,12 +856,12 @@ fn train_step(batch: [Transaction], targets: [f64], lr: f64) {
 
 ### 11.1 Error Format
 
-O compilador **deve** reportar erros com:
+The compiler **must** report errors with:
 
-- Código do erro (`E####`)
-- Mensagem curta
-- Span com linha/coluna (1-based)
-- Trecho de código com destaque
+- Error code (`E####`)
+- Short message
+- Span with line/column (1-based)
+- Code snippet with highlight
 
 Exemplo:
 
@@ -869,24 +869,24 @@ Exemplo:
 error[E0003]: expected ';' after expression
 	--> examples/hello.tp:3:18
 	 |
- 3 | 	let idade = 28
+ 3 | 	let age = 28
 	 |                 ^
 ```
 
 ### 11.2 Warning Format
 
-Warnings seguem o mesmo formato, com prefixo `warning[W####]`.
+Warnings follow the same format, with the `warning[W####]` prefix.
 
-**Nota (informativa)**: Ferramentas podem oferecer saída JSON equivalente contendo `code`, `message`, `label`, `span`, `line` e `col` para integração com editores e automações.
+**Note (informative)**: Tools may offer equivalent JSON output containing `code`, `message`, `label`, `span`, `line`, and `col` for editor and automation integration.
 
 ### 11.3 Span Semantics
 
-- O span **deve** apontar para o token causador do erro quando possível.
-- Para erros de EOF, o span **deve** apontar para o fim do arquivo.
+- The span **must** point to the token causing the error when possible.
+- For EOF errors, the span **must** point to the end of the file.
 
 ### 11.4 Type Diagnostics (Normative)
 
-O compilador **deve** emitir erros de tipo com um código e, quando possível, com span:
+The compiler **must** emit type errors with a code and, when possible, with a span:
 
 ```
 error[E2001]: type mismatch: expected I64, got Bool
@@ -896,7 +896,7 @@ error[E2001]: type mismatch: expected I64, got Bool
 	 |               ^^^^
 ```
 
-Para aridade incorreta:
+For incorrect arity:
 
 ```
 error[E2002]: arity mismatch: expected 2, got 1
@@ -910,26 +910,26 @@ error[E2002]: arity mismatch: expected 2, got 1
 
 ## 12. Versioning Policy
 
-- **Major** (v1 → v2): Breaking changes na gramática ou sistema de tipos
-- **Minor** (v0.1 → v0.2): Novas features compatíveis (ex: novo atributo)
-- **Patch** (v0.1.0 → v0.1.1): Correções de bugs sem mudanças na spec
+- **Major** (v1 → v2): Breaking changes in grammar or type system
+- **Minor** (v0.1 → v0.2): Backward-compatible features (for example, new attributes)
+- **Patch** (v0.1.0 → v0.1.1): Bug fixes without spec changes
 
-> **Compromisso**: API estável a partir de v1.0.
+> **Commitment**: stable API starting from v1.0.
 
 ---
 
 ## 13. References & Influences
 
-| Linguagem/Projeto | Influência em Tupã |
+| Language/Project | Influence on Tupã |
 |-------------------|-------------------|
-| **Rust** | Ownership model, pattern matching, safety sem GC |
-| **Zig** | Zero alocações ocultas, simplicidade radical |
-| **Mojo** | Diferenciabilidade nativa, performance Python |
-| **Swift** | Tipagem gradual, interoperabilidade C |
-| **Lean** | Verificação formal integrada à linguagem |
-| **JAX** | Transformações funcionais (`grad`, `jit`) como primitivas |
+| **Rust** | Ownership model, pattern matching, GC-free safety |
+| **Zig** | Zero hidden allocations, radical simplicity |
+| **Mojo** | Native differentiability, Python performance |
+| **Swift** | Gradual typing, C interoperability |
+| **Lean** | Formal verification integrated into the language |
+| **JAX** | Functional transformations (`grad`, `jit`) as primitives |
 
 ---
 
-*Especificação mantida pela comunidade Tupã • Licença: CC-BY-SA 4.0*  
-*Versão: 0.1-draft*
+*Specification maintained by the Tupã community • License: CC-BY-SA 4.0*  
+*Version: 0.1-draft*

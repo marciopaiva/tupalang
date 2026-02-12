@@ -1,20 +1,20 @@
-# Guia de compatibilidade
+# Compatibility Guide
 
-## Objetivo
+## Purpose
 
-Definir versões mínimas e suporte por plataforma.
+Define minimum versions and platform support.
 
 ## Toolchain
 
-- Rust: estável recente (recomendado: latest stable).
-- LLVM: requerido apenas para codegen futuro.
+- Rust: recent stable (recommended: latest stable).
+- LLVM: required only for future codegen.
 
-## Sistemas suportados
+## Supported systems
 
-- Linux: suportado.
-- macOS: suportado.
-- Windows via WSL: suportado.
+- Linux: supported.
+- macOS: supported.
+- Windows via WSL: supported.
 
-## Observações
+## Notes
 
-- O codegen ainda é *stub*; requisitos de LLVM serão detalhados quando o backend for implementado.
+- Codegen is still a stub; LLVM requirements will be detailed when the backend is implemented.

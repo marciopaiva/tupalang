@@ -1,23 +1,23 @@
 # Roadmap
 
-## Objetivo
+## Purpose
 
-Resumo do plano de evolução do projeto.
+Summarize the project evolution plan.
 
-## Curto prazo
+## Short term
 
-- Consolidar SPEC v0.1 (ajustes finos e exemplos validados).
-- Melhorar typechecker (constraints e diagnósticos).
-- Codegen mínimo para `fn main()`.
+- Consolidate SPEC v0.1 (fine-tuning and validated examples).
+- Improve the typechecker (constraints and diagnostics).
+- Minimal codegen for `fn main()`.
 
-## Médio prazo
+## Mid term
 
-- Formatter oficial.
-- Linter mínimo.
-- Language Server básico.
+- Official formatter.
+- Minimal linter.
+- Basic language server.
 
-## Longo prazo
+## Long term
 
-- FFI com C/Rust.
-- ABI documentada.
-- Benchmarks públicos.
+- FFI with C/Rust.
+- Documented ABI.
+- Public benchmarks.

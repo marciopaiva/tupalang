@@ -1,60 +1,48 @@
 
 # FAQ
 
-## Objetivo
+## Purpose
 
-Responder dúvidas comuns sobre o projeto e a linguagem.
+Answer common questions about the project and the language.
 
-## Perguntas frequentes
+## Frequently asked questions
 
-### 1) O projeto já está pronto para produção?
+### 1) Is the project production-ready?
 
-Ainda não. A especificação v0.1 está completa, mas o compilador está em implementação.
+Not yet. The v0.1 specification is complete, but the compiler is still being implemented.
+### 2) What is the main focus of the language?
 
-### 2) Qual é o foco principal da linguagem?
+AI and critical systems with formal safety, alignment, and predictable performance.
+### 3) How do I contribute?
 
-IA e sistemas críticos com segurança formal, alinhamento e performance previsível.
+See [CONTRIBUTING.md](../CONTRIBUTING.md) and open an issue with context.
+### 4) Where can I find examples?
 
-### 3) Como contribuo?
+In [examples](../examples/README.md) and in [docs/SPEC.md](SPEC.md#exemplos).
+### 5) What are `Safe<T, ...>` types?
 
-Veja [CONTRIBUTING.md](../CONTRIBUTING.md) e abra uma issue com contexto.
+Types with constraints proven at compile time, for example `Safe<f64, !nan>`. See details in [docs/SPEC.md](SPEC.md#alignment-types-ethical-constraints).
+### 6) How do I run the CLI?
 
-### 4) Onde encontro exemplos?
+Use `cargo run -p tupa-cli -- <command>` and check [docs/GETTING_STARTED.md](GETTING_STARTED.md).
+### 7) Is there a roadmap?
 
-Na pasta [examples](../examples/README.md) e em [docs/SPEC.md](SPEC.md#exemplos).
+Yes: [docs/MVP_PLAN.md](MVP_PLAN.md) and [docs/ADOPTION_PLAN.md](ADOPTION_PLAN.md).
+### 8) Can I propose spec changes?
 
-### 5) O que são `Safe<T, ...>`?
+Yes. Open an issue with the `[RFC]` prefix.
+### 9) How does interoperability with other languages work?
 
-Tipos com restrições provadas em *compile-time*, por exemplo `Safe<f64, !nan>`. Veja detalhes em [docs/SPEC.md](SPEC.md#alignment-types-ethical-constraints).
+The design includes FFI (Foreign Function Interface) for integration with Rust, C, and Python. See [docs/SPEC.md](SPEC.md#7-modules--ffi).
+### 10) How is performance compared to other languages?
 
-### 6) Como executar o CLI?
+The goal is predictable performance, close to Rust/C for critical code. Benchmarks and examples will be published in future releases.
+### 11) How do I debug or get detailed diagnostics?
 
-Use `cargo run -p tupa-cli -- <comando>` e consulte [docs/GETTING_STARTED.md](GETTING_STARTED.md).
+See [docs/DIAGNOSTICS_CHECKLIST.md](DIAGNOSTICS_CHECKLIST.md) and [docs/COMMON_ERRORS.md](COMMON_ERRORS.md) for message examples and tips.
+### 12) Are there usage tips or best practices?
 
-### 7) Existe roadmap?
+See [docs/SPEC.md](SPEC.md#comparison) for examples and comparisons, and [docs/README.md](README.md) for quick links.
+### 13) How do I contribute examples or documentation?
 
-Sim: [docs/MVP_PLAN.md](MVP_PLAN.md) e [docs/ADOPTION_PLAN.md](ADOPTION_PLAN.md).
-
-### 8) Posso propor mudanças na spec?
-
-Sim. Abra uma issue com prefixo `[RFC]`.
-
-### 9) Como é a interoperabilidade com outras linguagens?
-
-O design prevê FFI (Foreign Function Interface) para integração com Rust, C e Python. Veja [docs/SPEC.md](SPEC.md#7-modules--ffi).
-
-### 10) Como é a performance comparada a outras linguagens?
-
-O objetivo é performance previsível, próxima de Rust/C para código crítico. Benchmarks e exemplos serão publicados em releases futuros.
-
-### 11) Como faço debug ou obtenho diagnósticos detalhados?
-
-Consulte [docs/DIAGNOSTICS_CHECKLIST.md](DIAGNOSTICS_CHECKLIST.md) e [docs/COMMON_ERRORS.md](COMMON_ERRORS.md) para exemplos de mensagens e dicas.
-
-### 12) Existem dicas de uso ou melhores práticas?
-
-Veja [docs/SPEC.md](SPEC.md#comparação) para exemplos e comparações, e [docs/README.md](README.md) para links rápidos.
-
-### 13) Como contribuir com exemplos ou documentação?
-
-Veja [CONTRIBUTING.md](../CONTRIBUTING.md) e [docs/DOCS_CONTRIBUTING.md](DOCS_CONTRIBUTING.md).
+See [CONTRIBUTING.md](../CONTRIBUTING.md) and [docs/DOCS_CONTRIBUTING.md](DOCS_CONTRIBUTING.md).

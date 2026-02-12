@@ -1,25 +1,25 @@
 # Codegen
 
-## Objetivo
+## Purpose
 
-Descrever o estado atual do `tupa-codegen` e o fluxo `parse -> typecheck -> codegen`.
+Describe the current state of `tupa-codegen` and the `parse -> typecheck -> codegen` flow.
 
-O `tupa-codegen` gera um IR textual estilo LLVM (não é LLVM completo), funcional e cobrindo todos os recursos do MVP, incluindo funções anônimas (lambdas), valores de função, print como built-in, concatenação de strings, arrays, controle de fluxo, etc.
+`tupa-codegen` generates a functional LLVM-like textual IR (not full LLVM) covering all MVP features, including anonymous functions (lambdas), function values, print as a built-in, string concatenation, arrays, control flow, and more.
 
-## Uso via CLI
+## CLI usage
 
 ```bash
 cargo run -p tupa-cli -- codegen examples/hello.tp
 cargo run -p tupa-cli -- codegen examples/arith.tp
 cargo run -p tupa-cli -- codegen examples/array_ops.tp
 
-# saída JSON
+# JSON output
 cargo run -p tupa-cli -- codegen --format json examples/hello.tp
 ```
 
-## Saída atual
+## Current output
 
-Saída em IR textual (exemplo simplificado):
+Textual IR output (simplified example):
 
 ```text
 declare i32 @printf(i8*, ...)
@@ -33,7 +33,7 @@ entry:
 }
 ```
 
-Em JSON, a saída vem encapsulada em um objeto:
+In JSON, the output comes wrapped in an object:
 
 ```json
 {
@@ -41,22 +41,22 @@ Em JSON, a saída vem encapsulada em um objeto:
 }
 ```
 
-## Recursos suportados
+## Supported features
 
-- Literais `i64`, `f64`, `bool` e `string` (strings são constantes globais)
-- `let`, `return`, `print` (como built-in)
-- Operadores aritméticos e comparações em `i64` e `f64`
-- `if`/`match` (inclui guardas, bind de identificadores e `match` em `string` via `strcmp`)
-- `while`, `for` em `range`, `break`/`continue`
-- Arrays de `i64`, `f64` e `string`, indexação e atribuição
-- Funções definidas pelo usuário e funções anônimas (lambdas)
-- Chamada de funções/lambdas como valores de função
-- Concatenação de strings em runtime
-- `+=` para strings (via concatenação)
-- Testes golden automatizados para garantir estabilidade do IR
+- `i64`, `f64`, `bool`, and `string` literals (strings are global constants)
+- `let`, `return`, `print` (as a built-in)
+- Arithmetic operators and comparisons in `i64` and `f64`
+- `if`/`match` (including guards, identifier binding, and `match` on `string` via `strcmp`)
+- `while`, `for` over ranges, `break`/`continue`
+- Arrays of `i64`, `f64`, and `string`, indexing and assignment
+- User-defined functions and anonymous functions (lambdas)
+- Function/lambda calls as function values
+- Runtime string concatenation
+- `+=` for strings (via concatenation)
+- Automated golden tests to ensure IR stability
 
-## Próximos passos
+## Next steps
 
-- Reduzir `TODO` residuais no codegen
-- Suportar mais tipos, closures e otimizações
-- Emitir binário nativo via `llvm`/`inkwell`
+- Reduce remaining `TODO`s in codegen
+- Support more types, closures, and optimizations
+- Emit native binaries via `llvm`/`inkwell`

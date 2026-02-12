@@ -1,35 +1,35 @@
-# Notas de Design (IA)
+# Design Notes (AI)
 
-## Objetivo
+## Purpose
 
-Registrar diretrizes e ideias de produto, comunidade e qualidade para orientar decisões de design.
+Record product, community, and quality guidelines to inform design decisions.
 
-## Produto
+## Product
 
-- Manter um "core" estável e documentado.
-- Evitar features grandes antes do MVP.
-- Especificar claramente o que não está pronto.
+- Keep a stable, documented core.
+- Avoid large features before the MVP.
+- Clearly state what is not ready.
 
-## Comunidade
+## Community
 
-- Centralizar suporte no GitHub Discussions.
-- Manter um FAQ curto e objetivo.
-- Publicar RFCs para decisões de design.
+- Centralize support in GitHub Discussions.
+- Keep the FAQ short and objective.
+- Publish RFCs for design decisions.
 
-## Qualidade
+## Quality
 
-- Testes de regressão para parsing e types.
-- Linters e formatters com regras mínimas.
-- Mensagens de erro com exemplos de correção.
-- Saída JSON para integração com ferramentas e automações.
+- Regression tests for parsing and types.
+- Linters and formatters with minimal rules.
+- Error messages with correction examples.
+- JSON output for integration with tools and automations.
 
-## Documentação
+## Documentation
 
-- Guia de início rápido.
-- Glossário de termos.
-- Comparações honestas com outras linguagens.
+- Quick start guide.
+- Glossary of terms.
+- Honest comparisons with other languages.
 
 ## RFCs
 
-- Use issues com prefixo `[RFC]` para propostas de design.
-- Consolide decisões aprovadas na SPEC e na documentação relevante.
+- Use issues with the `[RFC]` prefix for design proposals.
+- Consolidate approved decisions in SPEC and relevant documentation.

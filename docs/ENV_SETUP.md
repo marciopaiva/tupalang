@@ -1,8 +1,8 @@
-# Guia de ambiente por OS
+# OS Environment Guide
 
-## Objetivo
+## Purpose
 
-Fornecer passos resumidos de setup por sistema operacional.
+Provide short setup steps per operating system.
 
 ## Linux (Debian/Ubuntu)
 
@@ -24,9 +24,9 @@ source "$HOME/.cargo/env"
 
 ## Windows (WSL)
 
-Siga o guia em [DEV_ENV](DEV_ENV.md).
+Follow the guide in [DEV_ENV](DEV_ENV.md).
 
-## Verificação
+## Verification
 
 ```bash
 rustc --version

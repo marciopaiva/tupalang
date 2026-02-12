@@ -1,31 +1,31 @@
-# Glossário de sintaxe
+# Syntax Glossary
 
-## Objetivo
+## Purpose
 
-Apresentar exemplos mínimos das construções básicas da linguagem.
+Present minimal examples of basic language constructs.
 
-## Funções
+## Functions
 
 ```tupa
-fn soma(a: i64, b: i64) -> i64 {
+fn sum(a: i64, b: i64) -> i64 {
   return a + b
 }
 ```
 
-## Variáveis
+## Variables
 
 ```tupa
 let x: i64 = 10
 let y = 20
 ```
 
-## Condicionais
+## Conditionals
 
 ```tupa
 if x > 0 {
-  print("positivo")
+  print("positive")
 } else {
-  print("não-positivo")
+  print("non-positive")
 }
 ```
 
@@ -35,7 +35,7 @@ if x > 0 {
 match status {
   200 => print("OK"),
   404 => print("Not Found"),
-  _ => print("Outro")
+  _ => print("Other")
 }
 ```
 
@@ -57,7 +57,7 @@ for i in 0..10 {
 }
 ```
 
-## Tipos seguros
+## Safe types
 
 ```tupa
 let score: Safe<f64, !nan> = 0.9

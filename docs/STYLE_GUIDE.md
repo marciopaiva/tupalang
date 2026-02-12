@@ -1,37 +1,37 @@
-# Guia de Estilo da Linguagem
+# Language Style Guide
 
-## Objetivo
+## Purpose
 
-Definir convenções de nomenclatura, formatação e padrões de exemplo para a linguagem.
+Define naming, formatting, and example conventions for the language.
 
-## Nomes
+## Names
 
-- **Funções**: `snake_case`.
-- **Variáveis**: `snake_case`.
-- **Tipos**: `PascalCase`.
-- **Constantes**: `SCREAMING_SNAKE_CASE`.
+- **Functions**: `snake_case`.
+- **Variables**: `snake_case`.
+- **Types**: `PascalCase`.
+- **Constants**: `SCREAMING_SNAKE_CASE`.
 
-## Formatação
+## Formatting
 
-- Indentação com 2 espaços em exemplos.
-- Um espaço após `,` e `:`.
-- Chaves em linha separada apenas para blocos multilinha.
+- Indent with 2 spaces in examples.
+- One space after `,` and `:`.
+- Braces on a separate line only for multiline blocks.
 
-## Comentários
+## Comments
 
-- Prefira comentários curtos e objetivos.
-- Evite comentários que repetem o óbvio.
+- Prefer short, objective comments.
+- Avoid comments that repeat the obvious.
 
-## Boas práticas
+## Best practices
 
-- Prefira `let` com tipo explícito em exemplos didáticos.
-- Use `Safe<T, !constraint>` em exemplos sensíveis a segurança.
-- Mantenha exemplos pequenos e focados.
+- Prefer `let` with explicit type in didactic examples.
+- Use `Safe<T, !constraint>` in safety-sensitive examples.
+- Keep examples small and focused.
 
-## Exemplos
+## Examples
 
 ```tupa
-fn soma(a: i64, b: i64) -> i64 {
+fn sum(a: i64, b: i64) -> i64 {
   return a + b
 }
 

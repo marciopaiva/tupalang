@@ -1,27 +1,27 @@
-# Visão do projeto
+# Project Overview
 
-## Objetivo
+## Purpose
 
-Resumir missão, princípios e status do projeto.
+Summarize the mission, principles, and project status.
 
-## Missão
+## Mission
 
-Construir uma linguagem brasileira para IA e sistemas críticos com segurança formal e performance previsível.
+Build a Brazilian language for AI and critical systems with formal safety and predictable performance.
 
-## Princípios
+## Principles
 
-- Segurança e alinhamento por tipos.
-- Diferenciabilidade nativa.
-- Esparsidade declarativa.
-- Desempenho previsível via LLVM.
+- Safety and alignment via types.
+- Native differentiability.
+- Declarative sparsity.
+- Predictable performance via LLVM.
 
-## Status atual
+## Current status
 
-- Especificação v0.1 completa.
-- Lexer, parser, typechecker e CLI básicos.
-- Codegen ainda é *stub*.
+- Specification v0.1 complete.
+- Basic lexer, parser, typechecker, and CLI.
+- Codegen is still a stub.
 
-## Onde contribuir
+## Where to contribute
 
-- Issues para bugs e melhorias.
-- RFCs com prefixo `[RFC]`.
+- Issues for bugs and improvements.
+- RFCs with the `[RFC]` prefix.

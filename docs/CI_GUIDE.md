@@ -1,17 +1,17 @@
-# Guia de CI
+# CI Guide
 
-## Objetivo
+## Purpose
 
-Descrever os workflows de CI e quando eles são executados.
+Describe CI workflows and when they run.
 
 ## Workflows
 
 ### CI (tests)
 
-Arquivo: `.github/workflows/ci.yml`
+File: `.github/workflows/ci.yml`
 
-- Executa em `push` e `pull_request`.
-- Roda testes por crate:
+- Runs on `push` and `pull_request`.
+- Runs tests per crate:
   - `tupa-lexer`
   - `tupa-parser`
   - `tupa-typecheck`
@@ -19,22 +19,22 @@ Arquivo: `.github/workflows/ci.yml`
 
 ### Docs Lint
 
-Arquivo: `.github/workflows/docs-lint.yml`
+File: `.github/workflows/docs-lint.yml`
 
-- Executa em `push` e `pull_request` quando arquivos `.md` mudam.
-- Rodam dois jobs:
-  - `markdownlint` (formatação)
-  - `link-check` (verificação de links)
+- Runs on `push` and `pull_request` when `.md` files change.
+- Runs two jobs:
+  - `markdownlint` (formatting)
+  - `link-check` (link verification)
 
 ### Sync Wiki
 
-Arquivo: `.github/workflows/wiki-sync.yml`
+File: `.github/workflows/wiki-sync.yml`
 
-- Executa em `push` na `main` quando docs/README/examples/README mudam.
-- Sincroniza o wiki com o conteúdo do repositório.
+- Runs on `push` to `main` when docs/README/examples/README change.
+- Syncs the wiki with repository contents.
 
-## Dicas
+## Tips
 
-- Se um teste falhar, rode o comando localmente.
-- Para lint de docs local: `markdownlint "**/*.md"`.
-- Para sync manual do wiki: `bash scripts/sync-wiki.sh`.
+- If a test fails, run the command locally.
+- For local docs lint: `markdownlint "**/*.md"`.
+- For manual wiki sync: `bash scripts/sync-wiki.sh`.

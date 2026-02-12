@@ -1,10 +1,10 @@
-# Glossário de tipos
+# Types Glossary
 
-## Objetivo
+## Purpose
 
-Listar tipos básicos e compostos com exemplos mínimos.
+List basic and composite types with minimal examples.
 
-## Primitivos
+## Primitives
 
 - `i64`
 
@@ -30,9 +30,9 @@ Listar tipos básicos e compostos com exemplos mínimos.
   let name: string = "Tupã"
   ```
 
-## Compostos
+## Composite types
 
-- Tuplas
+- Tuples
 
   ```tupa
   let pair: (i64, string) = (1, "a")
@@ -44,13 +44,13 @@ Listar tipos básicos e compostos com exemplos mínimos.
   let xs: [i64; 3] = [1, 2, 3]
   ```
 
-- Funções
+- Functions
 
   ```tupa
-  let add: fn(i64, i64) -> i64 = soma
+  let add: fn(i64, i64) -> i64 = sum
   ```
 
-## Tipos seguros
+## Safe types
 
 - `Safe<T, !constraint>`
 

@@ -1,36 +1,36 @@
 # Diagnostics Checklist
 
-## Objetivo
+## Purpose
 
-Manter uma lista verificável de requisitos de diagnóstico por fase do compilador.
+Maintain a verifiable list of diagnostic requirements per compiler phase.
 
 ## Lexer
 
-- [x] Reporta erro com posição absoluta (byte offset)
-- [x] Converte offset para linha/coluna (1-based)
-- [x] Trecho de código com caret apontando o token
-- [x] Mensagem curta e objetiva
+- [x] Reports error with absolute position (byte offset)
+- [x] Converts offset to line/column (1-based)
+- [x] Code excerpt with caret pointing to the token
+- [x] Short, objective message
 
 ## Parser
 
-- [x] Erro de token inesperado com span válido
-- [x] EOF aponta para fim do arquivo
-- [x] Mostra token esperado (quando aplicável)
+- [x] Unexpected token error with valid span
+- [x] EOF points to end of file
+- [x] Shows expected token (when applicable)
 
 ## Typechecker
 
-- [x] Erros incluem tipo esperado/encontrado
-- [x] Mensagens para aridade incorreta
-- [x] `return` ausente em funções não-`unit`
-- [x] Spans (linha/coluna) quando disponíveis
-- [x] Diagnósticos para funções anônimas (lambdas), valores de função e print
+- [x] Errors include expected/found types
+- [x] Messages for incorrect arity
+- [x] Missing `return` in non-`unit` functions
+- [x] Spans (line/column) when available
+- [x] Diagnostics for anonymous functions (lambdas), function values, and print
 
 ## CLI
 
-- [x] Formato padrão consistente com SPEC
-- [x] Inclui arquivo/linha/coluna
-- [x] Suporta saída limpa para pipes (sem ruído extra)
+- [x] Standard format consistent with SPEC
+- [x] Includes file/line/column
+- [x] Supports clean output for pipes (no extra noise)
 
-## Futuro
+## Future
 
-- [ ] Mensagens de erro ainda mais detalhadas e sugestões automáticas
+- [ ] Even more detailed error messages and automatic suggestions

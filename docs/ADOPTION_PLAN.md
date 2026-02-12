@@ -1,51 +1,51 @@
-﻿# Plano técnico mínimo de adoção
+# Minimum Technical Adoption Plan
 
-## Objetivo
+## Purpose
 
-Definir um caminho incremental para tornar a linguagem utilizável e confiável, sem assumir datas.
+Define an incremental path to make the language usable and reliable, without committing to dates.
 
-## Índice
+## Index
 
-- [Fase 0: Núcleo mínimo](#fase-0-núcleo-mínimo)
-- [Fase 1: Toolchain básica](#fase-1-toolchain-básica)
-- [Fase 2: Experiência do dev](#fase-2-experiência-do-dev)
-- [Fase 3: Interoperabilidade](#fase-3-interoperabilidade)
-- [Fase 4: Qualidade e confiança](#fase-4-qualidade-e-confiança)
-- [Entregáveis mínimos](#entregáveis-mínimos)
+- [Phase 0: Minimal core](#phase-0-minimal-core)
+- [Phase 1: Basic toolchain](#phase-1-basic-toolchain)
+- [Phase 2: Developer experience](#phase-2-developer-experience)
+- [Phase 3: Interoperability](#phase-3-interoperability)
+- [Phase 4: Quality and trust](#phase-4-quality-and-trust)
+- [Minimum deliverables](#minimum-deliverables)
 
-## Fase 0: Núcleo mínimo
+## Phase 0: Minimal core
 
-- Definir o subset core (sintaxe e tipos básicos).
-- Especificação formal mínima (EBNF + semântica de tipos).
-- Suite de testes de conformidade (parser + type checker).
-- Saída de diagnósticos consumível por ferramentas (JSON).
+- Define the core subset (syntax and basic types).
+- Minimal formal specification (EBNF + type semantics).
+- Conformance test suite (parser + type checker).
+- Diagnostics output consumable by tools (JSON).
 
-## Fase 1: Toolchain básica
+## Phase 1: Basic toolchain
 
-- Formatter oficial.
-- Linter com regras mínimas.
-- Language Server (autocomplete, diagnostics, go-to-definition).
+- Official formatter.
+- Linter with minimal rules.
+- Language server (autocomplete, diagnostics, go-to-definition).
 
-## Fase 2: Experiência do dev
+## Phase 2: Developer experience
 
-- Templates de projeto (CLI e service).
-- CLI estável com `build`, `run`, `fmt`, `check`.
-- Mensagens de erro didáticas e consistentes.
+- Project templates (CLI and service).
+- Stable CLI with `build`, `run`, `fmt`, `check`.
+- Didactic and consistent error messages.
 
-## Fase 3: Interoperabilidade
+## Phase 3: Interoperability
 
-- FFI com C/Rust.
-- ABI documentada.
-- Bindings mínimos para libs essenciais.
+- FFI with C/Rust.
+- Documented ABI.
+- Minimal bindings for essential libraries.
 
-## Fase 4: Qualidade e confiança
+## Phase 4: Quality and trust
 
-- Benchmarks públicos e reproduzíveis.
-- Testes de regressão para performance.
-- Política de versões e compatibilidade.
+- Public, reproducible benchmarks.
+- Regression tests for performance.
+- Versioning and compatibility policy.
 
-## Entregáveis mínimos
+## Minimum deliverables
 
-- SPEC com EBNF e regras de tipos.
-- Testes automatizados de parser/type checker.
-- CLI funcional com exemplos simples e `--format pretty|json`.
+- SPEC with EBNF and type rules.
+- Automated parser/type checker tests.
+- Functional CLI with simple examples and `--format pretty|json`.

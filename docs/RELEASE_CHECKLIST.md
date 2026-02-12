@@ -1,15 +1,15 @@
-# Checklist de Release
+# Release Checklist
 
-## Objetivo
+## Purpose
 
-Garantir consistência e qualidade antes de publicar uma versão.
+Ensure consistency and quality before publishing a release.
 
 ## Checklist
 
-- [ ] Atualizar o [CHANGELOG](CHANGELOG.md)
-- [ ] Rodar `cargo test`
-- [ ] Validar exemplos principais em `examples/`
-- [ ] Validar CLI (`lex`, `parse`, `check`)
-- [ ] Revisar SPEC para inconsistências
-- [ ] Taggear versão no Git (`vX.Y.Z`)
-- [ ] Publicar release no GitHub
+- [ ] Update [CHANGELOG](CHANGELOG.md)
+- [ ] Run `cargo test`
+- [ ] Validate main examples in `examples/`
+- [ ] Validate CLI (`lex`, `parse`, `check`)
+- [ ] Review SPEC for inconsistencies
+- [ ] Tag the version in Git (`vX.Y.Z`)
+- [ ] Publish the release on GitHub

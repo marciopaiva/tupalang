@@ -1,42 +1,42 @@
 
-# Arquitetura
+# Architecture
 
-## Objetivo
+## Purpose
 
-Explicar a organização do repositório e o fluxo principal do compilador.
+Explain the repository organization and the compiler main flow.
 
-## Visão geral
+## Overview
 
-O projeto é um workspace Rust com múltiplos crates que implementam etapas do compilador.
+The project is a Rust workspace with multiple crates implementing compiler stages.
 
-## Estrutura de pastas
+## Folder structure
 
-- `crates/tupa-lexer`: tokenização do código-fonte.
-- `crates/tupa-parser`: construção do AST.
-- `crates/tupa-typecheck`: verificação de tipos e constraints, incluindo funções anônimas (lambdas) e valores de função.
-- `crates/tupa-codegen`: geração de código IR funcional (LLVM-like), com suporte a funções, lambdas, print, concatenação de strings, arrays, controle de fluxo, etc.
-- `crates/tupa-cli`: interface de linha de comando, integração de todas as etapas e execução de testes golden.
-- `docs/`: documentação de produto e especificação.
-- `examples/`: exemplos executáveis e testes golden.
+- `crates/tupa-lexer`: source code tokenization.
+- `crates/tupa-parser`: AST construction.
+- `crates/tupa-typecheck`: type checking and constraints, including anonymous functions (lambdas) and function values.
+- `crates/tupa-codegen`: functional IR generation (LLVM-like), supporting functions, lambdas, print, string concatenation, arrays, control flow, and more.
+- `crates/tupa-cli`: command-line interface, integration of all stages, and golden test execution.
+- `docs/`: product documentation and specification.
+- `examples/`: runnable examples and golden tests.
 
-## Fluxo principal
+## Main flow
 
-1) **Lexer**: converte texto em tokens.
-2) **Parser**: transforma tokens em AST.
-3) **Typechecker**: valida tipos, constraints, funções/lambdas e valores de função.
-4) **Codegen**: gera IR funcional (LLVM-like) com suporte a todos os recursos do MVP.
-5) **CLI**: integra as etapas, expõe comandos (`lex`, `parse`, `check`, `codegen`) e executa testes golden automatizados.
+1) **Lexer**: converts text into tokens.
+2) **Parser**: turns tokens into AST.
+3) **Typechecker**: validates types, constraints, functions/lambdas, and function values.
+4) **Codegen**: generates functional IR (LLVM-like) covering MVP features.
+5) **CLI**: integrates stages, exposes commands (`lex`, `parse`, `check`, `codegen`), and runs automated golden tests.
 
-## Dependências entre crates
+## Crate dependencies
 
-- `tupa-parser` depende de `tupa-lexer`.
-- `tupa-typecheck` depende de `tupa-parser`.
-- `tupa-codegen` depende de `tupa-parser` e `tupa-typecheck`.
-- `tupa-cli` depende de todos.
+- `tupa-parser` depends on `tupa-lexer`.
+- `tupa-typecheck` depends on `tupa-parser`.
+- `tupa-codegen` depends on `tupa-parser` and `tupa-typecheck`.
+- `tupa-cli` depends on all.
 
-## Observações
+## Notes
 
-- Diagnósticos seguem spans e erros normalizados por etapa.
-- Saída JSON do CLI facilita integração com ferramentas.
-- Testes golden garantem a estabilidade do pipeline.
-- Veja detalhes do typechecker em [TYPECHECKER_DETAILS.md](TYPECHECKER_DETAILS.md).
+- Diagnostics follow spans and normalized errors per stage.
+- CLI JSON output enables tool integration.
+- Golden tests ensure pipeline stability.
+- See typechecker details in [TYPECHECKER_DETAILS.md](TYPECHECKER_DETAILS.md).

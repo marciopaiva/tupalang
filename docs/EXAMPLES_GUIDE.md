@@ -1,43 +1,43 @@
-# Guia de exemplos
+# Examples Guide
 
-## Objetivo
+## Purpose
 
-Definir critérios de curadoria e padrões para exemplos.
+Define curation criteria and standards for examples.
 
-## Onde colocar
+## Where to put examples
 
-- Exemplos curados: `examples/`
-- Experimentos: `examples/playground/`
+- Curated examples: `examples/`
+- Experiments: `examples/playground/`
 
-## Critérios de curadoria
+## Curation criteria
 
-- Ser pequeno e focado.
-- Cobrir um conceito específico.
-- Preferir código que passa no `check`.
-- Evitar dependências externas.
+- Be small and focused.
+- Cover a specific concept.
+- Prefer code that passes `check`.
+- Avoid external dependencies.
 
-## Padrões
+## Standards
 
-- Nomear arquivos por tema (`match.tp`, `types.tp`).
-- Incluir comentários breves quando necessário.
-- Atualizar `examples/README.md` ao adicionar/remover exemplos.
+- Name files by theme (`match.tp`, `types.tp`).
+- Include brief comments when needed.
+- Update `examples/README.md` when adding/removing examples.
 
 ## Checklist
 
-- [ ] Arquivo adicionado em `examples/`
-- [ ] Referência em `examples/README.md`
-- [ ] Executa com `tupa-cli -- parse|check`
+- [ ] File added under `examples/`
+- [ ] Referenced in `examples/README.md`
+- [ ] Runs with `tupa-cli -- parse|check`
 
-## Atualizando os *goldens*
+## Updating goldens
 
-Se as saídas dos exemplos mudarem de propósito (ex.: melhorias de formatação), atualize os arquivos *golden* em `examples/expected/` usando o script provido:
+If example outputs change intentionally (for example, formatting improvements), update the golden files in `examples/expected/` using the provided script:
 
 ```bash
-# Atualiza todos os goldens executando o CLI localmente
+# Updates all goldens by running the local CLI
 bash scripts/update-goldens.sh
 
-# Depois verifique as mudanças e comite
+# Then check the changes and commit
 git add examples/expected && git commit -m "test: update examples goldens" && git push
 ```
 
-No CI, os *golden tests* falharão se a saída real diferir dos arquivos em `examples/expected/`.
+In CI, golden tests will fail if the real output differs from the files in `examples/expected/`.

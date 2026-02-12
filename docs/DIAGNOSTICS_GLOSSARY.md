@@ -1,65 +1,65 @@
-# Glossário de Diagnósticos
+# Diagnostics Glossary
 
-## Objetivo
+## Purpose
 
-Listar códigos de erro e aviso emitidos pelo compilador.
+List error and warning codes emitted by the compiler.
 
-## Erros
+## Errors
 
-### E1001 — Tipo desconhecido
+### E1001 — Unknown type
 
-Emitido quando um tipo não existe na linguagem.
+Emitted when a type does not exist in the language.
 
-### E1002 — Variável não definida
+### E1002 — Undefined variable
 
-Emitido quando uma variável é usada sem declaração prévia.
+Emitted when a variable is used without a prior declaration.
 
-### E1003 — Função não definida
+### E1003 — Undefined function
 
-Emitido quando uma função é chamada sem definição visível.
+Emitted when a function is called without a visible definition.
 
 ### E2001 — Type mismatch
 
-Emitido quando o tipo encontrado não corresponde ao esperado.
+Emitted when the found type does not match the expected type.
 
-### E2002 — Aridade incorreta
+### E2002 — Incorrect arity
 
-Emitido quando a quantidade de argumentos em uma chamada não bate com a assinatura.
+Emitted when the number of arguments in a call does not match the signature.
 
-### E2003 — Operação binária inválida
+### E2003 — Invalid binary operation
 
-Emitido quando um operador binário recebe tipos incompatíveis.
+Emitted when a binary operator receives incompatible types.
 
-### E2004 — Operação unária inválida
+### E2004 — Invalid unary operation
 
-Emitido quando um operador unário recebe tipo incompatível.
+Emitted when a unary operator receives an incompatible type.
 
-### E2005 — Alvo de chamada inválido
+### E2005 — Invalid call target
 
-Emitido quando algo que não é função é chamado.
+Emitted when something that is not a function is called.
 
-### E2006 — Retorno incompatível
+### E2006 — Incompatible return
 
-Emitido quando o tipo retornado não corresponde ao esperado.
+Emitted when the returned type does not match the expected type.
 
-### E2007 — Retorno ausente
+### E2007 — Missing return
 
-Emitido quando uma função deveria retornar valor, mas não retorna.
+Emitted when a function should return a value but does not.
 
-### E3001 — Constraint inválida
+### E3001 — Invalid constraint
 
-Emitido quando uma constraint não é compatível com o tipo base de `Safe<T, ...>`.
+Emitted when a constraint is not compatible with the base type of `Safe<T, ...>`.
 
-### E3002 — Constraint não provada
+### E3002 — Unproven constraint
 
-Emitido quando a constraint não pode ser provada em *compile-time*.
+Emitted when a constraint cannot be proven at compile time.
 
-## Avisos
+## Warnings
 
-### W0001 — Variável não utilizada
+### W0001 — Unused variable
 
-Emitido quando uma variável é declarada e não usada.
+Emitted when a variable is declared and not used.
 
-## Referências
+## References
 
 - [Diagnostics Checklist](DIAGNOSTICS_CHECKLIST.md)

@@ -1,22 +1,22 @@
-# Guia de governança
+# Governance Guide
 
-## Objetivo
+## Purpose
 
-Definir papéis, processo de decisão e uso de RFCs.
+Define roles, decision process, and RFC usage.
 
-## Papéis
+## Roles
 
-- **Mantenedores**: aprovam mudanças, revisam PRs e definem roadmap.
-- **Contribuidores**: propõem melhorias via issues e PRs.
+- **Maintainers**: approve changes, review PRs, and define the roadmap.
+- **Contributors**: propose improvements via issues and PRs.
 
-## Processo de decisão
+## Decision process
 
-- Discussões abertas em issues/PRs.
-- Decisões registradas em docs e/ou SPEC.
-- Mudanças grandes exigem RFC.
+- Open discussions in issues/PRs.
+- Decisions recorded in docs and/or SPEC.
+- Large changes require an RFC.
 
 ## RFCs
 
-- Abra issue com prefixo `[RFC]`.
-- Inclua motivação, alternativas e impacto.
-- Após consenso, atualize SPEC e docs relevantes.
+- Open an issue with the `[RFC]` prefix.
+- Include motivation, alternatives, and impact.
+- After consensus, update SPEC and relevant docs.

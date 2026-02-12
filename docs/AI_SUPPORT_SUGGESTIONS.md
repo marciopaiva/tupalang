@@ -1,5 +1,5 @@
-﻿# Sugestões adicionais (IA)
+# Additional suggestions (AI)
 
-## Objetivo
+## Purpose
 
-Este conteúdo foi consolidado em [DESIGN_NOTES.md](DESIGN_NOTES.md).
+This content has been consolidated into [DESIGN_NOTES.md](DESIGN_NOTES.md).

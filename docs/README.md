@@ -1,57 +1,61 @@
-# Documentação
+# Documentation
 
-## Objetivo
+## Purpose
 
-Organizar a documentação por público e facilitar a navegação.
+Organize documentation by audience and improve navigation.
 
-## Fonte única
+## Language policy
 
-As páginas do wiki são espelhadas automaticamente a partir de `docs/`. Evite editar o wiki manualmente.
+English is the canonical language for documentation. A PT-BR alternative lives under [docs/pt-br](pt-br/README.md).
 
-## Para usuários
+## Single source
 
-- [Guia de Início Rápido](GETTING_STARTED.md)
-- [Exemplos](../examples/README.md)
+Wiki pages are automatically mirrored from `docs/`. Avoid editing the wiki manually.
+
+## For users
+
+- [Quick Start Guide](GETTING_STARTED.md)
+- [Examples](../examples/README.md)
 - [SPEC](SPEC.md)
-- [Glossário](GLOSSARY.md)
+- [Glossary](GLOSSARY.md)
 - [FAQ](FAQ.md)
 - [Roadmap](ROADMAP.md)
-- [Erros comuns](COMMON_ERRORS.md)
-- [Guia de exemplos](EXAMPLES_GUIDE.md)
-- [Glossário de sintaxe](SYNTAX_GLOSSARY.md)
-- [Glossário de tipos](TYPES_GLOSSARY.md)
-- [Guia de ambiente por OS](ENV_SETUP.md)
-- [Guia de compatibilidade](COMPATIBILITY.md)
-- [Visão do projeto](PROJECT_OVERVIEW.md)
+- [Common Errors](COMMON_ERRORS.md)
+- [Examples Guide](EXAMPLES_GUIDE.md)
+- [Syntax Glossary](SYNTAX_GLOSSARY.md)
+- [Types Glossary](TYPES_GLOSSARY.md)
+- [OS Environment Guide](ENV_SETUP.md)
+- [Compatibility Guide](COMPATIBILITY.md)
+- [Project Overview](PROJECT_OVERVIEW.md)
 
-## Para novos contribuidores
+## For new contributors
 
-- [Arquitetura](ARCHITECTURE.md)
-- [Guia de Estilo](STYLE_GUIDE.md)
-- [Contribuir com docs](DOCS_CONTRIBUTING.md)
-- [Guia de CI](CI_GUIDE.md)
-- [Governança](GOVERNANCE.md)
-- [FAQ de contribuições](CONTRIBUTING_FAQ.md)
-- [Guia de issues](ISSUES_GUIDE.md)
+- [Architecture](ARCHITECTURE.md)
+- [Style Guide](STYLE_GUIDE.md)
+- [Docs Contribution Guide](DOCS_CONTRIBUTING.md)
+- [CI Guide](CI_GUIDE.md)
+- [Governance](GOVERNANCE.md)
+- [Contributions FAQ](CONTRIBUTING_FAQ.md)
+- [Issues Guide](ISSUES_GUIDE.md)
 - [Security Policy](SECURITY.md)
 
-## Para contribuidores
+## For contributors
 
-- [Como contribuir](../CONTRIBUTING.md)
-- [Código de Conduta](../CODE_OF_CONDUCT.md)
-- [Ambiente de Desenvolvimento](DEV_ENV.md)
+- [How to contribute](../CONTRIBUTING.md)
+- [Code of Conduct](../CODE_OF_CONDUCT.md)
+- [Development Environment](DEV_ENV.md)
 - [Diagnostics Checklist](DIAGNOSTICS_CHECKLIST.md)
-- [Glossário de Diagnósticos](DIAGNOSTICS_GLOSSARY.md)
-- [Guia de Testes](TESTING.md)
-- [Guia de mensagens de erro](ERROR_MESSAGES.md)
+- [Diagnostics Glossary](DIAGNOSTICS_GLOSSARY.md)
+- [Testing Guide](TESTING.md)
+- [Error Messages Guide](ERROR_MESSAGES.md)
 
-## Internals e planejamento
+## Internals and planning
 
 - [Codegen](CODEGEN.md)
-- [Plano de MVP](MVP_PLAN.md)
-- [Plano de Adoção](ADOPTION_PLAN.md)
-- [Notas de Design (IA)](DESIGN_NOTES.md)
+- [MVP Plan](MVP_PLAN.md)
+- [Adoption Plan](ADOPTION_PLAN.md)
+- [Design Notes (AI)](DESIGN_NOTES.md)
 - [Changelog](CHANGELOG.md)
-- [Checklist de Release](RELEASE_CHECKLIST.md)
-- [Guia de Release](RELEASE_GUIDE.md)
-- [Guia de Versionamento](VERSIONING.md)
+- [Release Checklist](RELEASE_CHECKLIST.md)
+- [Release Guide](RELEASE_GUIDE.md)
+- [Versioning Guide](VERSIONING.md)

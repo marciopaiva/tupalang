@@ -1,42 +1,47 @@
-# Guia de Contribuição para Documentação
+# Documentation Contribution Guide
 
-## Objetivo
+## Purpose
 
-Padronizar mudanças em documentação para manter consistência e qualidade.
+Standardize documentation changes to keep quality and consistency.
 
-## Escopo
+## Scope
 
-- README, docs e exemplos.
-- Páginas do wiki (espelhadas a partir de docs).
+- README, docs, and examples.
+- Wiki pages mirrored from docs.
 
-## Fonte única
+## Language policy
 
-O conteúdo canônico vive em `docs/`. O wiki é atualizado automaticamente via CI.
+English is the canonical language in `docs/`. PT-BR alternatives live under `docs/pt-br`. Keep translations aligned with the English version and note when a PT-BR page is pending.
 
-## Padrões de escrita
+## Single source
 
-- Português claro e direto.
-- Frases curtas.
-- Evitar jargões sem explicar.
-- Usar títulos objetivos e previsíveis.
+The canonical content lives in `docs/`. The wiki is updated automatically via CI.
 
-## Estrutura recomendada
+## Writing standards
 
-- **Objetivo** logo após o título.
-- Seções curtas com subtítulos.
-- Listas para passos e requisitos.
+- Clear, direct English.
+- Short sentences.
+- Avoid jargon without an explanation.
+- Use objective, predictable headings.
 
-## Checklist de PR (docs)
+## Recommended structure
 
-- [ ] O objetivo está claro?
-- [ ] Links internos funcionam?
-- [ ] Exemplos são pequenos e executáveis?
-- [ ] O conteúdo está consistente com a SPEC?
-- [ ] O wiki precisa ser sincronizado?
+- **Purpose** right after the title.
+- Short sections with subtitles.
+- Lists for steps and requirements.
 
-## Sincronização do wiki
+## PR checklist (docs)
 
-O wiki é sincronizado automaticamente via workflow. Se precisar forçar, execute:
+- [ ] Is the purpose clear?
+- [ ] Do internal links work?
+- [ ] Are examples small and runnable?
+- [ ] Is the content consistent with SPEC?
+- [ ] Does the wiki need sync?
+- [ ] If PT-BR exists, is it aligned or flagged as pending?
+
+## Wiki sync
+
+The wiki is synced automatically via workflow. If you need to force it, run:
 
 ```bash
 bash scripts/sync-wiki.sh

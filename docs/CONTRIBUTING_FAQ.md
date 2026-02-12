@@ -1,27 +1,27 @@
-# FAQ de contribuições
+# Contributions FAQ
 
-## Objetivo
+## Purpose
 
-Responder dúvidas comuns sobre issues, PRs e fluxo de contribuição.
+Answer common questions about issues, PRs, and contribution flow.
 
-## Perguntas frequentes
+## Frequently asked questions
 
-### 1) Preciso abrir issue antes do PR?
+### 1) Do I need to open an issue before a PR?
 
-Sim, para alinhamento e priorização.
+Yes, for alignment and prioritization.
 
-### 2) Qual prefixo usar para RFCs?
+### 2) What prefix should I use for RFCs?
 
-Use `[RFC]` no título da issue.
+Use `[RFC]` in the issue title.
 
-### 3) Como nomear branches?
+### 3) How should I name branches?
 
-`feat/nome-curto` ou `fix/nome-curto`.
+`feat/short-name` or `fix/short-name`.
 
-### 4) Quais testes devo rodar?
+### 4) Which tests should I run?
 
-Veja [Guia de Testes](TESTING.md).
+See the [Testing Guide](TESTING.md).
 
-### 5) Posso alterar a SPEC?
+### 5) Can I change the SPEC?
 
-Sim, mas documente o impacto e a motivação.
+Yes, but document the impact and motivation.

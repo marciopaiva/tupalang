@@ -1,5 +1,5 @@
-﻿# Issues
+# Issues
 
-Use o [Guia de issues](ISSUES_GUIDE.md) e abra issues em:
+Use the [Issues Guide](ISSUES_GUIDE.md) and open issues at:
 
 [github.com/marciopaiva/tupalang/issues](https://github.com/marciopaiva/tupalang/issues)

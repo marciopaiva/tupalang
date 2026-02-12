@@ -1,21 +1,21 @@
 
-# Erros comuns
+# Common Errors
 
-## Objetivo
+## Purpose
 
-Descrever erros frequentes e soluções rápidas.
+Describe frequent errors and quick solutions.
 
-## 1) E1002 — Variável não definida
+## 1) E1002 — Undefined variable
 
-**Causa**: variável usada antes de ser declarada.
-**Solução**: declare com `let` antes do uso.
+**Cause**: variable used before being declared.
+**Solution**: declare it with `let` before use.
 
 ## 2) E2001 — Type mismatch
 
-**Causa**: tipo esperado difere do encontrado.
-**Solução**: ajuste a anotação de tipo ou a expressão.
+**Cause**: expected type differs from the found type.
+**Solution**: adjust the type annotation or the expression.
 
-**Exemplo:**
+**Example:**
 
 ```tupa
 fn foo(x: int): bool {
@@ -23,22 +23,22 @@ fn foo(x: int): bool {
 }
 ```
 
-Mensagem típica:
+Typical message:
 
 ```text
-erro: tipo incompatível: esperado int, encontrado bool
+error: type mismatch: expected int, found bool
   --> foo.tupa:2:9
   |
 2 |     x + true
   |         ^^^^
 ```
 
-## 3) E2002 — Aridade incorreta
+## 3) E2002 — Incorrect arity
 
-**Causa**: número de argumentos não bate com a assinatura.
-**Solução**: verifique a definição da função.
+**Cause**: argument count does not match the signature.
+**Solution**: check the function definition.
 
-**Exemplo:**
+**Example:**
 
 ```tupa
 fn bar(x: int, y: int): int {
@@ -47,22 +47,22 @@ fn bar(x: int, y: int): int {
 bar(1)
 ```
 
-Mensagem típica:
+Typical message:
 
 ```text
-erro: número de argumentos incompatível: esperado 2, encontrado 1
+error: argument count mismatch: expected 2, found 1
   --> main.tupa:6:1
   |
 6 | bar(1)
   | ^^^^^
 ```
 
-## 4) E2007 — Retorno ausente
+## 4) E2007 — Missing return
 
-**Causa**: função deveria retornar valor, mas não retorna.
-**Solução**: adicione `return` em todos os caminhos.
+**Cause**: the function should return a value, but does not.
+**Solution**: add `return` on all paths.
 
-**Exemplo:**
+**Example:**
 
 ```tupa
 fn f(): int {
@@ -70,71 +70,71 @@ fn f(): int {
 }
 ```
 
-Mensagem típica:
+Typical message:
 
 ```text
-erro: função não retorna valor para tipo int
+error: function does not return a value for type int
   --> main.tupa:1:1
   |
 1 | fn f(): int {
   | ^^^^^^^^^^^
 ```
 
-## 5) E2101 — Lambda com tipo incompatível
+## 5) E2101 — Lambda type mismatch
 
-**Causa**: corpo da lambda retorna tipo diferente do esperado.
-**Solução**: ajuste o corpo ou a anotação.
+**Cause**: lambda body returns a different type than expected.
+**Solution**: adjust the body or the annotation.
 
-erro: tipo incompatível: esperado int, encontrado string
-**Exemplo:**
+error: type mismatch: expected int, found string
+**Example:**
 
 ```tupa
 let f: fn(int) -> int = |x| x + "a"
 ```
 
-Mensagem típica:
+Typical message:
 
 ```text
-erro: tipo incompatível: esperado int, encontrado string
+error: type mismatch: expected int, found string
   --> main.tupa:1:29
   |
 1 | let f: fn(int) -> int = |x| x + "a"
   |                             ^^^^^^
 ```
 
-## 6) E2102 — Uso incorreto de print
+## 6) E2102 — Incorrect print usage
 
-**Causa**: número de argumentos inválido para print.
-**Solução**: use apenas um argumento.
+**Cause**: invalid argument count for print.
+**Solution**: use only one argument.
 
-**Exemplo:**
+**Example:**
 
 ```tupa
 print(1, 2)
 ```
 
-Mensagem típica:
+Typical message:
 
 ```text
-erro: número de argumentos incompatível: esperado 1, encontrado 2
+error: argument count mismatch: expected 1, found 2
   --> main.tupa:1:1
   |
 1 | print(1, 2)
   | ^^^^^^^^^
 ```
 
-## 7) E2103 — Concatenação de tipos incompatíveis
+## 7) E2103 — Incompatible concatenation
 
-**Causa**: tentativa de concatenar string com outro tipo.
-**Solução**: converta para string antes de concatenar.
+**Cause**: attempt to concatenate string with another type.
+**Solution**: convert to string before concatenating.
 
-**Exemplo:**
+**Example:**
 
 ```tupa
 let s = "abc" + 123
 ```
 
-Mensagem típica:
+Typical message:
 
 ```text
   --> main.tupa:1:15
@@ -143,17 +143,17 @@ Mensagem típica:
   |               ^^^
 ```
 
-## 8) E3002 — Constraint não provada
+## 8) E3002 — Unproven constraint
 
-**Causa**: o compilador não consegue provar `Safe<T, ...>`.
-**Solução**: use literais `f64` e expressões constantes simples, ou evite `Safe<...>` nesse ponto.
+**Cause**: the compiler cannot prove `Safe<T, ...>`.
+**Solution**: use `f64` literals and simple constant expressions, or avoid `Safe<...>` at this point.
 
-## 9) E3001 — Constraint inválida
+## 9) E3001 — Invalid constraint
 
-**Causa**: constraint não suportada ou tipo base incompatível.
-**Solução**: use apenas `!nan`/`!inf` com base `f64`.
+**Cause**: unsupported constraint or incompatible base type.
+**Solution**: use only `!nan`/`!inf` with `f64` base.
 
-## Referências
+## References
 
-- [Glossário de Diagnósticos](DIAGNOSTICS_GLOSSARY.md)
+- [Diagnostics Glossary](DIAGNOSTICS_GLOSSARY.md)
 - [FAQ](FAQ.md)

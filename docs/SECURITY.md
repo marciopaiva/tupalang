@@ -1,14 +1,14 @@
 # Security Policy
 
-## Objetivo
+## Purpose
 
-Descrever o fluxo para reportar vulnerabilidades de forma responsável.
+Describe the responsible disclosure process for vulnerabilities.
 
-## Reporte
+## Reporting
 
-Envie um e-mail para: [security@tupalang.org](mailto:security@tupalang.org)
+Send an email to: [security@tupalang.org](mailto:security@tupalang.org)
 
-## Escopo
+## Scope
 
 - CLI
 - Parser/Typechecker
@@ -16,5 +16,5 @@ Envie um e-mail para: [security@tupalang.org](mailto:security@tupalang.org)
 
 ## SLA
 
-- Confirmação de recebimento: até 5 dias úteis
-- Atualização inicial: até 10 dias úteis
+- Acknowledgement: within 5 business days
+- Initial update: within 10 business days

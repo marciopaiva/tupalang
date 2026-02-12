@@ -1,12 +1,12 @@
-# API e Extensibilidade do Compilador
+# Compiler API and Extensibility
 
-## Objetivo
+## Purpose
 
-Explicar como usar a API interna do compilador Tupã, estender funcionalidades e adicionar novos backends.
+Explain how to use Tupã's internal compiler API, extend functionality, and add new backends.
 
-## Uso como biblioteca
+## Library usage
 
-Cada crate pode ser usado como biblioteca Rust independente:
+Each crate can be used as an independent Rust library:
 
 ```rust
 use tupa_parser::parse;
@@ -18,18 +18,18 @@ let typed = typecheck(&ast)?;
 let ir = codegen(&typed)?;
 ```
 
-## Pontos de Extensão
+## Extension points
 
-- **Novos tipos**: implemente e registre em `tupa-typecheck`.
-- **Novos diagnósticos**: adicione no módulo de erros de cada crate.
-- **Novo backend**: crie um crate (ex: `tupa-backend-wasm`) e implemente a trait `CodegenBackend`.
-- **CLI customizado**: use `tupa-cli` como base e adicione comandos.
+- **New types**: implement and register in `tupa-typecheck`.
+- **New diagnostics**: add them in each crate error module.
+- **New backend**: create a crate (for example, `tupa-backend-wasm`) and implement the `CodegenBackend` trait.
+- **Custom CLI**: use `tupa-cli` as a base and add commands.
 
-## Exemplo: Adicionando backend WASM
+## Example: adding a WASM backend
 
-1. Crie um novo crate `tupa-backend-wasm`.
+1. Create a new crate `tupa-backend-wasm`.
 
-2. Implemente a trait `CodegenBackend`:
+2. Implement the `CodegenBackend` trait:
 
 ```rust
 pub trait CodegenBackend {
@@ -37,15 +37,15 @@ pub trait CodegenBackend {
 }
 ```
 
-1. Integre ao CLI:
+1. Integrate it into the CLI:
 
 ```rust
 // ...existing code...
 let wasm = tupa_backend_wasm::emit(&ir)?;
 ```
 
-## Links úteis
+# Useful links
 
-- [Arquitetura](ARCHITECTURE.md)
+- [Architecture](ARCHITECTURE.md)
 - [Codegen](CODEGEN.md)
-- [Contribuição](../CONTRIBUTING.md)
+- [Contribution](../CONTRIBUTING.md)

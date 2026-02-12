@@ -19,7 +19,7 @@
 
 ## English
 
-- [README (EN)](README.en.md)
-- [Quick Start Guide](docs/GETTING_STARTED.en.md)
-- [FAQ (EN)](docs/FAQ.en.md)
-- [All docs (EN)](docs/README.en.md)
+- [README](README.md)
+- [Quick Start Guide](docs/GETTING_STARTED.md)
+- [FAQ](docs/FAQ.md)
+- [All docs](docs/README.md)

@@ -1,55 +1,55 @@
-# Detalhes do Typechecker
+# Typechecker Details
 
-## Objetivo
+## Purpose
 
-Explicar o funcionamento interno, decisões de design e algoritmos do verificador de tipos do Tupã.
+Explain internal operation, design decisions, and algorithms of the Tupã typechecker.
 
-## Visão Geral
+## Overview
 
-O typechecker percorre a AST validando tipos, aridade, constraints e inferindo tipos quando possível. Suporta funções anônimas (lambdas), valores de função, print como built-in, strings, arrays e tipos compostos.
+The typechecker walks the AST validating types, arity, constraints, and inferring types when possible. It supports anonymous functions (lambdas), function values, print as a built-in, strings, arrays, and composite types.
 
-## Algoritmo Principal
+## Main algorithm
 
-1. Percorre a AST em pós-ordem.
-2. Para cada nó:
-   - Verifica tipo esperado vs. encontrado.
-   - Checa aridade de funções e lambdas.
-   - Propaga constraints (ex: Safe<T, !nan>).
-   - Inferência de tipo para let sem anotação.
-   - Diagnóstico detalhado com spans.
-3. Erros são acumulados e reportados ao final.
+1. Traverse the AST in post-order.
+2. For each node:
+   - Check expected vs found type.
+   - Check arity of functions and lambdas.
+   - Propagate constraints (for example, Safe<T, !nan>).
+   - Type inference for `let` without annotation.
+   - Detailed diagnostics with spans.
+3. Errors are accumulated and reported at the end.
 
-## Exemplo de fluxo
+## Flow example
 
 ```tupa
 let f: fn(int) -> int = |x| x + 1
 let y = f(10) // y: int
-print("Resultado: " + y)
+print("Result: " + y)
 ```
 
-- O typechecker valida o tipo de `f`, infere o tipo de `y` e garante que `print` recebe string.
+- The typechecker validates the type of `f`, infers the type of `y`, and ensures `print` receives a string.
 
-## Decisões de Design
+## Design decisions
 
-- **Inferência local**: tipos são inferidos apenas onde não há ambiguidade.
-- **Print como built-in**: simplifica diagnósticos e integração com CLI.
-- **Spans detalhados**: todos os erros incluem localização precisa.
-- **Extensível**: fácil adicionar novos tipos e constraints.
+- **Local inference**: types are inferred only where there is no ambiguity.
+- **Print as a built-in**: simplifies diagnostics and CLI integration.
+- **Detailed spans**: all errors include precise location.
+- **Extensible**: easy to add new types and constraints.
 
-## Diagrama de fluxo
+## Flow diagram
 
 ```mermaid
 graph TD;
     A[AST] --> B[Typechecker]
-    B --> C{Tipo válido?}
-    C -- Sim --> D[Próximo nó]
-    C -- Não --> E[Erro com span]
+    B --> C{Valid type?}
+    C -- Yes --> D[Next node]
+    C -- No --> E[Error with span]
     D --> F[Codegen]
     E --> F
 ```
 
-## Links úteis
+## Useful links
 
-- [Arquitetura geral](ARCHITECTURE.md)
-- [Diagnósticos](DIAGNOSTICS_CHECKLIST.md)
-- [SPEC: Tipos](SPEC.md#type-system)
+- [Architecture](ARCHITECTURE.md)
+- [Diagnostics](DIAGNOSTICS_CHECKLIST.md)
+- [SPEC: Types](SPEC.md#type-system)

@@ -1,24 +1,24 @@
-# Ambiente de Desenvolvimento (WSL Fedora 43)
+# Development Environment (WSL Fedora 43)
 
-## Objetivo
+## Purpose
 
-Descrever o ambiente necessário para compilar e testar o projeto no WSL Fedora 43.
+Describe the environment needed to build and test the project on WSL Fedora 43.
 
-## Pré-requisitos
+## Prerequisites
 
-- WSL com Fedora 43
-- Acesso a `sudo`
-- Conexão com a internet
+- WSL with Fedora 43
+- `sudo` access
+- Internet connection
 
-## Instalação (passo a passo)
+## Installation (step by step)
 
-### 1) Atualize os repositórios
+### 1) Update repositories
 
 ```bash
 sudo dnf -y update
 ```
 
-### 2) Dependências de build
+### 2) Build dependencies
 
 ```bash
 sudo dnf -y install \
@@ -31,34 +31,34 @@ sudo dnf -y install \
   pkgconf-pkg-config
 ```
 
-### 3) Rust (toolchain estável)
+### 3) Rust (stable toolchain)
 
-Instale via rustup (recomendado):
+Install via rustup (recommended):
 
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
 
-Depois, carregue o ambiente do Rust:
+Then load the Rust environment:
 
 ```bash
 source "$HOME/.cargo/env"
 ```
 
-### 4) Verificação
+### 4) Verification
 
 ```bash
 rustc --version
 cargo --version
 ```
 
-## Execução local dos testes
+## Running tests locally
 
 ```bash
 cargo test -p tupa-lexer -p tupa-parser
 cargo test -p tupa-typecheck
 cargo test -p tupa-cli
 
-# suite completa
+# full suite
 cargo test
 ```

@@ -6,72 +6,57 @@
 [![CI](https://github.com/marciopaiva/tupalang/actions/workflows/ci.yml/badge.svg)](https://github.com/marciopaiva/tupalang/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/marciopaiva/tupalang?display_name=tag)](https://github.com/marciopaiva/tupalang/releases)
 [![Rust](https://img.shields.io/badge/rust-stable-orange?logo=rust)](https://www.rust-lang.org/)
-[![Brasil](https://img.shields.io/badge/feito_no-Brasil-009739?logo=brazil)](https://github.com/marciopaiva/tupalang)
+[![Brazil](https://img.shields.io/badge/made_in-Brazil-009739?logo=brazil)](https://github.com/marciopaiva/tupalang)
 
-## 🔎 Índice rápido
+## Quick Index
 
-- [Status](#-status)
-- [Recursos](#-recursos)
-- [Roadmap](#-roadmap)
-- [CLI](#-cli-dev)
+- [Status](#status)
+- [Features](#features)
+- [Roadmap](#roadmap)
+- [CLI](#cli-dev)
+- [Resources](#resources)
 
-## ✅ Status
+## Status
 
-- [x] Lexer, parser, typechecker e CLI básicos
-- [x] Saída JSON no CLI
-- [x] Codegen funcional (IR textual)
+- [x] Basic lexer, parser, typechecker, and CLI
+- [x] JSON output in CLI
+- [x] Functional codegen (textual IR)
 - [ ] Language Server
 
-## ❓ FAQ rápido
+## Quick FAQ
 
-- **Já está pronto para produção?** Não, ainda está em implementação.
-- **Onde começo?** Veja [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md).
-- **Como contribuir?** Leia [CONTRIBUTING.md](CONTRIBUTING.md).
+- **Is it production-ready?** Not yet, it is still under development.
+- **Where do I start?** See [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md).
+- **How do I contribute?** Read [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## 🧭 Arquitetura em 1 minuto
+## One-minute architecture
 
 - `tupa-lexer` → tokens
 - `tupa-parser` → AST
-- `tupa-typecheck` → tipos e constraints
+- `tupa-typecheck` → types and constraints
 
-## ⚡ Demonstração rápida
+## Quick demo
 
 ```tupa
-// Função anônima (lambda) e print
-let inc: fn(int) -> int = |x| x + 1
-print(inc(41)) // saída: 42
+let inc: fn(i64) -> i64 = |x| x + 1
+print(inc(41))
 
-// Concatenação de strings
-let nome = "Tupã"
-print("Olá, " + nome)
+let name: string = "Tupã"
+print("Hello, " + name)
 
-// Enum básico
 enum Color {
-    Red,
-    Green,
-    Blue
+  Red,
+  Green,
+  Blue
 }
 
-// Trait básico
 trait Printable {
-    // métodos do trait
 }
 
-// Função com constraint
-fn seguro(x: f64): Safe<f64, !nan> {
+fn safe(x: f64): Safe<f64, !nan> {
   return x
 }
 ```
-
-```bash
-
-
-
-```tupa
-// exemplo de código lex
-```
-
-// exemplo de código lex
 
 ```bash
 git clone https://github.com/marciopaiva/tupalang.git
@@ -91,17 +76,16 @@ cargo run -p tupa-cli -- parse examples/hello.tp
 cargo run -p tupa-cli -- check examples/hello.tp
 ```
 
-## 🛠️ Status de build e cobertura
+## Build and coverage status
 
 ![CI](https://github.com/marciopaiva/tupalang/actions/workflows/ci.yml/badge.svg)
-<!-- Adicione badge de cobertura se disponível -->
 
-## 🤝 Como contribuir
+## Contributing
 
-1. Leia o [CONTRIBUTING.md](CONTRIBUTING.md) para diretrizes e boas práticas.
-2. Veja exemplos em [examples/README.md](examples/README.md).
-3. Sugestões e dúvidas: abra uma issue ou discuta no [FAQ](docs/FAQ.md).
-4. Para documentação: siga [docs/DOCS_CONTRIBUTING.md](docs/DOCS_CONTRIBUTING.md).
+1. Read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines and best practices.
+2. See examples in [examples/README.md](examples/README.md).
+3. Suggestions and questions: open an issue or discuss in the [FAQ](docs/FAQ.md).
+4. For documentation: follow [docs/DOCS_CONTRIBUTING.md](docs/DOCS_CONTRIBUTING.md).
 
 ## lex
 
@@ -110,99 +94,91 @@ cargo run -p tupa-cli -- lex examples/hello.tp
 ```
 
 ```tupa
-// Inferência de tipos com tipagem explícita opcional
-let idade = 28           // i64 (inferido)
-let nome: string = "Ana" // string (explícito)
+let age = 28
+let name: string = "Ana"
 
-// Tipos de função (first-class)
-let add: fn(i64, i64) -> i64 = soma
+let add: fn(i64, i64) -> i64 = sum
 
-// Pattern matching elegante
 match http_status {
   200 => print("OK"),
-  404 => print("Não encontrado"),
-  code if code >= 500 => print(f"Erro servidor: {code}"),
-  _ => print("Outro status")
+  404 => print("Not Found"),
+  code if code >= 500 => print(f"Server error: {code}"),
+  _ => print("Other status")
 }
 
-// Concorrência leve com segurança garantida
 spawn async fn worker(id: i64) {
   let data = await db.query(id)
-  process(data)  // Zero data races pelo sistema de tipos
+  process(data)
 }
 ```
 
-✅ Familiar para devs Python/JS  
-✅ Seguro como Rust  
-✅ Rápido como C
+✅ Familiar to Python/JS developers  
+✅ Safe like Rust  
+✅ Fast like C
 
 ---
 
-## 🚀 Caso de Uso: Microserviço de Detecção de Fraude
+## Use case: Fraud Detection Microservice
 
 ```tupa
-// fraud_detector.tp
 @differentiable
 fn risk_score(tx: Transaction) -> f64 {
-  let neural = fraud_net.infer(tx.features)  // Tensor<f16, density=0.15>
+  let neural = fraud_net.infer(tx.features)
   let symbolic = if tx.country == "BR" && tx.amount > 1000 { 0.8 } else { 0.2 }
-  return 0.7 * neural + 0.3 * symbolic  // Fusão neurosimbólica nativa
+  return 0.7 * neural + 0.3 * symbolic
 }
 
 @service(port=8080)
 fn main() {
   route.post("/predict", |req: Request| {
-    // Safe<f64, !nan> garante que score nunca é NaN (crítico para produção)
     let score: Safe<f64, !nan> = risk_score(req.transaction)
     return Response::json(score)
   })
 }
 ```
 
-**Resultados esperados** (vs Python + PyTorch):
+**Expected results** (vs Python + PyTorch):
 
-| Métrica | Python | Tupã | Ganho |
-| ------- | ------ | ---- | ----- |
-| Latência P99 | 45 ms | 8 ms | **5.6x mais rápido** |
-| Consumo energia | 100% | 12% | **88% menos carbono** |
-| Vazamento dados | Possível (runtime) | Impossível (compile-time) | **Segurança formal** |
-
----
-
-## 🚀 Próximos 30 dias (ajude agora!)
-
-| Tarefa | Arquivo | Dificuldade |
-| ------ | ------- | ----------- |
-| Diagnósticos com span/linha/coluna (spec + implementação) | `docs/SPEC.md` | ⭐⭐ |
-| Evoluir typechecker (retorno, match, loops, tipos de função) | `crates/tupa-typecheck/` | ⭐⭐⭐ |
-| Protótipo de codegen MVP (LLVM) | `crates/tupa-codegen/` | ⭐⭐⭐⭐ |
-| Expandir exemplos reais + edge cases | `examples/` | ⭐ |
-
-👉 **Comece aqui**: Abra uma issue com `[RFC]` no título para propor mudanças na spec.
+| Metric | Python | Tupã | Gain |
+| ------ | ------ | ---- | ---- |
+| P99 latency | 45 ms | 8 ms | **5.6x faster** |
+| Energy use | 100% | 12% | **88% less carbon** |
+| Data leakage | Possible (runtime) | Impossible (compile time) | **Formal safety** |
 
 ---
 
-## 🧭 Roadmap
+## Next 30 days (help now)
+
+| Task | Area | Difficulty |
+| ---- | ---- | ---------- |
+| Diagnostics with span/line/column (spec + implementation) | `docs/SPEC.md` | ⭐⭐ |
+| Evolve typechecker (return, match, loops, function types) | `crates/tupa-typecheck/` | ⭐⭐⭐ |
+| MVP codegen prototype (LLVM) | `crates/tupa-codegen/` | ⭐⭐⭐⭐ |
+| Expand real examples + edge cases | `examples/` | ⭐ |
+
+Start here: open an issue with `[RFC]` in the title to propose spec changes.
+
+---
+
+## Roadmap
 
 - [docs/MVP_PLAN.md](docs/MVP_PLAN.md)
 - [docs/ADOPTION_PLAN.md](docs/ADOPTION_PLAN.md)
 
-## 🌍 Orgulho Brasileiro, Ambição Global
+## Brazilian roots, global ambition
 
-Tupã é a **primeira linguagem brasileira com ambição global desde Lua** (1993). Mas enquanto Lua focou em *embeddability*, Tupã nasce para resolver os maiores desafios da computação moderna:
+Tupã is the first Brazilian language with global ambition since Lua (1993). While Lua focused on embeddability, Tupã was born to tackle the biggest challenges in modern computing:
 
-- 🇧🇷 **Raízes tupi-guarani**: nome, logo e filosofia inspirados na sabedoria ancestral
-- 🌱 **Sustentabilidade**: esparsidade nativa reduz pegada de carbono da IA
-- 🛡️ **Segurança ética**: alignment não é *feature*, é fundação
-- ⚡ **Performance**: LLVM + zero-cost abstractions = código tão rápido quanto C
-
-> *"Não estamos reinventando a roda. Estamos construindo a primeira roda que não polui o planeta enquanto rola."*
+- **Tupi-Guarani roots**: name, logo, and philosophy inspired by ancestral wisdom
+- **Sustainability**: native sparsity reduces AI carbon footprint
+- **Ethical safety**: alignment is a foundation, not a feature
+- **Performance**: LLVM + zero-cost abstractions = as fast as C
 
 ---
 
-## 📚 Recursos
+## Resources
 
-### Para usuários
+### For users
 
 - [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
 - [examples/README.md](examples/README.md)
@@ -210,10 +186,10 @@ Tupã é a **primeira linguagem brasileira com ambição global desde Lua** (199
 - [docs/GLOSSARY.md](docs/GLOSSARY.md)
 - [docs/FAQ.md](docs/FAQ.md)
 - [docs/ROADMAP.md](docs/ROADMAP.md)
-- [docs/README.md](docs/README.md) (mapa completo)
+- [docs/README.md](docs/README.md)
 - [Wiki](https://github.com/marciopaiva/tupalang/wiki)
 
-### Para contribuidores
+### For contributors
 
 - [CONTRIBUTING.md](CONTRIBUTING.md)
 - [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
@@ -230,7 +206,7 @@ Tupã é a **primeira linguagem brasileira com ambição global desde Lua** (199
 - [docs/CONTRIBUTING_FAQ.md](docs/CONTRIBUTING_FAQ.md)
 - [docs/ISSUES_GUIDE.md](docs/ISSUES_GUIDE.md)
 
-### Internals e planejamento
+### Internals and planning
 
 - [docs/CODEGEN.md](docs/CODEGEN.md)
 - [docs/MVP_PLAN.md](docs/MVP_PLAN.md)
@@ -241,62 +217,39 @@ Tupã é a **primeira linguagem brasileira com ambição global desde Lua** (199
 - [docs/RELEASE_GUIDE.md](docs/RELEASE_GUIDE.md)
 - [docs/VERSIONING.md](docs/VERSIONING.md)
 
-## 🧩 Contributing quick checklist
+## Contributing quick checklist
 
-- [ ] Abra uma issue (ou `[RFC]` para mudanças grandes)
-- [ ] Rode `cargo test`
-- [ ] Atualize docs relevantes
+- [ ] Open an issue (or `[RFC]` for large changes)
+- [ ] Run `cargo test`
+- [ ] Update relevant docs
 
 ---
 
-## 🧰 CLI (dev)
+## CLI (dev)
 
 Demo: ![Demo](assets/demo.svg)
 
 ```bash
-# lex e imprime tokens
 cargo run -p tupa-cli -- lex examples/hello.tp
-
-# lex com saída JSON
 cargo run -p tupa-cli -- lex --format json examples/hello.tp
-
-# parse e imprime AST
 cargo run -p tupa-cli -- parse examples/hello.tp
-
-# parse e imprime AST em JSON
 cargo run -p tupa-cli -- parse --format json examples/hello.tp
-
-# parse via stdin
 cat examples/hello.tp | cargo run -p tupa-cli -- parse --stdin
-
-# lex via stdin
 cat examples/hello.tp | cargo run -p tupa-cli -- lex --stdin
-
-# parse e valida tipos
 cargo run -p tupa-cli -- check examples/hello.tp
-
-# valida tipos com saída JSON
 cargo run -p tupa-cli -- check --format json examples/hello.tp
-
-# valida via stdin
 cat examples/hello.tp | cargo run -p tupa-cli -- check --stdin
-
-# gera codegen (stub)
 cargo run -p tupa-cli -- codegen examples/hello.tp
-
-# gera codegen (stub) em JSON
 cargo run -p tupa-cli -- codegen --format json examples/hello.tp
-
-# versão e sobre
 cargo run -p tupa-cli -- version
 cargo run -p tupa-cli -- about
 ```
 
 ---
 
-## 🧩 Diagnósticos (exemplo)
+## Diagnostics example
 
-Erros agora incluem código e linha/coluna:
+Errors include code and line/column:
 
 ```text
 error[E2001]: type mismatch: expected I64, got Bool
@@ -306,54 +259,52 @@ error[E2001]: type mismatch: expected I64, got Bool
    |               ^^^^
 ```
 
-Saída JSON também está disponível via `--format json` para consumo por ferramentas.
+JSON output is also available via `--format json` for tool integration.
 
 ---
 
-## ⚖️ Licença
+## License
 
-- **Compilador**: Apache License 2.0
+- **Compiler**: Apache License 2.0
 - **Runtime**: MIT License
-- **Especificação**: CC-BY-SA 4.0
-
-> ✅ Software livre, comercialmente amigável, com compartilhamento obrigatório de melhorias na spec
+- **Specification**: CC-BY-SA 4.0
 
 ---
 
-## 🤝 Contribuidores
+## Contributors
 
-Em breve.
-
----
-
-## 🛡️ Security
-
-Veja a política em [docs/SECURITY.md](docs/SECURITY.md).
+Coming soon.
 
 ---
 
-## 💚 Sponsors
+## Security
 
-Em breve.
+See the policy in [docs/SECURITY.md](docs/SECURITY.md).
 
 ---
 
-## 🧪 Matriz de suporte
+## Sponsors
 
-| Sistema | Status |
-| ------- | ------ |
+Coming soon.
+
+---
+
+## Support matrix
+
+| System | Status |
+| ------ | ------ |
 | Linux | ✅ |
 | macOS | ✅ |
 | Windows (WSL) | ✅ |
 
 ---
 
-## 💬 Comunidade
+## Community
 
-- [GitHub Issues](https://github.com/marciopaiva/tupalang/issues): bugs e melhorias
-- [Twitter @tupalang](https://twitter.com/tupalang): atualizações e demos
+- [GitHub Issues](https://github.com/marciopaiva/tupalang/issues): bugs and improvements
+- [Twitter @tupalang](https://twitter.com/tupalang): updates and demos
 
 ---
 
-> **🌩️ Tupã: onde a sabedoria ancestral encontra a engenharia do futuro**  
+> **🌩️ Tupã: where ancestral wisdom meets future engineering**  
 > *[github.com/marciopaiva/tupalang](https://github.com/marciopaiva/tupalang)*

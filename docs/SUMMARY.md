@@ -1,25 +1,23 @@
-# Índice de Documentação
+# Documentation Index
 
-## Português
+## English (default)
 
-- [README (PT)](../README.md)
-- [Guia de Início Rápido](GETTING_STARTED.md)
-- [FAQ (PT)](FAQ.md)
-- [Arquitetura](ARCHITECTURE.md)
-- [Especificação (SPEC)](SPEC.md)
-- [Erros Comuns](COMMON_ERRORS.md)
-- [Checklist de Diagnósticos](DIAGNOSTICS_CHECKLIST.md)
-- [Detalhes do Typechecker](TYPECHECKER_DETAILS.md)
-- [API e Extensibilidade](API_EXTENSIBILITY.md)
-- [Tutoriais passo-a-passo](TUTORIALS.md)
+- [README](README.md)
+- [Quick Start Guide](GETTING_STARTED.md)
+- [FAQ](FAQ.md)
+- [Architecture](ARCHITECTURE.md)
+- [SPEC](SPEC.md)
+- [Common Errors](COMMON_ERRORS.md)
+- [Diagnostics Checklist](DIAGNOSTICS_CHECKLIST.md)
+- [Typechecker Details](TYPECHECKER_DETAILS.md)
+- [API and Extensibility](API_EXTENSIBILITY.md)
+- [Step-by-step Tutorials](TUTORIALS.md)
 - [Changelog](CHANGELOG.md)
-- [Plano MVP](MVP_PLAN.md)
-- [Guia de Contribuição](../CONTRIBUTING.md)
-- [Todos os documentos (EN)](SUMMARY.en.md)
+- [MVP Plan](MVP_PLAN.md)
+- [Contribution Guide](../CONTRIBUTING.md)
+- [All docs](README.md)
 
-## English
+## PT-BR (alternative)
 
-- [README (EN)](../README.en.md)
-- [Quick Start Guide](GETTING_STARTED.en.md)
-- [FAQ (EN)](FAQ.en.md)
-- [All docs (EN)](SUMMARY.en.md)
+- [README (PT-BR)](pt-br/README.md)
+- [Index (PT-BR)](pt-br/SUMMARY.md)

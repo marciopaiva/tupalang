@@ -1,16 +1,16 @@
-# Glossário
+# Glossary
 
-## Objetivo
+## Purpose
 
-Definir termos-chave usados na linguagem e na documentação.
+Define key terms used in the language and documentation.
 
-## Termos
+## Terms
 
-- **Alignment**: conjunto de restrições éticas verificadas em *compile-time*.
-- **Constraint**: condição que deve ser provada para um tipo `Safe<T, ...>`.
-- **Densidade**: parâmetro do tipo que controla esparsidade de tensores.
-- **EBNF**: notação formal para gramática da linguagem.
-- **Nabla (`∇`)**: operador de diferenciabilidade nativa.
-- **Safe Type**: tipo anotado com restrições, por exemplo `Safe<f64, !nan>`.
-- **Span**: intervalo de texto usado para apontar erros (linha/coluna).
-- **Typechecker**: verificador de tipos estáticos do compilador.
+- **Alignment**: set of ethical constraints checked at compile time.
+- **Constraint**: condition that must be proven for a `Safe<T, ...>` type.
+- **Density**: type parameter that controls tensor sparsity.
+- **EBNF**: formal notation for language grammar.
+- **Nabla (`∇`)**: native differentiability operator.
+- **Safe Type**: type annotated with constraints, for example `Safe<f64, !nan>`.
+- **Span**: text interval used to point to errors (line/column).
+- **Typechecker**: compiler static type checker.

@@ -1,23 +1,23 @@
-# Guia de Versionamento
+# Versioning Guide
 
-## Objetivo
+## Purpose
 
-Definir a política de versionamento e compatibilidade.
+Define the versioning and compatibility policy.
 
 ## SemVer
 
-Adotamos [SemVer](https://semver.org/):
+We follow [SemVer](https://semver.org/):
 
-- **MAJOR**: mudanças incompatíveis.
-- **MINOR**: novas funcionalidades compatíveis.
-- **PATCH**: correções compatíveis.
+- **MAJOR**: incompatible changes.
+- **MINOR**: compatible new features.
+- **PATCH**: compatible fixes.
 
-## Política
+## Policy
 
-## Pré-1.0
+## Pre-1.0
 
-Antes da 1.0, mudanças podem ocorrer com maior frequência. Ainda assim, manteremos SemVer e documentaremos breaking changes no CHANGELOG.
+Before 1.0, changes can happen more frequently. We still follow SemVer and document breaking changes in CHANGELOG.
 
-## Sincronização de documentação
+## Documentation sync
 
-Toda mudança relevante em docs, exemplos ou API deve ser refletida no CHANGELOG e, se aplicável, no SUMMARY.md e README.
+Any relevant change in docs, examples, or API must be reflected in CHANGELOG and, if applicable, in SUMMARY.md and README.

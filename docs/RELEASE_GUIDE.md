@@ -1,31 +1,31 @@
-# Guia de Release
+# Release Guide
 
-## Objetivo
+## Purpose
 
-Descrever o processo de release com passos claros e repetíveis.
+Describe the release process with clear, repeatable steps.
 
-## Passo a passo
+## Step by step
 
-1. Atualize o [CHANGELOG](CHANGELOG.md) e SUMMARY.md.
-2. Rode a suite de testes:
+1. Update [CHANGELOG](CHANGELOG.md) and SUMMARY.md.
+2. Run the test suite:
 
 ```bash
 cargo test
 ```
 
-1. Verifique exemplos principais em `examples/` e docs bilíngues.
-2. Confirme que o CI está verde.
-3. Crie tag e publique:
+1. Verify main examples in `examples/` and bilingual docs.
+2. Confirm CI is green.
+3. Create the tag and publish:
 
 ```bash
 git tag -a vX.Y.Z -m "vX.Y.Z"
 git push origin vX.Y.Z
 ```
 
-1. Crie a release no GitHub com notas do CHANGELOG.
+1. Create the GitHub release with CHANGELOG notes.
 
-## Dicas
+## Tips
 
-- Use versões semânticas (SemVer).
-- Evite releases sem atualização do CHANGELOG e SUMMARY.
-- Registre mudanças que impactam a SPEC, API ou docs principais.
+- Use semantic versions (SemVer).
+- Avoid releases without updating CHANGELOG and SUMMARY.
+- Record changes that impact SPEC, API, or core docs.

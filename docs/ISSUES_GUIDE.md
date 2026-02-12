@@ -1,39 +1,39 @@
-# Guia de issues
+# Issues Guide
 
-## Objetivo
+## Purpose
 
-Padronizar a criação de issues com informações úteis para triagem.
+Standardize issue creation with useful triage information.
 
-## Quando abrir issue
+## When to open an issue
 
-- Bugs e erros inesperados.
-- Propostas de melhoria (use `[RFC]`).
-- Dúvidas sobre spec ou comportamento.
+- Bugs and unexpected errors.
+- Improvement proposals (use `[RFC]`).
+- Questions about spec or behavior.
 
 ## Checklist
 
-- [ ] Título claro e específico.
-- [ ] Passos para reproduzir (se bug).
-- [ ] Resultado esperado vs atual.
-- [ ] Logs/prints relevantes.
-- [ ] Versão do Rust e do projeto.
+- [ ] Clear and specific title.
+- [ ] Steps to reproduce (if bug).
+- [ ] Expected vs actual result.
+- [ ] Relevant logs/prints.
+- [ ] Rust and project version.
 
-## Exemplo (bug)
+## Example (bug)
 
-**Título**: `Parser falha com match aninhado`
+**Title**: `Parser fails with nested match`
 
-**Descrição**:
+**Description**:
 
-- Passos: `tupa-cli -- parse examples/match.tp`
-- Esperado: AST válido
-- Atual: erro `unexpected token`
+- Steps: `tupa-cli -- parse examples/match.tp`
+- Expected: valid AST
+- Actual: `unexpected token` error
 
-## Exemplo (RFC)
+## Example (RFC)
 
-**Título**: `[RFC] Tipos opcionais`
+**Title**: `[RFC] Optional types`
 
-**Descrição**:
+**Description**:
 
-- Motivação
-- Alternativas
-- Impacto na SPEC
+- Motivation
+- Alternatives
+- Impact on SPEC

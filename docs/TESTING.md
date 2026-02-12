@@ -1,32 +1,32 @@
-# Guia de Testes
+# Testing Guide
 
-## Objetivo
+## Purpose
 
-Descrever comandos padrão de teste e dicas de triagem de falhas.
+Describe standard test commands and failure triage tips.
 
-## Comandos principais
+## Main commands
 
 ```bash
-# suite completa
+# full suite
 cargo test
 
-# por crate
+# per crate
 cargo test -p tupa-lexer
 cargo test -p tupa-parser
 cargo test -p tupa-typecheck
 cargo test -p tupa-cli
 ```
 
-## Testes do CLI
+## CLI tests
 
 ```bash
 # golden outputs
 cargo test -p tupa-cli -- tests::cli_golden
 ```
 
-## Dicas de triagem
+## Triage tips
 
-- Rode o teste isolado antes do suite completo.
-- Verifique se o erro é de parsing ou typecheck.
-- Compare spans e mensagens com o esperado.
-- Reproduza via `tupa-cli -- parse|check`.
+- Run the isolated test before the full suite.
+- Check whether the error is in parsing or typecheck.
+- Compare spans and messages with expected output.
+- Reproduce via `tupa-cli -- parse|check`.

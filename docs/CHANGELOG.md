@@ -1,47 +1,55 @@
 
 # Changelog
 
-## Objetivo
+## Purpose
 
-Registrar mudanças relevantes por versão.
+Record relevant changes per version.
+
+## 0.4.0 (2026-02-11)
+
+- Closure codegen improvements with real variable capture.
+- Typechecker improvements for constraints and lambda inference.
+- CLI flow updates for updated typecheck/codegen pipeline.
+- SPEC and common errors refreshed for new behavior.
+- Documentation cleanup: canonical English, indices, and PT-BR entrypoint.
 
 ## 0.3.0 (2026-02-07)
 
-- Suporte a closures com captura real de variáveis (environment structures, heap allocation).
-- Melhorias na inferência de tipos para lambdas com parâmetros Unknown.
-- Suporte a compatibilidade de tipos Func com parâmetros Unknown em chamadas de função.
-- Melhorias de qualidade de código: Clippy e rustfmt no CI, correção de warnings.
-- Suporte básico a traits (parsing, typechecking, codegen).
-- Suporte básico a enums (parsing, typechecking, codegen).
-- Testes unitários adicionados ao codegen.
-- Exemplo de enum adicionado à documentação.
-- Índice/SUMMARY centralizado e links internos entre docs.
-- Sincronização de CHANGELOG, VERSIONING e RELEASE_GUIDE.
-- Detecção de captura de variáveis em lambdas (closures em desenvolvimento).
-- Correção de TODOs residuais no codegen para melhor robustez.
-- Implementação de inferência de tipos para parâmetros de lambda.
-- Suporte básico a closures no codegen (sem captura de ambiente ainda).
-- Correção dos testes golden para casos de erro (removidas mensagens do cargo).
+- Closure support with real variable capture (environment structures, heap allocation).
+- Improvements in type inference for lambdas with Unknown parameters.
+- Support for Func type compatibility with Unknown parameters in function calls.
+- Code quality improvements: Clippy and rustfmt in CI, warning fixes.
+- Basic support for traits (parsing, typechecking, codegen).
+- Basic support for enums (parsing, typechecking, codegen).
+- Unit tests added to codegen.
+- Enum example added to documentation.
+- Centralized index/SUMMARY and internal doc links.
+- Sync of CHANGELOG, VERSIONING, and RELEASE_GUIDE.
+- Variable capture detection in lambdas (closures in development).
+- Fixes for residual TODOs in codegen for better robustness.
+- Implementation of type inference for lambda parameters.
+- Basic closure support in codegen (without environment capture yet).
+- Golden test fixes for error cases (removed cargo messages).
 
 ## 0.2.0 (2026-02-06)
 
-- Suporte a closures com captura real de variáveis (environment structures, heap allocation).
-- Melhorias na inferência de tipos para lambdas com parâmetros Unknown.
-- Suporte a compatibilidade de tipos Func com parâmetros Unknown em chamadas de função.
-- Melhorias de qualidade de código: Clippy e rustfmt no CI, correção de warnings.
-- Suporte básico a traits (parsing, typechecking, codegen).
-- Suporte básico a enums (parsing, typechecking, codegen).
-- Testes unitários adicionados ao codegen.
-- Exemplo de enum adicionado à documentação.
-- Índice/SUMMARY centralizado e links internos entre docs.
-- Sincronização de CHANGELOG, VERSIONING e RELEASE_GUIDE.
-- Detecção de captura de variáveis em lambdas (closures em desenvolvimento).
-- Correção de TODOs residuais no codegen para melhor robustez.
-- Implementação de inferência de tipos para parâmetros de lambda.
-- Suporte básico a closures no codegen (sem captura de ambiente ainda).
-- Correção dos testes golden para casos de erro (removidas mensagens do cargo).
+- Closure support with real variable capture (environment structures, heap allocation).
+- Improvements in type inference for lambdas with Unknown parameters.
+- Support for Func type compatibility with Unknown parameters in function calls.
+- Code quality improvements: Clippy and rustfmt in CI, warning fixes.
+- Basic support for traits (parsing, typechecking, codegen).
+- Basic support for enums (parsing, typechecking, codegen).
+- Unit tests added to codegen.
+- Enum example added to documentation.
+- Centralized index/SUMMARY and internal doc links.
+- Sync of CHANGELOG, VERSIONING, and RELEASE_GUIDE.
+- Variable capture detection in lambdas (closures in development).
+- Fixes for residual TODOs in codegen for better robustness.
+- Implementation of type inference for lambda parameters.
+- Basic closure support in codegen (without environment capture yet).
+- Golden test fixes for error cases (removed cargo messages).
 
 ## 0.1.0
 
-- Especificação v0.1 publicada.
-- Lexer, parser, typechecker e CLI básicos.
+- Specification v0.1 published.
+- Basic lexer, parser, typechecker, and CLI.
