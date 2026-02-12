@@ -11,7 +11,7 @@
 ## Quick Index
 
 - [Status](#status)
-- [Features](#features)
+- [Quick FAQ](#quick-faq)
 - [Roadmap](#roadmap)
 - [CLI](#cli-dev)
 - [Resources](#resources)

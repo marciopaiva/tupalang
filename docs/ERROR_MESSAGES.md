@@ -27,7 +27,7 @@ error[E1002]: undefined variable 'x'
   --> examples/types.tp:2:1
 ```
 
-# References
+## References
 
 - [Diagnostics Glossary](DIAGNOSTICS_GLOSSARY.md)
 - [Diagnostics Checklist](DIAGNOSTICS_CHECKLIST.md)

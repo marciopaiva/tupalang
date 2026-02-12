@@ -44,7 +44,7 @@ pub trait CodegenBackend {
 let wasm = tupa_backend_wasm::emit(&ir)?;
 ```
 
-# Useful links
+## Useful links
 
 - [Architecture](ARCHITECTURE.md)
 - [Codegen](CODEGEN.md)
