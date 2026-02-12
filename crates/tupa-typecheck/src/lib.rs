@@ -877,16 +877,11 @@ fn typecheck_stmt(
                     });
                 }
                 if let Some(constraints) = constraints {
-                    validate_safe_constraints(
-                        constraints,
-                        &declared,
-                        expr,
-                        env,
-                        functions,
-                    )?;
+                    validate_safe_constraints(constraints, &declared, expr, env, functions)?;
                 }
-                let inferred_constraints =
-                    constraints.cloned().or_else(|| expr_constraints(expr, env, functions));
+                let inferred_constraints = constraints
+                    .cloned()
+                    .or_else(|| expr_constraints(expr, env, functions));
                 env.insert_var(name.clone(), declared, inferred_constraints);
             } else {
                 let inferred_constraints = expr_constraints(expr, env, functions);
@@ -1722,7 +1717,13 @@ impl TypeEnv {
         );
     }
 
-    fn insert_param(&mut self, name: String, ty: Ty, constraints: Option<Vec<String>>, index: usize) {
+    fn insert_param(
+        &mut self,
+        name: String,
+        ty: Ty,
+        constraints: Option<Vec<String>>,
+        index: usize,
+    ) {
         self.vars.insert(
             name.clone(),
             VarInfo {
@@ -1747,7 +1748,9 @@ impl TypeEnv {
     }
 
     fn get_var_constraints(&self, name: &str) -> Option<Vec<String>> {
-        self.vars.get(name).and_then(|info| info.constraints.clone())
+        self.vars
+            .get(name)
+            .and_then(|info| info.constraints.clone())
     }
 
     fn collect_warnings(&self) -> Vec<Warning> {
