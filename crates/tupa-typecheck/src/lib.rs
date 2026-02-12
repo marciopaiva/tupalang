@@ -1652,6 +1652,7 @@ fn type_sig_from_ast(
     }
 }
 
+#[allow(clippy::result_large_err)]
 fn validate_safe_annotation_constraints(
     constraints: &[String],
     base: &Ty,
