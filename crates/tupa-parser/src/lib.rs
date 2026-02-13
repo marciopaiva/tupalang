@@ -472,7 +472,10 @@ impl Parser {
                     } else {
                         Vec::new()
                     };
-                    variants.push(EnumVariant { name: variant, args });
+                    variants.push(EnumVariant {
+                        name: variant,
+                        args,
+                    });
                 }
                 Some(TokenSpan { token, span }) => {
                     return Err(ParserError::Unexpected(token, span))
@@ -1378,10 +1381,7 @@ impl Parser {
                         }
                     }
                     let end = self.expect_span(Token::RParen)?;
-                    Ok((
-                        Pattern::Constructor { name, args },
-                        merge_span(span, end),
-                    ))
+                    Ok((Pattern::Constructor { name, args }, merge_span(span, end)))
                 } else {
                     Ok((Pattern::Ident(name), span))
                 }

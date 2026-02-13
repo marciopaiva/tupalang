@@ -727,9 +727,15 @@ fn expr_constraints(
             let scrutinee_constraints =
                 expr_constraints(expr, env, functions, enums, traits, expected_return);
             let mut scrutinee_env = env.child();
-            let scrutinee_ty =
-                type_of_expr(expr, &mut scrutinee_env, functions, enums, traits, expected_return)
-                    .ok()?;
+            let scrutinee_ty = type_of_expr(
+                expr,
+                &mut scrutinee_env,
+                functions,
+                enums,
+                traits,
+                expected_return,
+            )
+            .ok()?;
             let mut current = None;
             for arm in arms {
                 let mut inner = env.child();
@@ -746,14 +752,8 @@ fn expr_constraints(
                 {
                     return None;
                 }
-                let arm_constraints = expr_constraints(
-                    &arm.expr,
-                    &inner,
-                    functions,
-                    enums,
-                    traits,
-                    expected_return,
-                );
+                let arm_constraints =
+                    expr_constraints(&arm.expr, &inner, functions, enums, traits, expected_return);
                 match (&current, &arm_constraints) {
                     (None, None) => {}
                     (None, Some(found)) => current = Some(found.clone()),
@@ -1005,9 +1005,9 @@ fn typecheck_stmt(
                         },
                     )?;
                 }
-                let inferred_constraints = constraints
-                    .cloned()
-                    .or_else(|| expr_constraints(expr, env, functions, enums, traits, expected_return));
+                let inferred_constraints = constraints.cloned().or_else(|| {
+                    expr_constraints(expr, env, functions, enums, traits, expected_return)
+                });
                 env.insert_var(name.clone(), declared, inferred_constraints);
             } else {
                 let inferred_constraints =
@@ -1132,7 +1132,14 @@ fn type_of_expr(
         ExprKind::Tuple(items) => {
             let mut tys = Vec::with_capacity(items.len());
             for item in items {
-                tys.push(type_of_expr(item, env, functions, enums, traits, expected_return)?);
+                tys.push(type_of_expr(
+                    item,
+                    env,
+                    functions,
+                    enums,
+                    traits,
+                    expected_return,
+                )?);
             }
             Ok(Ty::Tuple(tys))
         }
@@ -1329,7 +1336,15 @@ fn type_of_expr(
                     });
                 }
                 if env.get_var(name).is_none() && !functions.contains_key(name) && is_variant {
-                    return type_of_enum_constructor_call(name, args, env, functions, enums, traits, expected_return);
+                    return type_of_enum_constructor_call(
+                        name,
+                        args,
+                        env,
+                        functions,
+                        enums,
+                        traits,
+                        expected_return,
+                    );
                 }
             }
             let callee_ty = type_of_expr(callee, env, functions, enums, traits, expected_return)?;
@@ -1674,19 +1689,13 @@ fn type_of_enum_constructor_call(
     let mut found_sigs = Vec::with_capacity(args.len());
     for (arg, expected_ty) in args.iter().zip(variant_types.iter()) {
         let found_ty = type_of_expr(arg, env, functions, enums, traits, expected_return)?;
-        let found_constraints = expr_constraints(arg, env, functions, enums, traits, expected_return);
+        let found_constraints =
+            expr_constraints(arg, env, functions, enums, traits, expected_return);
         let found_sig = TypeSig {
             ty: found_ty,
             constraints: found_constraints,
         };
-        infer_generic_bindings(
-            expected_ty,
-            &found_sig,
-            info,
-            enums,
-            traits,
-            &mut mapping,
-        )?;
+        infer_generic_bindings(expected_ty, &found_sig, info, enums, traits, &mut mapping)?;
         found_sigs.push((arg, found_sig));
     }
     let resolved = variant_types
@@ -1694,10 +1703,7 @@ fn type_of_enum_constructor_call(
         .map(|ty| type_sig_from_ast_with_generics(ty, enums, traits, &mapping))
         .collect::<Result<Vec<_>, _>>()?;
     for ((arg, found), expected) in found_sigs.iter().zip(resolved.iter()) {
-        if found.ty != expected.ty
-            && found.ty != Ty::Unknown
-            && expected.ty != Ty::Unknown
-        {
+        if found.ty != expected.ty && found.ty != Ty::Unknown && expected.ty != Ty::Unknown {
             return Err(TypeError::Mismatch {
                 expected: expected.ty.clone(),
                 found: found.ty.clone(),
@@ -1742,9 +1748,7 @@ fn infer_generic_bindings(
     match ty {
         Type::Ident(name) if info.params.iter().any(|param| param == name) => {
             if let Some(existing) = mapping.get(name) {
-                if existing.ty != Ty::Unknown
-                    && found.ty != Ty::Unknown
-                    && existing.ty != found.ty
+                if existing.ty != Ty::Unknown && found.ty != Ty::Unknown && existing.ty != found.ty
                 {
                     return Err(TypeError::Mismatch {
                         expected: existing.ty.clone(),
@@ -1774,14 +1778,9 @@ fn infer_generic_bindings(
             }
             Ok(())
         }
-        Type::Safe { base, .. } => infer_generic_bindings(
-            base,
-            found,
-            info,
-            enums,
-            traits,
-            mapping,
-        ),
+        Type::Safe { base, .. } => {
+            infer_generic_bindings(base, found, info, enums, traits, mapping)
+        }
         Type::Tuple(items) => match &found.ty {
             Ty::Tuple(found_items) if items.len() == found_items.len() => {
                 for (item, found_item) in items.iter().zip(found_items.iter()) {
@@ -1802,7 +1801,9 @@ fn infer_generic_bindings(
             _ => Ok(()),
         },
         Type::Array { elem, .. } => match &found.ty {
-            Ty::Array { elem: found_elem, .. } => infer_generic_bindings(
+            Ty::Array {
+                elem: found_elem, ..
+            } => infer_generic_bindings(
                 elem,
                 &TypeSig {
                     ty: *found_elem.clone(),
@@ -1875,9 +1876,7 @@ fn infer_generic_bindings(
         },
         _ => {
             if let Ok(expected_ty) = type_from_ast_with_generics(ty, enums, traits, mapping) {
-                if expected_ty != Ty::Unknown
-                    && found.ty != Ty::Unknown
-                    && expected_ty != found.ty
+                if expected_ty != Ty::Unknown && found.ty != Ty::Unknown && expected_ty != found.ty
                 {
                     return Err(TypeError::Mismatch {
                         expected: expected_ty,
@@ -2072,8 +2071,14 @@ fn typecheck_pattern(
                         span: Some(pattern_span),
                     });
                 };
-                let resolved =
-                    resolve_variant_types(enum_name, info, enum_args, variant_types, enums, traits)?;
+                let resolved = resolve_variant_types(
+                    enum_name,
+                    info,
+                    enum_args,
+                    variant_types,
+                    enums,
+                    traits,
+                )?;
                 if args.len() != resolved.len() {
                     return Err(TypeError::ArityMismatch {
                         expected: resolved.len(),
@@ -2334,7 +2339,9 @@ fn type_sig_from_ast_with_generics(
     generics: &HashMap<String, TypeSig>,
 ) -> Result<TypeSig, TypeError> {
     match ty {
-        Type::Ident(name) if generics.contains_key(name) => Ok(generics.get(name).cloned().unwrap()),
+        Type::Ident(name) if generics.contains_key(name) => {
+            Ok(generics.get(name).cloned().unwrap())
+        }
         Type::Safe { base, constraints } => {
             let base_ty = type_from_ast_with_generics(base, enums, traits, generics)?;
             validate_safe_annotation_constraints(constraints, &base_ty)?;

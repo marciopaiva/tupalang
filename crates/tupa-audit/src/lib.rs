@@ -105,7 +105,10 @@ fn item_to_value(item: &Item) -> Value {
             ("kind", Value::String("Function".to_string())),
             ("name", Value::String(func.name.clone())),
             ("params", params_to_value(&func.params)),
-            ("return_type", option_type_to_value(func.return_type.as_ref())),
+            (
+                "return_type",
+                option_type_to_value(func.return_type.as_ref()),
+            ),
             ("body", block_to_value(&func.body)),
         ]),
         Item::Enum(def) => object(vec![
@@ -113,7 +116,12 @@ fn item_to_value(item: &Item) -> Value {
             ("name", Value::String(def.name.clone())),
             (
                 "generics",
-                Value::Array(def.generics.iter().map(|g| Value::String(g.clone())).collect()),
+                Value::Array(
+                    def.generics
+                        .iter()
+                        .map(|g| Value::String(g.clone()))
+                        .collect(),
+                ),
             ),
             ("variants", variants_to_value(&def.variants)),
         ]),
@@ -132,7 +140,10 @@ fn function_to_value(func: &Function) -> Value {
     object(vec![
         ("name", Value::String(func.name.clone())),
         ("params", params_to_value(&func.params)),
-        ("return_type", option_type_to_value(func.return_type.as_ref())),
+        (
+            "return_type",
+            option_type_to_value(func.return_type.as_ref()),
+        ),
         ("body", block_to_value(&func.body)),
     ])
 }
@@ -181,11 +192,17 @@ fn type_to_value(ty: &Type) -> Value {
         Type::Generic { name, args } => object(vec![
             ("kind", Value::String("Generic".to_string())),
             ("name", Value::String(name.clone())),
-            ("args", Value::Array(args.iter().map(type_to_value).collect())),
+            (
+                "args",
+                Value::Array(args.iter().map(type_to_value).collect()),
+            ),
         ]),
         Type::Tuple(items) => object(vec![
             ("kind", Value::String("Tuple".to_string())),
-            ("items", Value::Array(items.iter().map(type_to_value).collect())),
+            (
+                "items",
+                Value::Array(items.iter().map(type_to_value).collect()),
+            ),
         ]),
         Type::Safe { base, constraints } => object(vec![
             ("kind", Value::String("Safe".to_string())),
@@ -211,7 +228,10 @@ fn type_to_value(ty: &Type) -> Value {
         ]),
         Type::Func { params, ret } => object(vec![
             ("kind", Value::String("Func".to_string())),
-            ("params", Value::Array(params.iter().map(type_to_value).collect())),
+            (
+                "params",
+                Value::Array(params.iter().map(type_to_value).collect()),
+            ),
             ("ret", type_to_value(ret)),
         ]),
     }
@@ -328,7 +348,10 @@ fn expr_to_value(expr: &Expr) -> Value {
         ]),
         ExprKind::Tuple(items) => object(vec![
             ("kind", Value::String("Tuple".to_string())),
-            ("items", Value::Array(items.iter().map(expr_to_value).collect())),
+            (
+                "items",
+                Value::Array(items.iter().map(expr_to_value).collect()),
+            ),
         ]),
         ExprKind::Assign { name, expr } => object(vec![
             ("kind", Value::String("Assign".to_string())),
@@ -343,12 +366,18 @@ fn expr_to_value(expr: &Expr) -> Value {
         ]),
         ExprKind::ArrayLiteral(items) => object(vec![
             ("kind", Value::String("ArrayLiteral".to_string())),
-            ("items", Value::Array(items.iter().map(expr_to_value).collect())),
+            (
+                "items",
+                Value::Array(items.iter().map(expr_to_value).collect()),
+            ),
         ]),
         ExprKind::Call { callee, args } => object(vec![
             ("kind", Value::String("Call".to_string())),
             ("callee", expr_to_value(callee)),
-            ("args", Value::Array(args.iter().map(expr_to_value).collect())),
+            (
+                "args",
+                Value::Array(args.iter().map(expr_to_value).collect()),
+            ),
         ]),
         ExprKind::Field { expr, field } => object(vec![
             ("kind", Value::String("Field".to_string())),
@@ -419,10 +448,7 @@ fn match_arms_to_value(arms: &[MatchArm]) -> Value {
                     ("pattern", pattern_to_value(&arm.pattern)),
                     (
                         "guard",
-                        arm.guard
-                            .as_ref()
-                            .map(expr_to_value)
-                            .unwrap_or(Value::Null),
+                        arm.guard.as_ref().map(expr_to_value).unwrap_or(Value::Null),
                     ),
                     ("expr", expr_to_value(&arm.expr)),
                 ])
@@ -452,12 +478,18 @@ fn pattern_to_value(pattern: &Pattern) -> Value {
         ]),
         Pattern::Tuple(items) => object(vec![
             ("kind", Value::String("Tuple".to_string())),
-            ("items", Value::Array(items.iter().map(pattern_to_value).collect())),
+            (
+                "items",
+                Value::Array(items.iter().map(pattern_to_value).collect()),
+            ),
         ]),
         Pattern::Constructor { name, args } => object(vec![
             ("kind", Value::String("Constructor".to_string())),
             ("name", Value::String(name.clone())),
-            ("args", Value::Array(args.iter().map(pattern_to_value).collect())),
+            (
+                "args",
+                Value::Array(args.iter().map(pattern_to_value).collect()),
+            ),
         ]),
     }
 }

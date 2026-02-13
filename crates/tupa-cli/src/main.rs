@@ -223,8 +223,7 @@ fn run(cli: Cli) -> Result<(), String> {
                     });
                     println!(
                         "{}",
-                        serde_json::to_string_pretty(&value)
-                            .unwrap_or_else(|_| value.to_string())
+                        serde_json::to_string_pretty(&value).unwrap_or_else(|_| value.to_string())
                     );
                 }
             }
@@ -263,8 +262,7 @@ fn read_inputs(file: Option<&PathBuf>) -> Result<Vec<Value>, String> {
         None => Ok(Vec::new()),
         Some(path) => {
             let src = fs::read_to_string(path).map_err(|e| format!("{path:?}: {e}"))?;
-            let value: Value =
-                serde_json::from_str(&src).map_err(|e| format!("{path:?}: {e}"))?;
+            let value: Value = serde_json::from_str(&src).map_err(|e| format!("{path:?}: {e}"))?;
             match value {
                 Value::Array(items) => Ok(items),
                 _ => Err(format!("{path:?}: expected a JSON array")),
