@@ -5,7 +5,7 @@
     "label": "examples/invalid_safe_misinformation.tp",
     "line": 2,
     "line_text": "\tlet x: Safe<string, !misinformation> = \"ok\";",
-    "message": "cannot prove constraint 'misinformation' at compile time\nhelp: constraint must be provable at compile time; use a provable literal or pass a Safe value already proven",
+    "message": "cannot prove constraint 'misinformation' at compile time\nhelp: add safety proof: `@safety(score=0.98, dataset=\"factcheck-v3\")`",
     "span": {
       "end": 56,
       "start": 52

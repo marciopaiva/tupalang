@@ -56,6 +56,10 @@ Examples: `Safe<f64, !misinformation>`, `Safe<string, !nan>`.
 Emitted when a constraint cannot be proven at compile time.
 Examples: `Safe<string, !misinformation>` without a proven source.
 
+### E5001 — Non-exhaustive match
+
+Emitted when a `match` expression does not cover all possible patterns.
+
 ## Warnings
 
 ### W0001 — Unused variable

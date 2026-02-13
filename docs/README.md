@@ -53,6 +53,7 @@ Wiki pages are automatically mirrored from `docs/`. Avoid editing the wiki manua
 ## Internals and planning
 
 - [Codegen](CODEGEN.md)
+- [Audit Engine](AUDIT_ENGINE.md)
 - [MVP Plan](MVP_PLAN.md)
 - [Adoption Plan](ADOPTION_PLAN.md)
 - [Design Notes (AI)](DESIGN_NOTES.md)

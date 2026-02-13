@@ -6,6 +6,7 @@
 - [Quick Start Guide](GETTING_STARTED.md)
 - [FAQ](FAQ.md)
 - [Architecture](ARCHITECTURE.md)
+- [Audit Engine](AUDIT_ENGINE.md)
 - [SPEC](SPEC.md)
 - [Common Errors](COMMON_ERRORS.md)
 - [Diagnostics Checklist](DIAGNOSTICS_CHECKLIST.md)

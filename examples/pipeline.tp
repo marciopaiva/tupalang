@@ -1,0 +1,4 @@
+fn main() {
+  let score = 0.9;
+  print(score);
+}

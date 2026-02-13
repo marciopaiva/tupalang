@@ -41,6 +41,19 @@ error[E3002]: cannot prove constraint 'misinformation' at compile time
   --> examples/invalid_safe_misinformation.tp:2:41
 ```
 
+### Unproven constraint with suggestion
+
+```text
+error[E3002]: constraint !misinformation not proven
+  --> pipeline.tp:42:15
+   |
+42 | let summary = summarize(article)
+   |               ^^^^^^^^^^^^^^^^^^^
+   |
+   = help: add safety proof: `@safety(score=0.98, dataset="factcheck-v3")`
+   = note: required by return type `Safe<string, !misinformation>`
+```
+
 ### Unproven constraint (misinformation, JSON)
 
 ```json

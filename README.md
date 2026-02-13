@@ -54,7 +54,7 @@ Implemented:
 - JSON output in the CLI
 - Functional codegen (textual IR)
 
-In progress:
+In progress (0.6.0):
 
 - Pipeline language and orchestration
 - Audit and hashing engine

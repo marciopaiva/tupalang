@@ -36,6 +36,8 @@ run_and_save_stdout lex_hello.json lex --format json examples/hello.tp
 run_and_save_stdout parse_hello.txt parse examples/hello.tp
 run_and_save_stdout check_hello.txt check examples/hello.tp
 run_and_save_stdout check_hello.json check --format json examples/hello.tp
+run_and_save_stdout audit_hello.txt audit examples/audit_hello.tp --input examples/audit_inputs.json
+run_and_save_stdout audit_hello.json audit --format json examples/audit_hello.tp --input examples/audit_inputs.json
 
 # Codegen outputs (a representative subset)
 run_and_save_stdout codegen_hello.txt codegen examples/hello.tp

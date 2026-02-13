@@ -1,5 +1,5 @@
-error: unexpected character '@'
+error: unexpected character '`'
   --> examples/invalid_lex_char.tp:1:1
    |
- 1 | @
+ 1 | `
    | ^

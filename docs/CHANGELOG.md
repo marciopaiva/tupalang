@@ -5,7 +5,21 @@
 
 Record relevant changes per version.
 
-## 0.5.0 (Unreleased)
+## 0.6.0 (2026-02-13)
+
+- Enum constructor inference with generics and Safe constraints in variants.
+- Match patterns now support constructor destructuring with tuple patterns.
+- Match guard binding usage validated in typechecker.
+- Non-exhaustive match diagnostics now point to scrutinee spans.
+- Added tests for enum constructor constraints and match destructuring/guards.
+- Audit engine prototype with deterministic hash for AST and inputs.
+- CLI audit command with JSON output for hashes.
+- Audit CLI now uses SHA3-256 and `--input` flag.
+- Added support for `@safety` annotations in parsing.
+- Audit example `fraud_pipeline.tp` aligned with current `Safe` constraints.
+- Typechecker warning `private_interfaces` resolved for `Ty::Enum`.
+
+## 0.5.0 (2026-02-12)
 
 - Typechecker constraints completion and validation fixes.
 - Safe<string, ...> constraints: !hate_speech and !misinformation diagnostics.

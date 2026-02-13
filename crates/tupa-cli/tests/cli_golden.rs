@@ -152,6 +152,32 @@ fn golden_codegen_hello() {
 }
 
 #[test]
+fn golden_audit_hello() {
+    let stdout = run_cli(&[
+        "audit",
+        example_path("audit_hello.tp").to_str().unwrap(),
+        "--input",
+        example_path("audit_inputs.json").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("audit_hello.txt")).unwrap();
+    assert_eq!(stdout, expected);
+}
+
+#[test]
+fn golden_audit_hello_json() {
+    let stdout = run_cli(&[
+        "audit",
+        "--format",
+        "json",
+        example_path("audit_hello.tp").to_str().unwrap(),
+        "--input",
+        example_path("audit_inputs.json").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("audit_hello.json")).unwrap();
+    assert_eq!(stdout, expected);
+}
+
+#[test]
 fn golden_codegen_arith() {
     let stdout = run_cli(&["codegen", example_path("arith.tp").to_str().unwrap()]);
     let expected = fs::read_to_string(expected_path("codegen_arith.txt")).unwrap();

@@ -13,7 +13,7 @@ Define the release milestones from v0.4.x up to v1.0, aligned with the roadmap a
 
 ## Baseline (current)
 
-- v0.4.0 released with functional compiler pipeline (lexer, parser, typechecker, codegen, CLI).
+- v0.5.0 released with compiler reliability fixes (typechecker constraints, diagnostics, tests).
 - Diagnostics with spans and JSON output.
 - SPEC v0.1 and documentation consolidated.
 
@@ -31,6 +31,65 @@ Define the release milestones from v0.4.x up to v1.0, aligned with the roadmap a
 - Stable output for `fn main()` and core examples.
 - Initial benchmarks and regression tests.
 - Draft pipeline syntax (orchestration, validation, audit hooks).
+
+#### 0.6.0 — Strategic plan
+
+**Core theme**: State machines with formal guarantees.
+
+##### Technical priorities
+
+1. Enums with ethical constraints (parser/typechecker)
+   - EBNF syntax for enums with generics.
+   - Variant type inference.
+   - Constraint propagation through variants (`Safe<T>` inside `Enum<Safe<T>>`).
+   - Clear errors when constraints are violated inside `match`.
+   - Status: done
+2. Pattern matching with full destructuring
+   - Tuple destructuring inside patterns.
+   - Guards with access to bindings.
+   - Exhaustiveness checking.
+   - Precise span for uncovered pattern.
+   - Status: done
+3. Audit engine v0.1 (deterministic prototype)
+   - CLI `tupa audit` with JSON output (hash + AST fingerprint).
+   - Reproducibility: same input → same hash across machines.
+   - Documentation in `docs/AUDIT_ENGINE.md`.
+   - Status: in progress
+4. Diagnostics with actionable suggestions
+   - Specific error code for unproven constraints.
+   - Contextual suggestions with safety attributes.
+   - Links to constraint documentation.
+
+##### Acceptance criteria
+
+- Enum generics parse and typecheck with correct inference. (done)
+- Safe constraints preserved through enum variants and `match` arms. (done)
+- Non-exhaustive matches are rejected with actionable spans. (done)
+- `tupa audit` JSON output includes SHA3-256 hash and AST fingerprint.
+- Audit output is stable across two independent runs.
+- Diagnostics include a help hint when a safety proof is missing.
+- `examples/audit/fraud_pipeline.tp` compiles only with valid `@safety`.
+
+##### Weekly roadmap
+
+- Week 1: Enums + generics in parser/typechecker.
+- Week 1: Enums + generics in parser/typechecker, EBNF updated, parsing tests.
+- Week 2: Constraint propagation in enums, 15+ tests with `Safe<T>` in variants.
+- Week 3: Exhaustiveness + destructuring in match, negative tests.
+- Week 4: Audit engine prototype + CLI, `tupa audit` command, initial docs.
+- Week 5: Diagnostics refinement with suggestions, golden tests.
+- Week 6: RC + docs, CHANGELOG, real examples in `examples/audit/`.
+
+##### Out of scope
+
+- Full LLVM backend.
+- Python FFI.
+- `∇` operator.
+- Async/await.
+
+##### Success metric
+
+- A credit-decision pipeline with approve/review/reject states compiles with a formal safety proof in under 50 lines.
 
 ### 0.7.x — Tooling and orchestration foundation
 

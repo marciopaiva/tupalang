@@ -40,3 +40,43 @@ fn check_outputs_ok() {
         .success()
         .stdout(contains("OK"));
 }
+
+#[test]
+fn audit_is_deterministic() {
+    let root = repo_root();
+    let mut first = cargo_bin_cmd!("tupa-cli");
+    first.current_dir(root).args([
+        "audit",
+        "examples/audit_hello.tp",
+        "--input",
+        "examples/audit_inputs.json",
+    ]);
+    let first_out = first.output().unwrap();
+    assert!(first_out.status.success());
+
+    let mut second = cargo_bin_cmd!("tupa-cli");
+    second.current_dir(root).args([
+        "audit",
+        "examples/audit_hello.tp",
+        "--input",
+        "examples/audit_inputs.json",
+    ]);
+    let second_out = second.output().unwrap();
+    assert!(second_out.status.success());
+    assert_eq!(first_out.stdout, second_out.stdout);
+}
+
+#[test]
+fn audit_rejects_invalid_inputs() {
+    let mut cmd = cargo_bin_cmd!("tupa-cli");
+    cmd.current_dir(repo_root())
+        .args([
+            "audit",
+            "examples/audit_hello.tp",
+            "--input",
+            "examples/audit_inputs_invalid.json",
+        ])
+        .assert()
+        .failure()
+        .stderr(contains("expected a JSON array"));
+}

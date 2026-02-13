@@ -59,6 +59,7 @@ cat <<'EOF' > "${WORKDIR}/_Sidebar.md"
 - [[DIAGNOSTICS_CHECKLIST]]
 - [[DIAGNOSTICS_GLOSSARY]]
 - [[CODEGEN]]
+- [[AUDIT_ENGINE]]
 
 ## Plans
 - [[MVP_PLAN]]

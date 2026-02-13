@@ -446,6 +446,11 @@ impl Codegen {
                     self.collect_used_in_expr(elem, env);
                 }
             }
+            ExprKind::Tuple(items) => {
+                for item in items {
+                    self.collect_used_in_expr(item, env);
+                }
+            }
             ExprKind::Field { expr: base, .. } => {
                 self.collect_used_in_expr(base, env);
             }
@@ -1024,6 +1029,18 @@ impl Codegen {
                         arm_target, next_label
                     ));
                 }
+                (tupa_parser::Pattern::Bool(value_literal), SimpleTy::Bool) => {
+                    let cmp = self.fresh_temp();
+                    let literal = if *value_literal { "1" } else { "0" };
+                    self.lines.push(format!(
+                        "  {cmp} = icmp eq i1 {}, {}",
+                        value.llvm_value, literal
+                    ));
+                    self.lines.push(format!(
+                        "  br i1 {cmp}, label %{}, label %{}",
+                        arm_target, next_label
+                    ));
+                }
                 (tupa_parser::Pattern::Str(lit), SimpleTy::Str) => {
                     let (global, len) = self.intern_string(lit);
                     let ptr = self.fresh_temp();
@@ -1197,6 +1214,7 @@ impl Codegen {
                     SimpleTy::Unknown
                 }
             }
+            ExprKind::Tuple(_) => SimpleTy::Unknown,
             ExprKind::Ident(name) => env.get(name).map(|v| v.ty).unwrap_or(SimpleTy::Unknown),
             ExprKind::Assign { expr, .. } => self.infer_expr_ty(expr, env),
             ExprKind::AssignIndex { expr, .. } => match self.infer_expr_ty(expr, env) {
@@ -1487,6 +1505,18 @@ impl Codegen {
                     self.lines.push(format!(
                         "  {cmp} = icmp eq i64 {}, {}",
                         value.llvm_value, value_literal
+                    ));
+                    self.lines.push(format!(
+                        "  br i1 {cmp}, label %{}, label %{}",
+                        arm_target, next_label
+                    ));
+                }
+                (tupa_parser::Pattern::Bool(value_literal), SimpleTy::Bool) => {
+                    let cmp = self.fresh_temp();
+                    let literal = if *value_literal { "1" } else { "0" };
+                    self.lines.push(format!(
+                        "  {cmp} = icmp eq i1 {}, {}",
+                        value.llvm_value, literal
                     ));
                     self.lines.push(format!(
                         "  br i1 {cmp}, label %{}, label %{}",
@@ -1929,6 +1959,12 @@ impl Codegen {
                         ExprValue::new(SimpleTy::Unknown, "0".to_string())
                     }
                 }
+            }
+            ExprKind::Tuple(items) => {
+                for item in items {
+                    self.emit_expr(item, env);
+                }
+                ExprValue::new(SimpleTy::Unknown, "0".to_string())
             }
             ExprKind::Ident(name) => {
                 if let Some(var) = env.get_mut(name) {
@@ -2487,6 +2523,7 @@ impl Codegen {
             Type::Slice { elem } if matches!(**elem, Type::Ident(ref n) if n == "bool") => {
                 "i1*".to_string()
             }
+            Type::Tuple(_) => "void".to_string(),
             _ => "void".to_string(),
         }
     }
@@ -2521,6 +2558,7 @@ impl Codegen {
             Type::Slice { elem } if matches!(**elem, Type::Ident(ref n) if n == "bool") => {
                 SimpleTy::BoolPtr
             }
+            Type::Tuple(_) => SimpleTy::Unknown,
             _ => SimpleTy::Unknown,
         }
     }

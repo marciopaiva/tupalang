@@ -11,6 +11,8 @@ Reunir exemplos curados que refletem o estado atual do parser, typechecker e cod
 
 ## Arquivos
 
+### Gerais
+
 - `hello.tp`: sintaxe básica (`fn`, `let`, chamadas).
 - `functions.tp`: tipos de função e chamadas via variável.
 - `if_else.tp`: fluxo de controle com `if/else if/else`.
@@ -48,6 +50,11 @@ Reunir exemplos curados que refletem o estado atual do parser, typechecker e cod
 - `safe_hate_speech_propagation.tp`: propagação de constraint ética via parâmetro `Safe`.
 - `safe_misinformation_return.tp`: propagação de constraint ética via retorno `Safe`.
 - `safe_misinformation_hate_speech.tp`: propagação com múltiplas constraints éticas.
+
+### Audit
+
+- `audit/fraud_pipeline.tp`: exemplo-chave de validação com `Safe` e `@safety`.
+- `audit/credit_pipeline.tp`: pipeline de crédito com 3 estados e prova formal em <50 linhas.
 
 ### Casos negativos (devem falhar)
 

@@ -16,7 +16,14 @@ pub enum Item {
 #[derive(Debug, Clone, PartialEq)]
 pub struct EnumDef {
     pub name: String,
-    pub variants: Vec<String>,
+    pub generics: Vec<String>,
+    pub variants: Vec<EnumVariant>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct EnumVariant {
+    pub name: String,
+    pub args: Vec<Type>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -67,6 +74,11 @@ pub enum Stmt {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Type {
     Ident(String),
+    Generic {
+        name: String,
+        args: Vec<Type>,
+    },
+    Tuple(Vec<Type>),
     Safe {
         base: Box<Type>,
         constraints: Vec<String>,
@@ -102,6 +114,7 @@ pub enum ExprKind {
     Bool(bool),
     Null,
     Ident(String),
+    Tuple(Vec<Expr>),
     Assign {
         name: String,
         expr: Box<Expr>,
@@ -167,7 +180,10 @@ pub enum Pattern {
     Wildcard,
     Int(i64),
     Str(String),
+    Bool(bool),
     Ident(String),
+    Tuple(Vec<Pattern>),
+    Constructor { name: String, args: Vec<Pattern> },
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -315,6 +331,9 @@ impl Parser {
     }
 
     fn parse_item(&mut self) -> Result<Item, ParserError> {
+        while matches!(self.peek(), Some(Token::At)) {
+            self.parse_attribute()?;
+        }
         match self.peek() {
             Some(Token::Fn) => Ok(Item::Function(self.parse_function()?)),
             Some(Token::Enum) => Ok(Item::Enum(self.parse_enum()?)),
@@ -328,6 +347,33 @@ impl Parser {
             }
             None => Err(ParserError::Eof(self.eof_pos)),
         }
+    }
+
+    fn parse_attribute(&mut self) -> Result<(), ParserError> {
+        self.expect(Token::At)?;
+        match self.next() {
+            Some(TokenSpan {
+                token: Token::Ident(_),
+                ..
+            }) => {}
+            Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+            None => return Err(ParserError::Eof(self.eof_pos)),
+        }
+        if matches!(self.peek(), Some(Token::LParen)) {
+            self.expect(Token::LParen)?;
+            let mut depth = 1;
+            while depth > 0 {
+                match self.next() {
+                    Some(TokenSpan { token, .. }) => match token {
+                        Token::LParen => depth += 1,
+                        Token::RParen => depth -= 1,
+                        _ => {}
+                    },
+                    None => return Err(ParserError::Eof(self.eof_pos)),
+                }
+            }
+        }
+        Ok(())
     }
 
     fn parse_function(&mut self) -> Result<Function, ParserError> {
@@ -368,6 +414,32 @@ impl Parser {
             Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
             None => return Err(ParserError::Eof(self.eof_pos)),
         };
+        let mut generics = Vec::new();
+        if matches!(self.peek(), Some(Token::Less)) {
+            self.next();
+            loop {
+                let param = match self.next() {
+                    Some(TokenSpan {
+                        token: Token::Ident(name),
+                        ..
+                    }) => name,
+                    Some(TokenSpan { token, span }) => {
+                        return Err(ParserError::Unexpected(token, span))
+                    }
+                    None => return Err(ParserError::Eof(self.eof_pos)),
+                };
+                generics.push(param);
+                if matches!(self.peek(), Some(Token::Comma)) {
+                    self.next();
+                    if matches!(self.peek(), Some(Token::Greater)) {
+                        break;
+                    }
+                } else {
+                    break;
+                }
+            }
+            self.expect(Token::Greater)?;
+        }
         self.expect(Token::LBrace)?;
         let mut variants = Vec::new();
         while let Some(tok) = self.peek() {
@@ -378,7 +450,30 @@ impl Parser {
                 Some(TokenSpan {
                     token: Token::Ident(variant),
                     ..
-                }) => variants.push(variant),
+                }) => {
+                    let args = if matches!(self.peek(), Some(Token::LParen)) {
+                        self.next();
+                        let mut args = Vec::new();
+                        if !matches!(self.peek(), Some(Token::RParen)) {
+                            loop {
+                                args.push(self.parse_type()?);
+                                if matches!(self.peek(), Some(Token::Comma)) {
+                                    self.next();
+                                    if matches!(self.peek(), Some(Token::RParen)) {
+                                        break;
+                                    }
+                                } else {
+                                    break;
+                                }
+                            }
+                        }
+                        self.expect(Token::RParen)?;
+                        args
+                    } else {
+                        Vec::new()
+                    };
+                    variants.push(EnumVariant { name: variant, args });
+                }
                 Some(TokenSpan { token, span }) => {
                     return Err(ParserError::Unexpected(token, span))
                 }
@@ -389,7 +484,11 @@ impl Parser {
             }
         }
         self.expect(Token::RBrace)?;
-        Ok(EnumDef { name, variants })
+        Ok(EnumDef {
+            name,
+            generics,
+            variants,
+        })
     }
 
     fn parse_trait(&mut self) -> Result<TraitDef, ParserError> {
@@ -608,6 +707,19 @@ impl Parser {
                         base: Box::new(base),
                         constraints,
                     })
+                } else if matches!(self.peek(), Some(Token::Less)) {
+                    self.next();
+                    let mut args = Vec::new();
+                    args.push(self.parse_type()?);
+                    while matches!(self.peek(), Some(Token::Comma)) {
+                        self.next();
+                        if matches!(self.peek(), Some(Token::Greater)) {
+                            break;
+                        }
+                        args.push(self.parse_type()?);
+                    }
+                    self.expect(Token::Greater)?;
+                    Ok(Type::Generic { name, args })
                 } else {
                     Ok(Type::Ident(name))
                 }
@@ -664,6 +776,35 @@ impl Parser {
                     Ok(Type::Slice {
                         elem: Box::new(elem),
                     })
+                }
+            }
+            Some(TokenSpan {
+                token: Token::LParen,
+                ..
+            }) => {
+                if matches!(self.peek(), Some(Token::RParen)) {
+                    let end = self.expect_span(Token::RParen)?;
+                    return Err(ParserError::Unexpected(Token::RParen, end));
+                }
+                let first = self.parse_type()?;
+                if matches!(self.peek(), Some(Token::Comma)) {
+                    self.next();
+                    let mut items = vec![first];
+                    while !matches!(self.peek(), Some(Token::RParen)) {
+                        items.push(self.parse_type()?);
+                        if !matches!(self.peek(), Some(Token::Comma)) {
+                            break;
+                        }
+                        self.next();
+                        if matches!(self.peek(), Some(Token::RParen)) {
+                            break;
+                        }
+                    }
+                    self.expect(Token::RParen)?;
+                    Ok(Type::Tuple(items))
+                } else {
+                    self.expect(Token::RParen)?;
+                    Ok(first)
                 }
             }
             Some(TokenSpan { token, span }) => Err(ParserError::Unexpected(token, span)),
@@ -968,9 +1109,26 @@ impl Parser {
                 token: Token::LParen,
                 span,
             }) => {
-                let expr = self.parse_expr()?;
-                let end = self.expect_span(Token::RParen)?;
-                Ok(Expr::new(expr.kind, merge_span(span, end)))
+                let first = self.parse_expr()?;
+                if matches!(self.peek(), Some(Token::Comma)) {
+                    self.next();
+                    let mut items = vec![first];
+                    while !matches!(self.peek(), Some(Token::RParen)) {
+                        items.push(self.parse_expr()?);
+                        if !matches!(self.peek(), Some(Token::Comma)) {
+                            break;
+                        }
+                        self.next();
+                        if matches!(self.peek(), Some(Token::RParen)) {
+                            break;
+                        }
+                    }
+                    let end = self.expect_span(Token::RParen)?;
+                    Ok(Expr::new(ExprKind::Tuple(items), merge_span(span, end)))
+                } else {
+                    let end = self.expect_span(Token::RParen)?;
+                    Ok(Expr::new(first.kind, merge_span(span, end)))
+                }
             }
             Some(TokenSpan {
                 token: Token::LBracket,
@@ -1168,11 +1326,62 @@ impl Parser {
     fn parse_pattern(&mut self) -> Result<(Pattern, Span), ParserError> {
         match self.next() {
             Some(TokenSpan {
+                token: Token::LParen,
+                span,
+            }) => {
+                if matches!(self.peek(), Some(Token::RParen)) {
+                    let end = self.expect_span(Token::RParen)?;
+                    return Err(ParserError::Unexpected(Token::RParen, end));
+                }
+                let (first, _) = self.parse_pattern()?;
+                if matches!(self.peek(), Some(Token::Comma)) {
+                    self.next();
+                    let mut items = vec![first];
+                    while !matches!(self.peek(), Some(Token::RParen)) {
+                        let (item, _) = self.parse_pattern()?;
+                        items.push(item);
+                        if !matches!(self.peek(), Some(Token::Comma)) {
+                            break;
+                        }
+                        self.next();
+                        if matches!(self.peek(), Some(Token::RParen)) {
+                            break;
+                        }
+                    }
+                    let end = self.expect_span(Token::RParen)?;
+                    Ok((Pattern::Tuple(items), merge_span(span, end)))
+                } else {
+                    let end = self.expect_span(Token::RParen)?;
+                    Ok((first, merge_span(span, end)))
+                }
+            }
+            Some(TokenSpan {
                 token: Token::Ident(name),
                 span,
             }) => {
                 if name == "_" {
                     Ok((Pattern::Wildcard, span))
+                } else if matches!(self.peek(), Some(Token::LParen)) {
+                    self.next();
+                    let mut args = Vec::new();
+                    if !matches!(self.peek(), Some(Token::RParen)) {
+                        loop {
+                            let (arg, _) = self.parse_pattern()?;
+                            args.push(arg);
+                            if !matches!(self.peek(), Some(Token::Comma)) {
+                                break;
+                            }
+                            self.next();
+                            if matches!(self.peek(), Some(Token::RParen)) {
+                                break;
+                            }
+                        }
+                    }
+                    let end = self.expect_span(Token::RParen)?;
+                    Ok((
+                        Pattern::Constructor { name, args },
+                        merge_span(span, end),
+                    ))
                 } else {
                     Ok((Pattern::Ident(name), span))
                 }
@@ -1188,6 +1397,14 @@ impl Parser {
                 token: Token::Str(value),
                 span,
             }) => Ok((Pattern::Str(value), span)),
+            Some(TokenSpan {
+                token: Token::True,
+                span,
+            }) => Ok((Pattern::Bool(true), span)),
+            Some(TokenSpan {
+                token: Token::False,
+                span,
+            }) => Ok((Pattern::Bool(false), span)),
             Some(TokenSpan { token, span }) => Err(ParserError::Unexpected(token, span)),
             None => Err(ParserError::Eof(self.eof_pos)),
         }
@@ -1238,6 +1455,18 @@ mod tests {
             Item::Function(func) => func,
         };
         assert_eq!(func.body.len(), 1);
+    }
+
+    #[test]
+    fn parse_tuple_expr_and_pattern() {
+        let src = "fn main() { let pair = (1, 2); match pair { (1, x) => x, _ => 0 }; }";
+        let program = parse_program(src).unwrap();
+        let func = match &program.items[0] {
+            Item::Trait(_) => panic!("expected function"),
+            Item::Enum(_) => panic!("expected function"),
+            Item::Function(func) => func,
+        };
+        assert_eq!(func.body.len(), 2);
     }
 
     #[test]
@@ -1297,6 +1526,42 @@ mod tests {
                 ..
             }
         ));
+    }
+
+    #[test]
+    fn parse_enum_generics() {
+        let src = "enum Result<T, E> { Ok, Err }";
+        let program = parse_program(src).unwrap();
+        let Item::Enum(def) = &program.items[0] else {
+            panic!("expected enum");
+        };
+        assert_eq!(def.name, "Result");
+        assert_eq!(def.generics, vec!["T", "E"]);
+        assert_eq!(def.variants.len(), 2);
+        assert_eq!(def.variants[0].name, "Ok");
+        assert!(def.variants[0].args.is_empty());
+        assert_eq!(def.variants[1].name, "Err");
+        assert!(def.variants[1].args.is_empty());
+    }
+
+    #[test]
+    fn parse_enum_variant_types() {
+        let src = "enum Result<T> { Ok(Safe<T, !nan>), Err(string) }";
+        let program = parse_program(src).unwrap();
+        let Item::Enum(def) = &program.items[0] else {
+            panic!("expected enum");
+        };
+        assert_eq!(def.variants.len(), 2);
+        assert_eq!(def.variants[0].name, "Ok");
+        assert_eq!(
+            def.variants[0].args,
+            vec![Type::Safe {
+                base: Box::new(Type::Ident("T".into())),
+                constraints: vec!["nan".into()]
+            }]
+        );
+        assert_eq!(def.variants[1].name, "Err");
+        assert_eq!(def.variants[1].args, vec![Type::Ident("string".into())]);
     }
 
     #[test]

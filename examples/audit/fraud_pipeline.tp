@@ -1,0 +1,26 @@
+enum Reason {
+  HighRisk
+}
+
+enum TransactionState {
+  Pending(string),
+  Approved(Safe<string, !misinformation>),
+  Flagged(string, f64),
+  Blocked(string, Reason),
+}
+
+fn fraud_score(tx: string): f64 {
+  if tx == "blocked" {
+    return 0.9;
+  }
+  return 0.5;
+}
+
+@safety(method="ensemble", fpr=0.001)
+fn process_safe(tx: Safe<string, !misinformation>): TransactionState {
+  let risk = fraud_score(tx);
+  if risk < 0.7 {
+    return Approved(tx);
+  }
+  return Blocked(tx, HighRisk());
+}

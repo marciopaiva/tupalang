@@ -1,0 +1,24 @@
+enum Decision {
+  Approved(i64),
+  Review(i64),
+  Rejected(i64),
+}
+
+fn approve(tx: i64, _proof: Safe<string, !misinformation>): Decision {
+  return Approved(tx);
+}
+
+fn decide(tx: i64, risk: i64, _proof: Safe<string, !misinformation>): Decision {
+  if risk < 3 {
+    return approve(tx, _proof);
+  }
+  if risk < 7 {
+    return Review(tx);
+  }
+  return Rejected(tx);
+}
+
+fn main(proof: Safe<string, !misinformation>) {
+  let decision = decide(42, 2, proof);
+  print(decision);
+}

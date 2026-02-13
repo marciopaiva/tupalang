@@ -66,6 +66,7 @@ pub enum Token {
     Dot,
     Bang,
     Pipe,
+    At,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -192,7 +193,7 @@ mod tests {
 
     #[test]
     fn lex_operators() {
-        let tokens = lex("== != <= >= && || + += - -= * *= / /= ** .. . ! < >").unwrap();
+        let tokens = lex("== != <= >= && || + += - -= * *= / /= ** .. . ! < > @").unwrap();
         assert_eq!(
             tokens,
             vec![
@@ -216,6 +217,7 @@ mod tests {
                 Token::Bang,
                 Token::Less,
                 Token::Greater,
+                Token::At,
             ]
         );
     }
@@ -305,6 +307,7 @@ fn punct(input: &str) -> IResult<&str, Token> {
         ("/", Token::Slash),
         ("!", Token::Bang),
         ("|", Token::Pipe),
+        ("@", Token::At),
     ];
 
     for (pat, tok) in cases {

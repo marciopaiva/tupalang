@@ -4,6 +4,7 @@ use std::path::PathBuf;
 
 use clap::{Parser, Subcommand, ValueEnum};
 use serde_json::{json, Value};
+use tupa_audit::{compiler_version, hash_ast, hash_execution};
 use tupa_codegen::generate_stub_with_types;
 use tupa_lexer::{lex, lex_with_spans, LexerError, Span, Token, TokenSpan};
 use tupa_parser::{parse_program, ParserError};
@@ -64,6 +65,20 @@ enum Command {
         /// Read source from stdin
         #[arg(long)]
         stdin: bool,
+        /// Output format
+        #[arg(long, value_enum, default_value_t = OutputFormat::Pretty)]
+        format: OutputFormat,
+    },
+    /// Generate deterministic audit hash
+    Audit {
+        /// Path to the source file
+        file: Option<PathBuf>,
+        /// Read source from stdin
+        #[arg(long)]
+        stdin: bool,
+        /// JSON array file with inputs
+        #[arg(long)]
+        input: Option<PathBuf>,
         /// Output format
         #[arg(long, value_enum, default_value_t = OutputFormat::Pretty)]
         format: OutputFormat,
@@ -185,6 +200,36 @@ fn run(cli: Cli) -> Result<(), String> {
             }
             Ok(())
         }
+        Command::Audit {
+            file,
+            stdin,
+            input,
+            format,
+        } => {
+            let (src, label) = read_source(file.as_ref(), stdin)?;
+            let program = parse_program(&src).map_err(|e| format_parse_error(&label, &src, e))?;
+            let inputs = read_inputs(input.as_ref())?;
+            let hash = hash_execution(&program, &inputs);
+            let ast_fingerprint = hash_ast(&program);
+            match format {
+                OutputFormat::Pretty => {
+                    println!("{hash}");
+                }
+                OutputFormat::Json => {
+                    let value = json!({
+                        "hash": hash.to_string(),
+                        "ast_fingerprint": ast_fingerprint.to_string(),
+                        "compiler_version": compiler_version(),
+                    });
+                    println!(
+                        "{}",
+                        serde_json::to_string_pretty(&value)
+                            .unwrap_or_else(|_| value.to_string())
+                    );
+                }
+            }
+            Ok(())
+        }
         Command::Version => {
             println!(env!("CARGO_PKG_VERSION"));
             Ok(())
@@ -210,6 +255,21 @@ fn read_source(file: Option<&PathBuf>, stdin: bool) -> Result<(String, String), 
             .map(|src| (src, path.display().to_string()))
             .map_err(|e| format!("{path:?}: {e}")),
         None => Err("missing file path or --stdin".to_string()),
+    }
+}
+
+fn read_inputs(file: Option<&PathBuf>) -> Result<Vec<Value>, String> {
+    match file {
+        None => Ok(Vec::new()),
+        Some(path) => {
+            let src = fs::read_to_string(path).map_err(|e| format!("{path:?}: {e}"))?;
+            let value: Value =
+                serde_json::from_str(&src).map_err(|e| format!("{path:?}: {e}"))?;
+            match value {
+                Value::Array(items) => Ok(items),
+                _ => Err(format!("{path:?}: expected a JSON array")),
+            }
+        }
     }
 }
 
@@ -301,6 +361,8 @@ fn type_error_code(err: &TypeError) -> &'static str {
         TypeError::UnknownType { .. } => "E1001",
         TypeError::UnknownVar { .. } => "E1002",
         TypeError::UnknownFunction { .. } => "E1003",
+        TypeError::InvalidTypeArity { .. } => "E1004",
+        TypeError::UnknownVariant { .. } => "E1005",
         TypeError::Mismatch { .. } => "E2001",
         TypeError::ArityMismatch { .. } => "E2002",
         TypeError::InvalidBinary { .. } => "E2003",
@@ -312,6 +374,7 @@ fn type_error_code(err: &TypeError) -> &'static str {
         TypeError::UnprovenConstraint { .. } => "E3002",
         TypeError::BreakOutsideLoop { .. } => "E4001",
         TypeError::ContinueOutsideLoop { .. } => "E4002",
+        TypeError::NonExhaustiveMatch { .. } => "E5001",
     }
 }
 
@@ -336,16 +399,25 @@ fn format_type_error_json(label: &str, src: &str, err: &TypeError) -> String {
     diagnostic_json(label, src, &message, type_error_span(err), Some(code))
 }
 
-fn type_error_help(err: &TypeError) -> Option<&'static str> {
+fn type_error_help(err: &TypeError) -> Option<String> {
     match err {
         TypeError::InvalidConstraint { .. } => {
-            Some(
-                "help: supported constraints are !nan and !inf on f64 values, and !hate_speech and !misinformation on string values",
-            )
+            Some("help: supported constraints are !nan and !inf on f64 values, and !hate_speech and !misinformation on string values".to_string())
         }
-        TypeError::UnprovenConstraint { .. } => Some(
-            "help: constraint must be provable at compile time; use a provable literal or pass a Safe value already proven",
-        ),
+        TypeError::InvalidTypeArity { .. } => {
+            Some("help: check the number of generic arguments in the type".to_string())
+        }
+        TypeError::UnprovenConstraint { constraint, .. } => match constraint.as_str() {
+            "misinformation" | "hate_speech" => Some(
+                "help: add safety proof: `@safety(score=0.98, dataset=\"factcheck-v3\")`"
+                    .to_string(),
+            ),
+            _ => Some("help: constraint must be provable at compile time; use a provable literal or pass a Safe value already proven".to_string()),
+        },
+        TypeError::NonExhaustiveMatch { .. } => {
+            Some("help: add missing patterns or a wildcard arm to cover all cases".to_string())
+        }
+        TypeError::UnknownVariant { .. } => Some("help: check the enum variant name".to_string()),
         _ => None,
     }
 }
@@ -487,6 +559,7 @@ fn token_kind(token: &Token) -> String {
         Token::Dot => "Dot",
         Token::Bang => "Bang",
         Token::Pipe => "Pipe",
+        Token::At => "At",
     }
     .to_string()
 }
@@ -520,6 +593,7 @@ fn type_error_span(err: &TypeError) -> Option<Span> {
     match err {
         TypeError::UnknownVar { span, .. }
         | TypeError::UnknownFunction { span, .. }
+        | TypeError::UnknownVariant { span, .. }
         | TypeError::Mismatch { span, .. }
         | TypeError::ArityMismatch { span, .. }
         | TypeError::InvalidBinary { span, .. }
@@ -530,8 +604,9 @@ fn type_error_span(err: &TypeError) -> Option<Span> {
         | TypeError::UnprovenConstraint { span, .. }
         | TypeError::BreakOutsideLoop { span, .. }
         | TypeError::ContinueOutsideLoop { span, .. }
-        | TypeError::MissingReturn { span, .. } => *span,
-        TypeError::UnknownType { .. } => None,
+        | TypeError::MissingReturn { span, .. }
+        | TypeError::NonExhaustiveMatch { span, .. } => *span,
+        TypeError::UnknownType { .. } | TypeError::InvalidTypeArity { .. } => None,
     }
 }
 
