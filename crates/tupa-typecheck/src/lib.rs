@@ -619,19 +619,30 @@ fn find_param_index(name: &str, env: &TypeEnv) -> Option<usize> {
     env.param_indices.get(name).copied()
 }
 
+struct ConstraintContext<'a> {
+    env: &'a TypeEnv,
+    functions: &'a HashMap<String, FuncSig>,
+    enums: &'a HashMap<String, EnumInfo>,
+    traits: &'a HashMap<String, Vec<Function>>,
+    expected_return: &'a ExpectedReturn,
+}
+
 #[allow(clippy::result_large_err)]
 fn validate_safe_constraints(
     constraints: &[String],
     base: &Ty,
     expr: &Expr,
-    env: &TypeEnv,
-    functions: &HashMap<String, FuncSig>,
-    enums: &HashMap<String, EnumInfo>,
-    traits: &HashMap<String, Vec<Function>>,
-    expected_return: &ExpectedReturn,
+    ctx: &ConstraintContext,
 ) -> Result<(), TypeError> {
     let literal = eval_f64_const(expr);
-    let proven = expr_constraints(expr, env, functions, enums, traits, expected_return);
+    let proven = expr_constraints(
+        expr,
+        ctx.env,
+        ctx.functions,
+        ctx.enums,
+        ctx.traits,
+        ctx.expected_return,
+    );
     for constraint in constraints {
         match constraint.as_str() {
             "nan" | "inf" => {
@@ -936,11 +947,13 @@ fn typecheck_function(
                     constraints,
                     &expected_return.ty,
                     expr,
-                    &env,
-                    functions,
-                    enums,
-                    traits,
-                    &expected_return,
+                    &ConstraintContext {
+                        env: &env,
+                        functions,
+                        enums,
+                        traits,
+                        expected_return: &expected_return,
+                    },
                 )?;
             }
         } else {
@@ -983,11 +996,13 @@ fn typecheck_stmt(
                         constraints,
                         &declared,
                         expr,
-                        env,
-                        functions,
-                        enums,
-                        traits,
-                        expected_return,
+                        &ConstraintContext {
+                            env,
+                            functions,
+                            enums,
+                            traits,
+                            expected_return,
+                        },
                     )?;
                 }
                 let inferred_constraints = constraints
@@ -1021,11 +1036,13 @@ fn typecheck_stmt(
                     constraints,
                     &expected_return.ty,
                     expr,
-                    env,
-                    functions,
-                    enums,
-                    traits,
-                    expected_return,
+                    &ConstraintContext {
+                        env,
+                        functions,
+                        enums,
+                        traits,
+                        expected_return,
+                    },
                 )?;
             }
             Ok(())
@@ -1692,11 +1709,13 @@ fn type_of_enum_constructor_call(
                 constraints,
                 &expected.ty,
                 arg,
-                env,
-                functions,
-                enums,
-                traits,
-                expected_return,
+                &ConstraintContext {
+                    env,
+                    functions,
+                    enums,
+                    traits,
+                    expected_return,
+                },
             )?;
         }
     }
