@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use tupa_parser::{Expr, ExprKind, Function, Item, Program, Stmt, Type};
+pub mod execution_plan;
 #[allow(unused_imports)]
 use tupa_typecheck::{typecheck_program_with_warnings, Ty};
 
@@ -201,6 +202,7 @@ impl Codegen {
                 Item::Function(func) => func,
                 Item::Enum(_) => continue,  // enums don't have functions
                 Item::Trait(_) => continue, // traits don't have functions
+                Item::Pipeline(_) => continue, // pipelines don't have functions
             };
             let params = func
                 .params
@@ -219,6 +221,7 @@ impl Codegen {
                 Item::Function(func) => self.emit_function(func),
                 Item::Enum(_) => {}  // enums don't emit code yet
                 Item::Trait(_) => {} // traits don't emit code yet
+                Item::Pipeline(_) => {} // pipelines don't emit code
             }
         }
     }

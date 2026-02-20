@@ -92,6 +92,7 @@ digit      = "0".."9" ;
 ### 2.4 Keywords
 ```
 fn let if else match while for in return async spawn await
+pipeline step
 true false null i64 f64 f32 f16 bool string tensor option result
 safe unsafe extern import export
 ```
@@ -725,7 +726,8 @@ statement       = declaration
 
 declaration     = "let" [ "mut" ] identifier [ ":" type ] "=" expression ";"
 				| function_decl
-				| enum_decl ;
+				| enum_decl
+                | pipeline_decl ;
 
 function_decl   = [ attribute_list ] "fn" identifier 
 				  "(" [ parameter_list ] ")" 
@@ -755,6 +757,15 @@ range_expr      = expression ".." expression ;
 program         = { import_decl | export_decl | declaration } ;
 import_decl     = "import" string_literal [ "as" identifier ] ";" ;
 export_decl     = "export" ( function_decl | "let" identifier ) ;
+ 
+(* ===== PIPELINES ===== *)
+pipeline_decl   = "pipeline" identifier [ "@" attribute_list ] "{" pipeline_body "}" ;
+pipeline_body   = "input" ":" type "," 
+                [ "constraints" ":" "[" identifier { "," identifier } "]" "," ]
+                "steps" ":" "[" step_list "]" [ "," ]
+                [ "validation" ":" block ] ;
+step_list       = step_decl { "," step_decl } ;
+step_decl       = "step" "(" string_literal ")" "{" expression "}" ;
 ```
 
 ---

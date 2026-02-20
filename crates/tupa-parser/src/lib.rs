@@ -11,6 +11,7 @@ pub enum Item {
     Function(Function),
     Enum(EnumDef),
     Trait(TraitDef),
+    Pipeline(PipelineDecl),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -30,6 +31,42 @@ pub struct EnumVariant {
 pub struct TraitDef {
     pub name: String,
     pub methods: Vec<Function>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct PipelineDecl {
+    pub name: String,
+    pub attrs: Vec<String>,
+    pub seed: Option<u64>,
+    pub input_ty: Type,
+    pub constraints: Vec<Constraint>,
+    pub steps: Vec<PipelineStep>,
+    pub validation: Option<Block>,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Comparator {
+    Lt,
+    Le,
+    Eq,
+    Ge,
+    Gt,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Constraint {
+    pub metric: String,
+    pub comparator: Comparator,
+    pub threshold: f64,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct PipelineStep {
+    pub name: String,
+    pub body: Expr,
+    pub span: Span,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -338,6 +375,7 @@ impl Parser {
             Some(Token::Fn) => Ok(Item::Function(self.parse_function()?)),
             Some(Token::Enum) => Ok(Item::Enum(self.parse_enum()?)),
             Some(Token::Trait) => Ok(Item::Trait(self.parse_trait()?)),
+            Some(Token::Pipeline) => Ok(Item::Pipeline(self.parse_pipeline()?)),
             Some(token) => {
                 let span = self.tokens.get(self.pos).map(|t| t.span).unwrap_or(Span {
                     start: self.eof_pos,
@@ -522,6 +560,245 @@ impl Parser {
         }
         self.expect(Token::RBrace)?;
         Ok(TraitDef { name, methods })
+    }
+
+    fn parse_pipeline(&mut self) -> Result<PipelineDecl, ParserError> {
+        self.expect(Token::Pipeline)?;
+        let name = match self.next() {
+            Some(TokenSpan {
+                token: Token::Ident(name),
+                ..
+            }) => name,
+            Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+            None => return Err(ParserError::Eof(self.eof_pos)),
+        };
+        // Collect optional attributes (store identifier names only)
+        let mut attrs = Vec::new();
+    let mut seed: Option<u64> = None;
+        while matches!(self.peek(), Some(Token::At)) {
+            self.expect(Token::At)?;
+            match self.next() {
+                Some(TokenSpan {
+                    token: Token::Ident(attr),
+                    ..
+                }) => attrs.push(attr),
+                Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                None => return Err(ParserError::Eof(self.eof_pos)),
+            }
+            if matches!(self.peek(), Some(Token::LParen)) {
+            // Parse attribute args minimally for deterministic(seed=...)
+                self.expect(Token::LParen)?;
+                let mut depth = 1;
+            // deterministic(seed=NUMBER)
+            if let (Some(Token::Ident(_attr_name)), Some(Token::Ident(_))) =
+                (self.tokens.get(self.pos - 1).map(|t| &t.token), self.peek())
+            {
+                if let Some(Token::Ident(name)) = self.peek() {
+                    if name == "seed" {
+                        // consume 'seed'
+                        self.next();
+                        self.expect(Token::Equal)?;
+                        match self.next() {
+                            Some(TokenSpan { token: Token::Int(s), .. }) => {
+                                if let Ok(n) = s.parse::<u64>() {
+                                    seed = Some(n);
+                                }
+                            }
+                            Some(TokenSpan { token: Token::Float(s), .. }) => {
+                                if let Ok(f) = s.parse::<f64>() {
+                                    if f >= 0.0 {
+                                        seed = Some(f as u64);
+                                    }
+                                }
+                            }
+                            Some(TokenSpan { token, span }) => {
+                                return Err(ParserError::Unexpected(token, span))
+                            }
+                            None => return Err(ParserError::Eof(self.eof_pos)),
+                        }
+                    }
+                }
+            }
+                while depth > 0 {
+                    match self.next() {
+                        Some(TokenSpan { token, .. }) => match token {
+                            Token::LParen => depth += 1,
+                            Token::RParen => depth -= 1,
+                            _ => {}
+                        },
+                        None => return Err(ParserError::Eof(self.eof_pos)),
+                    }
+                }
+            }
+        }
+        let start = self.expect_span(Token::LBrace)?;
+        // Parse body fields
+        // input: <type>
+        let input_ty = {
+            // accept either keyword or ident "input"
+            match self.next() {
+                Some(TokenSpan {
+                    token: Token::Ident(s),
+                    ..
+                }) if s == "input" => {}
+                Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                None => return Err(ParserError::Eof(self.eof_pos)),
+            }
+            self.expect(Token::Colon)?;
+            self.parse_type()?
+        };
+        // optional comma
+        if matches!(self.peek(), Some(Token::Comma)) {
+            self.next();
+        }
+        // optional constraints: [ { metric: "...", lt: 0.01 }, ... ]
+        let mut constraints = Vec::new();
+        if let Some(tupa_lexer::Token::Ident(ref s)) = self.peek() {
+            if s == "constraints" {
+                self.next();
+                self.expect(Token::Colon)?;
+                self.expect(Token::LBracket)?;
+                if !matches!(self.peek(), Some(Token::RBracket)) {
+                    loop {
+                        let start = if let Some(ts) = self.peek() {
+                            match ts {
+                                Token::LBrace => self.expect_span(Token::LBrace)?,
+                                _ => {
+                                    let span = self.tokens.get(self.pos).map(|t| t.span).unwrap_or(Span { start: self.eof_pos, end: self.eof_pos });
+                                    return Err(ParserError::Unexpected(ts.clone(), span));
+                                }
+                            }
+                        } else {
+                            return Err(ParserError::Eof(self.eof_pos));
+                        };
+                        // metric: "..."
+                        match self.next() {
+                            Some(TokenSpan { token: Token::Ident(name), .. }) if name == "metric" => {}
+                            Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                            None => return Err(ParserError::Eof(self.eof_pos)),
+                        }
+                        self.expect(Token::Colon)?;
+                        let metric = match self.next() {
+                            Some(TokenSpan { token: Token::Str(value), .. }) => value,
+                            Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                            None => return Err(ParserError::Eof(self.eof_pos)),
+                        };
+                        // comma
+                        if matches!(self.peek(), Some(Token::Comma)) {
+                            self.next();
+                        }
+                        // comparator key and threshold literal
+                        let (comparator, threshold) = match self.next() {
+                            Some(TokenSpan { token: Token::Ident(key), .. }) => {
+                                self.expect(Token::Colon)?;
+                                let value = match self.next() {
+                                    Some(TokenSpan { token: Token::Float(v), .. }) => v.parse::<f64>().unwrap_or(0.0),
+                                    Some(TokenSpan { token: Token::Int(v), .. }) => v.parse::<f64>().unwrap_or(0.0),
+                                    Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                                    None => return Err(ParserError::Eof(self.eof_pos)),
+                                };
+                                let cmp = match key.as_str() {
+                                    "lt" => Comparator::Lt,
+                                    "le" => Comparator::Le,
+                                    "eq" => Comparator::Eq,
+                                    "ge" => Comparator::Ge,
+                                    "gt" => Comparator::Gt,
+                                    _ => return Err(ParserError::Unexpected(Token::Ident(key), Span { start: self.eof_pos, end: self.eof_pos })),
+                                };
+                                (cmp, value)
+                            }
+                            Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                            None => return Err(ParserError::Eof(self.eof_pos)),
+                        };
+                        self.expect(Token::RBrace)?;
+                        let end = Span { start: start.start, end: start.end.max(start.end + 1) };
+                        constraints.push(Constraint { metric, comparator, threshold, span: end });
+                        if matches!(self.peek(), Some(Token::Comma)) {
+                            self.next();
+                            if matches!(self.peek(), Some(Token::RBracket)) {
+                                break;
+                            }
+                        } else {
+                            break;
+                        }
+                    }
+                }
+                self.expect(Token::RBracket)?;
+                if matches!(self.peek(), Some(Token::Comma)) {
+                    self.next();
+                }
+            }
+        }
+        // steps: [ step_list ]
+        {
+            match self.next() {
+                Some(TokenSpan {
+                    token: Token::Ident(s),
+                    ..
+                }) if s == "steps" => {}
+                Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                None => return Err(ParserError::Eof(self.eof_pos)),
+            }
+        }
+        self.expect(Token::Colon)?;
+        self.expect(Token::LBracket)?;
+        let mut steps = Vec::new();
+        while let Some(tok) = self.peek() {
+            if *tok == Token::RBracket {
+                break;
+            }
+            // step("name") { expr }
+            self.expect(Token::Step)?;
+            self.expect(Token::LParen)?;
+            let (step_name, name_span) = match self.next() {
+                Some(TokenSpan {
+                    token: Token::Str(value),
+                    span,
+                }) => (value, span),
+                Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                None => return Err(ParserError::Eof(self.eof_pos)),
+            };
+            self.expect(Token::RParen)?;
+            let _body_span_start = self.expect_span(Token::LBrace)?;
+            let body = self.parse_expr()?;
+            let body_span_end = self.expect_span(Token::RBrace)?;
+            let step_span = merge_span(name_span, body_span_end);
+            steps.push(PipelineStep {
+                name: step_name,
+                body,
+                span: step_span,
+            });
+            if let Some(Token::Comma) = self.peek() {
+                self.next();
+            }
+        }
+        let _steps_end = self.expect_span(Token::RBracket)?;
+        // optional comma then optional validation: block
+        if matches!(self.peek(), Some(Token::Comma)) {
+            self.next();
+        }
+        let mut validation: Option<Block> = None;
+        if let Some(tupa_lexer::Token::Ident(ref s)) = self.peek() {
+            if s == "validation" {
+                self.next();
+                self.expect(Token::Colon)?;
+                validation = Some(self.parse_block()?);
+                if matches!(self.peek(), Some(Token::Comma)) {
+                    self.next();
+                }
+            }
+        }
+        let end = self.expect_span(Token::RBrace)?;
+        Ok(PipelineDecl {
+            name,
+            attrs,
+        seed,
+            input_ty,
+            constraints,
+            steps,
+            validation,
+            span: merge_span(start, end),
+        })
     }
 
     fn parse_block(&mut self) -> Result<Block, ParserError> {
@@ -1428,6 +1705,7 @@ mod tests {
         let func = match &program.items[0] {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
+            Item::Pipeline(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         assert_eq!(func.body.len(), 2);
@@ -1440,6 +1718,7 @@ mod tests {
         let func = match &program.items[0] {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
+            Item::Pipeline(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         assert_eq!(func.body.len(), 1);
@@ -1452,6 +1731,7 @@ mod tests {
         let func = match &program.items[0] {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
+            Item::Pipeline(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         assert_eq!(func.body.len(), 1);
@@ -1464,6 +1744,7 @@ mod tests {
         let func = match &program.items[0] {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
+            Item::Pipeline(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         assert_eq!(func.body.len(), 2);
@@ -1476,6 +1757,7 @@ mod tests {
         let func = match &program.items[0] {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
+            Item::Pipeline(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         let Stmt::Let { expr, .. } = &func.body[0] else {
@@ -1504,6 +1786,7 @@ mod tests {
         let func = match &program.items[0] {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
+            Item::Pipeline(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         let Stmt::Let { expr, .. } = &func.body[0] else {
@@ -1571,6 +1854,7 @@ mod tests {
         let func = match &program.items[0] {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
+            Item::Pipeline(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         let Stmt::Let { expr, .. } = &func.body[0] else {
@@ -1586,6 +1870,7 @@ mod tests {
         let func = match &program.items[0] {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
+            Item::Pipeline(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         assert_eq!(func.params.len(), 2);
@@ -1603,6 +1888,7 @@ mod tests {
         let func = match &program.items[0] {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
+            Item::Pipeline(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         let Stmt::Let { ty, .. } = &func.body[0] else {
@@ -1622,6 +1908,7 @@ mod tests {
         let func = match &program.items[0] {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
+            Item::Pipeline(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         let Stmt::Let { ty, .. } = &func.body[0] else {
@@ -1643,6 +1930,7 @@ mod tests {
         let func = match &program.items[0] {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
+            Item::Pipeline(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         let Stmt::Let { ty, .. } = &func.body[0] else {
@@ -1664,6 +1952,7 @@ mod tests {
         let func = match &program.items[0] {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
+            Item::Pipeline(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         assert!(matches!(func.body[0], Stmt::While { .. }));
@@ -1677,6 +1966,7 @@ mod tests {
         let func = match &program.items[0] {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
+            Item::Pipeline(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         let Stmt::Let { expr, .. } = &func.body[0] else {
@@ -1692,6 +1982,7 @@ mod tests {
         let func = match &program.items[0] {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
+            Item::Pipeline(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         let Stmt::Let { expr, .. } = &func.body[0] else {
@@ -1713,6 +2004,7 @@ mod tests {
         let func = match &program.items[0] {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
+            Item::Pipeline(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         assert_eq!(func.body.len(), 1);
@@ -1725,6 +2017,7 @@ mod tests {
         let func = match &program.items[0] {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
+            Item::Pipeline(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         assert_eq!(func.body.len(), 2);
@@ -1744,6 +2037,7 @@ mod tests {
         let func = match &program.items[0] {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
+            Item::Pipeline(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         let Stmt::Let { expr, .. } = &func.body[0] else {

@@ -26,6 +26,10 @@ impl EffectSet {
         }
     }
 
+    pub fn contains(&self, effect: &Effect) -> bool {
+        self.effects.contains(effect)
+    }
+
     pub fn union(&self, other: &Self) -> Self {
         let mut out = self.clone();
         out.effects.extend(other.effects.iter().cloned());

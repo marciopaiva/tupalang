@@ -21,6 +21,7 @@ struct Cli {
 enum OutputFormat {
     Pretty,
     Json,
+    Llvm,
 }
 
 #[derive(Subcommand)]
@@ -65,6 +66,9 @@ enum Command {
         /// Read source from stdin
         #[arg(long)]
         stdin: bool,
+        /// Generate only plan JSONs for pipelines
+        #[arg(long)]
+        plan_only: bool,
         /// Output format
         #[arg(long, value_enum, default_value_t = OutputFormat::Pretty)]
         format: OutputFormat,
@@ -81,6 +85,29 @@ enum Command {
         input: Option<PathBuf>,
         /// Output format
         #[arg(long, value_enum, default_value_t = OutputFormat::Pretty)]
+        format: OutputFormat,
+    },
+    /// Run a pipeline using an ExecutionPlan and JSON input
+    Run {
+        /// Path to the source file
+        file: Option<PathBuf>,
+        /// Read source from stdin
+        #[arg(long)]
+        stdin: bool,
+        /// Use pre-generated plan JSON file
+        #[arg(long)]
+        plan: Option<PathBuf>,
+        /// Target pipeline name
+        #[arg(long)]
+        pipeline: String,
+        /// Input JSON file
+        #[arg(long)]
+        input: PathBuf,
+        /// Output JSON file (optional)
+        #[arg(long)]
+        output: Option<PathBuf>,
+        /// Output format
+        #[arg(long, value_enum, default_value_t = OutputFormat::Json)]
         format: OutputFormat,
     },
     /// Analyze effects in a .tp file
@@ -128,6 +155,12 @@ fn run(cli: Cli) -> Result<(), String> {
                         lex_with_spans(&src).map_err(|e| format_lex_error_json(&label, &src, e))?;
                     println!("{}", format_tokens_json(&tokens));
                 }
+                OutputFormat::Llvm => {
+                    let tokens = lex(&src).map_err(|e| format_lex_error(&label, &src, e))?;
+                    for tok in tokens {
+                        println!("{tok:?}");
+                    }
+                }
             }
             Ok(())
         }
@@ -144,10 +177,14 @@ fn run(cli: Cli) -> Result<(), String> {
                 OutputFormat::Json => {
                     parse_program(&src).map_err(|e| format_parse_error_json(&label, &src, e))?
                 }
+                OutputFormat::Llvm => {
+                    parse_program(&src).map_err(|e| format_parse_error(&label, &src, e))?
+                }
             };
             match format {
                 OutputFormat::Pretty => println!("{program:#?}"),
                 OutputFormat::Json => println!("{}", format_ast_json(&program)),
+                OutputFormat::Llvm => println!("{program:#?}"),
             }
             Ok(())
         }
@@ -164,12 +201,17 @@ fn run(cli: Cli) -> Result<(), String> {
                 OutputFormat::Json => {
                     parse_program(&src).map_err(|e| format_parse_error_json(&label, &src, e))?
                 }
+                OutputFormat::Llvm => {
+                    parse_program(&src).map_err(|e| format_parse_error(&label, &src, e))?
+                }
             };
             let warnings = match format {
                 OutputFormat::Pretty => typecheck_program_with_warnings(&program)
                     .map_err(|e| format_type_error(&label, &src, &e))?,
                 OutputFormat::Json => typecheck_program_with_warnings(&program)
                     .map_err(|e| format_type_error_json(&label, &src, &e))?,
+                OutputFormat::Llvm => typecheck_program_with_warnings(&program)
+                    .map_err(|e| format_type_error(&label, &src, &e))?,
             };
             match format {
                 OutputFormat::Pretty => {
@@ -181,12 +223,19 @@ fn run(cli: Cli) -> Result<(), String> {
                 OutputFormat::Json => {
                     println!("{}", format_check_json(&warnings));
                 }
+                OutputFormat::Llvm => {
+                    for warning in warnings {
+                        eprintln!("{}", format_type_warning(&warning));
+                    }
+                    println!("OK");
+                }
             }
             Ok(())
         }
         Command::Codegen {
             file,
             stdin,
+            plan_only,
             format,
         } => {
             let (src, label) = read_source(file.as_ref(), stdin)?;
@@ -194,20 +243,45 @@ fn run(cli: Cli) -> Result<(), String> {
                 OutputFormat::Pretty => {
                     parse_program(&src).map_err(|e| format_parse_error(&label, &src, e))?
                 }
-                OutputFormat::Json => {
+                OutputFormat::Json | OutputFormat::Llvm => {
                     parse_program(&src).map_err(|e| format_parse_error_json(&label, &src, e))?
                 }
             };
             let _warnings = match format {
                 OutputFormat::Pretty => typecheck_program_with_warnings(&program)
                     .map_err(|e| format_type_error(&label, &src, &e))?,
-                OutputFormat::Json => typecheck_program_with_warnings(&program)
+                OutputFormat::Json | OutputFormat::Llvm => typecheck_program_with_warnings(&program)
                     .map_err(|e| format_type_error_json(&label, &src, &e))?,
             };
-            let output = generate_stub_with_types(&program);
-            match format {
-                OutputFormat::Pretty => println!("{output}"),
-                OutputFormat::Json => println!("{}", format_codegen_json(&output)),
+            // Generate IR (LLVM-like) and/or ExecutionPlans
+            let base = std::path::Path::new(&label)
+                .file_stem()
+                .and_then(|s| s.to_str())
+                .unwrap_or("out")
+                .to_string();
+            if !plan_only && matches!(format, OutputFormat::Llvm | OutputFormat::Pretty | OutputFormat::Json) {
+                let output = generate_stub_with_types(&program);
+                if matches!(format, OutputFormat::Llvm) {
+                    let ll_path = format!("{base}.ll");
+                    std::fs::write(&ll_path, output).map_err(|e| format!("write {ll_path}: {e}"))?;
+                } else {
+                    match format {
+                        OutputFormat::Pretty => println!("{output}"),
+                        OutputFormat::Json => println!("{}", format_codegen_json(&output)),
+                        _ => {}
+                    }
+                }
+            }
+            // Always generate plan JSONs for pipelines present
+            // Use module base name to build function_ref prefix and file name
+            for item in &program.items {
+                if let tupa_parser::Item::Pipeline(p) = item {
+                    let json = tupa_codegen::execution_plan::codegen_pipeline(&base, p)
+                        .map_err(|e| format!("serialize plan: {e}"))?;
+                    let plan_path = format!("{base}.plan.json");
+                    std::fs::write(&plan_path, json)
+                        .map_err(|e| format!("write {plan_path}: {e}"))?;
+                }
             }
             Ok(())
         }
@@ -236,6 +310,9 @@ fn run(cli: Cli) -> Result<(), String> {
                         "{}",
                         serde_json::to_string_pretty(&value).unwrap_or_else(|_| value.to_string())
                     );
+                }
+                OutputFormat::Llvm => {
+                    println!("{hash}");
                 }
             }
             Ok(())
@@ -275,6 +352,108 @@ fn run(cli: Cli) -> Result<(), String> {
                         "{}",
                         serde_json::to_string_pretty(&value).unwrap_or_else(|_| value.to_string())
                     );
+                }
+                OutputFormat::Llvm => {
+                    let names = all.to_names();
+                    if names.is_empty() { println!("[]"); }
+                    else { println!("{names:?}"); }
+                }
+            }
+            Ok(())
+        }
+        Command::Run {
+            file,
+            stdin,
+            plan: plan_file_opt,
+            pipeline,
+            input,
+            output: output_path_opt,
+            format,
+        } => {
+            let mut audit: Option<(String, String)> = None;
+            let plan: tupa_codegen::execution_plan::ExecutionPlan = match &plan_file_opt {
+                Some(plan_file) => {
+                    let plan_src = std::fs::read_to_string(plan_file)
+                        .map_err(|e| format!("read {:?}: {e}", plan_file))?;
+                    serde_json::from_str(&plan_src).map_err(|e| format!("parse plan: {e}"))?
+                }
+                None => {
+                    let (src, label) = read_source(file.as_ref(), stdin)?;
+                    let program =
+                        parse_program(&src).map_err(|e| format_parse_error(&label, &src, e))?;
+                    let _warnings = typecheck_program_with_warnings(&program)
+                        .map_err(|e| format_type_error(&label, &src, &e))?;
+                    // audit for source-based run
+                    let inputs_json = serde_json::json!({ "input": format!("{:?}", input) });
+                    let inputs = vec![inputs_json];
+                    let hash = tupa_audit::hash_execution(&program, &inputs);
+                    let ast_fingerprint = tupa_audit::hash_ast(&program);
+                    audit = Some((hash.to_string(), ast_fingerprint.to_string()));
+                    let base = std::path::Path::new(&label)
+                        .file_stem()
+                        .and_then(|s| s.to_str())
+                        .unwrap_or("out")
+                        .to_string();
+                    for item in &program.items {
+                        if let tupa_parser::Item::Pipeline(p) = item {
+                            let json = tupa_codegen::execution_plan::codegen_pipeline(&base, p)
+                                .map_err(|e| format!("serialize plan: {e}"))?;
+                            let plan_path = format!("{base}.plan.json");
+                            std::fs::write(&plan_path, json)
+                                .map_err(|e| format!("write {plan_path}: {e}"))?;
+                        }
+                    }
+                    let plan_path = format!("{base}.plan.json");
+                    let plan_src = std::fs::read_to_string(&plan_path)
+                        .map_err(|e| format!("read {plan_path}: {e}"))?;
+                    serde_json::from_str(&plan_src).map_err(|e| format!("parse plan: {e}"))?
+                }
+            };
+            if plan.name != pipeline {
+                return Err(format!(
+                    "pipeline not found: expected '{pipeline}', plan has '{}'",
+                    plan.name
+                ));
+            }
+            tupa_runtime::register_default_examples();
+            let input_value: serde_json::Value = serde_json::from_reader(
+                std::fs::File::open(&input).map_err(|e| format!("open {:?}: {e}", input))?,
+            )
+            .map_err(|e| format!("parse input JSON: {e}"))?;
+            if let Err(e) = tupa_runtime::validate_input(&input_value, &plan.input_schema) {
+                return Err(format!("input validation failed: {e}"));
+            }
+            let out = tupa_runtime::run_pipeline(&plan, input_value)
+                .map_err(|e| format!("runtime: {e}"))?;
+            let constraints_report = tupa_runtime::evaluate_constraints(&plan, &out);
+            let report = serde_json::json!({
+                "pipeline": plan.name,
+                "version": plan.version,
+                "seed": plan.seed,
+                "output": out,
+                "report": constraints_report
+            });
+            let report = if let Some((hash, ast)) = audit {
+                let mut obj = report.as_object().cloned().unwrap_or_default();
+                obj.insert("audit_hash".to_string(), serde_json::json!(hash));
+                obj.insert("ast_fingerprint".to_string(), serde_json::json!(ast));
+                serde_json::Value::Object(obj)
+            } else {
+                report
+            };
+            match format {
+                OutputFormat::Json => {
+                    let s = serde_json::to_string_pretty(&report)
+                        .unwrap_or_else(|_| report.to_string());
+                    if let Some(out_path) = &output_path_opt {
+                        std::fs::write(out_path, &s)
+                            .map_err(|e| format!("write {:?}: {e}", out_path))?;
+                    } else {
+                        println!("{}", s);
+                    }
+                }
+                OutputFormat::Pretty | OutputFormat::Llvm => {
+                    println!("{}", report);
                 }
             }
             Ok(())
@@ -414,6 +593,8 @@ fn type_error_code(err: &TypeError) -> &'static str {
         TypeError::BreakOutsideLoop { .. } => "E4001",
         TypeError::ContinueOutsideLoop { .. } => "E4002",
         TypeError::NonExhaustiveMatch { .. } => "E5001",
+        TypeError::ImpureInDeterministic { .. } => "E2005",
+        TypeError::UndefinedMetric { .. } => "E2006",
     }
 }
 
@@ -457,6 +638,8 @@ fn type_error_help(err: &TypeError) -> Option<String> {
             Some("help: add missing patterns or a wildcard arm to cover all cases".to_string())
         }
         TypeError::UnknownVariant { .. } => Some("help: check the enum variant name".to_string()),
+        TypeError::ImpureInDeterministic { .. } => Some("help: remove non-deterministic calls (random/time) from steps or drop @deterministic".to_string()),
+        TypeError::UndefinedMetric { .. } => Some("help: compute or reference the metric name inside the validation block".to_string()),
         _ => None,
     }
 }
@@ -547,6 +730,8 @@ fn token_kind(token: &Token) -> String {
         Token::Fn => "Fn",
         Token::Enum => "Enum",
         Token::Trait => "Trait",
+        Token::Pipeline => "Pipeline",
+        Token::Step => "Step",
         Token::Let => "Let",
         Token::Return => "Return",
         Token::If => "If",
@@ -645,6 +830,8 @@ fn type_error_span(err: &TypeError) -> Option<Span> {
         | TypeError::ContinueOutsideLoop { span, .. }
         | TypeError::MissingReturn { span, .. }
         | TypeError::NonExhaustiveMatch { span, .. } => *span,
+        TypeError::ImpureInDeterministic { span, .. } => Some(*span),
+        TypeError::UndefinedMetric { span, .. } => Some(*span),
         TypeError::UnknownType { .. } | TypeError::InvalidTypeArity { .. } => None,
     }
 }

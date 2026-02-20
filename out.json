@@ -1,0 +1,38 @@
+{
+  "ast_fingerprint": "7b0b5c4d0b8bc259e1304a8bdf549466a7021512a0606c90f7e3d2852fb3c629",
+  "audit_hash": "9f3377cd7e1d7473a1076d0ca24727a23c393feebcb650359f615bdf70ef2525",
+  "output": {
+    "amount": 100,
+    "approved": true,
+    "customer_id": "C123",
+    "enriched": true,
+    "score": 42
+  },
+  "pipeline": "FraudDetection",
+  "report": {
+    "constraints": [
+      {
+        "comparator": "lt",
+        "metric": "false_positive_rate",
+        "pass": true,
+        "status": "pass",
+        "threshold": 0.01,
+        "value": 0.009
+      },
+      {
+        "comparator": "lt",
+        "metric": "false_negative_rate",
+        "pass": true,
+        "status": "pass",
+        "threshold": 0.05,
+        "value": 0.049
+      }
+    ],
+    "metrics": {
+      "false_negative_rate": 0.049,
+      "false_positive_rate": 0.009
+    }
+  },
+  "seed": null,
+  "version": "0.6.0-dev"
+}

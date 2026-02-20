@@ -1,0 +1,51 @@
+{
+  "name": "CreditDecision",
+  "version": "0.6.0-dev",
+  "seed": null,
+  "input_schema": {
+    "kind": "i64",
+    "elem": null,
+    "len": null,
+    "name": null
+  },
+  "steps": [
+    {
+      "name": "enrich",
+      "function_ref": "credit_decision::step_enrich",
+      "effects": []
+    },
+    {
+      "name": "score",
+      "function_ref": "credit_decision::step_score",
+      "effects": []
+    },
+    {
+      "name": "decide",
+      "function_ref": "credit_decision::step_decide",
+      "effects": []
+    }
+  ],
+  "constraints": [
+    {
+      "metric": "approval_rate",
+      "comparator": "ge",
+      "threshold": 0.8
+    },
+    {
+      "metric": "avg_score",
+      "comparator": "ge",
+      "threshold": 650.0
+    },
+    {
+      "metric": "risk_rate",
+      "comparator": "le",
+      "threshold": 0.2
+    }
+  ],
+  "metrics": {
+    "approval_rate": 0.9,
+    "avg_score": 720.0,
+    "risk_rate": 0.1
+  },
+  "metric_plans": []
+}

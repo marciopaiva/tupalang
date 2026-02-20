@@ -56,6 +56,16 @@ pub fn analyze_effects(expr: &tupa_parser::Expr) -> EffectSet {
                 for arg in args {
                     acc = acc.union(&fold(arg));
                 }
+                if let tupa_parser::ExprKind::Ident(name) = &callee.kind {
+                    let mut tmp = EffectSet::default();
+                    match name.as_str() {
+                        "print" => tmp.insert(tupa_effects::Effect::IO),
+                        "random" => tmp.insert(tupa_effects::Effect::Random),
+                        "time" | "now" => tmp.insert(tupa_effects::Effect::Time),
+                        _ => {}
+                    };
+                    acc = acc.union(&tmp);
+                }
                 acc
             }
             Index { expr, index } => fold(expr).union(&fold(index)),
@@ -191,6 +201,14 @@ pub enum TypeError {
     ContinueOutsideLoop { span: Option<Span> },
     #[error("non-exhaustive match")]
     NonExhaustiveMatch { span: Option<Span> },
+    #[error("impure function in deterministic pipeline: step '{step_name}' has forbidden effect {forbidden_effect:?}")]
+    ImpureInDeterministic {
+        step_name: String,
+        forbidden_effect: tupa_effects::Effect,
+        span: Span,
+    },
+    #[error("undefined metric in pipeline constraints: '{metric}' not found in validation block")]
+    UndefinedMetric { metric: String, span: Span },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -940,6 +958,9 @@ pub fn typecheck_program_with_warnings(program: &Program) -> Result<Vec<Warning>
                 };
                 functions.insert(func.name.clone(), FuncSig { params, ret });
             }
+            Item::Pipeline(_) => {
+                // Pipelines don't contribute to function or enum registries
+            }
             Item::Enum(enum_def) => {
                 let mut variants = HashMap::new();
                 for variant in &enum_def.variants {
@@ -964,11 +985,107 @@ pub fn typecheck_program_with_warnings(program: &Program) -> Result<Vec<Warning>
             Item::Function(func) => {
                 warnings.extend(typecheck_function(func, &functions, &enums, &traits)?)
             }
+            Item::Pipeline(pipeline) => {
+                typecheck_pipeline(pipeline, &functions, &enums, &traits)?;
+            }
             Item::Enum(_) => {} // enums don't need typechecking beyond declaration
             Item::Trait(_) => {} // traits don't need typechecking beyond declaration
         }
     }
     Ok(warnings)
+}
+
+#[allow(clippy::result_large_err)]
+fn typecheck_pipeline(
+    pipeline: &tupa_parser::PipelineDecl,
+    functions: &HashMap<String, FuncSig>,
+    enums: &HashMap<String, EnumInfo>,
+    traits: &HashMap<String, Vec<Function>>,
+) -> Result<(), TypeError> {
+    let input_sig = type_sig_from_ast(&pipeline.input_ty, enums, traits)?;
+    for step in &pipeline.steps {
+        let mut env = TypeEnv::default();
+        env.insert_var("input".into(), input_sig.ty.clone(), input_sig.constraints.clone());
+        let expected_return = ExpectedReturn {
+            ty: Ty::Unknown,
+            constraints: None,
+        };
+        let _ty = type_of_expr(&step.body, &mut env, functions, enums, traits, &expected_return)?;
+    }
+    if let Some(block) = &pipeline.validation {
+        let mut env = TypeEnv::default();
+        let expected_return = ExpectedReturn {
+            ty: Ty::Unit,
+            constraints: None,
+        };
+        let _ = type_of_block_expr(block, &mut env, functions, enums, traits, &expected_return)?;
+    }
+    // Validators
+    validate_determinism(pipeline)?;
+    validate_constraints(pipeline)?;
+    Ok(())
+}
+
+pub fn validate_determinism(pipeline: &tupa_parser::PipelineDecl) -> Result<(), TypeError> {
+    let deterministic = pipeline.attrs.iter().any(|a| a == "deterministic");
+    if !deterministic {
+        return Ok(());
+    }
+    for step in &pipeline.steps {
+        let effects = analyze_effects(&step.body);
+        if effects.contains(&tupa_effects::Effect::Random) {
+            return Err(TypeError::ImpureInDeterministic {
+                step_name: step.name.clone(),
+                forbidden_effect: tupa_effects::Effect::Random,
+                span: step.span,
+            });
+        }
+        if effects.contains(&tupa_effects::Effect::Time) {
+            return Err(TypeError::ImpureInDeterministic {
+                step_name: step.name.clone(),
+                forbidden_effect: tupa_effects::Effect::Time,
+                span: step.span,
+            });
+        }
+    }
+    Ok(())
+}
+
+pub fn validate_constraints(pipeline: &tupa_parser::PipelineDecl) -> Result<(), TypeError> {
+    if pipeline.constraints.is_empty() {
+        return Ok(());
+    }
+    let validation = match &pipeline.validation {
+        Some(block) => block,
+        None => {
+            let first = &pipeline.constraints[0];
+            return Err(TypeError::UndefinedMetric {
+                metric: first.metric.clone(),
+                span: first.span,
+            });
+        }
+    };
+    let mut vars = std::collections::HashSet::new();
+    for stmt in validation {
+        match stmt {
+            tupa_parser::Stmt::Let { name, expr, .. } => {
+                vars.insert(name.clone());
+                collect_vars(expr, &mut vars);
+            }
+            tupa_parser::Stmt::Expr(expr) => collect_vars(expr, &mut vars),
+            tupa_parser::Stmt::Return(Some(expr)) => collect_vars(expr, &mut vars),
+            _ => {}
+        }
+    }
+    for c in &pipeline.constraints {
+        if !vars.contains(&c.metric) {
+            return Err(TypeError::UndefinedMetric {
+                metric: c.metric.clone(),
+                span: c.span,
+            });
+        }
+    }
+    Ok(())
 }
 
 #[allow(clippy::result_large_err)]
@@ -1238,6 +1355,13 @@ fn type_of_expr(
                     ret: Box::new(Ty::Unit),
                 });
             }
+            // Built-ins for validator: random/time
+            if name == "random" || name == "time" || name == "now" {
+                return Ok(Ty::Func {
+                    params: vec![],
+                    ret: Box::new(Ty::Unknown),
+                });
+            }
             Err(TypeError::UnknownVar {
                 name: name.clone(),
                 suggestion: suggestion_message(best_suggestion(
@@ -1401,10 +1525,16 @@ fn type_of_expr(
                 if env.get_var(name).is_none()
                     && !functions.contains_key(name)
                     && name != "print"
+                    && name != "random"
+                    && name != "time"
+                    && name != "now"
                     && !is_variant
                 {
                     let mut candidates = functions.keys().cloned().collect::<Vec<_>>();
                     candidates.push("print".to_string());
+                    candidates.push("random".to_string());
+                    candidates.push("time".to_string());
+                    candidates.push("now".to_string());
                     return Err(TypeError::UnknownFunction {
                         name: name.clone(),
                         suggestion: suggestion_message(best_suggestion(name, candidates)),

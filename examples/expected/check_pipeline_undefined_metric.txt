@@ -1,0 +1,6 @@
+error[E2006]: undefined metric in pipeline constraints: 'accuracy' not found in validation block
+help: compute or reference the metric name inside the validation block
+  --> examples/pipeline/undefined_metric.tp:4:5
+   |
+ 4 |     { metric: "accuracy", ge: 0.90 },
+   |     ^^

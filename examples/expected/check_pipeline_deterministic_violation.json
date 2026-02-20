@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "E2005",
+    "col": 10,
+    "label": "examples/pipeline/deterministic_violation.tp",
+    "line": 5,
+    "line_text": "    step(\"bad\") { random() },",
+    "message": "impure function in deterministic pipeline: step 'bad' has forbidden effect Random\nhelp: remove non-deterministic calls (random/time) from steps or drop @deterministic",
+    "span": {
+      "end": 148,
+      "start": 129
+    }
+  }
+}

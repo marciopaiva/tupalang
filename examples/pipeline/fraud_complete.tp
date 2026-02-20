@@ -1,0 +1,25 @@
+enum Transaction {}
+fn enrich(input: Transaction): Transaction { return match input { _ => input }; }
+fn score(input: Transaction): i64 { return 42; }
+fn decide(input: Transaction): bool { return score(input) > 10; }
+fn compute_fpr(predictions: [bool; 2]): f64 { return 0.009; }
+fn compute_fnr(predictions: [bool; 2]): f64 { return 0.049; }
+fn assert(x: bool) { print("assert"); }
+
+pipeline FraudDetection @deterministic(seed=42) {
+  input: Transaction,
+  constraints: [
+    { metric: "false_positive_rate", lt: 0.01 },
+    { metric: "false_negative_rate", lt: 0.05 },
+  ],
+  steps: [
+    step("enrich") { enrich(input) },
+    step("score")  { score(input) },
+    step("decide") { decide(input) },
+  ],
+  validation: {
+    let false_positive_rate = compute_fpr([true, false]);
+    let false_negative_rate = compute_fnr([false, true]);
+    assert(false_positive_rate < 0.01 && false_negative_rate < 0.05);
+  }
+}

@@ -1,0 +1,11 @@
+fn health_check(): i64 {
+  print("alive");
+  return 200;
+}
+
+pipeline FraudDetection @deterministic {
+  input: i64,
+  steps: [
+    step("noop") { input },
+  ],
+}

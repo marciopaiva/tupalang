@@ -1,0 +1,7 @@
+// Pipeline determinístico com efeito proibido (Random)
+pipeline BadPipeline @deterministic {
+  input: i64,
+  steps: [
+    step("bad") { random() },
+  ],
+}

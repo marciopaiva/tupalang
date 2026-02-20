@@ -1,0 +1,14 @@
+// Tipos e funções de apoio para o pipeline
+enum Transaction {}
+
+fn enrich(input: Transaction): Transaction { return match input { _ => input }; }
+fn score(input: Transaction): i64 { return 42; }
+
+// Pipeline mínimo
+pipeline FraudDetection {
+  input: Transaction,
+  steps: [
+    step("enrich") { enrich(input) },
+    step("score")  { score(input) },
+  ],
+}

@@ -13,6 +13,16 @@ Record relevant changes per version.
 - Planned: CLI stabilization (build/run/fmt/check)
 - Planned: controlled Python integration
 
+### Added (dev)
+- Backend híbrido:
+  - ExecutionPlan JSON para pipelines
+  - CLI `tupa codegen --format=llvm` gera `.ll` e `.plan.json`
+  - Runtime mínimo (`tupa-runtime`) e comando `tupa run`
+- Validador de pipelines:
+  - `@deterministic` rejeita `Random`/`Time` (E2005)
+  - Constraints com métricas indefinidas (E2006)
+- Sem breaking changes
+
 ## 0.6.0 (2026-02-13)
 
 - Enum constructor inference with generics and Safe constraints in variants.

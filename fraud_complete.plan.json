@@ -1,0 +1,59 @@
+{
+  "name": "FraudDetection",
+  "version": "0.6.0-dev",
+  "seed": null,
+  "input_schema": {
+    "kind": "ident",
+    "elem": null,
+    "len": null,
+    "name": "Transaction"
+  },
+  "steps": [
+    {
+      "name": "enrich",
+      "function_ref": "fraud_complete::step_enrich",
+      "effects": []
+    },
+    {
+      "name": "score",
+      "function_ref": "fraud_complete::step_score",
+      "effects": []
+    },
+    {
+      "name": "decide",
+      "function_ref": "fraud_complete::step_decide",
+      "effects": []
+    }
+  ],
+  "constraints": [
+    {
+      "metric": "false_positive_rate",
+      "comparator": "lt",
+      "threshold": 0.01
+    },
+    {
+      "metric": "false_negative_rate",
+      "comparator": "lt",
+      "threshold": 0.05
+    }
+  ],
+  "metrics": {},
+  "metric_plans": [
+    {
+      "name": "false_positive_rate",
+      "function_ref": "fraud_complete::compute_fpr",
+      "args": [
+        true,
+        false
+      ]
+    },
+    {
+      "name": "false_negative_rate",
+      "function_ref": "fraud_complete::compute_fnr",
+      "args": [
+        false,
+        true
+      ]
+    }
+  ]
+}

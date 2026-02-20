@@ -189,6 +189,18 @@ fn golden_effects_pure_function_json() {
     assert_eq!(stdout, expected);
 }
 #[test]
+#[test]
+fn golden_effects_io_json() {
+    let stdout = run_cli(&[
+        "effects",
+        "--format",
+        "json",
+        example_path("effects/io.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("effects_io.json")).unwrap();
+    assert_eq!(stdout, expected);
+}
+#[test]
 fn golden_codegen_arith() {
     let stdout = run_cli(&["codegen", example_path("arith.tp").to_str().unwrap()]);
     let expected = fs::read_to_string(expected_path("codegen_arith.txt")).unwrap();
@@ -1100,5 +1112,120 @@ fn golden_check_invalid_index_base_json() {
         example_path("invalid_index_base.tp").to_str().unwrap(),
     ]);
     let expected = fs::read_to_string(expected_path("check_invalid_index_base.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_pipeline_deterministic_violation() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("pipeline/deterministic_violation.tp").to_str().unwrap(),
+    ]);
+    let expected =
+        fs::read_to_string(expected_path("check_pipeline_deterministic_violation.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_pipeline_deterministic_violation_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("pipeline/deterministic_violation.tp").to_str().unwrap(),
+    ]);
+    let expected =
+        fs::read_to_string(expected_path("check_pipeline_deterministic_violation.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_pipeline_valid() {
+    let stdout = run_cli(&[
+        "check",
+        example_path("pipeline/fraud_complete.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_pipeline_valid.txt")).unwrap();
+    assert_eq!(stdout, expected);
+}
+
+#[test]
+fn golden_check_pipeline_valid_json() {
+    let stdout = run_cli(&[
+        "check",
+        "--format",
+        "json",
+        example_path("pipeline/fraud_complete.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_pipeline_valid.json")).unwrap();
+    assert_eq!(stdout, expected);
+}
+
+#[test]
+fn golden_check_pipeline_undefined_metric() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("pipeline/undefined_metric.tp").to_str().unwrap(),
+    ]);
+    let expected =
+        fs::read_to_string(expected_path("check_pipeline_undefined_metric.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_pipeline_undefined_metric_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("pipeline/undefined_metric.tp").to_str().unwrap(),
+    ]);
+    let expected =
+        fs::read_to_string(expected_path("check_pipeline_undefined_metric.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_pipeline_time_violation() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("pipeline/time_violation.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_pipeline_time_violation.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_pipeline_time_violation_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("pipeline/time_violation.tp").to_str().unwrap(),
+    ]);
+    let expected =
+        fs::read_to_string(expected_path("check_pipeline_time_violation.json")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_pipeline_now_violation() {
+    let stderr = run_cli_err(&[
+        "check",
+        example_path("pipeline/now_violation.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_pipeline_now_violation.txt")).unwrap();
+    assert_eq!(stderr, expected);
+}
+
+#[test]
+fn golden_check_pipeline_now_violation_json() {
+    let stderr = run_cli_err(&[
+        "check",
+        "--format",
+        "json",
+        example_path("pipeline/now_violation.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("check_pipeline_now_violation.json")).unwrap();
     assert_eq!(stderr, expected);
 }

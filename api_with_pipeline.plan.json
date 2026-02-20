@@ -1,0 +1,19 @@
+{
+  "name": "FraudDetection",
+  "version": "0.6.0-dev",
+  "seed": null,
+  "input_schema": {
+    "kind": "i64",
+    "elem": null,
+    "len": null,
+    "name": null
+  },
+  "steps": [
+    {
+      "name": "noop",
+      "function_ref": "api_with_pipeline::step_noop",
+      "effects": []
+    }
+  ],
+  "constraints": []
+}

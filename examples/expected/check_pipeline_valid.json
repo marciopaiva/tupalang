@@ -1,0 +1,25 @@
+{
+  "status": "ok",
+  "warnings": [
+    {
+      "code": "W0001",
+      "message": "unused variable 'input'",
+      "name": "input"
+    },
+    {
+      "code": "W0001",
+      "message": "unused variable 'predictions'",
+      "name": "predictions"
+    },
+    {
+      "code": "W0001",
+      "message": "unused variable 'predictions'",
+      "name": "predictions"
+    },
+    {
+      "code": "W0001",
+      "message": "unused variable 'x'",
+      "name": "x"
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-﻿﻿# ⚡ Tupã (TupaLang)
+﻿﻿﻿# ⚡ Tupã (TupaLang)
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/status-wip-orange)](docs/ROADMAP.md)
@@ -51,8 +51,13 @@ Tupã provides:
 Implemented:
 
 - Lexer, parser, typechecker, and CLI
-- JSON output in the CLI
-- Functional codegen (textual IR)
+- JSON outputs no CLI (lex/parse/check/codegen)
+- Backend híbrido: IR textual + ExecutionPlan JSON para pipelines
+- Validadores de pipeline:
+  - @deterministic rejeita Random/Time (E2005)
+  - Constraints com métricas indefinidas (E2006)
+- Runtime mínimo para executar pipelines (tupa run) com relatório de constraints
+- Audit integrado no run (hash e fingerprint do AST)
 
 In progress (0.7.0):
 
@@ -81,12 +86,35 @@ cd tupalang
 cargo test
 ```
 
+### CLI básico
+
 ```bash
 cargo run -p tupa-cli -- parse examples/hello.tp
 ```
 
 ```bash
 cargo run -p tupa-cli -- check examples/hello.tp
+```
+
+### Pipelines
+
+Gerar plano e executar:
+
+```bash
+cargo run -p tupa-cli -- codegen --format=json examples/pipeline/fraud_complete.tp
+cargo run -p tupa-cli -- run --pipeline FraudDetection --input examples/pipeline/tx.json examples/pipeline/fraud_complete.tp
+```
+
+Gerar somente plano:
+
+```bash
+cargo run -p tupa-cli -- codegen --plan-only examples/pipeline/fraud_complete.tp
+```
+
+Executar a partir de um plano:
+
+```bash
+cargo run -p tupa-cli -- run --plan fraud_complete.plan.json --pipeline FraudDetection --input examples/pipeline/tx.json
 ```
 
 ## Roadmap
@@ -102,6 +130,9 @@ cargo run -p tupa-cli -- check examples/hello.tp
 - [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
 - [examples/README.md](examples/README.md)
 - [docs/SPEC.md](docs/SPEC.md)
+- [docs/PIPELINE_GUIDE.md](docs/PIPELINE_GUIDE.md)
+- [docs/EFFECT_SYSTEM.md](docs/EFFECT_SYSTEM.md)
+- [docs/CODEGEN.md](docs/CODEGEN.md)
 - [docs/GLOSSARY.md](docs/GLOSSARY.md)
 - [docs/FAQ.md](docs/FAQ.md)
 - [docs/README.md](docs/README.md)

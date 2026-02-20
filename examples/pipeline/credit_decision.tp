@@ -1,0 +1,20 @@
+fn assess_risk(x: i64): i64 { return x; }
+
+pipeline CreditDecision @deterministic {
+  input: i64,
+  constraints: [
+    { metric: "approval_rate", ge: 0.80 },
+    { metric: "avg_score", ge: 650 },
+    { metric: "risk_rate", le: 0.20 },
+  ],
+  steps: [
+    step("enrich") { input },
+    step("score")  { assess_risk(input) },
+    step("decide") { input },
+  ],
+  validation: {
+    let approval_rate = 0.9;
+    let avg_score = 720;
+    let risk_rate = 0.1;
+  }
+}

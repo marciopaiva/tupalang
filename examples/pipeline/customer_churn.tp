@@ -1,0 +1,16 @@
+pipeline CustomerChurn @deterministic {
+  input: i64,
+  constraints: [
+    { metric: "churn_rate", le: 0.10 },
+    { metric: "engagement", ge: 0.50 },
+    { metric: "retention", ge: 0.80 },
+  ],
+  steps: [
+    step("noop") { input },
+  ],
+  validation: {
+    let churn_rate = 0.08;
+    let engagement = 0.55;
+    let retention = 0.85;
+  }
+}

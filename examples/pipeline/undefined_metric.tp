@@ -1,0 +1,12 @@
+pipeline MetricsBad @deterministic {
+  input: i64,
+  constraints: [
+    { metric: "accuracy", ge: 0.90 },
+  ],
+  steps: [
+    step("ok") { input },
+  ],
+  validation: {
+    let other = 0.95;
+  }
+}

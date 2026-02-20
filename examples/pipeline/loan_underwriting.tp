@@ -1,0 +1,16 @@
+pipeline LoanUnderwriting @deterministic {
+  input: i64,
+  constraints: [
+    { metric: "default_rate", le: 0.05 },
+    { metric: "avg_income", ge: 3000 },
+    { metric: "approval_rate", ge: 0.60 },
+  ],
+  steps: [
+    step("noop") { input },
+  ],
+  validation: {
+    let default_rate = 0.03;
+    let avg_income = 3500;
+    let approval_rate = 0.7;
+  }
+}

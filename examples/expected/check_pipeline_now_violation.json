@@ -1,0 +1,14 @@
+{
+  "error": {
+    "code": "E2005",
+    "col": 10,
+    "label": "examples/pipeline/now_violation.tp",
+    "line": 4,
+    "line_text": "    step(\"n\") { now() },",
+    "message": "impure function in deterministic pipeline: step 'n' has forbidden effect Time\nhelp: remove non-deterministic calls (random/time) from steps or drop @deterministic",
+    "span": {
+      "end": 81,
+      "start": 67
+    }
+  }
+}
