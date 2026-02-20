@@ -5,6 +5,14 @@
 
 Record relevant changes per version.
 
+## 0.7.0 (Unreleased)
+
+- Docs: roadmap updated for 0.7.0 development start
+- Planned: official formatter (fmt)
+- Planned: minimal linter (lint)
+- Planned: CLI stabilization (build/run/fmt/check)
+- Planned: controlled Python integration
+
 ## 0.6.0 (2026-02-13)
 
 - Enum constructor inference with generics and Safe constraints in variants.

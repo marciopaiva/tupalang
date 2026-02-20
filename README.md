@@ -1,4 +1,4 @@
-﻿# ⚡ Tupã (TupaLang)
+﻿﻿# ⚡ Tupã (TupaLang)
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/status-wip-orange)](docs/ROADMAP.md)
@@ -54,12 +54,13 @@ Implemented:
 - JSON output in the CLI
 - Functional codegen (textual IR)
 
-In progress (0.6.0):
+In progress (0.7.0):
 
-- Pipeline language and orchestration
-- Audit and hashing engine
+- Tooling and orchestration foundation
+- Official formatter (fmt)
+- Minimal linter (lint)
+- CLI stabilization (build/run/fmt/check)
 - Controlled Python integration
-- Language Server
 
 ## Quick example
 

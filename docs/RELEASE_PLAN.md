@@ -13,7 +13,7 @@ Define the release milestones from v0.4.x up to v1.0, aligned with the roadmap a
 
 ## Baseline (current)
 
-- v0.5.0 released with compiler reliability fixes (typechecker constraints, diagnostics, tests).
+- v0.6.0 released with enum generics, match destructuring/guards, and audit prototype.
 - Diagnostics with spans and JSON output.
 - SPEC v0.1 and documentation consolidated.
 
@@ -54,7 +54,7 @@ Define the release milestones from v0.4.x up to v1.0, aligned with the roadmap a
    - CLI `tupa audit` with JSON output (hash + AST fingerprint).
    - Reproducibility: same input → same hash across machines.
    - Documentation in `docs/AUDIT_ENGINE.md`.
-   - Status: in progress
+   - Status: done
 4. Diagnostics with actionable suggestions
    - Specific error code for unproven constraints.
    - Contextual suggestions with safety attributes.

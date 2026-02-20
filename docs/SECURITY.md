@@ -5,8 +5,8 @@
 Describe the responsible disclosure process for vulnerabilities.
 
 ## Reporting
-
-Send an email to: [security@tupalang.org](mailto:security@tupalang.org)
+ 
+Report vulnerabilities via GitHub Issues: https://github.com/marciopaiva/tupalang/issues
 
 ## Scope
 
