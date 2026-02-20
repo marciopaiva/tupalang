@@ -16,7 +16,7 @@ Wiki pages are automatically mirrored from `docs/`. Avoid editing the wiki manua
 
 - [Quick Start Guide](GETTING_STARTED.md)
 - [Examples](../examples/README.md)
-- [Safe examples (ethical constraints)](../examples/README.md#arquivos)
+- [Safe examples (ethical constraints)](../examples/README.md#files)
 - [SPEC](SPEC.md)
 - [Glossary](GLOSSARY.md)
 - [FAQ](FAQ.md)

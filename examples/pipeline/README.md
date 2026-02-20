@@ -1,18 +1,18 @@
-# Exemplos de Pipeline
+# Pipeline Examples
 
-- fraud_complete.tp: pipeline de fraude com constraints e validation.
-- credit_decision.tp: decisão de crédito com 3 constraints.
-- loan_underwriting.tp: underwriting com métricas de risco.
-- customer_churn.tp: métricas de churn e retenção.
+- fraud_complete.tp: fraud pipeline with constraints and validation.
+- credit_decision.tp: credit decision with 3 constraints.
+- loan_underwriting.tp: underwriting with risk metrics.
+- customer_churn.tp: churn and retention metrics.
 
-## Executar
+## Run
 
 ```
 tupa codegen --format=json examples/pipeline/fraud_complete.tp
 tupa run --pipeline=FraudDetection --input examples/pipeline/tx.json examples/pipeline/fraud_complete.tp
 ```
 
-Gerar apenas o plano e executar via plano:
+Generate plan and run from plan:
 
 ```
 tupa codegen --plan-only examples/pipeline/fraud_complete.tp

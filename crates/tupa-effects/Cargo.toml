@@ -2,5 +2,10 @@
 name = "tupa-effects"
 version = "0.6.0-dev"
 edition = "2021"
+description = "Effect system for TupãLang: IO/Random/Time tracking and governance primitives"
+license = "Apache-2.0"
+repository = "https://github.com/marciopaiva/tupalang"
+homepage = "https://github.com/marciopaiva/tupalang"
+documentation = "https://github.com/marciopaiva/tupalang/wiki"
 
 [dependencies]

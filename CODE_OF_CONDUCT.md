@@ -1,25 +1,25 @@
-﻿# Código de Conduta
+# Code of Conduct
 
-## Objetivo
+## Purpose
 
-Definir o padrão de convivência e o comportamento esperado na comunidade.
+Define standards of engagement and expected behavior in the community.
 
-## Nosso compromisso
+## Our commitment
 
-Estamos comprometidos em manter um ambiente acolhedor, respeitoso e colaborativo.
+We are committed to maintaining a welcoming, respectful, and collaborative environment.
 
-## Comportamentos esperados
+## Expected behaviors
 
-- Respeitar opiniões diferentes.
-- Ser construtivo em críticas e sugestões.
-- Priorizar o bem-estar da comunidade.
+- Respect differing opinions.
+- Be constructive in feedback and suggestions.
+- Prioritize the community’s well-being.
 
-## Comportamentos inaceitáveis
+## Unacceptable behaviors
 
-- Assédio, discriminação ou ataques pessoais.
-- Comentários ofensivos ou degradantes.
-- Qualquer comportamento que inviabilize a colaboração.
+- Harassment, discrimination, or personal attacks.
+- Offensive or demeaning comments.
+- Any behavior that undermines collaboration.
 
-## Aplicação
+## Enforcement
 
-Casos de violação podem ser reportados aos mantenedores do projeto.
+Violations may be reported to the project maintainers.

@@ -16,11 +16,11 @@ cargo run -p tupa-cli -- codegen examples/array_ops.tp
 # JSON output
 cargo run -p tupa-cli -- codegen --format json examples/hello.tp
 
-# Pipelines: gerar planos e backend híbrido
+# Pipelines: generate plans with hybrid backend
 cargo run -p tupa-cli -- codegen --format llvm examples/pipeline/fraud_complete.tp
-# Gera: fraud_complete.ll e fraud_complete.plan.json
+# Emits: fraud_complete.ll and fraud_complete.plan.json
 
-# Somente plano
+# Plan-only
 cargo run -p tupa-cli -- codegen --plan-only examples/pipeline/fraud_complete.tp
 ```
 
@@ -61,8 +61,8 @@ In JSON, the output comes wrapped in an object:
 - Runtime string concatenation
 - `+=` for strings (via concatenation)
 - Automated golden tests to ensure IR stability
-- Pipelines: ExecutionPlan JSON com `steps`, `constraints`, `metrics`, `metric_plans`
-- Runtime `tupa run`: executa plano com input JSON e emite relatório
+- Pipelines: ExecutionPlan JSON with `steps`, `constraints`, `metrics`, `metric_plans`
+- Runtime `tupa run`: executes plan with JSON input and emits report
 
 ## Next steps
 

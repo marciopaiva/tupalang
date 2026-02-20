@@ -939,7 +939,7 @@ The compiler **must** report errors with:
 - Span with line/column (1-based)
 - Code snippet with highlight
 
-Exemplo:
+Example:
 
 ```
 error[E0003]: expected ';' after expression

@@ -21,7 +21,7 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) and open an issue with context.
 
 ### 4) Where can I find examples?
 
-In [examples](../examples/README.md) and in [docs/SPEC.md](SPEC.md#exemplos).
+In [examples](../examples/README.md) and in [docs/SPEC.md](SPEC.md#10-validated-examples).
 
 ### 4.1) Are there safe/alignment examples?
 

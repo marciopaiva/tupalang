@@ -2,6 +2,11 @@
 name = "tupa-lexer"
 version = "0.6.0-dev"
 edition = "2021"
+description = "Lexer for TupãLang with tokens for pipelines, steps, and effects"
+license = "Apache-2.0"
+repository = "https://github.com/marciopaiva/tupalang"
+homepage = "https://github.com/marciopaiva/tupalang"
+documentation = "https://github.com/marciopaiva/tupalang/wiki"
 
 [dependencies]
 nom = "7.1"

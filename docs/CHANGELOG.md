@@ -5,23 +5,24 @@
 
 Record relevant changes per version.
 
-## 0.7.0 (Unreleased)
+## 0.7.0 (2026-02-20)
 
-- Docs: roadmap updated for 0.7.0 development start
-- Planned: official formatter (fmt)
-- Planned: minimal linter (lint)
-- Planned: CLI stabilization (build/run/fmt/check)
-- Planned: controlled Python integration
+- Release: hybrid engine with native pipeline governance
+- CLI: `tupa run` with `--plan`, `--plan-only`, `--output`
+- Runtime: JSON report with metrics and constraints (pass/fail), audit hash
+- Determinism: `@deterministic(seed=...)` parsed and seed propagated to PRNG
+- Codegen: `ExecutionPlan` JSON with `steps`, `constraints`, `metrics`, `metric_plans`
+- Validation: input JSON validated against `TypeSchema` before run
 
-### Added (dev)
-- Backend híbrido:
-  - ExecutionPlan JSON para pipelines
-  - CLI `tupa codegen --format=llvm` gera `.ll` e `.plan.json`
-  - Runtime mínimo (`tupa-runtime`) e comando `tupa run`
-- Validador de pipelines:
-  - `@deterministic` rejeita `Random`/`Time` (E2005)
-  - Constraints com métricas indefinidas (E2006)
-- Sem breaking changes
+### Added
+- Hybrid backend:
+  - ExecutionPlan JSON for pipelines
+  - CLI `tupa codegen --format=llvm` emits `.ll` and `.plan.json`
+  - Pipeline runtime (`tupa-runtime`) and `tupa run` command
+- Pipeline validator:
+  - `@deterministic` rejects `Random`/`Time` (E2005)
+  - Constraints with undefined metrics (E2006)
+- No breaking changes
 
 ## 0.6.0 (2026-02-13)
 

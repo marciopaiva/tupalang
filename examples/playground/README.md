@@ -1,11 +1,11 @@
 # Playground
 
-## Objetivo
+## Purpose
 
-Espaço para testes rápidos, rascunhos e experimentos que não precisam seguir o padrão dos exemplos curados.
+Space for quick tests, drafts, and experiments that don’t need to follow curated example standards.
 
-## Regras
+## Rules
 
-- Não assumir estabilidade.
-- Pode ser apagado ou reescrito a qualquer momento.
-- Evite usar estes arquivos como referência oficial.
+- Do not assume stability.
+- May be deleted or rewritten at any time.
+- Avoid using these files as official reference.

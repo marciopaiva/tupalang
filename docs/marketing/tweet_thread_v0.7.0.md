@@ -1,18 +1,18 @@
 # Thread: Tupã v0.7.0 — Hybrid Engine
 
-1/ Tupã v0.7.0 chegou. É a primeira linguagem com governança de IA nativa.
+1/ Tupã v0.7.0 is here. The first language with native AI governance.
 
-2/ ✨ Novidades
-- `pipeline { ... }` com garantias formais de determinismo
-- Effect System: IO/Random/Time rastreado em tempo de compilação
-- Backend híbrido: LLVM para APIs + JSON para pipelines
+2/ ✨ Highlights
+- `pipeline { ... }` with formal determinism guarantees
+- Effect System: IO/Random/Time tracked at compile time
+- Hybrid backend: LLVM for APIs + JSON for pipelines
 
-3/ 🛡️ Para quem?
-- Engenheiros de ML com auditoria em produção
-- Devs de fintech/healthtech com compliance rigoroso
-- Quem quer governança sem perder performance
+3/ 🛡️ Who is it for?
+- ML engineers with production audit needs
+- Fintech/healthtech developers with strict compliance
+- Anyone who wants governance without sacrificing performance
 
-4/ 🚀 Comece agora
+4/ 🚀 Get started
 ```
 tupa new my-audit-pipeline
 cd my-audit-pipeline
@@ -25,10 +25,10 @@ tupa run --pipeline=FraudDetection --input=tx.json
 - CODEGEN.md
 - EFFECT_SYSTEM.md
 
-6/ 🎥 Demo executável
-- Gist: https://gist.github.com/<seu_user>/tupa-v0.7.0-demo (substitua pelo link real)
+6/ 🎥 Executable demo
+- Gist: https://gist.github.com/<your_user>/tupa-v0.7.0-demo (replace with real link)
 
-7/ 🌩️ Tese
-Não é mais “outra linguagem de ML”. É a linguagem para IA regulada.
+7/ 🌩️ Thesis
+Not “another ML language”. It’s the language for regulated AI.
 
-#tupãlang #AIgovernance #Rust #compilers
+#tupalang #AIgovernance #Rust #compilers

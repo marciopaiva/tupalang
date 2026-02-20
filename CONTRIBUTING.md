@@ -1,45 +1,45 @@
-﻿# Como contribuir
+# How to contribute
 
-## Objetivo
+## Purpose
 
-Explicar o fluxo de contribuição e as expectativas para mudanças no projeto.
+Explain the contribution workflow and expectations for project changes.
 
-Obrigado por considerar contribuir com o projeto Tupã.
+Thank you for considering contributing to the Tupã project.
 
-## Como começar
+## Getting started
 
-1. Confira o [README.md](README.md) para entender a visão geral.
-2. Abra uma issue descrevendo a proposta ou problema.
-3. Faça um fork e crie uma branch a partir de main.
+1. Check [README.md](README.md) for the overview.
+2. Open an issue describing the proposal or problem.
+3. Fork and create a branch from main.
 
-## Padrões de contribuição
+## Contribution standards
 
-- Seja claro e objetivo na descrição do problema/solução.
-- Mantenha mudanças pequenas e focadas.
-- Prefira documentação e exemplos quando possível.
+- Be clear and objective in problem/solution descriptions.
+- Keep changes small and focused.
+- Prefer documentation and examples when possible.
 
-## Fluxo de PR
+## PR workflow
 
-1. Crie a branch: `feat/nome-curto` ou `fix/nome-curto`.
-2. Atualize/adicione documentação relevante.
-3. Abra o PR com contexto, motivação e escopo.
-4. Aguarde revisão.
+1. Create the branch: `feat/short-name` or `fix/short-name`.
+2. Update/add relevant documentation.
+3. Open the PR with context, motivation, and scope.
+4. Wait for review.
 
-## Testes locais
+## Local tests
 
-Antes de abrir o PR, rode:
+Before opening the PR, run:
 
 ```bash
 cargo test -p tupa-cli
 cargo test
 ```
 
-## Estilo de documentação
+## Documentation style
 
-- Use português claro.
-- Prefira frases curtas e diretas.
-- Evite abreviações sem explicação.
+- Clear, direct English.
+- Prefer short sentences.
+- Avoid unexplained abbreviations.
 
-## Licenciamento
+## Licensing
 
-Ao contribuir, você concorda que sua contribuição será licenciada sob os termos do projeto.
+By contributing, you agree your contribution will be licensed under the project terms.
