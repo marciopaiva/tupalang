@@ -178,6 +178,17 @@ fn golden_audit_hello_json() {
 }
 
 #[test]
+fn golden_effects_pure_function_json() {
+    let stdout = run_cli(&[
+        "effects",
+        "--format",
+        "json",
+        example_path("effects/pure_function.tp").to_str().unwrap(),
+    ]);
+    let expected = fs::read_to_string(expected_path("effects_pure_function.json")).unwrap();
+    assert_eq!(stdout, expected);
+}
+#[test]
 fn golden_codegen_arith() {
     let stdout = run_cli(&["codegen", example_path("arith.tp").to_str().unwrap()]);
     let expected = fs::read_to_string(expected_path("codegen_arith.txt")).unwrap();

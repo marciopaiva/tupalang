@@ -7,3 +7,4 @@ edition = "2021"
 thiserror = "1.0"
 tupa-parser = { path = "../tupa-parser" }
 tupa-lexer = { path = "../tupa-lexer" }
+tupa-effects = { path = "../tupa-effects" }

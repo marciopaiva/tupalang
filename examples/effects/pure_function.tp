@@ -1,0 +1,4 @@
+fn main() {
+  let inc: fn(i64) -> i64 = |x| x + 1;
+  let y = inc(41);
+}

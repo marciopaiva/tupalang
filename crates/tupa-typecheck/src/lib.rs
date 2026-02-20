@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use thiserror::Error;
+use tupa_effects::EffectSet;
 use tupa_lexer::Span;
 use tupa_parser::{
     BinaryOp, Expr, ExprKind, Function, Item, MatchArm, Pattern, Program, Stmt, Type, UnaryOp,
@@ -39,6 +40,81 @@ pub enum Ty {
     Unknown,
 }
 
+pub fn analyze_effects(expr: &tupa_parser::Expr) -> EffectSet {
+    fn fold(e: &tupa_parser::Expr) -> EffectSet {
+        use tupa_parser::ExprKind::*;
+        match &e.kind {
+            Int(_) | Float(_) | Bool(_) | Str(_) | Null | Ident(_) => EffectSet::default(),
+            Binary { left, right, .. } => {
+                let a = fold(left);
+                let b = fold(right);
+                a.union(&b)
+            }
+            Unary { expr, .. } => fold(expr),
+            Call { callee, args } => {
+                let mut acc = fold(callee);
+                for arg in args {
+                    acc = acc.union(&fold(arg));
+                }
+                acc
+            }
+            Index { expr, index } => fold(expr).union(&fold(index)),
+            Field { expr, .. } => fold(expr),
+            Lambda { body, .. } => fold(body),
+            Block(stmts) => {
+                let mut acc = EffectSet::default();
+                for stmt in stmts {
+                    match stmt {
+                        tupa_parser::Stmt::Expr(e) => {
+                            acc = acc.union(&fold(e));
+                        }
+                        tupa_parser::Stmt::Return(Some(e)) => {
+                            acc = acc.union(&fold(e));
+                        }
+                        _ => {}
+                    }
+                }
+                acc
+            }
+            If { condition, then_branch, else_branch } => {
+                let a = fold(condition);
+                let mut b = EffectSet::default();
+                for s in then_branch { if let tupa_parser::Stmt::Expr(e) = s { b = b.union(&fold(e)); } }
+                let c = match else_branch {
+                    Some(tupa_parser::ElseBranch::Block(block)) => {
+                        let mut acc = EffectSet::default();
+                        for s in block { if let tupa_parser::Stmt::Expr(e) = s { acc = acc.union(&fold(e)); } }
+                        acc
+                    }
+                    Some(tupa_parser::ElseBranch::If(e)) => fold(e),
+                    None => EffectSet::default(),
+                };
+                a.union(&b).union(&c)
+            }
+            Match { expr, arms } => {
+                let mut acc = fold(expr);
+                for arm in arms {
+                    if let Some(guard) = &arm.guard {
+                        acc = acc.union(&fold(guard));
+                    }
+                    acc = acc.union(&fold(&arm.expr));
+                }
+                acc
+            }
+            Tuple(items) => items.iter().fold(EffectSet::default(), |acc, it| acc.union(&fold(it))),
+            ArrayLiteral(items) => {
+                items.iter().fold(EffectSet::default(), |acc, it| acc.union(&fold(it)))
+            }
+            Assign { expr, .. } => fold(expr),
+            AssignIndex { expr, index, value } => {
+                let acc = fold(expr).union(&fold(index));
+                acc.union(&fold(value))
+            }
+            Await(inner) => fold(inner),
+        }
+    }
+    fold(expr)
+}
 #[derive(Debug, Error)]
 pub enum TypeError {
     #[error("unknown type '{name}'{suggestion}")]

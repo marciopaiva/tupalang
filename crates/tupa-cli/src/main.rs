@@ -83,6 +83,17 @@ enum Command {
         #[arg(long, value_enum, default_value_t = OutputFormat::Pretty)]
         format: OutputFormat,
     },
+    /// Analyze effects in a .tp file
+    Effects {
+        /// Path to the source file
+        file: Option<PathBuf>,
+        /// Read source from stdin
+        #[arg(long)]
+        stdin: bool,
+        /// Output format
+        #[arg(long, value_enum, default_value_t = OutputFormat::Pretty)]
+        format: OutputFormat,
+    },
     /// Print CLI version
     Version,
     /// Print CLI about
@@ -236,6 +247,36 @@ fn run(cli: Cli) -> Result<(), String> {
         Command::About => {
             println!("Tupã CLI");
             println!("Parse and typecheck Tupã source files");
+            Ok(())
+        }
+        Command::Effects { file, stdin, format } => {
+            let (src, label) = read_source(file.as_ref(), stdin)?;
+            let program = parse_program(&src).map_err(|e| format_parse_error(&label, &src, e))?;
+            let mut all = tupa_effects::EffectSet::default();
+            for item in &program.items {
+                if let tupa_parser::Item::Function(func) = item {
+                    let body_expr = tupa_parser::Expr {
+                        kind: tupa_parser::ExprKind::Block(func.body.clone()),
+                        span: tupa_lexer::Span { start: 0, end: src.len() },
+                    };
+                    let set = tupa_typecheck::analyze_effects(&body_expr);
+                    all = all.union(&set);
+                }
+            }
+            match format {
+                OutputFormat::Pretty => {
+                    let names = all.to_names();
+                    if names.is_empty() { println!("[]"); }
+                    else { println!("{names:?}"); }
+                }
+                OutputFormat::Json => {
+                    let value = json!({ "effects": all.to_names() });
+                    println!(
+                        "{}",
+                        serde_json::to_string_pretty(&value).unwrap_or_else(|_| value.to_string())
+                    );
+                }
+            }
             Ok(())
         }
     }
