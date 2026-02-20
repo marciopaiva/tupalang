@@ -86,14 +86,26 @@ pub fn analyze_effects(expr: &tupa_parser::Expr) -> EffectSet {
                 }
                 acc
             }
-            If { condition, then_branch, else_branch } => {
+            If {
+                condition,
+                then_branch,
+                else_branch,
+            } => {
                 let a = fold(condition);
                 let mut b = EffectSet::default();
-                for s in then_branch { if let tupa_parser::Stmt::Expr(e) = s { b = b.union(&fold(e)); } }
+                for s in then_branch {
+                    if let tupa_parser::Stmt::Expr(e) = s {
+                        b = b.union(&fold(e));
+                    }
+                }
                 let c = match else_branch {
                     Some(tupa_parser::ElseBranch::Block(block)) => {
                         let mut acc = EffectSet::default();
-                        for s in block { if let tupa_parser::Stmt::Expr(e) = s { acc = acc.union(&fold(e)); } }
+                        for s in block {
+                            if let tupa_parser::Stmt::Expr(e) = s {
+                                acc = acc.union(&fold(e));
+                            }
+                        }
                         acc
                     }
                     Some(tupa_parser::ElseBranch::If(e)) => fold(e),
@@ -111,10 +123,12 @@ pub fn analyze_effects(expr: &tupa_parser::Expr) -> EffectSet {
                 }
                 acc
             }
-            Tuple(items) => items.iter().fold(EffectSet::default(), |acc, it| acc.union(&fold(it))),
-            ArrayLiteral(items) => {
-                items.iter().fold(EffectSet::default(), |acc, it| acc.union(&fold(it)))
-            }
+            Tuple(items) => items
+                .iter()
+                .fold(EffectSet::default(), |acc, it| acc.union(&fold(it))),
+            ArrayLiteral(items) => items
+                .iter()
+                .fold(EffectSet::default(), |acc, it| acc.union(&fold(it))),
             Assign { expr, .. } => fold(expr),
             AssignIndex { expr, index, value } => {
                 let acc = fold(expr).union(&fold(index));
@@ -1005,12 +1019,23 @@ fn typecheck_pipeline(
     let input_sig = type_sig_from_ast(&pipeline.input_ty, enums, traits)?;
     for step in &pipeline.steps {
         let mut env = TypeEnv::default();
-        env.insert_var("input".into(), input_sig.ty.clone(), input_sig.constraints.clone());
+        env.insert_var(
+            "input".into(),
+            input_sig.ty.clone(),
+            input_sig.constraints.clone(),
+        );
         let expected_return = ExpectedReturn {
             ty: Ty::Unknown,
             constraints: None,
         };
-        let _ty = type_of_expr(&step.body, &mut env, functions, enums, traits, &expected_return)?;
+        let _ty = type_of_expr(
+            &step.body,
+            &mut env,
+            functions,
+            enums,
+            traits,
+            &expected_return,
+        )?;
     }
     if let Some(block) = &pipeline.validation {
         let mut env = TypeEnv::default();
@@ -1026,6 +1051,7 @@ fn typecheck_pipeline(
     Ok(())
 }
 
+#[allow(clippy::result_large_err)]
 pub fn validate_determinism(pipeline: &tupa_parser::PipelineDecl) -> Result<(), TypeError> {
     let deterministic = pipeline.attrs.iter().any(|a| a == "deterministic");
     if !deterministic {
@@ -1051,6 +1077,7 @@ pub fn validate_determinism(pipeline: &tupa_parser::PipelineDecl) -> Result<(), 
     Ok(())
 }
 
+#[allow(clippy::result_large_err)]
 pub fn validate_constraints(pipeline: &tupa_parser::PipelineDecl) -> Result<(), TypeError> {
     if pipeline.constraints.is_empty() {
         return Ok(());

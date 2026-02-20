@@ -59,16 +59,44 @@ pub fn type_to_schema(ty: &Type) -> TypeSchema {
             name: None,
         },
         Type::Safe { base, .. } => type_to_schema(base),
-        Type::Ident(name) => {
-            match name.as_str() {
-                "i64" => TypeSchema { kind: "i64".into(), elem: None, len: None, name: None },
-                "f64" => TypeSchema { kind: "f64".into(), elem: None, len: None, name: None },
-                "bool" => TypeSchema { kind: "bool".into(), elem: None, len: None, name: None },
-                "string" => TypeSchema { kind: "string".into(), elem: None, len: None, name: None },
-                _ => TypeSchema { kind: "ident".into(), elem: None, len: None, name: Some(name.clone()) },
-            }
-        }
-        _ => TypeSchema { kind: "unknown".into(), elem: None, len: None, name: None },
+        Type::Ident(name) => match name.as_str() {
+            "i64" => TypeSchema {
+                kind: "i64".into(),
+                elem: None,
+                len: None,
+                name: None,
+            },
+            "f64" => TypeSchema {
+                kind: "f64".into(),
+                elem: None,
+                len: None,
+                name: None,
+            },
+            "bool" => TypeSchema {
+                kind: "bool".into(),
+                elem: None,
+                len: None,
+                name: None,
+            },
+            "string" => TypeSchema {
+                kind: "string".into(),
+                elem: None,
+                len: None,
+                name: None,
+            },
+            _ => TypeSchema {
+                kind: "ident".into(),
+                elem: None,
+                len: None,
+                name: Some(name.clone()),
+            },
+        },
+        _ => TypeSchema {
+            kind: "unknown".into(),
+            elem: None,
+            len: None,
+            name: None,
+        },
     }
 }
 
@@ -177,7 +205,11 @@ pub fn codegen_pipeline(module_name: &str, pipeline: &PipelineDecl) -> serde_jso
         seed: pipeline.seed,
         input_schema: type_to_schema(&pipeline.input_ty),
         steps,
-        constraints: pipeline.constraints.iter().map(constraint_to_plan).collect(),
+        constraints: pipeline
+            .constraints
+            .iter()
+            .map(constraint_to_plan)
+            .collect(),
         metrics: extract_metrics(pipeline),
         metric_plans: extract_metric_plans(module_name, pipeline),
     };

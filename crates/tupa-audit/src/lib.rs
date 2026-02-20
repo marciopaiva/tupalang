@@ -136,7 +136,10 @@ fn item_to_value(item: &Item) -> Value {
         Item::Pipeline(p) => object(vec![
             ("kind", Value::String("Pipeline".to_string())),
             ("name", Value::String(p.name.clone())),
-            ("attrs", Value::Array(p.attrs.iter().map(|a| Value::String(a.clone())).collect())),
+            (
+                "attrs",
+                Value::Array(p.attrs.iter().map(|a| Value::String(a.clone())).collect()),
+            ),
             ("input_ty", type_to_value(&p.input_ty)),
             (
                 "constraints",
@@ -146,13 +149,16 @@ fn item_to_value(item: &Item) -> Value {
                         .map(|c| {
                             object(vec![
                                 ("metric", Value::String(c.metric.clone())),
-                                ("comparator", Value::String(match c.comparator {
-                                    tupa_parser::Comparator::Lt => "lt".into(),
-                                    tupa_parser::Comparator::Le => "le".into(),
-                                    tupa_parser::Comparator::Eq => "eq".into(),
-                                    tupa_parser::Comparator::Ge => "ge".into(),
-                                    tupa_parser::Comparator::Gt => "gt".into(),
-                                })),
+                                (
+                                    "comparator",
+                                    Value::String(match c.comparator {
+                                        tupa_parser::Comparator::Lt => "lt".into(),
+                                        tupa_parser::Comparator::Le => "le".into(),
+                                        tupa_parser::Comparator::Eq => "eq".into(),
+                                        tupa_parser::Comparator::Ge => "ge".into(),
+                                        tupa_parser::Comparator::Gt => "gt".into(),
+                                    }),
+                                ),
                                 ("threshold", Value::String(format!("{}", c.threshold))),
                             ])
                         })

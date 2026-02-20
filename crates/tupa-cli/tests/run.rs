@@ -12,7 +12,11 @@ fn run_fraud_detection_plan_only_and_run() {
     // Generate plan
     let mut gen = Command::cargo_bin("tupa-cli").unwrap();
     gen.current_dir(&root)
-        .args(["codegen", "--plan-only", "examples/pipeline/fraud_complete.tp"])
+        .args([
+            "codegen",
+            "--plan-only",
+            "examples/pipeline/fraud_complete.tp",
+        ])
         .assert()
         .success();
     // Run from plan

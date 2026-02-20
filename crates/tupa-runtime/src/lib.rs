@@ -7,8 +7,7 @@ use tupa_codegen::execution_plan::ExecutionPlan;
 
 type StepFn = fn(Value) -> Result<Value, String>;
 
-static REGISTRY: Lazy<Mutex<HashMap<String, StepFn>>> =
-    Lazy::new(|| Mutex::new(HashMap::new()));
+static REGISTRY: Lazy<Mutex<HashMap<String, StepFn>>> = Lazy::new(|| Mutex::new(HashMap::new()));
 static PRNG_STATE: Lazy<Mutex<u64>> = Lazy::new(|| Mutex::new(0x9E3779B97F4A7C15));
 
 #[derive(Debug, Error)]
@@ -104,7 +103,9 @@ pub fn register_default_examples() {
 
 fn call_step_function(function_ref: &str, state: Value) -> RuntimeResult<Value> {
     let reg = REGISTRY.lock().unwrap();
-    let f = reg.get(function_ref).ok_or_else(|| RuntimeError::NotFound(function_ref.to_string()))?;
+    let f = reg
+        .get(function_ref)
+        .ok_or_else(|| RuntimeError::NotFound(function_ref.to_string()))?;
     f(state).map_err(RuntimeError::StepFailed)
 }
 
@@ -190,10 +191,15 @@ pub fn validate_input(value: &Value, schema: &TypeSchema) -> RuntimeResult<()> {
             }
         }
         "array" => {
-            let arr = value.as_array().ok_or_else(|| RuntimeError::Invalid("expected array".into()))?;
+            let arr = value
+                .as_array()
+                .ok_or_else(|| RuntimeError::Invalid("expected array".into()))?;
             if let Some(len) = schema.len {
                 if arr.len() as i64 != len {
-                    return Err(RuntimeError::Invalid(format!("array length mismatch: expected {len}, got {}", arr.len())));
+                    return Err(RuntimeError::Invalid(format!(
+                        "array length mismatch: expected {len}, got {}",
+                        arr.len()
+                    )));
                 }
             }
             if let Some(elem) = &schema.elem {
@@ -203,7 +209,9 @@ pub fn validate_input(value: &Value, schema: &TypeSchema) -> RuntimeResult<()> {
             }
         }
         "slice" => {
-            let arr = value.as_array().ok_or_else(|| RuntimeError::Invalid("expected slice (array)".into()))?;
+            let arr = value
+                .as_array()
+                .ok_or_else(|| RuntimeError::Invalid("expected slice (array)".into()))?;
             if let Some(elem) = &schema.elem {
                 for v in arr {
                     validate_input(v, elem)?;
@@ -213,7 +221,9 @@ pub fn validate_input(value: &Value, schema: &TypeSchema) -> RuntimeResult<()> {
         "ident" => {
             // Accept any JSON object for domain types
             if !value.is_object() {
-                return Err(RuntimeError::Invalid("expected object for ident type".into()));
+                return Err(RuntimeError::Invalid(
+                    "expected object for ident type".into(),
+                ));
             }
         }
         _ => {}

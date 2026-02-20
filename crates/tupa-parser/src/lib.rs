@@ -574,7 +574,7 @@ impl Parser {
         };
         // Collect optional attributes (store identifier names only)
         let mut attrs = Vec::new();
-    let mut seed: Option<u64> = None;
+        let mut seed: Option<u64> = None;
         while matches!(self.peek(), Some(Token::At)) {
             self.expect(Token::At)?;
             match self.next() {
@@ -582,43 +582,51 @@ impl Parser {
                     token: Token::Ident(attr),
                     ..
                 }) => attrs.push(attr),
-                Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                Some(TokenSpan { token, span }) => {
+                    return Err(ParserError::Unexpected(token, span))
+                }
                 None => return Err(ParserError::Eof(self.eof_pos)),
             }
             if matches!(self.peek(), Some(Token::LParen)) {
-            // Parse attribute args minimally for deterministic(seed=...)
+                // Parse attribute args minimally for deterministic(seed=...)
                 self.expect(Token::LParen)?;
                 let mut depth = 1;
-            // deterministic(seed=NUMBER)
-            if let (Some(Token::Ident(_attr_name)), Some(Token::Ident(_))) =
-                (self.tokens.get(self.pos - 1).map(|t| &t.token), self.peek())
-            {
-                if let Some(Token::Ident(name)) = self.peek() {
-                    if name == "seed" {
-                        // consume 'seed'
-                        self.next();
-                        self.expect(Token::Equal)?;
-                        match self.next() {
-                            Some(TokenSpan { token: Token::Int(s), .. }) => {
-                                if let Ok(n) = s.parse::<u64>() {
-                                    seed = Some(n);
-                                }
-                            }
-                            Some(TokenSpan { token: Token::Float(s), .. }) => {
-                                if let Ok(f) = s.parse::<f64>() {
-                                    if f >= 0.0 {
-                                        seed = Some(f as u64);
+                // deterministic(seed=NUMBER)
+                if let (Some(Token::Ident(_attr_name)), Some(Token::Ident(_))) =
+                    (self.tokens.get(self.pos - 1).map(|t| &t.token), self.peek())
+                {
+                    if let Some(Token::Ident(name)) = self.peek() {
+                        if name == "seed" {
+                            // consume 'seed'
+                            self.next();
+                            self.expect(Token::Equal)?;
+                            match self.next() {
+                                Some(TokenSpan {
+                                    token: Token::Int(s),
+                                    ..
+                                }) => {
+                                    if let Ok(n) = s.parse::<u64>() {
+                                        seed = Some(n);
                                     }
                                 }
+                                Some(TokenSpan {
+                                    token: Token::Float(s),
+                                    ..
+                                }) => {
+                                    if let Ok(f) = s.parse::<f64>() {
+                                        if f >= 0.0 {
+                                            seed = Some(f as u64);
+                                        }
+                                    }
+                                }
+                                Some(TokenSpan { token, span }) => {
+                                    return Err(ParserError::Unexpected(token, span))
+                                }
+                                None => return Err(ParserError::Eof(self.eof_pos)),
                             }
-                            Some(TokenSpan { token, span }) => {
-                                return Err(ParserError::Unexpected(token, span))
-                            }
-                            None => return Err(ParserError::Eof(self.eof_pos)),
                         }
                     }
                 }
-            }
                 while depth > 0 {
                     match self.next() {
                         Some(TokenSpan { token, .. }) => match token {
@@ -641,7 +649,9 @@ impl Parser {
                     token: Token::Ident(s),
                     ..
                 }) if s == "input" => {}
-                Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                Some(TokenSpan { token, span }) => {
+                    return Err(ParserError::Unexpected(token, span))
+                }
                 None => return Err(ParserError::Eof(self.eof_pos)),
             }
             self.expect(Token::Colon)?;
@@ -664,7 +674,11 @@ impl Parser {
                             match ts {
                                 Token::LBrace => self.expect_span(Token::LBrace)?,
                                 _ => {
-                                    let span = self.tokens.get(self.pos).map(|t| t.span).unwrap_or(Span { start: self.eof_pos, end: self.eof_pos });
+                                    let span =
+                                        self.tokens.get(self.pos).map(|t| t.span).unwrap_or(Span {
+                                            start: self.eof_pos,
+                                            end: self.eof_pos,
+                                        });
                                     return Err(ParserError::Unexpected(ts.clone(), span));
                                 }
                             }
@@ -673,14 +687,24 @@ impl Parser {
                         };
                         // metric: "..."
                         match self.next() {
-                            Some(TokenSpan { token: Token::Ident(name), .. }) if name == "metric" => {}
-                            Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                            Some(TokenSpan {
+                                token: Token::Ident(name),
+                                ..
+                            }) if name == "metric" => {}
+                            Some(TokenSpan { token, span }) => {
+                                return Err(ParserError::Unexpected(token, span))
+                            }
                             None => return Err(ParserError::Eof(self.eof_pos)),
                         }
                         self.expect(Token::Colon)?;
                         let metric = match self.next() {
-                            Some(TokenSpan { token: Token::Str(value), .. }) => value,
-                            Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                            Some(TokenSpan {
+                                token: Token::Str(value),
+                                ..
+                            }) => value,
+                            Some(TokenSpan { token, span }) => {
+                                return Err(ParserError::Unexpected(token, span))
+                            }
                             None => return Err(ParserError::Eof(self.eof_pos)),
                         };
                         // comma
@@ -689,12 +713,23 @@ impl Parser {
                         }
                         // comparator key and threshold literal
                         let (comparator, threshold) = match self.next() {
-                            Some(TokenSpan { token: Token::Ident(key), .. }) => {
+                            Some(TokenSpan {
+                                token: Token::Ident(key),
+                                ..
+                            }) => {
                                 self.expect(Token::Colon)?;
                                 let value = match self.next() {
-                                    Some(TokenSpan { token: Token::Float(v), .. }) => v.parse::<f64>().unwrap_or(0.0),
-                                    Some(TokenSpan { token: Token::Int(v), .. }) => v.parse::<f64>().unwrap_or(0.0),
-                                    Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                                    Some(TokenSpan {
+                                        token: Token::Float(v),
+                                        ..
+                                    }) => v.parse::<f64>().unwrap_or(0.0),
+                                    Some(TokenSpan {
+                                        token: Token::Int(v),
+                                        ..
+                                    }) => v.parse::<f64>().unwrap_or(0.0),
+                                    Some(TokenSpan { token, span }) => {
+                                        return Err(ParserError::Unexpected(token, span))
+                                    }
                                     None => return Err(ParserError::Eof(self.eof_pos)),
                                 };
                                 let cmp = match key.as_str() {
@@ -703,16 +738,34 @@ impl Parser {
                                     "eq" => Comparator::Eq,
                                     "ge" => Comparator::Ge,
                                     "gt" => Comparator::Gt,
-                                    _ => return Err(ParserError::Unexpected(Token::Ident(key), Span { start: self.eof_pos, end: self.eof_pos })),
+                                    _ => {
+                                        return Err(ParserError::Unexpected(
+                                            Token::Ident(key),
+                                            Span {
+                                                start: self.eof_pos,
+                                                end: self.eof_pos,
+                                            },
+                                        ))
+                                    }
                                 };
                                 (cmp, value)
                             }
-                            Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                            Some(TokenSpan { token, span }) => {
+                                return Err(ParserError::Unexpected(token, span))
+                            }
                             None => return Err(ParserError::Eof(self.eof_pos)),
                         };
                         self.expect(Token::RBrace)?;
-                        let end = Span { start: start.start, end: start.end.max(start.end + 1) };
-                        constraints.push(Constraint { metric, comparator, threshold, span: end });
+                        let end = Span {
+                            start: start.start,
+                            end: start.end.max(start.end + 1),
+                        };
+                        constraints.push(Constraint {
+                            metric,
+                            comparator,
+                            threshold,
+                            span: end,
+                        });
                         if matches!(self.peek(), Some(Token::Comma)) {
                             self.next();
                             if matches!(self.peek(), Some(Token::RBracket)) {
@@ -736,7 +789,9 @@ impl Parser {
                     token: Token::Ident(s),
                     ..
                 }) if s == "steps" => {}
-                Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                Some(TokenSpan { token, span }) => {
+                    return Err(ParserError::Unexpected(token, span))
+                }
                 None => return Err(ParserError::Eof(self.eof_pos)),
             }
         }
@@ -755,7 +810,9 @@ impl Parser {
                     token: Token::Str(value),
                     span,
                 }) => (value, span),
-                Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                Some(TokenSpan { token, span }) => {
+                    return Err(ParserError::Unexpected(token, span))
+                }
                 None => return Err(ParserError::Eof(self.eof_pos)),
             };
             self.expect(Token::RParen)?;
@@ -792,7 +849,7 @@ impl Parser {
         Ok(PipelineDecl {
             name,
             attrs,
-        seed,
+            seed,
             input_ty,
             constraints,
             steps,

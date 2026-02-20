@@ -16,8 +16,7 @@ pub struct EffectSet {
 
 impl EffectSet {
     pub fn is_pure(&self) -> bool {
-        self.effects.is_empty()
-            || (self.effects.len() == 1 && self.effects.contains(&Effect::Pure))
+        self.effects.is_empty() || (self.effects.len() == 1 && self.effects.contains(&Effect::Pure))
     }
 
     pub fn insert(&mut self, effect: Effect) {

@@ -219,8 +219,8 @@ impl Codegen {
         for item in &program.items {
             match item {
                 Item::Function(func) => self.emit_function(func),
-                Item::Enum(_) => {}  // enums don't emit code yet
-                Item::Trait(_) => {} // traits don't emit code yet
+                Item::Enum(_) => {}     // enums don't emit code yet
+                Item::Trait(_) => {}    // traits don't emit code yet
                 Item::Pipeline(_) => {} // pipelines don't emit code
             }
         }

@@ -1119,7 +1119,9 @@ fn golden_check_invalid_index_base_json() {
 fn golden_check_pipeline_deterministic_violation() {
     let stderr = run_cli_err(&[
         "check",
-        example_path("pipeline/deterministic_violation.tp").to_str().unwrap(),
+        example_path("pipeline/deterministic_violation.tp")
+            .to_str()
+            .unwrap(),
     ]);
     let expected =
         fs::read_to_string(expected_path("check_pipeline_deterministic_violation.txt")).unwrap();
@@ -1132,7 +1134,9 @@ fn golden_check_pipeline_deterministic_violation_json() {
         "check",
         "--format",
         "json",
-        example_path("pipeline/deterministic_violation.tp").to_str().unwrap(),
+        example_path("pipeline/deterministic_violation.tp")
+            .to_str()
+            .unwrap(),
     ]);
     let expected =
         fs::read_to_string(expected_path("check_pipeline_deterministic_violation.json")).unwrap();
@@ -1165,7 +1169,9 @@ fn golden_check_pipeline_valid_json() {
 fn golden_check_pipeline_undefined_metric() {
     let stderr = run_cli_err(&[
         "check",
-        example_path("pipeline/undefined_metric.tp").to_str().unwrap(),
+        example_path("pipeline/undefined_metric.tp")
+            .to_str()
+            .unwrap(),
     ]);
     let expected =
         fs::read_to_string(expected_path("check_pipeline_undefined_metric.txt")).unwrap();
@@ -1178,7 +1184,9 @@ fn golden_check_pipeline_undefined_metric_json() {
         "check",
         "--format",
         "json",
-        example_path("pipeline/undefined_metric.tp").to_str().unwrap(),
+        example_path("pipeline/undefined_metric.tp")
+            .to_str()
+            .unwrap(),
     ]);
     let expected =
         fs::read_to_string(expected_path("check_pipeline_undefined_metric.json")).unwrap();
@@ -1203,8 +1211,7 @@ fn golden_check_pipeline_time_violation_json() {
         "json",
         example_path("pipeline/time_violation.tp").to_str().unwrap(),
     ]);
-    let expected =
-        fs::read_to_string(expected_path("check_pipeline_time_violation.json")).unwrap();
+    let expected = fs::read_to_string(expected_path("check_pipeline_time_violation.json")).unwrap();
     assert_eq!(stderr, expected);
 }
 

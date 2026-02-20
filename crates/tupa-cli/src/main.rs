@@ -250,8 +250,10 @@ fn run(cli: Cli) -> Result<(), String> {
             let _warnings = match format {
                 OutputFormat::Pretty => typecheck_program_with_warnings(&program)
                     .map_err(|e| format_type_error(&label, &src, &e))?,
-                OutputFormat::Json | OutputFormat::Llvm => typecheck_program_with_warnings(&program)
-                    .map_err(|e| format_type_error_json(&label, &src, &e))?,
+                OutputFormat::Json | OutputFormat::Llvm => {
+                    typecheck_program_with_warnings(&program)
+                        .map_err(|e| format_type_error_json(&label, &src, &e))?
+                }
             };
             // Generate IR (LLVM-like) and/or ExecutionPlans
             let base = std::path::Path::new(&label)
@@ -259,11 +261,17 @@ fn run(cli: Cli) -> Result<(), String> {
                 .and_then(|s| s.to_str())
                 .unwrap_or("out")
                 .to_string();
-            if !plan_only && matches!(format, OutputFormat::Llvm | OutputFormat::Pretty | OutputFormat::Json) {
+            if !plan_only
+                && matches!(
+                    format,
+                    OutputFormat::Llvm | OutputFormat::Pretty | OutputFormat::Json
+                )
+            {
                 let output = generate_stub_with_types(&program);
                 if matches!(format, OutputFormat::Llvm) {
                     let ll_path = format!("{base}.ll");
-                    std::fs::write(&ll_path, output).map_err(|e| format!("write {ll_path}: {e}"))?;
+                    std::fs::write(&ll_path, output)
+                        .map_err(|e| format!("write {ll_path}: {e}"))?;
                 } else {
                     match format {
                         OutputFormat::Pretty => println!("{output}"),
@@ -326,7 +334,11 @@ fn run(cli: Cli) -> Result<(), String> {
             println!("Parse and typecheck Tupã source files");
             Ok(())
         }
-        Command::Effects { file, stdin, format } => {
+        Command::Effects {
+            file,
+            stdin,
+            format,
+        } => {
             let (src, label) = read_source(file.as_ref(), stdin)?;
             let program = parse_program(&src).map_err(|e| format_parse_error(&label, &src, e))?;
             let mut all = tupa_effects::EffectSet::default();
@@ -334,7 +346,10 @@ fn run(cli: Cli) -> Result<(), String> {
                 if let tupa_parser::Item::Function(func) = item {
                     let body_expr = tupa_parser::Expr {
                         kind: tupa_parser::ExprKind::Block(func.body.clone()),
-                        span: tupa_lexer::Span { start: 0, end: src.len() },
+                        span: tupa_lexer::Span {
+                            start: 0,
+                            end: src.len(),
+                        },
                     };
                     let set = tupa_typecheck::analyze_effects(&body_expr);
                     all = all.union(&set);
@@ -343,8 +358,11 @@ fn run(cli: Cli) -> Result<(), String> {
             match format {
                 OutputFormat::Pretty => {
                     let names = all.to_names();
-                    if names.is_empty() { println!("[]"); }
-                    else { println!("{names:?}"); }
+                    if names.is_empty() {
+                        println!("[]");
+                    } else {
+                        println!("{names:?}");
+                    }
                 }
                 OutputFormat::Json => {
                     let value = json!({ "effects": all.to_names() });
@@ -355,8 +373,11 @@ fn run(cli: Cli) -> Result<(), String> {
                 }
                 OutputFormat::Llvm => {
                     let names = all.to_names();
-                    if names.is_empty() { println!("[]"); }
-                    else { println!("{names:?}"); }
+                    if names.is_empty() {
+                        println!("[]");
+                    } else {
+                        println!("{names:?}");
+                    }
                 }
             }
             Ok(())
