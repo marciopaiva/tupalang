@@ -48,7 +48,7 @@ pub fn rand_f64() -> f64 {
 
 pub fn register_default_examples() {
     // Identity
-    register_step("api_with_pipeline::step_noop", |v| Ok(v));
+    register_step("api_with_pipeline::step_noop", Ok);
     // FraudDetection demo
     register_step("fraud_complete::step_enrich", |mut v| {
         if let Some(obj) = v.as_object_mut() {
