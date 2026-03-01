@@ -97,10 +97,7 @@ fn perf_run_fraud_medium_under_target() {
         .assert()
         .success();
     let elapsed = start.elapsed();
-    println!(
-        "perf: run fraud_complete took {} ms",
-        elapsed.as_millis()
-    );
+    println!("perf: run fraud_complete took {} ms", elapsed.as_millis());
     assert!(
         elapsed.as_millis() <= 500,
         "run took {} ms (> 500ms threshold)",
