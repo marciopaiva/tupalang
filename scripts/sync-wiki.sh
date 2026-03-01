@@ -31,35 +31,40 @@ cp "${REPO_ROOT}/CONTRIBUTING.md" "${WORKDIR}/CONTRIBUTING.md"
 cp "${REPO_ROOT}/CODE_OF_CONDUCT.md" "${WORKDIR}/CODE_OF_CONDUCT.md"
 cp -r "${REPO_ROOT}/examples" "${WORKDIR}/examples"
 
-# Create Home.md
+# Sanitize for Wiki:
+# 1. Remove BOM from all .md files
+# 2. Remove .md extension from internal links (excluding http/https) to prevent raw rendering
+find "${WORKDIR}" -name "*.md" -type f -exec sed -i -e '1s/^\xEF\xBB\xBF//' -e 's/(\([^:)]*\)\.md)/(\1)/g' {} +
+
+# Create Home.md (links without .md)
 cat <<'EOF' > "${WORKDIR}/Home.md"
 # Welcome to Tupã Wiki
 
 Select your language:
 
-- [English Documentation](en/index.md)
-- [Documentação em Português](pt-br/index.md)
-- [Documentación en Español](es/index.md)
+- [English Documentation](en/index)
+- [Documentação em Português](pt-br/index)
+- [Documentación en Español](es/index)
 
 ## Useful Links
-- [Contributing](CONTRIBUTING.md)
-- [Code of Conduct](CODE_OF_CONDUCT.md)
-- [Examples](examples/README.md)
+- [Contributing](CONTRIBUTING)
+- [Code of Conduct](CODE_OF_CONDUCT)
+- [Examples](examples/README)
 EOF
 
-# Create _Sidebar.md
+# Create _Sidebar.md (links without .md)
 cat <<'EOF' > "${WORKDIR}/_Sidebar.md"
 ## Documentation
 
-- [English](en/index.md)
-- [Português](pt-br/index.md)
-- [Español](es/index.md)
+- [English](en/index)
+- [Português](pt-br/index)
+- [Español](es/index)
 
 ## Project
 
-- [Contributing](CONTRIBUTING.md)
-- [Code of Conduct](CODE_OF_CONDUCT.md)
-- [Examples](examples/README.md)
+- [Contributing](CONTRIBUTING)
+- [Code of Conduct](CODE_OF_CONDUCT)
+- [Examples](examples/README)
 EOF
 
 cd "${WORKDIR}"
