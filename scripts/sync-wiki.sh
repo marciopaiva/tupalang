@@ -13,10 +13,18 @@ git clone "${WIKI_REPO}" "${WORKDIR}"
 find "${WORKDIR}" -mindepth 1 -maxdepth 1 ! -name ".git" -exec rm -rf {} +
 
 # Copy documentation folders
-cp -r "${REPO_ROOT}/docs/en" "${WORKDIR}/en"
-cp -r "${REPO_ROOT}/docs/pt-br" "${WORKDIR}/pt-br"
-cp -r "${REPO_ROOT}/docs/es" "${WORKDIR}/es"
-cp -r "${REPO_ROOT}/docs/shared" "${WORKDIR}/shared"
+if [ -d "${REPO_ROOT}/docs/en" ]; then
+  cp -r "${REPO_ROOT}/docs/en" "${WORKDIR}/en"
+fi
+if [ -d "${REPO_ROOT}/docs/pt-br" ]; then
+  cp -r "${REPO_ROOT}/docs/pt-br" "${WORKDIR}/pt-br"
+fi
+if [ -d "${REPO_ROOT}/docs/es" ]; then
+  cp -r "${REPO_ROOT}/docs/es" "${WORKDIR}/es"
+fi
+if [ -d "${REPO_ROOT}/docs/shared" ]; then
+  cp -r "${REPO_ROOT}/docs/shared" "${WORKDIR}/shared"
+fi
 
 # Copy project root files
 cp "${REPO_ROOT}/CONTRIBUTING.md" "${WORKDIR}/CONTRIBUTING.md"
