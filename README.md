@@ -2,7 +2,6 @@
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/status-wip-orange)](docs/en/releases/roadmap.md)
-[![Wiki](https://img.shields.io/badge/wiki-Tup%C3%A3-7b5cff)](https://github.com/marciopaiva/tupalang/wiki)
 [![CI](https://github.com/marciopaiva/tupalang/actions/workflows/ci.yml/badge.svg)](https://github.com/marciopaiva/tupalang/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/marciopaiva/tupalang?display_name=tag)](https://github.com/marciopaiva/tupalang/releases)
 [![Rust](https://img.shields.io/badge/rust-stable-orange?logo=rust)](https://www.rust-lang.org/)
@@ -141,7 +140,6 @@ cargo run -p tupa-cli -- run --plan fraud_complete.plan.json --pipeline FraudDet
 - [Codegen](docs/en/reference/codegen.md)
 - [Glossary](docs/en/reference/glossary.md)
 - [FAQ](docs/en/guides/faq.md)
-- [Wiki](https://github.com/marciopaiva/tupalang/wiki)
 
 ### For contributors
 
