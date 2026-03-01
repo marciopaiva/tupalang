@@ -46,6 +46,6 @@ cargo test -p tupa-cli --test cli_golden
 
 ## Próximos passos
 
-- Leia a [SPEC](spec.md)
-- Explore [Exemplos](../examples/README.md)
+- Leia a [SPEC](../reference/spec.md)
+- Explore [Exemplos](../../examples/README.md)
 - Configure o ambiente em [Ambiente de desenvolvimento](dev_env.md)

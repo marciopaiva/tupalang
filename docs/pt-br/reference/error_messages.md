@@ -91,5 +91,5 @@ error[E3001]: invalid constraint 'misinformation' for base type F64
 
 - [Glossário de Diagnósticos](diagnostics_glossary.md)
 - [Checklist de Diagnósticos](diagnostics_checklist.md)
-- [invalid_safe_misinformation.tp](../examples/invalid_safe_misinformation.tp)
-- [invalid_safe_misinformation_base.tp](../examples/invalid_safe_misinformation_base.tp)
+- [invalid_safe_misinformation.tp](../../examples/invalid_safe_misinformation.tp)
+- [invalid_safe_misinformation_base.tp](../../examples/invalid_safe_misinformation_base.tp)

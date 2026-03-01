@@ -8,7 +8,7 @@ Definir los hitos de lanzamiento desde v0.4.x hasta v1.0, alineados con la hoja 
 
 - [Hoja de ruta](roadmap.md)
 - [Plan de adopción](../governance/adoption_plan.md)
-- [Guía de versionado](versioning.md)
+- [Guía de versionado](../reference/versioning.md)
 - [Changelog](changelog.md)
 
 ## Base (actual)

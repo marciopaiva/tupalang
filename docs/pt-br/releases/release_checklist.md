@@ -7,7 +7,7 @@ Garantir consistência e qualidade antes de publicar um release.
 ## Checklist
 
 - [ ] Atualize [CHANGELOG](changelog.md)
-- [ ] Atualize [INDEX](index.md)
+- [ ] Atualize [INDEX](../index.md)
 - [ ] Rode `cargo test`
 - [ ] Rode `markdownlint "**/*.md"`
 - [ ] Valide exemplos principais em `examples/`

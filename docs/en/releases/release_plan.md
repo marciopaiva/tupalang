@@ -7,8 +7,8 @@ This document defines the release milestones from v0.4.x up to v1.0, aligned wit
 ## References
 
 - [Roadmap](roadmap.md)
-- [Adoption Plan](adoption_plan.md)
-- [Versioning Guide](versioning.md)
+- [Adoption Plan](../governance/adoption_plan.md)
+- [Versioning Guide](../reference/versioning.md)
 - [Changelog](changelog.md)
 
 ## Baseline (current)

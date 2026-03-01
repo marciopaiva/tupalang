@@ -42,4 +42,4 @@ O projeto é um workspace Rust com múltiplas crates implementando fases do comp
 - Diagnósticos seguem spans e erros normalizados por fase.
 - Saída JSON do CLI permite integração de ferramentas.
 - Testes goldens garantem estabilidade do pipeline.
-- Veja detalhes do verificador de tipos em [typechecker_details.md](typechecker_details.md).
+- Veja detalhes do verificador de tipos em [typechecker_details.md](../reference/typechecker_details.md).

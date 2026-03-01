@@ -17,6 +17,7 @@ Las páginas del wiki se replican automáticamente desde `docs/`. Evita editar e
 - [Guía de inicio rápido](guides/getting_started.md)
 - [Ejemplos](../../examples/README.md)
 - [Ejemplos Safe (restricciones éticas)](../../examples/README.md#files)
+- [SPEC](reference/spec.md)
 - [Glosario](reference/glossary.md)
 - [FAQ](guides/faq.md)
 - [Hoja de ruta](releases/roadmap.md)

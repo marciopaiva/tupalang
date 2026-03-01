@@ -51,6 +51,6 @@ graph TD;
 
 ## Links úteis
 
-- [Arquitetura](architecture.md)
+- [Arquitetura](../overview/architecture.md)
 - [Diagnósticos](diagnostics_checklist.md)
 - [SPEC: Tipos](spec.md#type-system)

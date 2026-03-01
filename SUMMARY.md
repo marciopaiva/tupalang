@@ -11,3 +11,8 @@
 - [Quick Start Guide](docs/en/guides/getting_started.md)
 - [FAQ](docs/en/guides/faq.md)
 - [All docs](docs/en/index.md)
+
+## Español
+
+- [Documentación (ES)](docs/es/index.md)
+- [Índice (ES)](docs/es/summary.md)

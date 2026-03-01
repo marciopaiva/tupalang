@@ -2,4 +2,4 @@
 
 ## Propósito
 
-Este conteúdo foi consolidado em [design_notes.md](design_notes.md).
+Este conteúdo foi consolidado em [design_notes.md](../overview/design_notes.md).
