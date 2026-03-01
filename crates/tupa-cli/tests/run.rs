@@ -1,6 +1,7 @@
 use assert_cmd::prelude::*;
 use predicates::prelude::*;
 use std::process::Command;
+use std::time::Instant;
 
 fn repo_root() -> std::path::PathBuf {
     std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..")
@@ -56,4 +57,53 @@ fn run_credit_decision_report_contains_approved() {
         .success()
         .stdout(predicates::str::contains("\"status\": \"pass\""));
     let _ = std::fs::remove_file(&tmp_path);
+}
+
+#[test]
+fn perf_codegen_fraud_medium_under_target() {
+    let root = repo_root();
+    let start = Instant::now();
+    let mut gen = Command::cargo_bin("tupa-cli").unwrap();
+    gen.current_dir(&root)
+        .args(["codegen", "examples/pipeline/fraud_complete.tp"])
+        .assert()
+        .success();
+    let elapsed = start.elapsed();
+    println!(
+        "perf: codegen fraud_complete took {} ms",
+        elapsed.as_millis()
+    );
+    assert!(
+        elapsed.as_millis() <= 500,
+        "codegen took {} ms (> 500ms threshold)",
+        elapsed.as_millis()
+    );
+}
+
+#[test]
+fn perf_run_fraud_medium_under_target() {
+    let root = repo_root();
+    let start = Instant::now();
+    let mut run = Command::cargo_bin("tupa-cli").unwrap();
+    run.current_dir(&root)
+        .args([
+            "run",
+            "--pipeline",
+            "FraudDetection",
+            "--input",
+            "examples/pipeline/tx.json",
+            "examples/pipeline/fraud_complete.tp",
+        ])
+        .assert()
+        .success();
+    let elapsed = start.elapsed();
+    println!(
+        "perf: run fraud_complete took {} ms",
+        elapsed.as_millis()
+    );
+    assert!(
+        elapsed.as_millis() <= 500,
+        "run took {} ms (> 500ms threshold)",
+        elapsed.as_millis()
+    );
 }

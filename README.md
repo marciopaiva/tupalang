@@ -1,7 +1,7 @@
-﻿﻿﻿﻿# ⚡ Tupã (TupaLang)
+﻿﻿﻿# ⚡ Tupã (TupaLang)
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/status-wip-orange)](docs/ROADMAP.md)
+[![Status](https://img.shields.io/badge/status-wip-orange)](docs/en/releases/roadmap.md)
 [![Wiki](https://img.shields.io/badge/wiki-Tup%C3%A3-7b5cff)](https://github.com/marciopaiva/tupalang/wiki)
 [![CI](https://github.com/marciopaiva/tupalang/actions/workflows/ci.yml/badge.svg)](https://github.com/marciopaiva/tupalang/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/marciopaiva/tupalang?display_name=tag)](https://github.com/marciopaiva/tupalang/releases)
@@ -54,18 +54,18 @@ Implemented:
 - JSON outputs in the CLI (lex/parse/check/codegen)
 - Hybrid backend: textual IR + ExecutionPlan JSON for pipelines
 - Pipeline validators:
-  - @deterministic rejects Random/Time (E2005)
+  - `@deterministic` rejects Random/Time (E2005)
   - Constraints with undefined metrics (E2006)
-- Minimal runtime to execute pipelines (tupa run) with constraint report
+- Minimal runtime to execute pipelines (`tupa run`) with constraint report
 - Integrated audit in run (hash and AST fingerprint)
 
-In progress (0.7.0):
+In progress (0.8.0):
 
-- Tooling and orchestration foundation
-- Official formatter (fmt)
-- Minimal linter (lint)
-- CLI stabilization (build/run/fmt/check)
+- Native backend (LLVM) for pipelines
 - Controlled Python integration
+- Official formatter (`fmt`)
+- Minimal linter (`lint`)
+- CLI stabilization (`build`/`run`/`fmt`/`check`)
 
 ## Quick example
 
@@ -105,7 +105,7 @@ cargo run -p tupa-cli -- codegen --format=json examples/pipeline/fraud_complete.
 cargo run -p tupa-cli -- run --pipeline FraudDetection --input examples/pipeline/tx.json examples/pipeline/fraud_complete.tp
 ```
 
-Gerar somente plano:
+Generate plan only:
 
 ```bash
 cargo run -p tupa-cli -- codegen --plan-only examples/pipeline/fraud_complete.tp
@@ -119,41 +119,46 @@ cargo run -p tupa-cli -- run --plan fraud_complete.plan.json --pipeline FraudDet
 
 ## Roadmap
 
-- [docs/MVP_PLAN.md](docs/MVP_PLAN.md)
-- [docs/ADOPTION_PLAN.md](docs/ADOPTION_PLAN.md)
-- [docs/ROADMAP.md](docs/ROADMAP.md)
+- [MVP Plan](docs/en/overview/mvp_plan.md)
+- [Adoption Plan](docs/en/governance/adoption_plan.md)
+- [Roadmap](docs/en/releases/roadmap.md)
 
 ## Resources
 
+### Documentation by Language
+
+- [English Documentation](docs/en/index.md)
+- [Documentação em Português](docs/pt-br/index.md)
+- [Documentación en Español](docs/es/index.md)
+
 ### For users
 
-- [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)
-- [examples/README.md](examples/README.md)
-- [docs/SPEC.md](docs/SPEC.md)
-- [docs/PIPELINE_GUIDE.md](docs/PIPELINE_GUIDE.md)
-- [docs/EFFECT_SYSTEM.md](docs/EFFECT_SYSTEM.md)
-- [docs/CODEGEN.md](docs/CODEGEN.md)
-- [docs/GLOSSARY.md](docs/GLOSSARY.md)
-- [docs/FAQ.md](docs/FAQ.md)
-- [docs/README.md](docs/README.md)
+- [Getting Started](docs/en/guides/getting_started.md)
+- [Examples](examples/README.md)
+- [Language Specification](docs/en/reference/spec.md)
+- [Pipeline Guide](docs/en/guides/pipeline_guide.md)
+- [Effect System](docs/en/reference/effect_system.md)
+- [Codegen](docs/en/reference/codegen.md)
+- [Glossary](docs/en/reference/glossary.md)
+- [FAQ](docs/en/guides/faq.md)
 - [Wiki](https://github.com/marciopaiva/tupalang/wiki)
 
 ### For contributors
 
 - [CONTRIBUTING.md](CONTRIBUTING.md)
 - [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
-- [docs/DEV_ENV.md](docs/DEV_ENV.md)
-- [docs/DIAGNOSTICS_CHECKLIST.md](docs/DIAGNOSTICS_CHECKLIST.md)
-- [docs/DIAGNOSTICS_GLOSSARY.md](docs/DIAGNOSTICS_GLOSSARY.md)
-- [docs/TESTING.md](docs/TESTING.md)
-- [docs/ERROR_MESSAGES.md](docs/ERROR_MESSAGES.md)
+- [Development Environment](docs/en/guides/dev_env.md)
+- [Diagnostics Checklist](docs/en/reference/diagnostics_checklist.md)
+- [Diagnostics Glossary](docs/en/reference/diagnostics_glossary.md)
+- [Testing Guide](docs/en/guides/testing.md)
+- [Error Messages](docs/en/reference/error_messages.md)
 
 ## Contributing
 
 1. Read [CONTRIBUTING.md](CONTRIBUTING.md).
 2. See examples in [examples/README.md](examples/README.md).
-3. Suggestions and questions: open an issue or use the [FAQ](docs/FAQ.md).
-4. Documentation: follow [docs/DOCS_CONTRIBUTING.md](docs/DOCS_CONTRIBUTING.md).
+3. Suggestions and questions: open an issue or use the [FAQ](docs/en/guides/faq.md).
+4. Documentation: follow [Docs Contributing Guide](docs/en/guides/docs_contributing.md).
 
 ## License
 

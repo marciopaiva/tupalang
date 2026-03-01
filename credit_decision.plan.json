@@ -43,9 +43,9 @@
     }
   ],
   "metrics": {
-    "approval_rate": 0.9,
+    "risk_rate": 0.1,
     "avg_score": 720.0,
-    "risk_rate": 0.1
+    "approval_rate": 0.9
   },
   "metric_plans": []
 }

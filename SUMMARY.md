@@ -2,24 +2,12 @@
 
 ## Português
 
-- [README](README.md)
-- [Guia de Início Rápido](docs/GETTING_STARTED.md)
-- [FAQ](docs/FAQ.md)
-- [Arquitetura](docs/ARCHITECTURE.md)
-- [SPEC](docs/SPEC.md)
-- [Erros Comuns](docs/COMMON_ERRORS.md)
-- [Checklist de Diagnósticos](docs/DIAGNOSTICS_CHECKLIST.md)
-- [Detalhes do Typechecker](docs/TYPECHECKER_DETAILS.md)
-- [API e Extensibilidade](docs/API_EXTENSIBILITY.md)
-- [Tutoriais Passo a Passo](docs/TUTORIALS.md)
-- [Changelog](docs/CHANGELOG.md)
-- [Plano MVP](docs/MVP_PLAN.md)
-- [Guia de Contribuição](CONTRIBUTING.md)
-- [Todos os documentos](docs/README.md)
+- [Documentação (PT-BR)](docs/pt-br/index.md)
+- [Índice (PT-BR)](docs/pt-br/summary.md)
 
 ## English
 
-- [README](README.md)
-- [Quick Start Guide](docs/GETTING_STARTED.md)
-- [FAQ](docs/FAQ.md)
-- [All docs](docs/README.md)
+- [Documentation](docs/en/index.md)
+- [Quick Start Guide](docs/en/guides/getting_started.md)
+- [FAQ](docs/en/guides/faq.md)
+- [All docs](docs/en/index.md)

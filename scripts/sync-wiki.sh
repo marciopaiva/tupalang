@@ -9,79 +9,49 @@ rm -rf "${WORKDIR}"
 
 git clone "${WIKI_REPO}" "${WORKDIR}"
 
-find "${WORKDIR}" -maxdepth 1 -type f -name "*.md" -delete
+# Clean existing content (except .git)
+find "${WORKDIR}" -maxdepth 1 ! -name ".git" ! -name "." -exec rm -rf {} +
 
-cp "${REPO_ROOT}/README.md" "${WORKDIR}/Home.md"
-cp "${REPO_ROOT}/docs"/*.md "${WORKDIR}/"
-cp "${REPO_ROOT}/CONTRIBUTING.md" "${WORKDIR}/Contributing.md"
-cp "${REPO_ROOT}/CODE_OF_CONDUCT.md" "${WORKDIR}/Code-of-Conduct.md"
-cp "${REPO_ROOT}/examples/README.md" "${WORKDIR}/Examples.md"
+# Copy documentation folders
+cp -r "${REPO_ROOT}/docs/en" "${WORKDIR}/en"
+cp -r "${REPO_ROOT}/docs/pt-br" "${WORKDIR}/pt-br"
+cp -r "${REPO_ROOT}/docs/es" "${WORKDIR}/es"
+cp -r "${REPO_ROOT}/docs/shared" "${WORKDIR}/shared"
 
+# Copy project root files
+cp "${REPO_ROOT}/CONTRIBUTING.md" "${WORKDIR}/CONTRIBUTING.md"
+cp "${REPO_ROOT}/CODE_OF_CONDUCT.md" "${WORKDIR}/CODE_OF_CONDUCT.md"
+cp -r "${REPO_ROOT}/examples" "${WORKDIR}/examples"
+
+# Create Home.md
+cat <<'EOF' > "${WORKDIR}/Home.md"
+# Welcome to Tupã Wiki
+
+Select your language:
+
+- [English Documentation](en/index.md)
+- [Documentação em Português](pt-br/index.md)
+- [Documentación en Español](es/index.md)
+
+## Useful Links
+- [Contributing](CONTRIBUTING.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Examples](examples/README.md)
+EOF
+
+# Create _Sidebar.md
 cat <<'EOF' > "${WORKDIR}/_Sidebar.md"
-## Português
-- [[Home]]
-- [[GETTING_STARTED]]
-- [[Examples]]
-- [[DEV_ENV]]
-- [[GLOSSARY]]
-- [[ARCHITECTURE]]
-- [[STYLE_GUIDE]]
-- [[FAQ]]
-- [[COMMON_ERRORS]]
-- [[ROADMAP]]
-- [[EXAMPLES_GUIDE]]
-- [[SYNTAX_GLOSSARY]]
-- [[TYPES_GLOSSARY]]
-- [[ENV_SETUP]]
-- [[COMPATIBILITY]]
-- [[PROJECT_OVERVIEW]]
+## Documentation
 
-## English
-- [[Home.en|Home (EN)]]
-- [[GETTING_STARTED.en|Getting Started]]
-- [[Examples|Examples]]
-- [[DEV_ENV.en|Dev Env]]
-- [[GLOSSARY.en|Glossary]]
-- [[ARCHITECTURE|Architecture]]
-- [[STYLE_GUIDE|Style Guide]]
-- [[FAQ.en|FAQ]]
-- [[COMMON_ERRORS|Common Errors]]
-- [[ROADMAP|Roadmap]]
-- [[EXAMPLES_GUIDE|Examples Guide]]
-- [[SYNTAX_GLOSSARY|Syntax Glossary]]
-- [[TYPES_GLOSSARY|Types Glossary]]
-- [[ENV_SETUP|Environment Setup]]
-- [[COMPATIBILITY|Compatibility]]
-- [[PROJECT_OVERVIEW|Project Overview]]
+- [English](en/index)
+- [Português](pt-br/index)
+- [Español](es/index)
 
-## Reference
-- [[SPEC]]
-- [[DIAGNOSTICS_CHECKLIST]]
-- [[DIAGNOSTICS_GLOSSARY]]
-- [[CODEGEN]]
-- [[AUDIT_ENGINE]]
+## Project
 
-## Plans
-- [[MVP_PLAN]]
-- [[ADOPTION_PLAN]]
-- [[CHANGELOG]]
-- [[RELEASE_CHECKLIST]]
-- [[RELEASE_GUIDE]]
-- [[VERSIONING]]
-
-## Design Notes
-- [[DESIGN_NOTES]]
-
-## Contribute
-- [[Contributing]]
-- [[Code-of-Conduct]]
-- [[DOCS_CONTRIBUTING]]
-- [[TESTING]]
-- [[CI_GUIDE]]
-- [[ERROR_MESSAGES]]
-- [[GOVERNANCE]]
-- [[CONTRIBUTING_FAQ]]
-- [[ISSUES_GUIDE]]
+- [Contributing](CONTRIBUTING)
+- [Code of Conduct](CODE_OF_CONDUCT)
+- [Examples](examples/README)
 EOF
 
 cd "${WORKDIR}"
@@ -95,5 +65,4 @@ if git diff --cached --quiet; then
   exit 0
 fi
 
-git commit -m "Sync wiki from docs"
-git push
+git commit -m "Sync wiki from docs (new structure)"
