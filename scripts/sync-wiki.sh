@@ -74,3 +74,4 @@ if git diff --cached --quiet; then
 fi
 
 git commit -m "Sync wiki from docs (new structure)"
+git push origin HEAD
