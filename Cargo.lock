@@ -489,7 +489,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-audit"
-version = "0.6.0-dev"
+version = "0.8.0"
 dependencies = [
  "serde_json",
  "sha3",
@@ -498,7 +498,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-cli"
-version = "0.6.0-dev"
+version = "0.8.0"
 dependencies = [
  "assert_cmd",
  "clap",
@@ -515,7 +515,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-codegen"
-version = "0.6.0-dev"
+version = "0.8.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -526,11 +526,11 @@ dependencies = [
 
 [[package]]
 name = "tupa-effects"
-version = "0.6.0-dev"
+version = "0.8.0"
 
 [[package]]
 name = "tupa-lexer"
-version = "0.6.0-dev"
+version = "0.8.0"
 dependencies = [
  "nom",
  "thiserror",
@@ -539,7 +539,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-parser"
-version = "0.6.0-dev"
+version = "0.8.0"
 dependencies = [
  "thiserror",
  "tupa-lexer",
@@ -547,7 +547,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-runtime"
-version = "0.6.0-dev"
+version = "0.8.0"
 dependencies = [
  "once_cell",
  "serde",
@@ -559,7 +559,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-typecheck"
-version = "0.6.0-dev"
+version = "0.8.0"
 dependencies = [
  "thiserror",
  "tupa-effects",

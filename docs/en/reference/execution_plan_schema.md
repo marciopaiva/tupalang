@@ -28,7 +28,7 @@ This document defines the JSON schema emitted by the pipeline codegen and consum
 ```json
 {
   "name": "FraudDetection",
-  "version": "0.6.0-dev",
+  "version": "0.8.0",
   "seed": 42,
   "input_schema": { "kind": "ident", "name": "Transaction" },
   "steps": [

@@ -1,6 +1,6 @@
 [package]
 name = "tupa-effects"
-version = "0.6.0-dev"
+version = "0.8.0"
 edition = "2021"
 description = "Effect system for TupãLang: IO/Random/Time tracking and governance primitives"
 license = "Apache-2.0"
