@@ -10,7 +10,7 @@ rm -rf "${WORKDIR}"
 git clone "${WIKI_REPO}" "${WORKDIR}"
 
 # Clean existing content (except .git)
-find "${WORKDIR}" -maxdepth 1 ! -name ".git" ! -name "." -exec rm -rf {} +
+find "${WORKDIR}" -mindepth 1 -maxdepth 1 ! -name ".git" -exec rm -rf {} +
 
 # Copy documentation folders
 cp -r "${REPO_ROOT}/docs/en" "${WORKDIR}/en"
@@ -43,15 +43,15 @@ EOF
 cat <<'EOF' > "${WORKDIR}/_Sidebar.md"
 ## Documentation
 
-- [English](en/index)
-- [Português](pt-br/index)
-- [Español](es/index)
+- [English](en/index.md)
+- [Português](pt-br/index.md)
+- [Español](es/index.md)
 
 ## Project
 
-- [Contributing](CONTRIBUTING)
-- [Code of Conduct](CODE_OF_CONDUCT)
-- [Examples](examples/README)
+- [Contributing](CONTRIBUTING.md)
+- [Code of Conduct](CODE_OF_CONDUCT.md)
+- [Examples](examples/README.md)
 EOF
 
 cd "${WORKDIR}"

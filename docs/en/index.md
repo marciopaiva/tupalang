@@ -8,8 +8,8 @@ Everything needed to learn, build, and ship with Tupã — from the quick start 
 
 English is the canonical source. Translations:
 
-- PT‑BR: [docs/pt-br](../pt-br/the documentation index)
-- ES: [docs/es](../es/the documentation index)
+- PT‑BR: [docs/pt-br](../pt-br/index.md)
+- ES: [docs/es](../es/index.md)
 
 ## Single Source of Truth
 
