@@ -4,7 +4,6 @@ use tupa_codegen::generate_stub_with_types;
 use tupa_parser::{Item, parse_program, Expr, ExprKind, Span, ParserError};
 use tupa_lexer::LexerError;
 use tupa_runtime::Runtime;
-use tupa_audit;
 use tupa_typecheck::{typecheck_program_with_warnings, analyze_effects, TypeError};
 use std::collections::HashMap;
 use serde_json::json;
@@ -114,10 +113,10 @@ async fn run_check(file: String, format: String) -> Result<(), String> {
                         TypeError::UnprovenConstraint { span, .. } |
                         TypeError::BreakOutsideLoop { span } |
                         TypeError::ContinueOutsideLoop { span } |
-                        TypeError::NonExhaustiveMatch { span } => span.clone().unwrap_or(Span { start: 0, end: 0 }),
+                        TypeError::NonExhaustiveMatch { span } => (*span).unwrap_or(Span { start: 0, end: 0 }),
                         
                         TypeError::ImpureInDeterministic { span, .. } |
-                        TypeError::UndefinedMetric { span, .. } => span.clone(),
+                        TypeError::UndefinedMetric { span, .. } => *span,
                     };
                     let code = get_error_code(&e);
                     if format == "json" {
@@ -130,10 +129,10 @@ async fn run_check(file: String, format: String) -> Result<(), String> {
         }
         Err(e) => {
             let span = match &e {
-                ParserError::Unexpected(_, s) => s.clone(),
+                ParserError::Unexpected(_, s) => *s,
                 ParserError::Eof(pos) => Span { start: *pos, end: *pos },
                 ParserError::Lexer(tupa_lexer::LexerError::Unexpected(_, pos)) => Span { start: *pos, end: *pos + 1 },
-                ParserError::MissingSemicolon(s) => s.clone(),
+                ParserError::MissingSemicolon(s) => *s,
             };
             let msg = match &e {
                 ParserError::Unexpected(tok, _) => format!("unexpected token {:?}", tok),
@@ -277,10 +276,10 @@ async fn run_parse(file: String, format: String) -> Result<(), String> {
         }
         Err(e) => {
             let span = match &e {
-                ParserError::Unexpected(_, s) => s.clone(),
+                ParserError::Unexpected(_, s) => *s,
                 ParserError::Eof(pos) => Span { start: *pos, end: *pos },
                 ParserError::Lexer(tupa_lexer::LexerError::Unexpected(_, pos)) => Span { start: *pos, end: *pos + 1 },
-                ParserError::MissingSemicolon(s) => s.clone(),
+                ParserError::MissingSemicolon(s) => *s,
             };
             let msg = match &e {
                 ParserError::Unexpected(tok, _) => format!("unexpected token {:?}", tok),
@@ -390,10 +389,10 @@ async fn run_codegen(file: String, format: String, plan_only: bool) -> Result<()
                             TypeError::UnprovenConstraint { span, .. } |
                             TypeError::BreakOutsideLoop { span } |
                             TypeError::ContinueOutsideLoop { span } |
-                            TypeError::NonExhaustiveMatch { span } => span.clone().unwrap_or(Span { start: 0, end: 0 }),
+                            TypeError::NonExhaustiveMatch { span } => (*span).unwrap_or(Span { start: 0, end: 0 }),
                             
                             TypeError::ImpureInDeterministic { span, .. } |
-                            TypeError::UndefinedMetric { span, .. } => span.clone(),
+                            TypeError::UndefinedMetric { span, .. } => *span,
                         };
                         let code = get_error_code(&e);
                         Err(format_json_error(e.to_string(), span, &file, &content, code))
@@ -405,10 +404,10 @@ async fn run_codegen(file: String, format: String, plan_only: bool) -> Result<()
         }
         Err(e) => {
             let span = match &e {
-                ParserError::Unexpected(_, s) => s.clone(),
+                ParserError::Unexpected(_, s) => *s,
                 ParserError::Eof(pos) => Span { start: *pos, end: *pos },
                 ParserError::Lexer(tupa_lexer::LexerError::Unexpected(_, pos)) => Span { start: *pos, end: *pos + 1 },
-                ParserError::MissingSemicolon(s) => s.clone(),
+                ParserError::MissingSemicolon(s) => *s,
             };
             let msg = match &e {
                 ParserError::Unexpected(tok, _) => format!("unexpected token {:?}", tok),
@@ -491,10 +490,10 @@ async fn run_effects(file: String, format: String) -> Result<(), String> {
                             TypeError::UnprovenConstraint { span, .. } |
                             TypeError::BreakOutsideLoop { span } |
                             TypeError::ContinueOutsideLoop { span } |
-                            TypeError::NonExhaustiveMatch { span } => span.clone().unwrap_or(Span { start: 0, end: 0 }),
+                            TypeError::NonExhaustiveMatch { span } => (*span).unwrap_or(Span { start: 0, end: 0 }),
                             
                             TypeError::ImpureInDeterministic { span, .. } |
-                            TypeError::UndefinedMetric { span, .. } => span.clone(),
+                            TypeError::UndefinedMetric { span, .. } => *span,
                         };
                         let code = get_error_code(&e);
                         Err(format_json_error(e.to_string(), span, &file, &content, code))
@@ -506,10 +505,10 @@ async fn run_effects(file: String, format: String) -> Result<(), String> {
         }
         Err(e) => {
             let span = match &e {
-                ParserError::Unexpected(_, s) => s.clone(),
+                ParserError::Unexpected(_, s) => *s,
                 ParserError::Eof(pos) => Span { start: *pos, end: *pos },
                 ParserError::Lexer(tupa_lexer::LexerError::Unexpected(_, pos)) => Span { start: *pos, end: *pos + 1 },
-                ParserError::MissingSemicolon(s) => s.clone(),
+                ParserError::MissingSemicolon(s) => *s,
             };
             let msg = match &e {
                 ParserError::Unexpected(tok, _) => format!("unexpected token {:?}", tok),

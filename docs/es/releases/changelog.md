@@ -5,12 +5,32 @@
 
 Registrar cambios relevantes por versión.
 
-## 0.8.0 (No lanzado)
+## 0.8.0 (2026-03-04)
 
 - Tema del release: integración Python controlada y auditable para pipelines de producción.
 - Principio guía: "Integrar sin perder gobernanza — cada llamada Python es rastreada, validada y auditable".
 - Alcance: orquestación de PyTorch/TensorFlow vía adaptadores auditados.
 - Enfoque: rastreo de ejecución, hooks de validación y esquema de log de auditoría para llamadas Python.
+
+### Añadido
+
+- **Interoperabilidad Python (`tupa-pyffi`)**:
+  - Puente seguro para invocar módulos Python (ej. PyTorch, TensorFlow).
+  - Sintaxis de paso `py:module.func` para integración directa.
+- **Resiliencia del Runtime**:
+  - **Circuit Breaker**: Previene fallos en cascada con umbrales configurables y timeouts de reset.
+  - **Soporte Async**: Ejecución nativa `async/await` para pasos I/O-bound.
+- **Motor de Backtesting**:
+  - Simulación histórica con seguimiento de PnL y evaluación de restricciones de riesgo.
+  - Logs de auditoría detallados para cada operación y bloqueo de riesgo.
+- **Logging de Auditoría Estructurado**:
+  - Logs estructurados en JSON vía `tracing` para cumplimiento normativo.
+- **Validación**:
+  - **Formas de Tensores**: Validación automática de esquema para inputs/outputs de tensores (ej. `[28, 28]`).
+  - **Atributos de Pipeline**: Soporte para declaraciones `@deterministic(seed=...)` y `@external`.
+- **Mejoras del Parser**:
+  - Correcciones para sintaxis de brazos de match (`=>`) y tipos de retorno de función (`->`).
+  - Recuperación de errores mejorada y seguimiento de spans.
 
 ## 0.7.0 (2026-02-20)
 

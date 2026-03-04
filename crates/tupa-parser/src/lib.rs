@@ -595,12 +595,7 @@ impl Parser {
         };
         self.expect(Token::LBrace)?;
         let mut methods = Vec::new();
-        loop {
-            let token = match self.peek() {
-                Some(t) => t.clone(),
-                None => break,
-            };
-            
+        while let Some(token) = self.peek().cloned() {
             if token == Token::RBrace {
                 break;
             }
@@ -758,12 +753,12 @@ impl Parser {
                 "steps" => {
                     self.expect(Token::LBracket)?;
                     while !matches!(self.peek(), Some(Token::RBracket)) {
-                        let _ = match self.next() {
+                        match self.next() {
                             Some(TokenSpan { token: Token::Ident(s), .. }) if s == "step" => {}, // allow "step" ident
                             Some(TokenSpan { token: Token::Step, .. }) => {}, // allow Step token if exists
                             Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
                             None => return Err(ParserError::Eof(self.eof_pos)),
-                        };
+                        }
                         self.expect(Token::LParen)?;
                         let (step_name, name_span) = match self.next() {
                             Some(TokenSpan { token: Token::Str(value), span }) => (value, span),

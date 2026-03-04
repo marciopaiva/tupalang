@@ -255,7 +255,7 @@ pub fn codegen_pipeline(module_name: &str, pipeline: &PipelineDecl, program: &Pr
     let plan = ExecutionPlan {
         name: pipeline.name.clone(),
         version: env!("CARGO_PKG_VERSION").to_string(),
-        seed: pipeline.seed.map(|s| s as u64),
+        seed: pipeline.seed,
         input_schema: type_to_schema(&pipeline.input_ty),
         output_schema: pipeline.output_ty.as_ref().map(type_to_schema),
         steps,

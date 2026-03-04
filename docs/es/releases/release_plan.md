@@ -99,6 +99,28 @@ Definir los hitos de lanzamiento desde v0.4.x hasta v1.0, alineados con la hoja 
 
 ### 0.8.x — Integración controlada de Python y auditabilidad
 
+**Estado**: Lanzado (0.8.0 el 2026-03-04)
+
+**Tema central**: Pipelines listos para producción con resiliencia e integración de IA en Python.
+
+#### Funcionalidades Entregadas
+- **Interop Python**: Puente `tupa-pyffi` para PyTorch/TensorFlow.
+- **Resiliencia del Runtime**: Patrón Circuit Breaker y soporte Async I/O.
+- **Simulación**: Motor de Backtesting completo con PnL y chequeos de Riesgo.
+- **Observabilidad**: Logs de auditoría estructurados en JSON vía `tracing`.
+- **Validación**: Restricciones de forma de tensores y atributos de pipeline.
+
+#### 0.8.0 — Plan estratégico (Completado)
+
+**Prioridades técnicas**
+1. Puente FFI Python con conversión de tipos segura. (Hecho)
+2. Mecanismo Circuit Breaker para llamadas externas. (Hecho)
+3. Runtime Async para pipelines de alto rendimiento. (Hecho)
+4. Motor de Backtesting para validación de estrategias. (Hecho)
+
+**Métrica de éxito**
+- Un pipeline de producción (MNIST/Trading) se ejecuta con total auditabilidad y resiliencia. (Logrado)
+
 - Ejecución de PyTorch/TensorFlow vía adaptadores controlados.
 - Llamadas Python rastreables con hooks de validación.
 - Esquema de log de auditoría para ejecución externa (integraciones Python).
