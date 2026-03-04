@@ -1,3 +1,18 @@
+//! # ViperTrade Backtesting Example
+//! 
+//! This example demonstrates how to use the Tupã Runtime to backtest a trading strategy.
+//! It simulates a Simple Moving Average (SMA) Crossover strategy against synthetic market data.
+//!
+//! ## Features Demonstrated
+//! - **Backtest Engine**: Running a strategy over historical data with PnL tracking.
+//! - **Risk Constraints**: Validating trade signals against risk rules.
+//! - **Audit Logging**: Emitting structured JSON logs for every trade.
+//!
+//! ## Usage
+//! ```bash
+//! cargo run -p tupa-runtime --example viper_backtest
+//! ```
+
 use serde_json::{json, Value};
 use tupa_runtime::{run_backtest, register_step};
 use tupa_codegen::execution_plan::{ExecutionPlan, TypeSchema, StepPlan, ConstraintPlan};

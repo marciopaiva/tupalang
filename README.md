@@ -1,163 +1,50 @@
-﻿﻿# ⚡ Tupã (TupaLang)
+﻿﻿# Tupã Language
 
-[![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/status-wip-orange)](docs/en/releases/roadmap.md)
-[![CI](https://github.com/marciopaiva/tupalang/actions/workflows/ci.yml/badge.svg)](https://github.com/marciopaiva/tupalang/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/marciopaiva/tupalang?display_name=tag)](https://github.com/marciopaiva/tupalang/releases)
-[![Rust](https://img.shields.io/badge/rust-stable-orange?logo=rust)](https://www.rust-lang.org/)
-[![Brazil](https://img.shields.io/badge/made_in-Brazil-009739?logo=brazil)](https://github.com/marciopaiva/tupalang)
+Tupã is a safe, efficient, and deterministic pipeline orchestration language designed for high-reliability systems, including financial trading bots and AI inference workflows.
 
-> Deterministic language for orchestration, validation, and auditing of critical AI pipelines.
+## Key Features
 
-## Index
+- **Deterministic Execution**: Pipelines are guaranteed to produce the same output for the same input (unless explicitly marked otherwise).
+- **Type Safety**: Strong static analysis prevents runtime errors before execution.
+- **Polyglot Runtime**: Seamlessly orchestrate Rust functions and Python AI models (via FFI).
+- **Zero-Cost Abstractions**: Compiles to efficient Rust execution plans.
 
-- [Vision](#vision)
-- [The problem](#the-problem)
-- [The Tupã proposal](#the-tupã-proposal)
-- [Current status](#current-status)
-- [Quick example](#quick-example)
-- [How to run](#how-to-run)
-- [Roadmap](#roadmap)
-- [Resources](#resources)
-- [Contributing](#contributing)
+## Trading Bot Support (New in v0.8.0)
 
-## Vision
+Tupã now includes specialized features for building robust crypto trading bots (like ViperTrade):
 
-Tupã is an application language focused on governance, determinism, and auditability for AI pipelines. It does not replace PyTorch, TensorFlow, or JAX. It coordinates, validates, and formalizes their use.
+### 1. Circuit Breaker
+Prevents cascading failures by automatically stopping execution when error thresholds are reached.
+- **Configurable**: Set failure counts and reset timeouts.
+- **Resilient**: Automatically enters "Half-Open" state to test recovery.
+- **Example**: `cargo run -p tupa-runtime --example viper_circuit_breaker`
 
-## The problem
+### 2. Backtesting Engine
+Simulate trading strategies against historical data with built-in PnL tracking.
+- **High Performance**: Runs strategies in the optimized Rust runtime.
+- **Risk Management**: Validates constraints (e.g., max drawdown) on every step.
+- **Example**: `cargo run -p tupa-runtime --example viper_backtest`
 
-AI pipelines are still fragile for regulated environments:
+### 3. Structured Audit Logging
+Compliance-ready JSON logging via `tracing`. Tracks every decision, trade, and risk check.
 
-- Loose, non-deterministic scripts
-- Executions that are hard to audit
-- Weak reproducibility
-- Inconsistent validators
+## Quick Start
 
-In fintech, healthcare, defense, and insurance, this is not acceptable.
-
-## The Tupã proposal
-
-Tupã provides:
-
-- Explicit determinism
-- Formal constraints as first-class citizens
-- Integrated auditing
-- Safe orchestration of the existing ecosystem
-
-## Current status
-
-Implemented:
-
-- Lexer, parser, typechecker, and CLI
-- JSON outputs in the CLI (lex/parse/check/codegen)
-- Hybrid backend: textual IR + ExecutionPlan JSON for pipelines
-- Pipeline validators:
-  - `@deterministic` rejects Random/Time (E2005)
-  - Constraints with undefined metrics (E2006)
-- Minimal runtime to execute pipelines (`tupa run`) with constraint report
-- Integrated audit in run (hash and AST fingerprint)
-
-In progress (0.8.0):
-
-- Native backend (LLVM) for pipelines
-- Controlled Python integration
-- Official formatter (`fmt`)
-- Minimal linter (`lint`)
-- CLI stabilization (`build`/`run`/`fmt`/`check`)
-
-## Quick example
-
-```tupa
-fn safe_text(x: Safe<string, !misinformation>) -> Safe<string, !misinformation> {
-  return x
-}
-
-let inc: fn(i64) -> i64 = |x| x + 1
-print(inc(41))
+### Building
+```bash
+cargo build --release
 ```
 
-## How to run
-
+### Running Tests
 ```bash
-git clone https://github.com/marciopaiva/tupalang.git
-cd tupalang
 cargo test
 ```
 
-### Basic CLI
-
+### Running Examples
 ```bash
-cargo run -p tupa-cli -- parse examples/hello.tp
+# Run the Backtest simulation
+cargo run -p tupa-runtime --example viper_backtest
+
+# Run the Circuit Breaker demo
+cargo run -p tupa-runtime --example viper_circuit_breaker
 ```
-
-```bash
-cargo run -p tupa-cli -- check examples/hello.tp
-```
-
-### Pipelines
-
-Generate a plan and run:
-
-```bash
-cargo run -p tupa-cli -- codegen --format=json examples/pipeline/fraud_complete.tp
-cargo run -p tupa-cli -- run --pipeline FraudDetection --input examples/pipeline/tx.json examples/pipeline/fraud_complete.tp
-```
-
-Generate plan only:
-
-```bash
-cargo run -p tupa-cli -- codegen --plan-only examples/pipeline/fraud_complete.tp
-```
-
-Run from a plan:
-
-```bash
-cargo run -p tupa-cli -- run --plan fraud_complete.plan.json --pipeline FraudDetection --input examples/pipeline/tx.json
-```
-
-## Roadmap
-
-- [MVP Plan](docs/en/overview/mvp_plan.md)
-- [Adoption Plan](docs/en/governance/adoption_plan.md)
-- [Roadmap](docs/en/releases/roadmap.md)
-
-## Resources
-
-### Documentation by Language
-
-- [English Documentation](docs/en/index.md)
-- [Documentação em Português](docs/pt-br/index.md)
-- [Documentación en Español](docs/es/index.md)
-
-### For users
-
-- [Getting Started](docs/en/guides/getting_started.md)
-- [Examples](examples/README.md)
-- [Language Specification](docs/en/reference/spec.md)
-- [Pipeline Guide](docs/en/guides/pipeline_guide.md)
-- [Effect System](docs/en/reference/effect_system.md)
-- [Codegen](docs/en/reference/codegen.md)
-- [Glossary](docs/en/reference/glossary.md)
-- [FAQ](docs/en/guides/faq.md)
-
-### For contributors
-
-- [CONTRIBUTING.md](CONTRIBUTING.md)
-- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
-- [Development Environment](docs/en/guides/dev_env.md)
-- [Diagnostics Checklist](docs/en/reference/diagnostics_checklist.md)
-- [Diagnostics Glossary](docs/en/reference/diagnostics_glossary.md)
-- [Testing Guide](docs/en/guides/testing.md)
-- [Error Messages](docs/en/reference/error_messages.md)
-
-## Contributing
-
-1. Read [CONTRIBUTING.md](CONTRIBUTING.md).
-2. See examples in [examples/README.md](examples/README.md).
-3. Suggestions and questions: open an issue or use the [FAQ](docs/en/guides/faq.md).
-4. Documentation: follow [Docs Contributing Guide](docs/en/guides/docs_contributing.md).
-
-## License
-
-Apache License 2.0. See [LICENSE](LICENSE).

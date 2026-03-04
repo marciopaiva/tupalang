@@ -1,3 +1,19 @@
+//! # ViperTrade Circuit Breaker Example
+//! 
+//! This example demonstrates the Circuit Breaker mechanism in the Tupã Runtime.
+//! It simulates a flaky external API (e.g., an exchange) and shows how the runtime
+//! automatically stops execution to prevent cascading failures.
+//!
+//! ## Features Demonstrated
+//! - **Circuit Breaker**: Automatic failure detection and blocking.
+//! - **State Transitions**: Closed -> Open -> Half-Open -> Closed.
+//! - **Recovery**: Testing connectivity after a timeout.
+//!
+//! ## Usage
+//! ```bash
+//! cargo run -p tupa-runtime --example viper_circuit_breaker
+//! ```
+
 use serde_json::{json, Value};
 use tupa_runtime::{run_pipeline_async, register_step, configure_circuit_breaker};
 use tupa_codegen::execution_plan::{ExecutionPlan, TypeSchema, StepPlan};

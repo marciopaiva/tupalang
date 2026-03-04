@@ -1,3 +1,15 @@
+//! # Tupã Runtime
+//!
+//! The runtime engine for executing Tupã pipelines.
+//!
+//! ## Trading Support
+//! This crate includes specialized features for financial trading bots:
+//! - **Circuit Breaker**: `CircuitBreaker` struct for failure handling.
+//! - **Backtesting**: `run_backtest` function for historical simulation.
+//! - **Audit Logs**: Structured JSON logging for compliance.
+//!
+//! See `examples/viper_backtest.rs` and `examples/viper_circuit_breaker.rs` for usage.
+
 use serde_json::{Value, json};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
@@ -25,9 +37,16 @@ pub enum RuntimeError {
 }
 
 // --- Circuit Breaker ---
+/// A resilience mechanism to prevent cascading failures in pipeline steps.
+///
+/// The `CircuitBreaker` tracks consecutive failures and switches to an `Open` state
+/// when a threshold is reached, blocking further execution for a specified duration.
+/// It supports a `HalfOpen` state to test if the failing service has recovered.
 #[derive(Debug, Clone)]
 pub struct CircuitBreaker {
+    /// Number of consecutive failures before opening the circuit.
     pub failure_threshold: usize,
+    /// Duration to wait before attempting recovery (Half-Open state).
     pub reset_timeout: Duration,
     failures: usize,
     last_failure: Option<Instant>,
@@ -202,6 +221,20 @@ impl Runtime {
         Ok(state)
     }
 
+    /// Executes a backtest simulation on a historical dataset.
+    ///
+    /// This method iterates over the `dataset`, running the pipeline for each entry.
+    /// It tracks the Portfolio PnL based on "action" (BUY/SELL) and "close" price fields,
+    /// and validates risk constraints for each step.
+    ///
+    /// # Arguments
+    ///
+    /// * `plan` - The execution plan derived from the pipeline definition.
+    /// * `dataset` - A vector of input values (historical data).
+    ///
+    /// # Returns
+    ///
+    /// A `Value` containing the final PnL, trade count, and detailed history.
     #[instrument(skip(self, plan, dataset), fields(dataset_size = dataset.len()))]
     pub async fn run_backtest(&self, plan: &ExecutionPlan, dataset: Vec<Value>) -> RuntimeResult<Value> {
         info!(target: "audit", event = "backtest_start", dataset_size = dataset.len());
