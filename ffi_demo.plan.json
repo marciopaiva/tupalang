@@ -1,0 +1,21 @@
+{
+  "name": "AreaCalc",
+  "version": "0.8.0",
+  "seed": null,
+  "input_schema": {
+    "kind": "f64",
+    "elem": null,
+    "len": null,
+    "name": null
+  },
+  "steps": [
+    {
+      "name": "calculate",
+      "function_ref": "py:ffi_utils.calculate_area",
+      "effects": []
+    }
+  ],
+  "constraints": [],
+  "metrics": {},
+  "metric_plans": []
+}

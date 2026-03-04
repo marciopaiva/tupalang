@@ -1,1 +1,5 @@
 error[E4001]: break outside of loop
+  --> examples/invalid_break.tp:1:1
+   |
+ 1 | fn main() {
+   | ^

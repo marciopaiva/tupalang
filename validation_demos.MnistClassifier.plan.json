@@ -1,0 +1,37 @@
+{
+  "name": "MnistClassifier",
+  "version": "0.8.0",
+  "seed": null,
+  "input_schema": {
+    "kind": "tensor",
+    "elem": null,
+    "len": null,
+    "name": null,
+    "tensor_shape": [
+      1,
+      28,
+      28
+    ],
+    "tensor_dtype": "F32"
+  },
+  "output_schema": {
+    "kind": "tensor",
+    "elem": null,
+    "len": null,
+    "name": null,
+    "tensor_shape": [
+      10
+    ],
+    "tensor_dtype": "F32"
+  },
+  "steps": [
+    {
+      "name": "classify",
+      "function_ref": "py:mnist.inference",
+      "effects": []
+    }
+  ],
+  "constraints": [],
+  "metrics": {},
+  "metric_plans": []
+}

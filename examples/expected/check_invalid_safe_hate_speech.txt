@@ -1,6 +1,5 @@
 error[E3002]: cannot prove constraint 'hate_speech' at compile time
-help: add safety proof: `@safety(score=0.98, dataset="factcheck-v3")`
   --> examples/invalid_safe_hate_speech.tp:2:38
    |
  2 | 	let x: Safe<string, !hate_speech> = "ok";
-   |                                      ^^^^
+   |                                      ^

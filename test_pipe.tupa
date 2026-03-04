@@ -1,0 +1,7 @@
+pipeline TestPipe {
+    input: i64,
+    steps: [
+        step("A") { 10 },
+        step("B") { A * 2 }
+    ]
+}

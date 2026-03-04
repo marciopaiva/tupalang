@@ -1,6 +1,6 @@
 use assert_cmd::prelude::*;
 use predicates::prelude::*;
-use std::process::Command;
+use assert_cmd::Command;
 use std::time::Instant;
 
 fn repo_root() -> std::path::PathBuf {

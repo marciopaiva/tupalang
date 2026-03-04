@@ -1,11 +1,14 @@
 {
   "error": {
     "code": "E4001",
-    "col": null,
+    "col": 1,
     "label": "examples/invalid_break.tp",
-    "line": null,
-    "line_text": null,
+    "line": 1,
+    "line_text": "fn main() {",
     "message": "break outside of loop",
-    "span": null
+    "span": {
+      "end": 0,
+      "start": 0
+    }
   }
 }

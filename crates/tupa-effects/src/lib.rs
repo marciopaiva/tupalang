@@ -35,6 +35,10 @@ impl EffectSet {
         out
     }
 
+    pub fn iter(&self) -> std::collections::btree_set::Iter<'_, Effect> {
+        self.effects.iter()
+    }
+
     pub fn to_names(&self) -> Vec<String> {
         self.effects
             .iter()

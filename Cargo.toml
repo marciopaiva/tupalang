@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/tupa-lexer", "crates/tupa-parser", "crates/tupa-typecheck", "crates/tupa-cli", "crates/tupa-codegen", "crates/tupa-audit", "crates/tupa-effects", "crates/tupa-runtime"]
+members = ["crates/tupa-lexer", "crates/tupa-parser", "crates/tupa-typecheck", "crates/tupa-cli", "crates/tupa-codegen", "crates/tupa-audit", "crates/tupa-effects", "crates/tupa-runtime", "crates/tupa-pyffi", "crates/tupa-fmt", "crates/tupa-lint"]
 resolver = "2"
 
 [profile.dev]
@@ -8,3 +8,7 @@ opt-level = 0
 [profile.release]
 opt-level = 3
 lto = "fat"
+
+[workspace.metadata.tupa]
+python-min-version = "3.9"
+pytorch-min-version = "2.0"

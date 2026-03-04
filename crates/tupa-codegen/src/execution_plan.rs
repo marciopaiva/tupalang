@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use tupa_parser::{Comparator, Expr, ExprKind, PipelineDecl, Stmt, Type};
+use tupa_parser::{Comparator, Expr, ExprKind, Item, PipelineDecl, Program, Stmt, Type};
 use tupa_typecheck::analyze_effects;
 
 #[derive(Serialize, Deserialize)]
@@ -9,6 +9,7 @@ pub struct ExecutionPlan {
     pub version: String,
     pub seed: Option<u64>,
     pub input_schema: TypeSchema,
+    pub output_schema: Option<TypeSchema>,
     pub steps: Vec<StepPlan>,
     pub constraints: Vec<ConstraintPlan>,
     pub metrics: HashMap<String, f64>,
@@ -35,6 +36,8 @@ pub struct TypeSchema {
     pub elem: Option<Box<TypeSchema>>,
     pub len: Option<i64>,
     pub name: Option<String>,
+    pub tensor_shape: Option<Vec<Option<usize>>>,
+    pub tensor_dtype: Option<String>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -46,17 +49,29 @@ pub struct MetricPlan {
 
 pub fn type_to_schema(ty: &Type) -> TypeSchema {
     match ty {
+        Type::Tensor(t) => TypeSchema {
+            kind: "tensor".into(),
+            elem: None,
+            len: None,
+            name: None,
+            tensor_shape: Some(t.shape.iter().map(|&x| x.map(|n| n as usize)).collect()),
+            tensor_dtype: Some(format!("{:?}", t.dtype)),
+        },
         Type::Array { elem, len } => TypeSchema {
             kind: "array".into(),
             elem: Some(Box::new(type_to_schema(elem))),
             len: Some(*len),
             name: None,
+            tensor_shape: None,
+            tensor_dtype: None,
         },
         Type::Slice { elem } => TypeSchema {
             kind: "slice".into(),
             elem: Some(Box::new(type_to_schema(elem))),
             len: None,
             name: None,
+            tensor_shape: None,
+            tensor_dtype: None,
         },
         Type::Safe { base, .. } => type_to_schema(base),
         Type::Ident(name) => match name.as_str() {
@@ -65,30 +80,40 @@ pub fn type_to_schema(ty: &Type) -> TypeSchema {
                 elem: None,
                 len: None,
                 name: None,
+                tensor_shape: None,
+                tensor_dtype: None,
             },
             "f64" => TypeSchema {
                 kind: "f64".into(),
                 elem: None,
                 len: None,
                 name: None,
+                tensor_shape: None,
+                tensor_dtype: None,
             },
             "bool" => TypeSchema {
                 kind: "bool".into(),
                 elem: None,
                 len: None,
                 name: None,
+                tensor_shape: None,
+                tensor_dtype: None,
             },
             "string" => TypeSchema {
                 kind: "string".into(),
                 elem: None,
                 len: None,
                 name: None,
+                tensor_shape: None,
+                tensor_dtype: None,
             },
             _ => TypeSchema {
                 kind: "ident".into(),
                 elem: None,
                 len: None,
                 name: Some(name.clone()),
+                tensor_shape: None,
+                tensor_dtype: None,
             },
         },
         _ => TypeSchema {
@@ -96,6 +121,8 @@ pub fn type_to_schema(ty: &Type) -> TypeSchema {
             elem: None,
             len: None,
             name: None,
+            tensor_shape: None,
+            tensor_dtype: None,
         },
     }
 }
@@ -186,15 +213,41 @@ fn extract_metric_plans(module_name: &str, pipeline: &PipelineDecl) -> Vec<Metri
     list
 }
 
-pub fn codegen_pipeline(module_name: &str, pipeline: &PipelineDecl) -> serde_json::Result<String> {
+pub fn codegen_pipeline(module_name: &str, pipeline: &PipelineDecl, program: &Program) -> serde_json::Result<String> {
     let steps: Vec<StepPlan> = pipeline
         .steps
         .iter()
         .map(|step| {
-            let effects = analyze_effects(&step.body).to_names();
+            let effects = analyze_effects(&step.body, &HashMap::new()).to_names();
+            let mut function_ref = format!("{module_name}::step_{}", step.name);
+            
+            // Check if body is a direct call to an external function
+            if let ExprKind::Call { callee, args } = &step.body.kind {
+                if let ExprKind::Ident(func_name) = &callee.kind {
+                    // We only optimize direct calls with 'input' argument for now
+                    let is_simple_call = args.len() == 1 && matches!(&args[0].kind, ExprKind::Ident(n) if n == "input");
+                    
+                    if is_simple_call {
+                        // Find function definition
+                        for item in &program.items {
+                            if let Item::Function(f) = item {
+                                if &f.name == func_name {
+                                    if let Some(spec) = &f.external_spec {
+                                        if let Some(py_target) = &spec.python {
+                                            function_ref = format!("py:{}", py_target);
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             StepPlan {
                 name: step.name.clone(),
-                function_ref: format!("{module_name}::step_{}", step.name),
+                function_ref,
                 effects,
             }
         })
@@ -202,8 +255,9 @@ pub fn codegen_pipeline(module_name: &str, pipeline: &PipelineDecl) -> serde_jso
     let plan = ExecutionPlan {
         name: pipeline.name.clone(),
         version: env!("CARGO_PKG_VERSION").to_string(),
-        seed: pipeline.seed,
+        seed: pipeline.seed.map(|s| s as u64),
         input_schema: type_to_schema(&pipeline.input_ty),
+        output_schema: pipeline.output_ty.as_ref().map(type_to_schema),
         steps,
         constraints: pipeline
             .constraints

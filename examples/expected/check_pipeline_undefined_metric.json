@@ -5,9 +5,9 @@
     "label": "examples/pipeline/undefined_metric.tp",
     "line": 4,
     "line_text": "    { metric: \"accuracy\", ge: 0.90 },",
-    "message": "undefined metric in pipeline constraints: 'accuracy' not found in validation block\nhelp: compute or reference the metric name inside the validation block",
+    "message": "undefined metric in pipeline constraints: 'accuracy' not found in validation block",
     "span": {
-      "end": 74,
+      "end": 73,
       "start": 72
     }
   }

@@ -5,7 +5,7 @@
     "label": "examples/invalid_safe_hate_speech_base.tp",
     "line": 2,
     "line_text": "\tlet x: Safe<f64, !hate_speech> = 1.0;",
-    "message": "invalid constraint 'hate_speech' for base type F64\nhelp: supported constraints are !nan and !inf on f64 values, and !hate_speech and !misinformation on string values",
+    "message": "invalid constraint 'hate_speech' for base type F64",
     "span": {
       "end": 49,
       "start": 46

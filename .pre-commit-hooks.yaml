@@ -1,0 +1,12 @@
+-   id: tupa-fmt
+    name: Tupa Format
+    description: "Format Tupã files using tupa fmt"
+    entry: tupa fmt
+    language: system
+    files: \.tp$
+-   id: tupa-lint
+    name: Tupa Lint
+    description: "Lint Tupã files using tupa lint"
+    entry: tupa lint
+    language: system
+    files: \.tp$

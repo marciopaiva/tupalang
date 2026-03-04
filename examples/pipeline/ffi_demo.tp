@@ -1,0 +1,9 @@
+@external(python="ffi_utils.calculate_area", effects=[])
+fn area(r: f64): f64;
+
+pipeline AreaCalc {
+    input: f64,
+    steps: [
+        step("calculate") { area(input) }
+    ]
+}

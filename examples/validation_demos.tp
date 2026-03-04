@@ -1,0 +1,35 @@
+@external(python="mnist.inference", effects=[])
+fn classify(img: Tensor(shape=[1, 28, 28], dtype=F32)): Tensor(shape=[10], dtype=F32);
+
+@external(python="linear_model.predict", effects=[])
+fn predict(X: Tensor(shape=[None, 3], dtype=F64)): Tensor(shape=[None, 1], dtype=F64);
+
+@external(python="fraud.check_transaction", effects=[])
+fn check(txn: Tensor(shape=[1, 5], dtype=F32)): Tensor(shape=[1], dtype=Bool);
+
+pipeline MnistClassifier {
+    input: Tensor(shape=[1, 28, 28], dtype=F32)
+    output: Tensor(shape=[10], dtype=F32)
+
+    steps: [
+        step("classify") { classify(input) }
+    ]
+}
+
+pipeline LinearRegression {
+    input: Tensor(shape=[None, 3], dtype=F64)
+    output: Tensor(shape=[None, 1], dtype=F64)
+
+    steps: [
+        step("predict") { predict(input) }
+    ]
+}
+
+pipeline FraudCheck {
+    input: Tensor(shape=[1, 5], dtype=F32)
+    output: Tensor(shape=[1], dtype=Bool)
+
+    steps: [
+        step("check") { check(input) }
+    ]
+}

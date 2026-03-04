@@ -1,12 +1,13 @@
 use thiserror::Error;
-use tupa_lexer::{lex_with_spans, Span, Token, TokenSpan};
+pub use tupa_lexer::{lex_with_spans, Span, Token, TokenSpan, LexerError};
+use serde::Serialize;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Program {
     pub items: Vec<Item>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum Item {
     Function(Function),
     Enum(EnumDef),
@@ -14,38 +15,51 @@ pub enum Item {
     Pipeline(PipelineDecl),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct Attribute {
+    pub name: String,
+    pub args: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct ExternalSpec {
+    pub python: Option<String>,
+    pub effects: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct EnumDef {
     pub name: String,
     pub generics: Vec<String>,
     pub variants: Vec<EnumVariant>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct EnumVariant {
     pub name: String,
     pub args: Vec<Type>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct TraitDef {
     pub name: String,
     pub methods: Vec<Function>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct PipelineDecl {
     pub name: String,
-    pub attrs: Vec<String>,
+    pub attrs: Vec<Attribute>,
     pub seed: Option<u64>,
     pub input_ty: Type,
+    pub output_ty: Option<Type>,
     pub constraints: Vec<Constraint>,
     pub steps: Vec<PipelineStep>,
     pub validation: Option<Block>,
     pub span: Span,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum Comparator {
     Lt,
     Le,
@@ -54,7 +68,7 @@ pub enum Comparator {
     Gt,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Constraint {
     pub metric: String,
     pub comparator: Comparator,
@@ -62,28 +76,30 @@ pub struct Constraint {
     pub span: Span,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct PipelineStep {
     pub name: String,
     pub body: Expr,
     pub span: Span,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Function {
     pub name: String,
     pub params: Vec<Param>,
     pub return_type: Option<Type>,
     pub body: Vec<Stmt>,
+    pub attrs: Vec<Attribute>,
+    pub external_spec: Option<ExternalSpec>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Param {
     pub name: String,
     pub ty: Type,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum Stmt {
     Let {
         name: String,
@@ -108,7 +124,13 @@ pub enum Stmt {
         body: Box<Expr>,
     },
 }
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct TensorType {
+    pub dtype: String,
+    pub shape: Vec<Option<i64>>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum Type {
     Ident(String),
     Generic {
@@ -131,15 +153,17 @@ pub enum Type {
         params: Vec<Type>,
         ret: Box<Type>,
     },
+    Tensor(TensorType),
+    Unit,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Expr {
     pub kind: ExprKind,
     pub span: Span,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum ExprKind {
     Lambda {
         params: Vec<String>,
@@ -198,13 +222,13 @@ pub enum ExprKind {
 
 pub type Block = Vec<Stmt>;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum ElseBranch {
     Block(Block),
     If(Box<Expr>),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct MatchArm {
     pub pattern: Pattern,
     pub pattern_span: Span,
@@ -212,7 +236,7 @@ pub struct MatchArm {
     pub expr: Expr,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum Pattern {
     Wildcard,
     Int(i64),
@@ -223,19 +247,19 @@ pub enum Pattern {
     Constructor { name: String, args: Vec<Pattern> },
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum FieldAccess {
     Ident(String),
     Index(i64),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum UnaryOp {
     Not,
     Neg,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum BinaryOp {
     Range,
     Or,
@@ -250,13 +274,14 @@ pub enum BinaryOp {
     Sub,
     Mul,
     Div,
+    Mod,
     Pow,
 }
 
 #[derive(Debug, Error)]
 pub enum ParserError {
     #[error("lexer error: {0}")]
-    Lexer(String),
+    Lexer(#[from] LexerError),
     #[error("unexpected token {0:?} at {1:?}")]
     Unexpected(Token, Span),
     #[error("expected ';' after expression")]
@@ -279,7 +304,7 @@ fn merge_span(start: Span, end: Span) -> Span {
 }
 
 pub fn parse_program(input: &str) -> Result<Program, ParserError> {
-    let tokens = lex_with_spans(input).map_err(|e| ParserError::Lexer(e.to_string()))?;
+    let tokens = lex_with_spans(input)?;
     let mut parser = Parser::new(tokens, input.len());
     let mut items = Vec::new();
 
@@ -368,14 +393,15 @@ impl Parser {
     }
 
     fn parse_item(&mut self) -> Result<Item, ParserError> {
+        let mut attrs = Vec::new();
         while matches!(self.peek(), Some(Token::At)) {
-            self.parse_attribute()?;
+            attrs.push(self.parse_attribute()?);
         }
         match self.peek() {
-            Some(Token::Fn) => Ok(Item::Function(self.parse_function()?)),
+            Some(Token::Fn) => Ok(Item::Function(self.parse_function(attrs)?)),
             Some(Token::Enum) => Ok(Item::Enum(self.parse_enum()?)),
             Some(Token::Trait) => Ok(Item::Trait(self.parse_trait()?)),
-            Some(Token::Pipeline) => Ok(Item::Pipeline(self.parse_pipeline()?)),
+            Some(Token::Pipeline) => Ok(Item::Pipeline(self.parse_pipeline(attrs)?)),
             Some(token) => {
                 let span = self.tokens.get(self.pos).map(|t| t.span).unwrap_or(Span {
                     start: self.eof_pos,
@@ -387,34 +413,39 @@ impl Parser {
         }
     }
 
-    fn parse_attribute(&mut self) -> Result<(), ParserError> {
+    fn parse_attribute(&mut self) -> Result<Attribute, ParserError> {
         self.expect(Token::At)?;
-        match self.next() {
+        let name = match self.next() {
             Some(TokenSpan {
-                token: Token::Ident(_),
+                token: Token::Ident(name),
                 ..
-            }) => {}
+            }) => name,
             Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
             None => return Err(ParserError::Eof(self.eof_pos)),
-        }
+        };
+        let mut args = Vec::new();
         if matches!(self.peek(), Some(Token::LParen)) {
             self.expect(Token::LParen)?;
-            let mut depth = 1;
-            while depth > 0 {
+            while !matches!(self.peek(), Some(Token::RParen)) {
                 match self.next() {
-                    Some(TokenSpan { token, .. }) => match token {
-                        Token::LParen => depth += 1,
-                        Token::RParen => depth -= 1,
-                        _ => {}
-                    },
+                    Some(TokenSpan { token: Token::Ident(arg), .. }) => args.push(arg),
+                    Some(TokenSpan { token: Token::Str(arg), .. }) => args.push(arg),
+                    Some(TokenSpan { token: Token::Int(arg), .. }) => args.push(arg),
+                    Some(TokenSpan { token: Token::Float(arg), .. }) => args.push(arg),
+                    Some(TokenSpan { token: Token::Equal, .. }) => args.push("=".to_string()),
+                    Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
                     None => return Err(ParserError::Eof(self.eof_pos)),
                 }
+                if matches!(self.peek(), Some(Token::Comma)) {
+                    self.next();
+                }
             }
+            self.expect(Token::RParen)?;
         }
-        Ok(())
+        Ok(Attribute { name, args })
     }
 
-    fn parse_function(&mut self) -> Result<Function, ParserError> {
+    fn parse_function(&mut self, attrs: Vec<Attribute>) -> Result<Function, ParserError> {
         self.expect(Token::Fn)?;
         let name = match self.next() {
             Some(TokenSpan {
@@ -434,11 +465,31 @@ impl Parser {
             None
         };
         let body = self.parse_block()?;
+        
+        let mut external_spec = None;
+        for attr in &attrs {
+            if attr.name == "external" {
+                 if let Some(arg) = attr.args.first() {
+                     external_spec = Some(ExternalSpec {
+                         python: Some(arg.clone()),
+                         effects: Vec::new(),
+                     });
+                 } else {
+                     external_spec = Some(ExternalSpec {
+                         python: None,
+                         effects: Vec::new(),
+                     });
+                 }
+            }
+        }
+
         Ok(Function {
             name,
             params,
             return_type,
             body,
+            attrs,
+            external_spec,
         })
     }
 
@@ -544,192 +595,136 @@ impl Parser {
         };
         self.expect(Token::LBrace)?;
         let mut methods = Vec::new();
-        while let Some(tok) = self.peek() {
-            if *tok == Token::RBrace {
+        loop {
+            let token = match self.peek() {
+                Some(t) => t.clone(),
+                None => break,
+            };
+            
+            if token == Token::RBrace {
                 break;
             }
+
+            let mut attrs = Vec::new();
+            while matches!(self.peek(), Some(Token::At)) {
+                attrs.push(self.parse_attribute()?);
+            }
+
             if let Some(Token::Fn) = self.peek() {
-                methods.push(self.parse_function()?);
+                methods.push(self.parse_function(attrs)?);
             } else {
                 let span = self.tokens.get(self.pos).map(|t| t.span).unwrap_or(Span {
                     start: self.eof_pos,
                     end: self.eof_pos,
                 });
-                return Err(ParserError::Unexpected(tok.clone(), span));
+                return Err(ParserError::Unexpected(token, span));
             }
         }
         self.expect(Token::RBrace)?;
         Ok(TraitDef { name, methods })
     }
 
-    fn parse_pipeline(&mut self) -> Result<PipelineDecl, ParserError> {
+    fn parse_pipeline(&mut self, mut attrs: Vec<Attribute>) -> Result<PipelineDecl, ParserError> {
         self.expect(Token::Pipeline)?;
-        let name = match self.next() {
+        let (name, name_span) = match self.next() {
             Some(TokenSpan {
                 token: Token::Ident(name),
-                ..
-            }) => name,
+                span,
+            }) => (name, span),
             Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
             None => return Err(ParserError::Eof(self.eof_pos)),
         };
-        // Collect optional attributes (store identifier names only)
-        let mut attrs = Vec::new();
-        let mut seed: Option<u64> = None;
+
         while matches!(self.peek(), Some(Token::At)) {
-            self.expect(Token::At)?;
-            match self.next() {
-                Some(TokenSpan {
-                    token: Token::Ident(attr),
-                    ..
-                }) => attrs.push(attr),
-                Some(TokenSpan { token, span }) => {
-                    return Err(ParserError::Unexpected(token, span))
-                }
-                None => return Err(ParserError::Eof(self.eof_pos)),
-            }
-            if matches!(self.peek(), Some(Token::LParen)) {
-                // Parse attribute args minimally for deterministic(seed=...)
-                self.expect(Token::LParen)?;
-                let mut depth = 1;
-                // deterministic(seed=NUMBER)
-                if let (Some(Token::Ident(_attr_name)), Some(Token::Ident(_))) =
-                    (self.tokens.get(self.pos - 1).map(|t| &t.token), self.peek())
-                {
-                    if let Some(Token::Ident(name)) = self.peek() {
-                        if name == "seed" {
-                            // consume 'seed'
-                            self.next();
-                            self.expect(Token::Equal)?;
-                            match self.next() {
-                                Some(TokenSpan {
-                                    token: Token::Int(s),
-                                    ..
-                                }) => {
-                                    if let Ok(n) = s.parse::<u64>() {
+            attrs.push(self.parse_attribute()?);
+        }
+
+        let mut seed = None;
+        for attr in &attrs {
+            if attr.name == "deterministic" {
+                for (i, arg) in attr.args.iter().enumerate() {
+                    if arg == "seed" {
+                        if let Some(eq) = attr.args.get(i + 1) {
+                            if eq == "=" {
+                                if let Some(val) = attr.args.get(i + 2) {
+                                    if let Ok(n) = val.parse::<u64>() {
                                         seed = Some(n);
+                                    } else if let Ok(f) = val.parse::<f64>() {
+                                        seed = Some(f as u64);
                                     }
                                 }
-                                Some(TokenSpan {
-                                    token: Token::Float(s),
-                                    ..
-                                }) => {
-                                    if let Ok(f) = s.parse::<f64>() {
-                                        if f >= 0.0 {
-                                            seed = Some(f as u64);
-                                        }
-                                    }
-                                }
-                                Some(TokenSpan { token, span }) => {
-                                    return Err(ParserError::Unexpected(token, span))
-                                }
-                                None => return Err(ParserError::Eof(self.eof_pos)),
                             }
                         }
                     }
                 }
-                while depth > 0 {
-                    match self.next() {
-                        Some(TokenSpan { token, .. }) => match token {
-                            Token::LParen => depth += 1,
-                            Token::RParen => depth -= 1,
-                            _ => {}
-                        },
-                        None => return Err(ParserError::Eof(self.eof_pos)),
-                    }
-                }
             }
         }
-        let start = self.expect_span(Token::LBrace)?;
-        // Parse body fields
-        // input: <type>
-        let input_ty = {
-            // accept either keyword or ident "input"
-            match self.next() {
-                Some(TokenSpan {
-                    token: Token::Ident(s),
-                    ..
-                }) if s == "input" => {}
-                Some(TokenSpan { token, span }) => {
-                    return Err(ParserError::Unexpected(token, span))
+
+        let start_span = self.expect_span(Token::LBrace)?;
+        
+        let mut input_ty = Type::Unit;
+        let mut output_ty = None;
+        let mut constraints = Vec::new();
+        let mut steps = Vec::new();
+        let mut validation = None;
+        
+        while !matches!(self.peek(), Some(Token::RBrace)) {
+            let field_name = match self.peek() {
+                Some(Token::Ident(n)) => n.clone(),
+                Some(token) => {
+                     let span = self.tokens.get(self.pos).map(|t| t.span).unwrap_or(Span { start: self.eof_pos, end: self.eof_pos });
+                     return Err(ParserError::Unexpected(token.clone(), span));
                 }
                 None => return Err(ParserError::Eof(self.eof_pos)),
-            }
+            };
+            self.next(); // consume field name
             self.expect(Token::Colon)?;
-            self.parse_type()?
-        };
-        // optional comma
-        if matches!(self.peek(), Some(Token::Comma)) {
-            self.next();
-        }
-        // optional constraints: [ { metric: "...", lt: 0.01 }, ... ]
-        let mut constraints = Vec::new();
-        if let Some(tupa_lexer::Token::Ident(ref s)) = self.peek() {
-            if s == "constraints" {
-                self.next();
-                self.expect(Token::Colon)?;
-                self.expect(Token::LBracket)?;
-                if !matches!(self.peek(), Some(Token::RBracket)) {
-                    loop {
+
+            match field_name.as_str() {
+                "input" => {
+                    input_ty = self.parse_type()?;
+                }
+                "output" => {
+                    output_ty = Some(self.parse_type()?);
+                }
+                "constraints" => {
+                    self.expect(Token::LBracket)?;
+                    while !matches!(self.peek(), Some(Token::RBracket)) {
                         let start = if let Some(ts) = self.peek() {
                             match ts {
                                 Token::LBrace => self.expect_span(Token::LBrace)?,
                                 _ => {
-                                    let span =
-                                        self.tokens.get(self.pos).map(|t| t.span).unwrap_or(Span {
-                                            start: self.eof_pos,
-                                            end: self.eof_pos,
-                                        });
+                                    let span = self.tokens.get(self.pos).map(|t| t.span).unwrap_or(Span { start: self.eof_pos, end: self.eof_pos });
                                     return Err(ParserError::Unexpected(ts.clone(), span));
                                 }
                             }
                         } else {
                             return Err(ParserError::Eof(self.eof_pos));
                         };
+                        
                         // metric: "..."
                         match self.next() {
-                            Some(TokenSpan {
-                                token: Token::Ident(name),
-                                ..
-                            }) if name == "metric" => {}
-                            Some(TokenSpan { token, span }) => {
-                                return Err(ParserError::Unexpected(token, span))
-                            }
+                            Some(TokenSpan { token: Token::Ident(name), .. }) if name == "metric" => {}
+                            Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
                             None => return Err(ParserError::Eof(self.eof_pos)),
                         }
                         self.expect(Token::Colon)?;
                         let metric = match self.next() {
-                            Some(TokenSpan {
-                                token: Token::Str(value),
-                                ..
-                            }) => value,
-                            Some(TokenSpan { token, span }) => {
-                                return Err(ParserError::Unexpected(token, span))
-                            }
+                            Some(TokenSpan { token: Token::Str(value), .. }) => value,
+                            Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
                             None => return Err(ParserError::Eof(self.eof_pos)),
                         };
-                        // comma
-                        if matches!(self.peek(), Some(Token::Comma)) {
-                            self.next();
-                        }
-                        // comparator key and threshold literal
+                        
+                        if matches!(self.peek(), Some(Token::Comma)) { self.next(); }
+
+                        // comparator: threshold
                         let (comparator, threshold) = match self.next() {
-                            Some(TokenSpan {
-                                token: Token::Ident(key),
-                                ..
-                            }) => {
+                            Some(TokenSpan { token: Token::Ident(key), span }) => {
                                 self.expect(Token::Colon)?;
                                 let value = match self.next() {
-                                    Some(TokenSpan {
-                                        token: Token::Float(v),
-                                        ..
-                                    }) => v.parse::<f64>().unwrap_or(0.0),
-                                    Some(TokenSpan {
-                                        token: Token::Int(v),
-                                        ..
-                                    }) => v.parse::<f64>().unwrap_or(0.0),
-                                    Some(TokenSpan { token, span }) => {
-                                        return Err(ParserError::Unexpected(token, span))
-                                    }
+                                    Some(TokenSpan { token: Token::Float(v), .. }) => v.parse::<f64>().unwrap_or(0.0),
+                                    Some(TokenSpan { token: Token::Int(v), .. }) => v.parse::<f64>().unwrap_or(0.0),
+                                    Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
                                     None => return Err(ParserError::Eof(self.eof_pos)),
                                 };
                                 let cmp = match key.as_str() {
@@ -738,123 +733,87 @@ impl Parser {
                                     "eq" => Comparator::Eq,
                                     "ge" => Comparator::Ge,
                                     "gt" => Comparator::Gt,
-                                    _ => {
-                                        return Err(ParserError::Unexpected(
-                                            Token::Ident(key),
-                                            Span {
-                                                start: self.eof_pos,
-                                                end: self.eof_pos,
-                                            },
-                                        ))
-                                    }
+                                    _ => return Err(ParserError::Unexpected(Token::Ident(key), span)),
                                 };
                                 (cmp, value)
-                            }
-                            Some(TokenSpan { token, span }) => {
-                                return Err(ParserError::Unexpected(token, span))
-                            }
+                            },
+                            Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
                             None => return Err(ParserError::Eof(self.eof_pos)),
                         };
+                        
                         self.expect(Token::RBrace)?;
-                        let end = Span {
-                            start: start.start,
-                            end: start.end.max(start.end + 1),
-                        };
                         constraints.push(Constraint {
                             metric,
                             comparator,
                             threshold,
-                            span: end,
+                            span: start, // simplified span
                         });
+
                         if matches!(self.peek(), Some(Token::Comma)) {
                             self.next();
-                            if matches!(self.peek(), Some(Token::RBracket)) {
-                                break;
-                            }
-                        } else {
-                            break;
                         }
                     }
+                    self.expect(Token::RBracket)?;
                 }
-                self.expect(Token::RBracket)?;
-                if matches!(self.peek(), Some(Token::Comma)) {
-                    self.next();
+                "steps" => {
+                    self.expect(Token::LBracket)?;
+                    while !matches!(self.peek(), Some(Token::RBracket)) {
+                        let _ = match self.next() {
+                            Some(TokenSpan { token: Token::Ident(s), .. }) if s == "step" => {}, // allow "step" ident
+                            Some(TokenSpan { token: Token::Step, .. }) => {}, // allow Step token if exists
+                            Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                            None => return Err(ParserError::Eof(self.eof_pos)),
+                        };
+                        self.expect(Token::LParen)?;
+                        let (step_name, name_span) = match self.next() {
+                            Some(TokenSpan { token: Token::Str(value), span }) => (value, span),
+                            Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                            None => return Err(ParserError::Eof(self.eof_pos)),
+                        };
+                        self.expect(Token::RParen)?;
+                        let _ = self.expect_span(Token::LBrace)?;
+                        let body = self.parse_expr()?;
+                        let _ = self.expect_span(Token::RBrace)?;
+                        
+                        let body_span = body.span;
+                        steps.push(PipelineStep {
+                            name: step_name,
+                            body,
+                            span: merge_span(name_span, body_span),
+                        });
+                        
+                        if matches!(self.peek(), Some(Token::Comma)) {
+                            self.next();
+                        }
+                    }
+                    self.expect(Token::RBracket)?;
+                }
+                "validation" => {
+                    validation = Some(self.parse_block()?);
+                }
+                _ => {
+                    let span = self.tokens.get(self.pos).map(|t| t.span).unwrap_or(Span { start: self.eof_pos, end: self.eof_pos });
+                    return Err(ParserError::Unexpected(Token::Ident(field_name), span));
                 }
             }
-        }
-        // steps: [ step_list ]
-        {
-            match self.next() {
-                Some(TokenSpan {
-                    token: Token::Ident(s),
-                    ..
-                }) if s == "steps" => {}
-                Some(TokenSpan { token, span }) => {
-                    return Err(ParserError::Unexpected(token, span))
-                }
-                None => return Err(ParserError::Eof(self.eof_pos)),
-            }
-        }
-        self.expect(Token::Colon)?;
-        self.expect(Token::LBracket)?;
-        let mut steps = Vec::new();
-        while let Some(tok) = self.peek() {
-            if *tok == Token::RBracket {
-                break;
-            }
-            // step("name") { expr }
-            self.expect(Token::Step)?;
-            self.expect(Token::LParen)?;
-            let (step_name, name_span) = match self.next() {
-                Some(TokenSpan {
-                    token: Token::Str(value),
-                    span,
-                }) => (value, span),
-                Some(TokenSpan { token, span }) => {
-                    return Err(ParserError::Unexpected(token, span))
-                }
-                None => return Err(ParserError::Eof(self.eof_pos)),
-            };
-            self.expect(Token::RParen)?;
-            let _body_span_start = self.expect_span(Token::LBrace)?;
-            let body = self.parse_expr()?;
-            let body_span_end = self.expect_span(Token::RBrace)?;
-            let step_span = merge_span(name_span, body_span_end);
-            steps.push(PipelineStep {
-                name: step_name,
-                body,
-                span: step_span,
-            });
-            if let Some(Token::Comma) = self.peek() {
+            
+            if matches!(self.peek(), Some(Token::Comma)) {
                 self.next();
             }
         }
-        let _steps_end = self.expect_span(Token::RBracket)?;
-        // optional comma then optional validation: block
-        if matches!(self.peek(), Some(Token::Comma)) {
-            self.next();
-        }
-        let mut validation: Option<Block> = None;
-        if let Some(tupa_lexer::Token::Ident(ref s)) = self.peek() {
-            if s == "validation" {
-                self.next();
-                self.expect(Token::Colon)?;
-                validation = Some(self.parse_block()?);
-                if matches!(self.peek(), Some(Token::Comma)) {
-                    self.next();
-                }
-            }
-        }
-        let end = self.expect_span(Token::RBrace)?;
+        
+        let end_span = self.expect_span(Token::RBrace)?;
+
         Ok(PipelineDecl {
             name,
             attrs,
             seed,
             input_ty,
+            output_ty,
             constraints,
             steps,
             validation,
-            span: merge_span(start, end),
+            span: merge_span(start_span, end_span),
         })
     }
 

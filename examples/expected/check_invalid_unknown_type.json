@@ -1,11 +1,14 @@
 {
   "error": {
     "code": "E1001",
-    "col": null,
+    "col": 1,
     "label": "examples/invalid_unknown_type.tp",
-    "line": null,
-    "line_text": null,
+    "line": 1,
+    "line_text": "fn main() {",
     "message": "unknown type 'Foo' (did you mean 'bool'?)",
-    "span": null
+    "span": {
+      "end": 0,
+      "start": 0
+    }
   }
 }

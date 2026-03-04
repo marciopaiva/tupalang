@@ -4,7 +4,8 @@ use thiserror::Error;
 use tupa_effects::EffectSet;
 use tupa_lexer::Span;
 use tupa_parser::{
-    BinaryOp, Expr, ExprKind, Function, Item, MatchArm, Pattern, Program, Stmt, Type, UnaryOp,
+    BinaryOp, Expr, ExprKind, Function, Item, MatchArm, Pattern, Program, Stmt, TensorType, Type,
+    UnaryOp,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -15,6 +16,7 @@ pub enum Ty {
     String,
     Null,
     Unit,
+    Tensor(TensorType),
     Tuple(Vec<Ty>),
     Array {
         elem: Box<Ty>,
@@ -40,21 +42,21 @@ pub enum Ty {
     Unknown,
 }
 
-pub fn analyze_effects(expr: &tupa_parser::Expr) -> EffectSet {
-    fn fold(e: &tupa_parser::Expr) -> EffectSet {
+pub fn analyze_effects(expr: &tupa_parser::Expr, external_effects: &HashMap<String, EffectSet>) -> EffectSet {
+    fn fold(e: &tupa_parser::Expr, external_effects: &HashMap<String, EffectSet>) -> EffectSet {
         use tupa_parser::ExprKind::*;
         match &e.kind {
             Int(_) | Float(_) | Bool(_) | Str(_) | Null | Ident(_) => EffectSet::default(),
             Binary { left, right, .. } => {
-                let a = fold(left);
-                let b = fold(right);
+                let a = fold(left, external_effects);
+                let b = fold(right, external_effects);
                 a.union(&b)
             }
-            Unary { expr, .. } => fold(expr),
+            Unary { expr, .. } => fold(expr, external_effects),
             Call { callee, args } => {
-                let mut acc = fold(callee);
+                let mut acc = fold(callee, external_effects);
                 for arg in args {
-                    acc = acc.union(&fold(arg));
+                    acc = acc.union(&fold(arg, external_effects));
                 }
                 if let tupa_parser::ExprKind::Ident(name) = &callee.kind {
                     let mut tmp = EffectSet::default();
@@ -62,24 +64,28 @@ pub fn analyze_effects(expr: &tupa_parser::Expr) -> EffectSet {
                         "print" => tmp.insert(tupa_effects::Effect::IO),
                         "random" => tmp.insert(tupa_effects::Effect::Random),
                         "time" | "now" => tmp.insert(tupa_effects::Effect::Time),
-                        _ => {}
+                        _ => {
+                            if let Some(effs) = external_effects.get(name) {
+                                acc = acc.union(effs);
+                            }
+                        }
                     };
                     acc = acc.union(&tmp);
                 }
                 acc
             }
-            Index { expr, index } => fold(expr).union(&fold(index)),
-            Field { expr, .. } => fold(expr),
-            Lambda { body, .. } => fold(body),
+            Index { expr, index } => fold(expr, external_effects).union(&fold(index, external_effects)),
+            Field { expr, .. } => fold(expr, external_effects),
+            Lambda { body, .. } => fold(body, external_effects),
             Block(stmts) => {
                 let mut acc = EffectSet::default();
                 for stmt in stmts {
                     match stmt {
                         tupa_parser::Stmt::Expr(e) => {
-                            acc = acc.union(&fold(e));
+                            acc = acc.union(&fold(e, external_effects));
                         }
                         tupa_parser::Stmt::Return(Some(e)) => {
-                            acc = acc.union(&fold(e));
+                            acc = acc.union(&fold(e, external_effects));
                         }
                         _ => {}
                     }
@@ -91,11 +97,11 @@ pub fn analyze_effects(expr: &tupa_parser::Expr) -> EffectSet {
                 then_branch,
                 else_branch,
             } => {
-                let a = fold(condition);
+                let a = fold(condition, external_effects);
                 let mut b = EffectSet::default();
                 for s in then_branch {
                     if let tupa_parser::Stmt::Expr(e) = s {
-                        b = b.union(&fold(e));
+                        b = b.union(&fold(e, external_effects));
                     }
                 }
                 let c = match else_branch {
@@ -103,41 +109,41 @@ pub fn analyze_effects(expr: &tupa_parser::Expr) -> EffectSet {
                         let mut acc = EffectSet::default();
                         for s in block {
                             if let tupa_parser::Stmt::Expr(e) = s {
-                                acc = acc.union(&fold(e));
+                                acc = acc.union(&fold(e, external_effects));
                             }
                         }
                         acc
                     }
-                    Some(tupa_parser::ElseBranch::If(e)) => fold(e),
+                    Some(tupa_parser::ElseBranch::If(e)) => fold(e, external_effects),
                     None => EffectSet::default(),
                 };
                 a.union(&b).union(&c)
             }
             Match { expr, arms } => {
-                let mut acc = fold(expr);
+                let mut acc = fold(expr, external_effects);
                 for arm in arms {
                     if let Some(guard) = &arm.guard {
-                        acc = acc.union(&fold(guard));
+                        acc = acc.union(&fold(guard, external_effects));
                     }
-                    acc = acc.union(&fold(&arm.expr));
+                    acc = acc.union(&fold(&arm.expr, external_effects));
                 }
                 acc
             }
             Tuple(items) => items
                 .iter()
-                .fold(EffectSet::default(), |acc, it| acc.union(&fold(it))),
+                .fold(EffectSet::default(), |acc, it| acc.union(&fold(it, external_effects))),
             ArrayLiteral(items) => items
                 .iter()
-                .fold(EffectSet::default(), |acc, it| acc.union(&fold(it))),
-            Assign { expr, .. } => fold(expr),
+                .fold(EffectSet::default(), |acc, it| acc.union(&fold(it, external_effects))),
+            Assign { expr, .. } => fold(expr, external_effects),
             AssignIndex { expr, index, value } => {
-                let acc = fold(expr).union(&fold(index));
-                acc.union(&fold(value))
+                let acc = fold(expr, external_effects).union(&fold(index, external_effects));
+                acc.union(&fold(value, external_effects))
             }
-            Await(inner) => fold(inner),
+            Await(inner) => fold(inner, external_effects),
         }
     }
-    fold(expr)
+    fold(expr, external_effects)
 }
 #[derive(Debug, Error)]
 pub enum TypeError {
@@ -382,7 +388,7 @@ fn infer_lambda_param_types(
             // If this is a parameter, we can't infer its type from usage here
             // But we can collect constraints from its usage context
         }
-        ExprKind::Binary { left, right, .. } => {
+        ExprKind::Binary { left, op, right } => {
             infer_lambda_param_types(
                 left,
                 env,
@@ -401,6 +407,41 @@ fn infer_lambda_param_types(
                 traits,
                 expected_return,
             )?;
+
+            // Try to infer types based on the operation
+            let left_ty = type_of_expr(
+                left,
+                &mut env.child(),
+                functions,
+                enums,
+                traits,
+                expected_return,
+            );
+            let right_ty = type_of_expr(
+                right,
+                &mut env.child(),
+                functions,
+                enums,
+                traits,
+                expected_return,
+            );
+
+            match op {
+                BinaryOp::Add | BinaryOp::Sub | BinaryOp::Mul | BinaryOp::Div | BinaryOp::Mod => {
+                    if let Ok(Ty::I64) = left_ty {
+                        infer_param_type_from_expr(right, Ty::I64, param_types, env)?;
+                    } else if let Ok(Ty::F64) = left_ty {
+                        infer_param_type_from_expr(right, Ty::F64, param_types, env)?;
+                    }
+
+                    if let Ok(Ty::I64) = right_ty {
+                        infer_param_type_from_expr(left, Ty::I64, param_types, env)?;
+                    } else if let Ok(Ty::F64) = right_ty {
+                        infer_param_type_from_expr(left, Ty::F64, param_types, env)?;
+                    }
+                }
+                _ => {}
+            }
         }
         ExprKind::Unary { expr, .. } => {
             infer_lambda_param_types(
@@ -970,7 +1011,18 @@ pub fn typecheck_program_with_warnings(program: &Program) -> Result<Vec<Warning>
                         constraints: None,
                     },
                 };
-                functions.insert(func.name.clone(), FuncSig { params, ret });
+                let mut effects = EffectSet::default();
+                if let Some(spec) = &func.external_spec {
+                    for eff in &spec.effects {
+                         match eff.as_str() {
+                             "IO" => effects.insert(tupa_effects::Effect::IO),
+                             "Random" => effects.insert(tupa_effects::Effect::Random),
+                             "Time" => effects.insert(tupa_effects::Effect::Time),
+                             other => effects.insert(tupa_effects::Effect::ExternalCall(other.to_string())),
+                         }
+                    }
+                }
+                functions.insert(func.name.clone(), FuncSig { params, ret, effects });
             }
             Item::Pipeline(_) => {
                 // Pipelines don't contribute to function or enum registries
@@ -1046,30 +1098,34 @@ fn typecheck_pipeline(
         let _ = type_of_block_expr(block, &mut env, functions, enums, traits, &expected_return)?;
     }
     // Validators
-    validate_determinism(pipeline)?;
+    validate_determinism(pipeline, functions)?;
     validate_constraints(pipeline)?;
     Ok(())
 }
 
 #[allow(clippy::result_large_err)]
-pub fn validate_determinism(pipeline: &tupa_parser::PipelineDecl) -> Result<(), TypeError> {
-    let deterministic = pipeline.attrs.iter().any(|a| a == "deterministic");
+pub fn validate_determinism(
+    pipeline: &tupa_parser::PipelineDecl,
+    functions: &HashMap<String, FuncSig>,
+) -> Result<(), TypeError> {
+    let deterministic = pipeline.attrs.iter().any(|a| a.name == "deterministic");
     if !deterministic {
         return Ok(());
     }
-    for step in &pipeline.steps {
-        let effects = analyze_effects(&step.body);
-        if effects.contains(&tupa_effects::Effect::Random) {
-            return Err(TypeError::ImpureInDeterministic {
-                step_name: step.name.clone(),
-                forbidden_effect: tupa_effects::Effect::Random,
-                span: step.span,
-            });
+    let mut external_effects = HashMap::new();
+    for (name, sig) in functions {
+        // Effects are stored in FuncSig, propagate them to analysis
+        if !sig.effects.is_pure() {
+            external_effects.insert(name.clone(), sig.effects.clone());
         }
-        if effects.contains(&tupa_effects::Effect::Time) {
+    }
+    for step in &pipeline.steps {
+        let effects = analyze_effects(&step.body, &external_effects);
+        // Any effect in a deterministic pipeline is forbidden
+        if let Some(effect) = effects.iter().next() {
             return Err(TypeError::ImpureInDeterministic {
                 step_name: step.name.clone(),
-                forbidden_effect: tupa_effects::Effect::Time,
+                forbidden_effect: effect.clone(),
                 span: step.span,
             });
         }
@@ -1097,10 +1153,10 @@ pub fn validate_constraints(pipeline: &tupa_parser::PipelineDecl) -> Result<(), 
         match stmt {
             tupa_parser::Stmt::Let { name, expr, .. } => {
                 vars.insert(name.clone());
-                collect_vars(expr, &mut vars);
+                collect_vars(&expr, &mut vars);
             }
-            tupa_parser::Stmt::Expr(expr) => collect_vars(expr, &mut vars),
-            tupa_parser::Stmt::Return(Some(expr)) => collect_vars(expr, &mut vars),
+            tupa_parser::Stmt::Expr(expr) => collect_vars(&expr, &mut vars),
+            tupa_parser::Stmt::Return(Some(expr)) => collect_vars(&expr, &mut vars),
             _ => {}
         }
     }
@@ -1122,6 +1178,10 @@ fn typecheck_function(
     enums: &HashMap<String, EnumInfo>,
     traits: &HashMap<String, Vec<Function>>,
 ) -> Result<Vec<Warning>, TypeError> {
+    if func.external_spec.is_some() {
+        return Ok(Vec::new());
+    }
+
     let mut env = TypeEnv::default();
     for param in &func.params {
         let sig = type_sig_from_ast(&param.ty, enums, traits)?;
@@ -1807,7 +1867,7 @@ fn type_of_expr(
             let l = type_of_expr(left, env, functions, enums, traits, expected_return)?;
             let r = type_of_expr(right, env, functions, enums, traits, expected_return)?;
             match op {
-                BinaryOp::Add | BinaryOp::Sub | BinaryOp::Mul | BinaryOp::Div | BinaryOp::Pow => {
+                BinaryOp::Add | BinaryOp::Sub | BinaryOp::Mul | BinaryOp::Div | BinaryOp::Pow | BinaryOp::Mod => {
                     if l == r && (l == Ty::I64 || l == Ty::F64) {
                         Ok(l)
                     } else if l == Ty::Unknown && (r == Ty::I64 || r == Ty::F64) {
@@ -2460,6 +2520,8 @@ fn type_from_ast(
                 ret: Box::new(ret),
             })
         }
+        Type::Tensor(t) => Ok(Ty::Tensor(t.clone())),
+        Type::Unit => Ok(Ty::Unit),
     }
 }
 
@@ -2561,6 +2623,8 @@ fn type_from_ast_with_generics(
                 ret: Box::new(ret),
             })
         }
+        Type::Tensor(t) => Ok(Ty::Tensor(t.clone())),
+        Type::Unit => Ok(Ty::Unit),
     }
 }
 
@@ -2632,6 +2696,8 @@ fn validate_safe_annotations_in_type_with_generics(
             Ok(())
         }
         Type::Ident(_) => Ok(()),
+        Type::Tensor(_) => Ok(()),
+        Type::Unit => Ok(()),
     }
 }
 
@@ -2694,6 +2760,8 @@ fn validate_safe_annotations_in_type(
             Ok(())
         }
         Type::Ident(_) => Ok(()),
+        Type::Tensor(_) => Ok(()),
+        Type::Unit => Ok(()),
     }
 }
 
@@ -2796,9 +2864,10 @@ struct TypeEnv {
 }
 
 #[derive(Debug, Clone)]
-struct FuncSig {
-    params: Vec<TypeSig>,
-    ret: TypeSig,
+pub struct FuncSig {
+    pub params: Vec<TypeSig>,
+    pub ret: TypeSig,
+    pub effects: EffectSet,
 }
 
 #[derive(Debug, Clone)]
@@ -3480,5 +3549,27 @@ mod tests {
         let ok =
             parse_program("fn main(x: i64): i64 { return match x { 0 => 1, _ => 2 }; }").unwrap();
         assert!(typecheck_program(&ok).is_ok());
+    }
+
+    #[test]
+    fn deterministic_pipeline_rejects_external_effects() {
+        let src = r#"
+            @external(effects = [ExternalCall("DB")])
+            fn fetch_data(): i64;
+
+            pipeline my_pipe @deterministic {
+                input: i64,
+                steps: [
+                    step("one") { fetch_data() }
+                ]
+            }
+        "#;
+        let program = parse_program(src).unwrap();
+        match typecheck_program(&program) {
+            Err(TypeError::ImpureInDeterministic { forbidden_effect: tupa_effects::Effect::ExternalCall(name), .. }) => {
+                assert_eq!(name, "DB");
+            }
+            res => panic!("Expected ExternalCall error, got {:?}", res),
+        }
     }
 }

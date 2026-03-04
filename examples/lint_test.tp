@@ -1,0 +1,19 @@
+fn main() {
+    let unused_var = 10;
+    let used_var = 20;
+    print(used_var);
+    
+    let shadowed = 1;
+    let shadowed = 2;
+    
+    let BadName = 3;
+}
+
+pipeline MyPipeline {
+    input: int,
+    steps: [
+        step("s1") {
+            print("Impure")
+        }
+    ]
+}

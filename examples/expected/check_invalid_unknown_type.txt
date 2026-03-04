@@ -1,1 +1,5 @@
 error[E1001]: unknown type 'Foo' (did you mean 'bool'?)
+  --> examples/invalid_unknown_type.tp:1:1
+   |
+ 1 | fn main() {
+   | ^
