@@ -626,7 +626,7 @@ impl Parser {
 
     fn parse_pipeline(&mut self, mut attrs: Vec<Attribute>) -> Result<PipelineDecl, ParserError> {
         self.expect(Token::Pipeline)?;
-        let (name, name_span) = match self.next() {
+        let (name, _name_span) = match self.next() {
             Some(TokenSpan {
                 token: Token::Ident(name),
                 span,

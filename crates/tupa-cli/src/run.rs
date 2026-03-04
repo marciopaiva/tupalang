@@ -1,10 +1,10 @@
 use crate::Commands;
 use tupa_codegen::execution_plan::{codegen_pipeline, ExecutionPlan};
 use tupa_codegen::generate_stub_with_types;
-use tupa_parser::{Item, Program, parse_program, Expr, ExprKind, Span, Stmt, ParserError};
+use tupa_parser::{Item, parse_program, Expr, ExprKind, Span, ParserError};
 use tupa_lexer::LexerError;
 use tupa_runtime::Runtime;
-use tupa_audit::hash_ast;
+use tupa_audit;
 use tupa_typecheck::{typecheck_program_with_warnings, analyze_effects, TypeError};
 use std::collections::HashMap;
 use serde_json::json;

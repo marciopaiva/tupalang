@@ -189,7 +189,6 @@ fn golden_effects_pure_function_json() {
     assert_eq!(stdout, expected);
 }
 #[test]
-#[test]
 fn golden_effects_io_json() {
     let stdout = run_cli(&[
         "effects",
