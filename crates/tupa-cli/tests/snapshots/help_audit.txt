@@ -1,0 +1,11 @@
+Audit execution logs
+
+Usage: tupa-cli audit [OPTIONS] <FILE>
+
+Arguments:
+  <FILE>  Input file
+
+Options:
+      --input <INPUT>    Input data file (JSON)
+      --format <FORMAT>  Output format [default: text]
+  -h, --help             Print help

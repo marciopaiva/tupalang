@@ -44,7 +44,7 @@ Registrar mudanças relevantes por versão.
 ### Débito Técnico
 
 - A validação de convenção de commit ainda depende do contexto de PR; pushes diretos para branches protegidas devem permanecer bloqueados por política.
-- Os quality gates de docs são fortes no CI, mas a paridade de changelog multilíngue (`en`, `es`, `pt-br`) ainda não está automatizada.
+- Os quality gates de docs são fortes no CI, e a paridade multilíngue de estrutura e versão mais recente já está automatizada; a paridade semântica completa do conteúdo traduzido ainda é manual.
 - O workflow de backport cria issues de acompanhamento, mas a automação de cherry-pick de backport ainda não foi implementada.
 - As metas de performance estão documentadas, mas não existe dashboard de tendência no CI com histórico de latência e throughput.
 

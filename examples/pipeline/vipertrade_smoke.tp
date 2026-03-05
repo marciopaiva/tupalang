@@ -1,0 +1,29 @@
+fn compute_signal(price: i64, ema_fast: i64): i64 {
+  if price > ema_fast {
+    return 1;
+  }
+  return 0;
+}
+
+fn compute_position_bps(signal: i64): i64 {
+  if signal == 1 {
+    return 1200;
+  }
+  return 0;
+}
+
+pipeline ViperTradeValidation @deterministic(seed=42) {
+  input: i64,
+  constraints: [
+    { metric: "max_drawdown_bps", le: 1500 },
+    { metric: "copy_success_rate_bps", ge: 9500 },
+  ],
+  steps: [
+    step("signal") { compute_signal(input, 90) },
+    step("position") { compute_position_bps(compute_signal(input, 90)) },
+  ],
+  validation: {
+    let max_drawdown_bps = 1200;
+    let copy_success_rate_bps = 9800;
+  }
+}

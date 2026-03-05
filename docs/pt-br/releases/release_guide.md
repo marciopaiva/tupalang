@@ -1,31 +1,58 @@
 # Guia de Release
 
-## Propósito
+## Prop?sito
 
-Descrever o processo de release com passos claros e repetíveis.
+Descrever o processo de release com passos claros e repet?veis.
+
+## Fonte de verdade do changelog
+
+- O Release Draft do GitHub ? a fonte de verdade para notas de release.
+- Antes de criar tag, reconcilie o draft com o [CHANGELOG](changelog.md).
 
 ## Passo a passo
 
-1. Atualize [CHANGELOG](changelog.md) e index.md.
-2. Rode a suíte de testes:
+1. Revise o Release Draft atual.
+2. Revise labels das PRs mergeadas e corrija inconsist?ncias.
+3. Atualize [CHANGELOG](changelog.md) a partir do draft.
+4. Execute valida??o local:
 
 ```bash
-cargo test
+./scripts/ci-local.sh
 ```
 
-1. Verifique exemplos principais em `examples/` e docs bilíngues.
-2. Confirme que o CI está verde.
-3. Crie a tag e publique:
+5. Execute o gate de verifica??o de release:
+
+```bash
+./scripts/release-verify.sh X.Y.Z
+```
+
+6. Confirme checks obrigat?rios verdes em `main`.
+7. Verifique exemplos principais e docs multil?ngues.
+8. Crie a tag e publique:
 
 ```bash
 git tag -a vX.Y.Z -m "vX.Y.Z"
 git push origin vX.Y.Z
 ```
 
-1. Crie o release no GitHub com as notas do CHANGELOG.
+9. Crie o release no GitHub a partir do draft.
 
-## Dicas
+## Go/No-Go (RC e Final)
 
-- Use versões semânticas (SemVer).
-- Evite releases sem atualizar CHANGELOG e index.md.
-- Registre mudanças que impactam SPEC, API ou docs principais.
+Go somente se tudo abaixo for verdadeiro:
+
+- `./scripts/release-verify.sh X.Y.Z` passa.
+- Smoke ViperTrade-like passa (`./scripts/vipertrade-smoke.sh`).
+- Checks obrigat?rios verdes.
+- Changelog `X.Y.Z` alinhado em EN/ES/PT-BR.
+- Sem issues bloqueadoras abertas para o milestone.
+
+No-Go em qualquer caso abaixo:
+
+- Falha em check obrigat?rio.
+- Desalinhamento de docs/changelog entre idiomas.
+- Smoke test com status diferente de `pass`.
+
+## Checklist r?pida
+
+Veja [Release Cut Checklist](release_cut_checklist.md).

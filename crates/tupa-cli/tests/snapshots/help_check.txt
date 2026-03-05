@@ -1,0 +1,10 @@
+Check syntax and types
+
+Usage: tupa-cli check [OPTIONS] <FILE>
+
+Arguments:
+  <FILE>  Input file
+
+Options:
+      --format <FORMAT>  Output format (text/json) [default: text]
+  -h, --help             Print help
