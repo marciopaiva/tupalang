@@ -907,22 +907,23 @@ fn main() {
 ```
 
 ### 10.4 Differentiable Fraud Detection (Neurosymbolic)
+
 ```tupa
 @differentiable
 fn risk_score(tx: Transaction): f64 {
-	let neural = fraud_net.infer(tx.features)  // Tensor<f16, density=0.1>
-	let symbolic = if tx.country == "BR" && tx.amount > 1000.0 { 
-		0.8 
-	} else { 
-		0.2 
-	}
-	return 0.7 * neural + 0.3 * symbolic
+    let neural = fraud_net.infer(tx.features)  // Tensor<f16, density=0.1>
+    let symbolic = if tx.country == "BR" && tx.amount > 1000.0 {
+        0.8
+    } else {
+        0.2
+    }
+    return 0.7 * neural + 0.3 * symbolic
 }
 
 // Training via gradient descent
 fn train_step(batch: [Transaction], targets: [f64], lr: f64) {
-	let (loss, grad) = ∇compute_loss(batch, targets)
-	update_weights(grad, lr)
+    let (loss, grad) = ∇compute_loss(batch, targets)
+    update_weights(grad, lr)
 }
 ```
 
@@ -941,12 +942,12 @@ The compiler **must** report errors with:
 
 Example:
 
-```
+```text
 error[E0003]: expected ';' after expression
-	--> examples/hello.tp:3:18
-	 |
- 3 | 	let age = 28
-	 |                 ^
+    --> examples/hello.tp:3:18
+     |
+ 3 |    let age = 28
+     |                 ^
 ```
 
 ### 11.2 Warning Format
@@ -964,22 +965,22 @@ Warnings follow the same format, with the `warning[W####]` prefix.
 
 The compiler **must** emit type errors with a code and, when possible, with a span:
 
-```
+```text
 error[E2001]: type mismatch: expected I64, got Bool
-	--> examples/invalid_type.tp:2:15
-	 |
- 2 | 	let x: i64 = true;
-	 |               ^^^^
+    --> examples/invalid_type.tp:2:15
+     |
+ 2 |    let x: i64 = true;
+     |               ^^^^
 ```
 
 For incorrect arity:
 
-```
+```text
 error[E2002]: arity mismatch: expected 2, got 1
-	--> examples/invalid_call.tp:6:10
-	 |
- 6 | 	let y = add(1);
-	 |          ^^^^^^
+    --> examples/invalid_call.tp:6:10
+     |
+ 6 |    let y = add(1);
+     |          ^^^^^^
 ```
 
 ---
@@ -997,7 +998,7 @@ error[E2002]: arity mismatch: expected 2, got 1
 ## 13. References & Influences
 
 | Language/Project | Influence on Tupã |
-|-------------------|-------------------|
+| :--- | :--- |
 | **Rust** | Ownership model, pattern matching, GC-free safety |
 | **Zig** | Zero hidden allocations, radical simplicity |
 | **Mojo** | Native differentiability, Python performance |
