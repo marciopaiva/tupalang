@@ -10,15 +10,18 @@ fn linear_layer(input: Tensor) -> Tensor {
 ```
 
 ### Cumplimiento de Esquema (Schema Enforcement)
+
 - **Inputs Tupã** → serializados a Python vía JSON/msgpack
 - **Outputs Python** → validados contra tipo Tupã antes del retorno
 
-### Tipos soportados inicialmente:
+### Tipos soportados inicialmente
+
 - `i64`, `f64`, `bool`, `string`
 - `Tensor` (wrapper mínimo para ndarray/PyTorch tensor)
 - `Structs` simples (sin genéricos)
 
 ### Efectos Rastreados
+
 - Toda llamada a Python recibe el efecto `ExternalCall("lib_name")`
 - Propagado para análisis de determinismo:
 

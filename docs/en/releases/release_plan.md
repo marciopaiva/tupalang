@@ -104,6 +104,7 @@ This document defines the release milestones from v0.4.x up to v1.0, aligned wit
 **Core theme**: Production-ready pipelines with resilience and Python AI integration.
 
 #### Delivered Features
+
 - **Python Interop**: `tupa-pyffi` bridge for PyTorch/TensorFlow.
 - **Runtime Resilience**: Circuit Breaker pattern and Async I/O support.
 - **Simulation**: Full Backtesting Engine with PnL and Risk checks.
@@ -112,13 +113,15 @@ This document defines the release milestones from v0.4.x up to v1.0, aligned wit
 
 #### 0.8.0 — Strategic plan (Completed)
 
-**Technical priorities**
+##### Technical priorities
+
 1. Python FFI bridge with safe type conversion. (Done)
 2. Circuit Breaker mechanism for external calls. (Done)
 3. Async runtime for high-throughput pipelines. (Done)
 4. Backtesting engine for strategy validation. (Done)
 
-**Success metric**
+##### Success metric
+
 - A production pipeline (MNIST/Trading) runs with full auditability and resilience. (Achieved)
 
 - PyTorch/TensorFlow execution via controlled adapters.
