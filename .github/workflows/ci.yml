@@ -10,11 +10,6 @@ on:
       - ".markdownlintignore"
       - "docs/**"
   pull_request:
-    paths-ignore:
-      - "**/*.md"
-      - ".markdownlint.json"
-      - ".markdownlintignore"
-      - "docs/**"
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
