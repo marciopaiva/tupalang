@@ -473,6 +473,8 @@ pub fn evaluate_constraints(plan: &ExecutionPlan, state: &Value) -> Value {
             "gt" => metric_val > constraint.threshold,
             "lt" => metric_val < constraint.threshold,
             "eq" => (metric_val - constraint.threshold).abs() < f64::EPSILON,
+            "ge" => metric_val >= constraint.threshold,
+            "le" => metric_val <= constraint.threshold,
             _ => false,
         };
 
@@ -548,7 +550,6 @@ mod tests {
             "Should allow requests after success (Closed state)"
         );
     }
-
     #[test]
     fn test_evaluate_constraints() {
         let plan = ExecutionPlan {
@@ -576,6 +577,16 @@ mod tests {
                     comparator: "eq".into(),
                     threshold: 10.0,
                 },
+                ConstraintPlan {
+                    metric: "min_ok".into(),
+                    comparator: "ge".into(),
+                    threshold: 1.0,
+                },
+                ConstraintPlan {
+                    metric: "max_ok".into(),
+                    comparator: "le".into(),
+                    threshold: 2.0,
+                },
             ],
             metrics: HashMap::new(),
             metric_plans: vec![],
@@ -583,7 +594,9 @@ mod tests {
 
         let state_pass = json!({
             "score": 0.8,
-            "nested": { "val": 10.0 }
+            "nested": { "val": 10.0 },
+            "min_ok": 1.0,
+            "max_ok": 1.5
         });
         let report_pass = evaluate_constraints(&plan, &state_pass);
         assert!(
@@ -593,7 +606,9 @@ mod tests {
 
         let state_fail = json!({
             "score": 0.2,
-            "nested": { "val": 10.0 }
+            "nested": { "val": 10.0 },
+            "min_ok": 1.0,
+            "max_ok": 1.5
         });
         let report_fail = evaluate_constraints(&plan, &state_fail);
         assert!(
@@ -603,15 +618,40 @@ mod tests {
 
         let state_fail_nested = json!({
             "score": 0.8,
-            "nested": { "val": 9.9 }
+            "nested": { "val": 9.9 },
+            "min_ok": 1.0,
+            "max_ok": 1.5
         });
         let report_fail_nested = evaluate_constraints(&plan, &state_fail_nested);
         assert!(
             !report_fail_nested["success"].as_bool().unwrap(),
             "Constraints should fail on nested val"
         );
-    }
 
+        let state_fail_ge = json!({
+            "score": 0.8,
+            "nested": { "val": 10.0 },
+            "min_ok": 0.9,
+            "max_ok": 1.5
+        });
+        let report_fail_ge = evaluate_constraints(&plan, &state_fail_ge);
+        assert!(
+            !report_fail_ge["success"].as_bool().unwrap(),
+            "Constraints should fail on ge comparator"
+        );
+
+        let state_fail_le = json!({
+            "score": 0.8,
+            "nested": { "val": 10.0 },
+            "min_ok": 1.0,
+            "max_ok": 2.1
+        });
+        let report_fail_le = evaluate_constraints(&plan, &state_fail_le);
+        assert!(
+            !report_fail_le["success"].as_bool().unwrap(),
+            "Constraints should fail on le comparator"
+        );
+    }
     #[test]
     fn test_get_metric_value() {
         let data = json!({
