@@ -1,0 +1,9 @@
+# Default owners
+* @marciopaiva
+
+# Governance and process-critical files
+/.github/workflows/* @marciopaiva
+/.github/release-drafter.yml @marciopaiva
+/.github/PULL_REQUEST_TEMPLATE.md @marciopaiva
+/CONTRIBUTING.md @marciopaiva
+/CODEOWNERS @marciopaiva
