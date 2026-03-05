@@ -82,7 +82,10 @@ fn perf_codegen_fraud_medium_under_target() {
         .success();
 
     let elapsed = start.elapsed();
-    println!("perf: codegen fraud_complete took {} ms", elapsed.as_millis());
+    println!(
+        "perf: codegen fraud_complete took {} ms",
+        elapsed.as_millis()
+    );
     assert!(
         elapsed.as_millis() <= 500,
         "codegen took {} ms (> 500ms threshold)",
