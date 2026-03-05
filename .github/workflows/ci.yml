@@ -110,3 +110,19 @@ jobs:
         env:
           TUPA_RUN_E2E: "0"
         run: cargo test --workspace --locked
+
+  vipertrade-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Run ViperTrade-like smoke
+        run: ./scripts/vipertrade-smoke.sh

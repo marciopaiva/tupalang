@@ -1,0 +1,11 @@
+Generate code (LLVM/Rust)
+
+Usage: tupa-cli codegen [OPTIONS] <FILE>
+
+Arguments:
+  <FILE>  Input file
+
+Options:
+      --format <FORMAT>  Output format [default: text]
+      --plan-only        Generate execution plan only (JSON)
+  -h, --help             Print help

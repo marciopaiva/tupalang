@@ -44,7 +44,7 @@ Registrar cambios relevantes por versión.
 ### Deuda Técnica
 
 - La validación de convención de commit aún depende del contexto de PR; los pushes directos a ramas protegidas deben permanecer bloqueados por política.
-- Los quality gates de docs son sólidos en CI, pero la paridad de changelog multilenguaje (`en`, `es`, `pt-br`) aún no está automatizada.
+- Los quality gates de docs son sólidos en CI, y la paridad multilenguaje de estructura y versión más reciente ya está automatizada; la paridad semántica completa del contenido traducido sigue siendo manual.
 - El workflow de backport crea issues de seguimiento, pero la automatización de cherry-pick de backport aún no está implementada.
 - Los objetivos de rendimiento están documentados, pero no existe dashboard de tendencia en CI con histórico de latencia y throughput.
 

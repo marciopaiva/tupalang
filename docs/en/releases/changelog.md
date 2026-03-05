@@ -43,7 +43,7 @@ This document records relevant changes per version.
 ### Technical Debt
 
 - Commit convention enforcement still depends on PR context; direct pushes to protected branches remain policy-dependent and should stay blocked by branch protection.
-- Docs quality gates are strong in CI, but multilingual changelog parity (`en`, `es`, `pt-br`) is not yet automated.
+- Docs quality gates are strong in CI, and multilingual changelog parity for structure and latest version is automated; semantic parity of full translated content is still manual.
 - Backport workflow creates tracking issues, but backport cherry-pick automation is not implemented yet.
 - Performance goals are documented, but there is no CI trend dashboard storing historical latency and throughput metrics.
 

@@ -1,0 +1,12 @@
+Run a Tupã program or pipeline
+
+Usage: tupa-cli run [OPTIONS] [FILE]
+
+Arguments:
+  [FILE]  Input file (optional if --plan is used)
+
+Options:
+      --pipeline <PIPELINE>  Pipeline to run (optional)
+      --input <INPUT>        Input data file (JSON)
+      --plan <PLAN>          Execute a pre-compiled plan file
+  -h, --help                 Print help

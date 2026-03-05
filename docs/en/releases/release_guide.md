@@ -27,16 +27,38 @@ This document describes the release process with clear, repeatable steps.
 ./scripts/ci-local.sh
 ```
 
-5. Confirm all required CI checks are green on `main`.
-6. Verify main examples in `examples/` and bilingual docs.
-7. Create the tag and publish:
+5. Run release verification gate:
+
+```bash
+./scripts/release-verify.sh X.Y.Z
+```
+
+6. Confirm all required CI checks are green on `main`.
+7. Verify main examples in `examples/` and multilingual docs.
+8. Create the tag and publish:
 
 ```bash
 git tag -a vX.Y.Z -m "vX.Y.Z"
 git push origin vX.Y.Z
 ```
 
-8. Create the GitHub release using the generated draft notes.
+9. Create the GitHub release using the generated draft notes.
+
+## Go/No-Go (RC and Final)
+
+Go only when all conditions below are true:
+
+- `./scripts/release-verify.sh X.Y.Z` passes.
+- ViperTrade-like smoke passes (`./scripts/vipertrade-smoke.sh`).
+- Required checks are green on `main`.
+- Changelog for `X.Y.Z` is aligned in EN/ES/PT-BR.
+- No open blocker issue for the release milestone.
+
+No-Go conditions:
+
+- Any CI failure in required checks.
+- Docs parity mismatch or missing required changelog sections.
+- Smoke test reports status different from `pass`.
 
 ## Quick checklist
 
