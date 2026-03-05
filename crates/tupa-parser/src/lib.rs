@@ -303,6 +303,67 @@ fn merge_span(start: Span, end: Span) -> Span {
     }
 }
 
+fn token_to_string(token: &Token) -> String {
+    match token {
+        Token::Ident(s) | Token::Int(s) | Token::Float(s) | Token::Str(s) => s.clone(),
+        Token::Fn => "fn".to_string(),
+        Token::Enum => "enum".to_string(),
+        Token::Trait => "trait".to_string(),
+        Token::Pipeline => "pipeline".to_string(),
+        Token::Step => "step".to_string(),
+        Token::Let => "let".to_string(),
+        Token::Return => "return".to_string(),
+        Token::If => "if".to_string(),
+        Token::Else => "else".to_string(),
+        Token::Match => "match".to_string(),
+        Token::While => "while".to_string(),
+        Token::For => "for".to_string(),
+        Token::Break => "break".to_string(),
+        Token::Continue => "continue".to_string(),
+        Token::In => "in".to_string(),
+        Token::Await => "await".to_string(),
+        Token::True => "true".to_string(),
+        Token::False => "false".to_string(),
+        Token::Null => "null".to_string(),
+        Token::LParen => "(".to_string(),
+        Token::RParen => ")".to_string(),
+        Token::LBrace => "{".to_string(),
+        Token::RBrace => "}".to_string(),
+        Token::LBracket => "[".to_string(),
+        Token::RBracket => "]".to_string(),
+        Token::Semicolon => ";".to_string(),
+        Token::Comma => ",".to_string(),
+        Token::Colon => ":".to_string(),
+        Token::Equal => "=".to_string(),
+        Token::Arrow => "=>".to_string(),
+        Token::ThinArrow => "->".to_string(),
+        Token::EqualEqual => "==".to_string(),
+        Token::BangEqual => "!=".to_string(),
+        Token::Less => "<".to_string(),
+        Token::LessEqual => "<=".to_string(),
+        Token::Greater => ">".to_string(),
+        Token::GreaterEqual => ">=".to_string(),
+        Token::AndAnd => "&&".to_string(),
+        Token::OrOr => "||".to_string(),
+        Token::Plus => "+".to_string(),
+        Token::PlusEqual => "+=".to_string(),
+        Token::Minus => "-".to_string(),
+        Token::MinusEqual => "-=".to_string(),
+        Token::Star => "*".to_string(),
+        Token::StarEqual => "*=".to_string(),
+        Token::Slash => "/".to_string(),
+        Token::SlashEqual => "/=".to_string(),
+        Token::DoubleStar => "**".to_string(),
+        Token::DotDot => "..".to_string(),
+        Token::Dot => ".".to_string(),
+        Token::Bang => "!".to_string(),
+        Token::Pipe => "|".to_string(),
+        Token::At => "@".to_string(),
+        Token::Percent => "%".to_string(),
+        Token::PercentEqual => "%=".to_string(),
+    }
+}
+
 pub fn parse_program(input: &str) -> Result<Program, ParserError> {
     let tokens = lex_with_spans(input)?;
     let mut parser = Parser::new(tokens, input.len());
@@ -426,37 +487,38 @@ impl Parser {
         let mut args = Vec::new();
         if matches!(self.peek(), Some(Token::LParen)) {
             self.expect(Token::LParen)?;
-            while !matches!(self.peek(), Some(Token::RParen)) {
-                match self.next() {
-                    Some(TokenSpan {
-                        token: Token::Ident(arg),
-                        ..
-                    }) => args.push(arg),
-                    Some(TokenSpan {
-                        token: Token::Str(arg),
-                        ..
-                    }) => args.push(arg),
-                    Some(TokenSpan {
-                        token: Token::Int(arg),
-                        ..
-                    }) => args.push(arg),
-                    Some(TokenSpan {
-                        token: Token::Float(arg),
-                        ..
-                    }) => args.push(arg),
-                    Some(TokenSpan {
-                        token: Token::Equal,
-                        ..
-                    }) => args.push("=".to_string()),
-                    Some(TokenSpan { token, span }) => {
-                        return Err(ParserError::Unexpected(token, span))
-                    }
-                    None => return Err(ParserError::Eof(self.eof_pos)),
+
+            let mut depth = 0;
+            while let Some(tok) = self.peek() {
+                if depth == 0 && *tok == Token::RParen {
+                    break;
                 }
-                if matches!(self.peek(), Some(Token::Comma)) {
-                    self.next();
+
+                let token_span = self.next().ok_or(ParserError::Eof(self.eof_pos))?;
+                let token = token_span.token;
+
+                match &token {
+                    Token::LParen | Token::LBracket | Token::LBrace => {
+                        depth += 1;
+                        args.push(token_to_string(&token));
+                    }
+                    Token::RParen | Token::RBracket | Token::RBrace => {
+                        if depth > 0 {
+                            depth -= 1;
+                        }
+                        args.push(token_to_string(&token));
+                    }
+                    Token::Comma => {
+                        if depth > 0 {
+                            args.push(",".to_string());
+                        }
+                    }
+                    _ => {
+                        args.push(token_to_string(&token));
+                    }
                 }
             }
+
             self.expect(Token::RParen)?;
         }
         Ok(Attribute { name, args })
@@ -1802,6 +1864,61 @@ mod tests {
             Item::Function(func) => func,
         };
         assert_eq!(func.body.len(), 1);
+    }
+
+    #[test]
+    fn parse_pipeline_suffix_attributes() {
+        let src = r#"
+        pipeline MyPipeline @suffix(val=1) {
+            input: i64,
+            steps: [],
+        }
+        "#;
+        let program = parse_program(src).unwrap();
+        if let Item::Pipeline(pipe) = &program.items[0] {
+            assert_eq!(pipe.attrs.len(), 1);
+            assert_eq!(pipe.attrs[0].name, "suffix");
+        } else {
+            panic!("expected pipeline");
+        }
+    }
+
+    #[test]
+    fn parse_complex_attributes() {
+        let src = r#"
+        @complex(nested=[1, 2], call=ExternalCall("DB"))
+        fn main() {}
+        "#;
+        let program = parse_program(src).unwrap();
+        if let Item::Function(func) = &program.items[0] {
+            assert_eq!(func.attrs.len(), 1);
+            let attr = &func.attrs[0];
+            assert_eq!(attr.name, "complex");
+            // args: nested, =, [, 1, ,, 2, ], ,, call, =, ExternalCall, (, DB, )
+            // My implementation preserves structure by tokens.
+            // nested -> Ident
+            // = -> Equal
+            // [ -> LBracket
+            // 1 -> Int
+            // , -> Comma (inside brackets)
+            // 2 -> Int
+            // ] -> RBracket
+            // , -> Comma (top level) -> SKIPPED
+            // call -> Ident
+            // = -> Equal
+            // ExternalCall -> Ident
+            // ( -> LParen
+            // DB -> Str
+            // ) -> RParen
+            
+            let expected = vec![
+                "nested", "=", "[", "1", ",", "2", "]",
+                "call", "=", "ExternalCall", "(", "DB", ")"
+            ];
+            assert_eq!(attr.args, expected);
+        } else {
+            panic!("expected function");
+        }
     }
 
     #[test]
