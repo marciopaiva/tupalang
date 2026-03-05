@@ -4,13 +4,13 @@
 
 Explain the contribution workflow and expectations for project changes.
 
-Thank you for considering contributing to the Tupã project.
+Thank you for considering contributing to the Tupa project.
 
 ## Getting started
 
 1. Check [README.md](README.md) for the overview.
 2. Open an issue describing the proposal or problem.
-3. Fork and create a branch from main.
+3. Fork and create a branch from `main`.
 
 ## Contribution standards
 
@@ -20,18 +20,46 @@ Thank you for considering contributing to the Tupã project.
 
 ## PR workflow
 
-1. Create the branch: `feat/short-name` or `fix/short-name`.
+1. Create a branch using the `codex/` prefix for automation branches (for manual branches, use `feat/` or `fix/`).
 2. Update/add relevant documentation.
-3. Open the PR with context, motivation, and scope.
-4. Wait for review.
+3. Run local checks before opening the PR.
+4. Open the PR with context, motivation, and scope.
+5. Wait for review.
+
+## Commit message convention
+
+Use Conventional Commits format:
+
+`<type>(<scope>): <summary>`
+
+Allowed `type` values:
+
+- `feat`: new functionality
+- `fix`: bug fix
+- `docs`: documentation-only change
+- `refactor`: internal code improvement without behavior change
+- `test`: test changes
+- `ci`: CI/workflow changes
+- `chore`: maintenance tasks
+
+Examples:
+
+- `feat(parser): support typed pipeline attributes`
+- `fix(typecheck): reject now() in deterministic pipelines`
+- `docs(guides): add local CI usage section`
 
 ## Local tests
 
-Before opening the PR, run:
+Before opening a PR, run:
 
 ```bash
-cargo test -p tupa-cli
-cargo test
+./scripts/ci-local.sh
+```
+
+Optional strict link check:
+
+```bash
+CI_LOCAL_STRICT_LINKS=1 ./scripts/ci-local.sh
 ```
 
 ## Documentation style

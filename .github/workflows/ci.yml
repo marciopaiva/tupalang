@@ -19,6 +19,23 @@ permissions:
   contents: read
 
 jobs:
+  pr-title-convention:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+    steps:
+      - name: Validate PR title convention (warning only)
+        run: |
+          title="${{ github.event.pull_request.title }}"
+          pattern='^(feat|fix|docs|refactor|test|ci|chore)(\([a-z0-9._-]+\))?: .+'
+          if echo "$title" | grep -Eq "$pattern"; then
+            echo "PR title convention: ok"
+          else
+            echo "::warning title=PR title convention::Use Conventional Commits style in PR title: <type>(<scope>): <summary>"
+            echo "Current title: $title"
+          fi
+
   lint:
     runs-on: ubuntu-latest
     timeout-minutes: 20
