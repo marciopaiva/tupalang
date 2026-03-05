@@ -1070,14 +1070,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tupa-validator"
-version = "0.8.0"
-dependencies = [
- "tupa-parser",
- "tupa-typecheck",
-]
-
-[[package]]
 name = "typenum"
 version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

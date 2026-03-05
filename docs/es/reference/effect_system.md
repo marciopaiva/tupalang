@@ -9,8 +9,11 @@ Identificar efectos en expresiones para validación (p. ej., determinismo).
 - IO (p. ej., `print`)
 - Random (p. ej., `random`)
 - Time (p. ej., `time`, `now`)
+- Utilidad pura (p. ej., `hash`)
 
 ## Uso en Pipelines
 
 - `@deterministic` rechaza `Random` y `Time` en pasos.
+- `hash(...)` se trata como puro y se permite en pipelines determinísticos.
+- `now()`/`time()` se tratan como `Time` y se rechazan bajo `@deterministic`.
 - Diagnóstico: E2005 (impuro en determinístico).

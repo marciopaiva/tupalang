@@ -3,3 +3,17 @@
 /wiki
 /.vscode
 .wiki-tmp/
+
+# Generated plans and LLVM outputs
+*.plan.json
+*.ll
+
+# Python caches
+**/__pycache__/
+*.pyc
+*.pyo
+
+# Local generated reports
+out.json
+audit_report.json
+tmp_input_i64.json

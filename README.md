@@ -1,4 +1,4 @@
-﻿# Tupã Language
+# Tupã Language
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/tupalang/tupa/ci.yml?branch=main)](https://github.com/tupalang/tupa/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -21,31 +21,20 @@
 
 ## 📄 Language Example
 
-Tupã's syntax is designed to be declarative and readable. Here is a simple trading strategy pipeline:
+Tupã's syntax is declarative and pipeline-oriented. A minimal valid example:
 
 ```tupa
-// Define a trading pipeline with deterministic attributes
+enum MarketSignal {}
+
+fn score(input: MarketSignal): i64 {
+  return 42;
+}
+
 pipeline Strategy @deterministic(seed=42) {
-    // Strongly typed input
-    input: {
-        price: f64,
-        volume: i64
-    },
-
-    // Pipeline steps (can be Rust functions or Python AI models)
-    steps: [
-        // Calculate moving average (Rust)
-        process_indicator(window=14) -> ma,
-        
-        // Predict signal using AI model (Python)
-        py:models.predict(price, ma) -> signal
-    ],
-
-    // Output schema
-    output: {
-        action: String,
-        confidence: f64
-    }
+  input: MarketSignal,
+  steps: [
+    step("score") { score(input) },
+  ],
 }
 ```
 
@@ -80,19 +69,24 @@ tupa --version
 
 ## 💡 Quick Examples
 
-### 1. Run a Backtest
+### 1. Generate and Run a Pipeline
 
-Simulate a trading strategy using the built-in example:
+```bash
+tupa codegen --format=json examples/pipeline/fraud_complete.tp
+tupa run --pipeline=FraudDetection --input examples/pipeline/tx.json examples/pipeline/fraud_complete.tp
+```
+
+### 2. Run from ExecutionPlan
+
+```bash
+tupa codegen --plan-only examples/pipeline/fraud_complete.tp
+tupa run --plan fraud_complete.plan.json --pipeline=FraudDetection --input examples/pipeline/tx.json
+```
+
+### 3. Runtime Trading Demos
 
 ```bash
 cargo run -p tupa-runtime --example viper_backtest
-```
-
-### 2. Circuit Breaker Demo
-
-Observe how the system handles external API failures:
-
-```bash
 cargo run -p tupa-runtime --example viper_circuit_breaker
 ```
 

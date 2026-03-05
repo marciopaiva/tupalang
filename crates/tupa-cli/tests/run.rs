@@ -5,11 +5,18 @@ fn repo_root() -> std::path::PathBuf {
     std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..")
 }
 
+fn run_e2e_enabled() -> bool {
+    std::env::var("TUPA_RUN_E2E").as_deref() == Ok("1")
+}
+
 #[test]
-#[ignore]
 fn run_fraud_detection_plan_only_and_run() {
+    if !run_e2e_enabled() {
+        eprintln!("skipping run_fraud_detection_plan_only_and_run (set TUPA_RUN_E2E=1)");
+        return;
+    }
+
     let root = repo_root();
-    // Generate plan
     let mut gen = Command::new(env!("CARGO_BIN_EXE_tupa-cli"));
     gen.current_dir(&root)
         .args([
@@ -19,7 +26,7 @@ fn run_fraud_detection_plan_only_and_run() {
         ])
         .assert()
         .success();
-    // Run from plan
+
     let mut run = Command::new(env!("CARGO_BIN_EXE_tupa-cli"));
     run.current_dir(&root)
         .args([
@@ -37,12 +44,16 @@ fn run_fraud_detection_plan_only_and_run() {
 }
 
 #[test]
-#[ignore]
 fn run_credit_decision_report_contains_approved() {
+    if !run_e2e_enabled() {
+        eprintln!("skipping run_credit_decision_report_contains_approved (set TUPA_RUN_E2E=1)");
+        return;
+    }
+
     let root = repo_root();
-    // create a temp input file with i64
     let tmp_path = root.join("tmp_input_i64.json");
     std::fs::write(&tmp_path, "100").unwrap();
+
     let mut run = Command::new(env!("CARGO_BIN_EXE_tupa-cli"));
     run.current_dir(&root)
         .args([
@@ -56,6 +67,7 @@ fn run_credit_decision_report_contains_approved() {
         .assert()
         .success()
         .stdout(predicates::str::contains("\"status\": \"pass\""));
+
     let _ = std::fs::remove_file(&tmp_path);
 }
 
@@ -68,11 +80,9 @@ fn perf_codegen_fraud_medium_under_target() {
         .args(["codegen", "examples/pipeline/fraud_complete.tp"])
         .assert()
         .success();
+
     let elapsed = start.elapsed();
-    println!(
-        "perf: codegen fraud_complete took {} ms",
-        elapsed.as_millis()
-    );
+    println!("perf: codegen fraud_complete took {} ms", elapsed.as_millis());
     assert!(
         elapsed.as_millis() <= 500,
         "codegen took {} ms (> 500ms threshold)",
@@ -97,6 +107,7 @@ fn perf_run_fraud_medium_under_target() {
         ])
         .assert()
         .success();
+
     let elapsed = start.elapsed();
     println!("perf: run fraud_complete took {} ms", elapsed.as_millis());
     assert!(
