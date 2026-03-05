@@ -1,10 +1,10 @@
 # Tupã Language
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/tupalang/tupa/ci.yml?branch=main)](https://github.com/tupalang/tupa/actions)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/marciopaiva/tupalang/ci.yml?branch=main)](https://github.com/marciopaiva/tupalang/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-0.8.0-blue.svg)](docs/en/releases/changelog.md)
 [![Rust](https://img.shields.io/badge/rust-1.75%2B-orange.svg)](https://www.rust-lang.org)
-[![Platform](https://img.shields.io/badge/platform-linux%20%7C%20macos%20%7C%20windows-lightgrey)](https://github.com/tupalang/tupa)
+[![Platform](https://img.shields.io/badge/platform-linux%20%7C%20macos%20%7C%20windows-lightgrey)](https://github.com/marciopaiva/tupalang)
 
 **Tupã** is a deterministic, type-safe pipeline orchestration language designed for mission-critical systems. It bridges the gap between static safety and dynamic runtime flexibility, making it the ideal choice for financial trading bots, AI inference workflows, and high-reliability data processing.
 
@@ -15,7 +15,7 @@
 ## ✨ Key Features
 
 - **🛡️ Deterministic by Design**: Pipelines are compiled to Rust with strict type checking, preventing runtime errors.
-- **🚀 High Performance**: Zero-overhead abstraction. The compiler generates optimined Rust code comparable to hand-written implementations.
+- **🚀 High Performance**: Zero-overhead abstraction. The compiler generates optimized Rust code comparable to hand-written implementations.
 - **🧠 Python AI Integration**: Seamlessly call Python functions (e.g., PyTorch, TensorFlow, scikit-learn) from Rust pipelines with automatic data marshaling.
 - **⚡ Trading-Ready**: Built-in support for backtesting, circuit breakers, and financial indicators.
 
@@ -56,7 +56,7 @@ Ensure you have [Rust](https://www.rust-lang.org/tools/install) installed (1.75+
 ### From Source
 
 ```bash
-git clone https://github.com/tupalang/tupa.git
+git clone https://github.com/marciopaiva/tupalang.git
 cd tupalang
 cargo install --path crates/tupa-cli
 ```
