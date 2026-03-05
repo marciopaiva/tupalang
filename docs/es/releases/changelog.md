@@ -1,36 +1,52 @@
-
+﻿
 # Changelog
 
 ## Propósito
 
 Registrar cambios relevantes por versión.
 
-## 0.8.0 (2026-03-04)
+## 0.8.0 (2026-03-05)
 
 - Tema del release: integración Python controlada y auditable para pipelines de producción.
-- Principio guía: "Integrar sin perder gobernanza — cada llamada Python es rastreada, validada y auditable".
-- Alcance: orquestación de PyTorch/TensorFlow vía adaptadores auditados.
-- Enfoque: rastreo de ejecución, hooks de validación y esquema de log de auditoría para llamadas Python.
+- Principio guía: "Integrar sin perder gobernanza - cada llamada Python es rastreada, validada y auditable."
 
-### Añadido
+### Alcance Entregado
 
-- **Interoperabilidad Python (`tupa-pyffi`)**:
-  - Puente seguro para invocar módulos Python (ej. PyTorch, TensorFlow).
-  - Sintaxis de paso `py:module.func` para integración directa.
-- **Resiliencia del Runtime**:
-  - **Circuit Breaker**: Previene fallos en cascada con umbrales configurables y timeouts de reset.
-  - **Soporte Async**: Ejecución nativa `async/await` para pasos I/O-bound.
-- **Motor de Backtesting**:
-  - Simulación histórica con seguimiento de PnL y evaluación de restricciones de riesgo.
-  - Logs de auditoría detallados para cada operación y bloqueo de riesgo.
-- **Logging de Auditoría Estructurado**:
-  - Logs estructurados en JSON vía `tracing` para cumplimiento normativo.
-- **Validación**:
-  - **Formas de Tensores**: Validación automática de esquema para inputs/outputs de tensores (ej. `[28, 28]`).
-  - **Atributos de Pipeline**: Soporte para declaraciones `@deterministic(seed=...)` y `@external`.
-- **Mejoras del Parser**:
-  - Correcciones para sintaxis de brazos de match (`=>`) y tipos de retorno de función (`->`).
-  - Recuperación de errores mejorada y seguimiento de spans.
+- Interoperabilidad Python (`tupa-pyffi`) para invocación segura de pasos `py:module.func`.
+- Resiliencia de runtime con circuit breaker y soporte async/await.
+- Flujo de backtesting con evaluación de PnL/riesgo y logging de auditoría estructurado.
+- Mejoras de validación para shapes de tensores, atributos de pipeline y robustez de parser/typechecker.
+
+### Ingeniería y CI Completados
+
+- CI ahora exige convención de título de PR (`type(scope): subject`) y convención de mensajes de commit.
+- Etiquetado automático de PR por tipo de cambio (`feat`, `fix`, `docs`, `refactor`, `test`, `ci`, `chore`, `breaking`).
+- Release Drafter habilitado con categorización automática.
+- Protección de rama en `main` reforzada:
+  - checks requeridos (`pr-title-convention`, `commit-message-convention`, `lint`, `test`)
+  - requisito estricto de rama actualizada
+  - resolución de conversaciones requerida
+  - revisión de CODEOWNERS y 1 aprobación requeridas
+  - descarte de revisiones obsoletas habilitado
+- CODEOWNERS agregado para archivos críticos de gobernanza y workflows.
+- Gobernanza de backport implementada:
+  - validación de etiquetas `backport-X.Y`
+  - creación automática de issue de seguimiento para PRs mergeados con etiqueta de backport
+- Operación de releases documentada en `release_guide.md` y `release_cut_checklist.md`.
+- Validación local estandarizada con `scripts/ci-local.sh` (código + lint de docs/links).
+
+### Snapshot de Validación del Workspace
+
+- Chequeo local completo ejecutado en 2026-03-05: `./scripts/ci-local.sh`.
+- Resultado: pass (`fmt`, `clippy`, `test`, `markdownlint`, `lychee`).
+- Estado del working tree durante la validación: limpio en `main`.
+
+### Deuda Técnica
+
+- La validación de convención de commit aún depende del contexto de PR; los pushes directos a ramas protegidas deben permanecer bloqueados por política.
+- Los quality gates de docs son sólidos en CI, pero la paridad de changelog multilenguaje (`en`, `es`, `pt-br`) aún no está automatizada.
+- El workflow de backport crea issues de seguimiento, pero la automatización de cherry-pick de backport aún no está implementada.
+- Los objetivos de rendimiento están documentados, pero no existe dashboard de tendencia en CI con histórico de latencia y throughput.
 
 ## 0.7.0 (2026-02-20)
 

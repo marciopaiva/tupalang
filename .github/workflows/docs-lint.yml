@@ -9,12 +9,14 @@ on:
       - ".markdownlint.json"
       - ".markdownlintignore"
       - ".github/workflows/docs-lint.yml"
+      - "scripts/docs-parity-check.sh"
   pull_request:
     paths:
       - "**/*.md"
       - ".markdownlint.json"
       - ".markdownlintignore"
       - ".github/workflows/docs-lint.yml"
+      - "scripts/docs-parity-check.sh"
 
 jobs:
   markdownlint:
@@ -33,6 +35,15 @@ jobs:
 
       - name: Run markdownlint
         run: markdownlint "**/*.md"
+
+  docs-parity:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Docs parity check
+        run: ./scripts/docs-parity-check.sh
 
   link-check:
     runs-on: ubuntu-latest
