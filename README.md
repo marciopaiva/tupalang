@@ -15,7 +15,7 @@
 ## ✨ Key Features
 
 - **🛡️ Deterministic by Design**: Pipelines are compiled to Rust with strict type checking, preventing runtime errors.
-- **🚀 High Performance**: Zero-overhead abstraction. The compiler generates optimized Rust code comparable to hand-written implementations.
+- **🚀 High Performance**: Zero-overhead abstraction. The compiler generates optimined Rust code comparable to hand-written implementations.
 - **🧠 Python AI Integration**: Seamlessly call Python functions (e.g., PyTorch, TensorFlow, scikit-learn) from Rust pipelines with automatic data marshaling.
 - **⚡ Trading-Ready**: Built-in support for backtesting, circuit breakers, and financial indicators.
 
