@@ -4,50 +4,93 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-0.8.0-blue.svg)](docs/en/releases/changelog.md)
 [![Rust](https://img.shields.io/badge/rust-1.75%2B-orange.svg)](https://www.rust-lang.org)
+[![Platform](https://img.shields.io/badge/platform-linux%20%7C%20macos%20%7C%20windows-lightgrey)](https://github.com/tupalang/tupa)
 
 **Tupã** is a deterministic, type-safe pipeline orchestration language designed for mission-critical systems. It bridges the gap between static safety and dynamic runtime flexibility, making it the ideal choice for financial trading bots, AI inference workflows, and high-reliability data processing.
 
-## 🚀 Key Features
+> **Tupã** (Guaraní mythology): The spirit of thunder and enlightenment.
+
+---
+
+## 🚀 Why Tupã?
+
+Modern data pipelines often suffer from "fragile glue code" problems—Python scripts that break in production due to type errors, missing dependencies, or non-deterministic behavior. Tupã solves this by providing:
 
 - **Deterministic Execution**: Guarantee reproducible outputs for the same inputs, eliminating "it works on my machine" issues.
 - **Type Safety**: Strong static analysis prevents runtime errors before execution, catching bugs early.
 - **Polyglot Runtime**: Seamlessly orchestrate Rust functions and Python AI models (via FFI) in a single pipeline.
 - **Zero-Cost Abstractions**: Compiles to efficient Rust execution plans with minimal overhead.
-- **Trading Ready**: Built-in support for **Circuit Breakers**, **Backtesting**, and **Audit Logging** (see [Trading Support](docs/en/features/trading_support.md)).
 
-## 📚 Documentation
+## 📄 Language Example
 
-Complete documentation is available in the `docs/` directory:
+Tupã's syntax is designed to be declarative and readable. Here is a simple trading strategy pipeline:
 
-- **Getting Started**: [Installation & First Steps](docs/en/guides/getting_started.md)
-- **Architecture**: [System Overview](docs/en/overview/architecture.md)
-- **Language Reference**: [Syntax & Semantics](docs/en/reference/spec.md)
-- **Trading Features**: [Circuit Breaker & Backtesting](docs/en/features/trading_support.md)
-- **Release Notes**: [Changelog](docs/en/releases/changelog.md)
+```tupa
+// Define a trading pipeline with deterministic attributes
+pipeline Strategy @deterministic(seed=42) {
+    // Strongly typed input
+    input: {
+        price: f64,
+        volume: i64
+    },
+
+    // Pipeline steps (can be Rust functions or Python AI models)
+    steps: [
+        // Calculate moving average (Rust)
+        process_indicator(window=14) -> ma,
+        
+        // Predict signal using AI model (Python)
+        py:models.predict(price, ma) -> signal
+    ],
+
+    // Output schema
+    output: {
+        action: String,
+        confidence: f64
+    }
+}
+```
+
+## 💹 Trading Ready
+
+Tupã v0.8.0 introduces first-class support for financial systems, enabling robust trading bot development:
+
+*   **Circuit Breakers**: Built-in mechanism to halt execution when consecutive failures occur, preventing cascading losses.
+*   **Backtesting Engine**: Native support for historical simulation with PnL tracking and audit logging.
+*   **Audit Logging**: Structured JSON logs for every decision, compliant with financial auditing standards.
+*   **Risk Constraints**: Define strict limits (e.g., `max_drawdown`, `exposure`) directly in the pipeline definition.
+
+See [Trading Support Documentation](docs/en/features/trading_support.md) for details.
 
 ## 🛠️ Installation
 
-Ensure you have Rust installed. Then, clone the repository and build:
+Ensure you have [Rust](https://www.rust-lang.org/tools/install) installed (1.75+).
+
+### From Source
 
 ```bash
 git clone https://github.com/tupalang/tupa.git
 cd tupalang
-cargo build --release
+cargo install --path crates/tupa-cli
 ```
 
-## 💡 Quick Example
+### Verify Installation
 
-### Trading Strategy Backtest
+```bash
+tupa --version
+```
 
-Run a backtest simulation using the built-in runtime example:
+## 💡 Quick Examples
+
+### 1. Run a Backtest
+Simulate a trading strategy using the built-in example:
 
 ```bash
 cargo run -p tupa-runtime --example viper_backtest
 ```
 
-### Circuit Breaker Demo
-
-Simulate a failing external API and observe the circuit breaker in action:
+### 2. Circuit Breaker Demo
+Observe how the system handles external API failures:
 
 ```bash
 cargo run -p tupa-runtime --example viper_circuit_breaker
@@ -57,10 +100,22 @@ cargo run -p tupa-runtime --example viper_circuit_breaker
 
 The project is organized as a Rust workspace:
 
-- [`tupa-parser`](crates/tupa-parser): Source code parser and AST generation.
-- [`tupa-runtime`](crates/tupa-runtime): Execution engine with trading support and Python FFI.
-- [`tupa-cli`](crates/tupa-cli): Command-line interface for compiling and running pipelines.
-- [`tupa-codegen`](crates/tupa-codegen): Rust code generation from Tupã pipelines.
+| Crate | Description |
+|-------|-------------|
+| [`tupa-parser`](crates/tupa-parser) | Source code parser and AST generation |
+| [`tupa-runtime`](crates/tupa-runtime) | Execution engine with trading support and Python FFI |
+| [`tupa-cli`](crates/tupa-cli) | Command-line interface for compiling and running pipelines |
+| [`tupa-codegen`](crates/tupa-codegen) | Rust code generation from Tupã pipelines |
+| [`tupa-typecheck`](crates/tupa-typecheck) | Static analysis and type validation |
+
+## 📚 Documentation
+
+Complete documentation is available in the `docs/` directory:
+
+- [Getting Started](docs/en/guides/getting_started.md)
+- [Language Specification](docs/en/reference/spec.md)
+- [Architecture Overview](docs/en/overview/architecture.md)
+- [Changelog](docs/en/releases/changelog.md)
 
 ## 🤝 Contributing
 
