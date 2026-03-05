@@ -37,7 +37,7 @@ fn run_cli_err(args: &[&str]) -> String {
         .output()
         .expect("failed to run tupa-cli");
     assert!(!output.status.success(), "tupa-cli expected to fail");
-    normalize_output(&String::from_utf8_lossy(&output.stderr).to_string())
+    normalize_output(String::from_utf8_lossy(&output.stderr).as_ref())
 }
 
 fn normalize_output(text: &str) -> String {

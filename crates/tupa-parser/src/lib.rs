@@ -2211,7 +2211,9 @@ mod tests {
         let Stmt::Let { expr, .. } = &func.body[0] else {
             panic!("expected let");
         };
-        assert!(matches!(expr.kind, ExprKind::Float(f) if (f - 3.14).abs() < 1e-9));
+        assert!(
+            matches!(expr.kind, ExprKind::Float(f) if (f - 314.0_f64 / 100.0_f64).abs() < 1e-9)
+        );
     }
 
     #[test]
