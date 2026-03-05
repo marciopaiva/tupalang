@@ -110,6 +110,11 @@ Complete documentation is available in the `docs/` directory:
 - [Language Specification](docs/en/reference/spec.md)
 - [Changelog](docs/en/releases/changelog.md)
 
+## ✅ Local CI
+
+- Antes de fazer push, rode: ./scripts/ci-local.sh
+- Para validar links em modo estrito: CI_LOCAL_STRICT_LINKS=1 ./scripts/ci-local.sh
+
 ## 🤝 Contributing
 
 We welcome contributions! Please see our [Contributing Guide](docs/en/guides/contributing_faq.md) for details.
