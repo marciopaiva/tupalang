@@ -364,6 +364,122 @@ fn token_to_string(token: &Token) -> String {
     }
 }
 
+fn parse_external_effect_item(tokens: &[String]) -> Option<String> {
+    if tokens.is_empty() {
+        return None;
+    }
+
+    if tokens.len() == 1 {
+        return Some(tokens[0].clone());
+    }
+
+    if tokens[0] == "ExternalCall"
+        && tokens.get(1).is_some_and(|t| t == "(")
+        && tokens.last().is_some_and(|t| t == ")")
+        && tokens.len() >= 4
+    {
+        let inner = tokens[2..tokens.len() - 1].join("");
+        return Some(format!("ExternalCall({inner})"));
+    }
+
+    Some(tokens.join(""))
+}
+
+fn parse_external_spec(args: &[String]) -> ExternalSpec {
+    let mut spec = ExternalSpec {
+        python: None,
+        effects: Vec::new(),
+    };
+
+    if args.is_empty() {
+        return spec;
+    }
+
+    if !args.iter().any(|a| a == "=") {
+        spec.python = args.first().cloned();
+        return spec;
+    }
+
+    let mut i = 0;
+    while i < args.len() {
+        let key = &args[i];
+
+        if i + 1 >= args.len() || args[i + 1] != "=" {
+            i += 1;
+            continue;
+        }
+
+        if key == "python" {
+            if let Some(value) = args.get(i + 2) {
+                spec.python = Some(value.clone());
+            }
+            i += 3;
+            continue;
+        }
+
+        if key == "effects" {
+            if args.get(i + 2).is_some_and(|t| t == "[") {
+                let mut j = i + 3;
+                let mut bracket_depth = 1;
+                let mut paren_depth = 0;
+                let mut current = Vec::new();
+
+                while j < args.len() {
+                    let tok = &args[j];
+                    match tok.as_str() {
+                        "[" => {
+                            bracket_depth += 1;
+                            if bracket_depth > 1 {
+                                current.push(tok.clone());
+                            }
+                        }
+                        "]" => {
+                            bracket_depth -= 1;
+                            if bracket_depth == 0 {
+                                if let Some(effect) = parse_external_effect_item(&current) {
+                                    spec.effects.push(effect);
+                                }
+                                break;
+                            }
+                            current.push(tok.clone());
+                        }
+                        "," if bracket_depth == 1 && paren_depth == 0 => {
+                            if let Some(effect) = parse_external_effect_item(&current) {
+                                spec.effects.push(effect);
+                            }
+                            current.clear();
+                        }
+                        "(" => {
+                            paren_depth += 1;
+                            current.push(tok.clone());
+                        }
+                        ")" => {
+                            if paren_depth > 0 {
+                                paren_depth -= 1;
+                            }
+                            current.push(tok.clone());
+                        }
+                        _ => current.push(tok.clone()),
+                    }
+                    j += 1;
+                }
+
+                i = j + 1;
+                continue;
+            }
+
+            if let Some(value) = args.get(i + 2) {
+                spec.effects.push(value.clone());
+            }
+            i += 3;
+            continue;
+        }
+
+        i += 1;
+    }
+
+    spec
+}
 pub fn parse_program(input: &str) -> Result<Program, ParserError> {
     let tokens = lex_with_spans(input)?;
     let mut parser = Parser::new(tokens, input.len());
@@ -544,23 +660,10 @@ impl Parser {
             None
         };
         let body = self.parse_block()?;
-
-        let mut external_spec = None;
-        for attr in &attrs {
-            if attr.name == "external" {
-                if let Some(arg) = attr.args.first() {
-                    external_spec = Some(ExternalSpec {
-                        python: Some(arg.clone()),
-                        effects: Vec::new(),
-                    });
-                } else {
-                    external_spec = Some(ExternalSpec {
-                        python: None,
-                        effects: Vec::new(),
-                    });
-                }
-            }
-        }
+        let external_spec = attrs
+            .iter()
+            .find(|attr| attr.name == "external")
+            .map(|attr| parse_external_spec(&attr.args));
 
         Ok(Function {
             name,
@@ -1932,6 +2035,46 @@ mod tests {
         }
     }
 
+    #[test]
+    fn parse_external_attribute_spec() {
+        let src = r#"
+        @external(python="torch.nn.Linear", effects=[IO, Time, ExternalCall("Bybit")])
+        fn predict(input: i64): i64 { return input; }
+        "#;
+        let program = parse_program(src).unwrap();
+        let func = match &program.items[0] {
+            Item::Function(func) => func,
+            _ => panic!("expected function"),
+        };
+
+        let spec = func.external_spec.as_ref().expect("expected external spec");
+        assert_eq!(spec.python.as_deref(), Some("torch.nn.Linear"));
+        assert_eq!(
+            spec.effects,
+            vec![
+                "IO".to_string(),
+                "Time".to_string(),
+                "ExternalCall(Bybit)".to_string(),
+            ]
+        );
+    }
+
+    #[test]
+    fn parse_external_attribute_legacy_python_only() {
+        let src = r#"
+        @external("math.sqrt")
+        fn predict(input: i64): i64 { return input; }
+        "#;
+        let program = parse_program(src).unwrap();
+        let func = match &program.items[0] {
+            Item::Function(func) => func,
+            _ => panic!("expected function"),
+        };
+
+        let spec = func.external_spec.as_ref().expect("expected external spec");
+        assert_eq!(spec.python.as_deref(), Some("math.sqrt"));
+        assert!(spec.effects.is_empty());
+    }
     #[test]
     fn parse_match_expression() {
         let src = "fn main() { match x { 1 => foo(), _ => bar(), }; }";

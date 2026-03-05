@@ -996,6 +996,25 @@ fn eval_f64_const(expr: &Expr) -> Option<f64> {
     }
 }
 
+fn effect_from_external_spec(eff: &str) -> tupa_effects::Effect {
+    match eff {
+        "IO" => tupa_effects::Effect::IO,
+        "Random" => tupa_effects::Effect::Random,
+        "Time" => tupa_effects::Effect::Time,
+        _ => {
+            if eff.starts_with("ExternalCall(") && eff.ends_with(')') {
+                let mut inner = eff
+                    .trim_start_matches("ExternalCall(")
+                    .trim_end_matches(')')
+                    .trim()
+                    .to_string();
+                inner = inner.trim_matches('"').to_string();
+                return tupa_effects::Effect::ExternalCall(inner);
+            }
+            tupa_effects::Effect::ExternalCall(eff.to_string())
+        }
+    }
+}
 #[allow(clippy::result_large_err)]
 pub fn typecheck_program_with_warnings(program: &Program) -> Result<Vec<Warning>, TypeError> {
     let mut functions = HashMap::new();
@@ -1019,13 +1038,7 @@ pub fn typecheck_program_with_warnings(program: &Program) -> Result<Vec<Warning>
                 let mut effects = EffectSet::default();
                 if let Some(spec) = &func.external_spec {
                     for eff in &spec.effects {
-                        match eff.as_str() {
-                            "IO" => effects.insert(tupa_effects::Effect::IO),
-                            "Random" => effects.insert(tupa_effects::Effect::Random),
-                            "Time" => effects.insert(tupa_effects::Effect::Time),
-                            other => effects
-                                .insert(tupa_effects::Effect::ExternalCall(other.to_string())),
-                        }
+                        effects.insert(effect_from_external_spec(eff));
                     }
                 }
                 functions.insert(
@@ -3570,11 +3583,10 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn deterministic_pipeline_rejects_external_effects() {
         let src = r#"
             @external(effects = [ExternalCall("DB")])
-            fn fetch_data(): i64;
+            fn fetch_data(): i64 { return 1; }
 
             pipeline my_pipe @deterministic {
                 input: i64,
