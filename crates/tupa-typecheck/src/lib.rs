@@ -1468,11 +1468,17 @@ fn type_of_expr(
                     ret: Box::new(Ty::Unit),
                 });
             }
-            // Built-ins for validator: random/time
+            // Built-ins for validator/runtime behavior
             if name == "random" || name == "time" || name == "now" {
                 return Ok(Ty::Func {
                     params: vec![],
                     ret: Box::new(Ty::Unknown),
+                });
+            }
+            if name == "hash" {
+                return Ok(Ty::Func {
+                    params: vec![Ty::Unknown],
+                    ret: Box::new(Ty::String),
                 });
             }
             Err(TypeError::UnknownVar {
@@ -1641,6 +1647,7 @@ fn type_of_expr(
                     && name != "random"
                     && name != "time"
                     && name != "now"
+                    && name != "hash"
                     && !is_variant
                 {
                     let mut candidates = functions.keys().cloned().collect::<Vec<_>>();
@@ -1648,6 +1655,7 @@ fn type_of_expr(
                     candidates.push("random".to_string());
                     candidates.push("time".to_string());
                     candidates.push("now".to_string());
+                    candidates.push("hash".to_string());
                     return Err(TypeError::UnknownFunction {
                         name: name.clone(),
                         suggestion: suggestion_message(best_suggestion(name, candidates)),
@@ -3582,6 +3590,39 @@ mod tests {
         assert!(typecheck_program(&ok).is_ok());
     }
 
+    #[test]
+    fn deterministic_pipeline_rejects_now_builtin() {
+        let src = r#"
+            pipeline my_pipe @deterministic {
+                input: i64,
+                steps: [
+                    step("one") { now() }
+                ]
+            }
+        "#;
+        let program = parse_program(src).unwrap();
+        match typecheck_program(&program) {
+            Err(TypeError::ImpureInDeterministic {
+                forbidden_effect: tupa_effects::Effect::Time,
+                ..
+            }) => {}
+            res => panic!("Expected Time effect error, got {:?}", res),
+        }
+    }
+
+    #[test]
+    fn deterministic_pipeline_allows_hash_builtin() {
+        let src = r#"
+            pipeline my_pipe @deterministic {
+                input: i64,
+                steps: [
+                    step("one") { hash(input) }
+                ]
+            }
+        "#;
+        let program = parse_program(src).unwrap();
+        assert!(typecheck_program(&program).is_ok());
+    }
     #[test]
     fn deterministic_pipeline_rejects_external_effects() {
         let src = r#"
