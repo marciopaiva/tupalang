@@ -23,17 +23,46 @@ jobs:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    continue-on-error: true
     steps:
-      - name: Validate PR title convention (warning only)
+      - name: Validate PR title convention
         run: |
           title="${{ github.event.pull_request.title }}"
-          pattern='^(feat|fix|docs|refactor|test|ci|chore)(\([a-z0-9._-]+\))?: .+'
+          pattern='^(feat|fix|docs|refactor|test|ci|chore)(\([a-z0-9._/-]+\))?: .+'
           if echo "$title" | grep -Eq "$pattern"; then
             echo "PR title convention: ok"
           else
-            echo "::warning title=PR title convention::Use Conventional Commits style in PR title: <type>(<scope>): <summary>"
-            echo "Current title: $title"
+            echo "PR title does not follow Conventional Commits style"
+            echo "Expected: <type>(<scope>): <summary>"
+            echo "Current:  $title"
+            exit 1
+          fi
+
+  commit-message-convention:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout full history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate commit messages in PR
+        run: |
+          git fetch origin "${{ github.base_ref }}" --depth=1
+          range="origin/${{ github.base_ref }}..HEAD"
+          pattern='^(feat|fix|docs|refactor|test|ci|chore)(\([a-z0-9._/-]+\))?: .+'
+          bad=0
+          while IFS= read -r msg; do
+            if ! echo "$msg" | grep -Eq "$pattern"; then
+              echo "Invalid commit message: $msg"
+              bad=1
+            fi
+          done < <(git log --pretty=%s "$range")
+
+          if [ "$bad" -ne 0 ]; then
+            echo "One or more commit messages do not follow Conventional Commits"
+            exit 1
           fi
 
   lint:

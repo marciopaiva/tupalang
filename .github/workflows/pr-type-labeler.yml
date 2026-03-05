@@ -1,0 +1,73 @@
+name: PR Type Labeler
+
+on:
+  pull_request_target:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  label-by-title:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Label PR by Conventional title type
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const title = pr.title || "";
+            const m = title.match(/^(feat|fix|docs|refactor|test|ci|chore)(\([^)]+\))?:\s+/);
+            if (!m) {
+              core.info(`No conventional type prefix found in title: ${title}`);
+              return;
+            }
+
+            const type = m[1];
+            const repo = context.repo;
+            const labelNames = ["feat", "fix", "docs", "refactor", "test", "ci", "chore", "breaking"];
+            const colorMap = {
+              feat: "0e8a16",
+              fix: "d73a4a",
+              docs: "0075ca",
+              refactor: "5319e7",
+              test: "fbca04",
+              ci: "1d76db",
+              chore: "cfd3d7",
+              breaking: "b60205"
+            };
+
+            for (const name of labelNames) {
+              try {
+                await github.rest.issues.getLabel({ ...repo, name });
+              } catch {
+                await github.rest.issues.createLabel({
+                  ...repo,
+                  name,
+                  color: colorMap[name],
+                  description: `PR type: ${name}`
+                });
+              }
+            }
+
+            const current = pr.labels.map(l => l.name);
+            const remove = current.filter(l => labelNames.includes(l) && l !== type);
+            for (const name of remove) {
+              await github.rest.issues.removeLabel({
+                ...repo,
+                issue_number: pr.number,
+                name
+              }).catch(() => {});
+            }
+
+            if (!current.includes(type)) {
+              await github.rest.issues.addLabels({
+                ...repo,
+                issue_number: pr.number,
+                labels: [type]
+              });
+            }
+
+            core.info(`Applied type label '${type}' from title.`);
