@@ -1,36 +1,51 @@
-
 # Changelog
 
 ## Purpose
 
 This document records relevant changes per version.
 
-## 0.8.0 (2026-03-04)
+## 0.8.0 (2026-03-05)
 
 - Release theme: controlled, auditable Python integration for production pipelines.
-- Guiding principle: "Integrate without losing governance — every Python call is traced, validated, and auditable."
-- Scope: PyTorch/TensorFlow orchestration via audited adapters.
-- Focus: execution tracing, validation hooks, and audit log schema for Python calls.
+- Guiding principle: "Integrate without losing governance - every Python call is traced, validated, and auditable."
 
-### Added
+### Delivered Scope
 
-- **Python Interoperability (`tupa-pyffi`)**:
-  - Safe bridge for invoking Python modules (e.g., PyTorch, TensorFlow).
-  - `py:module.func` step syntax for direct integration.
-- **Runtime Resilience**:
-  - **Circuit Breaker**: Prevents cascading failures with configurable thresholds and reset timeouts.
-  - **Async Support**: Native `async/await` execution for I/O-bound steps.
-- **Backtesting Engine**:
-  - Historical simulation with PnL tracking and risk constraint evaluation.
-  - Detailed audit logs for every trade and risk block.
-- **Structured Audit Logging**:
-  - JSON-based structured logs via `tracing` crate for compliance.
-- **Validation**:
-  - **Tensor Shapes**: Automatic schema validation for tensor inputs/outputs (e.g., `[28, 28]`).
-  - **Pipeline Attributes**: Support for `@deterministic(seed=...)` and `@external` declarations.
-- **Parser Improvements**:
-  - Fixes for match arm syntax (`=>`) and function return types (`->`).
-  - Enhanced error recovery and span tracking.
+- Python interoperability (`tupa-pyffi`) for safe invocation of `py:module.func` steps.
+- Runtime resilience with circuit breaker and async/await support.
+- Backtesting flow with PnL/risk evaluation and structured audit logging.
+- Validation improvements for tensor shapes, pipeline attributes, and parser/typechecker robustness.
+
+### Engineering and CI Completed
+
+- CI now enforces PR title convention (`type(scope): subject`) and commit message convention.
+- PR auto-labeling by change type (`feat`, `fix`, `docs`, `refactor`, `test`, `ci`, `chore`, `breaking`).
+- Release drafter enabled with automatic categorization.
+- Branch protection on `main` hardened:
+  - required status checks (`pr-title-convention`, `commit-message-convention`, `lint`, `test`)
+  - strict up-to-date branch requirement
+  - required conversation resolution
+  - required CODEOWNERS review and 1 approval
+  - stale review dismissal enabled
+- CODEOWNERS added for governance and workflow-critical files.
+- Backport governance implemented:
+  - `backport-X.Y` label validation workflow
+  - automatic tracking issue creation on merged PRs with backport labels
+- Release operations documented with `release_guide.md` and `release_cut_checklist.md`.
+- Local validation standardized through `scripts/ci-local.sh` (code + docs/link lint).
+
+### Validation Snapshot (workspace)
+
+- Local full check executed on 2026-03-05: `./scripts/ci-local.sh`.
+- Result: pass (`fmt`, `clippy`, `test`, `markdownlint`, `lychee`).
+- Working tree status during validation: clean on `main`.
+
+### Technical Debt
+
+- Commit convention enforcement still depends on PR context; direct pushes to protected branches remain policy-dependent and should stay blocked by branch protection.
+- Docs quality gates are strong in CI, but multilingual changelog parity (`en`, `es`, `pt-br`) is not yet automated.
+- Backport workflow creates tracking issues, but backport cherry-pick automation is not implemented yet.
+- Performance goals are documented, but there is no CI trend dashboard storing historical latency and throughput metrics.
 
 ## 0.7.0 (2026-02-20)
 
@@ -62,13 +77,13 @@ This document records relevant changes per version.
     - `tupa codegen --format=llvm examples/pipeline/minimal.tp`
     - `tupa run --pipeline=FraudDetection --input examples/pipeline/inputs/tx.json`
   - Optional: use `hyperfine` to benchmark:
-    - `hyperfine --warmup 3 'tupa codegen --format=llvm examples/pipeline/minimal.tp' 'tupa run --pipeline=FraudDetection --input examples/pipeline/inputs/tx.json'`
+    - `hyperfine --warmup 3 "tupa codegen --format=llvm examples/pipeline/minimal.tp" "tupa run --pipeline=FraudDetection --input examples/pipeline/inputs/tx.json"`
   - Conditions: Linux, Rust stable (>=1.75), release builds preferred when applicable
-- Hardware & conditions:
+- Hardware and conditions:
   - Linux x86_64, Rust stable, local dev machine, cold run
 - Test reference (prints timing):
   - `cargo test -p tupa-cli perf -- --nocapture`
-  - Observed locally: `codegen fraud_complete ≈ 1ms`, `run fraud_complete ≈ 3ms` (non-CI, illustrative)
+  - Observed locally: `codegen fraud_complete ~= 1ms`, `run fraud_complete ~= 3ms` (non-CI, illustrative)
 
 ## 0.6.0 (2026-02-13)
 

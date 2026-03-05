@@ -58,6 +58,7 @@ run_step "cargo fmt --all --check" cargo fmt --all --check
 run_step "cargo clippy --workspace --all-targets -- -D warnings" cargo clippy --workspace --all-targets -- -D warnings
 run_step "TUPA_RUN_E2E=0 cargo test --workspace --locked" env TUPA_RUN_E2E=0 cargo test --workspace --locked
 run_step "markdownlint **/*.md" markdownlint "**/*.md"
+run_step "scripts/docs-parity-check.sh" ./scripts/docs-parity-check.sh
 
 if run_lychee_docs; then
   echo -e "${GREEN}ok${NC} lychee docs links"

@@ -1,36 +1,52 @@
-
+﻿
 # Changelog
 
 ## Propósito
 
 Registrar mudanças relevantes por versão.
 
-## 0.8.0 (2026-03-04)
+## 0.8.0 (2026-03-05)
 
 - Tema do release: integração Python controlada e auditável para pipelines de produção.
-- Princípio guia: "Integrar sem perder governança — toda chamada Python é rastreada, validada e auditável."
-- Escopo: orquestração PyTorch/TensorFlow via adaptadores auditados.
-- Foco: rastreamento de execução, hooks de validação e esquema de log de auditoria para chamadas Python.
+- Princípio guia: "Integrar sem perder governança - toda chamada Python é rastreada, validada e auditável."
 
-### Adicionado
+### Escopo Entregue
 
-- **Interoperabilidade Python (`tupa-pyffi`)**:
-  - Ponte segura para invocar módulos Python (ex: PyTorch, TensorFlow).
-  - Sintaxe de passo `py:module.func` para integração direta.
-- **Resiliência do Runtime**:
-  - **Circuit Breaker**: Previne falhas em cascata com limites configuráveis e timeouts de reset.
-  - **Suporte Async**: Execução nativa `async/await` para passos I/O-bound.
-- **Motor de Backtesting**:
-  - Simulação histórica com rastreamento de PnL e avaliação de restrições de risco.
-  - Logs de auditoria detalhados para cada operação e bloqueio de risco.
-- **Logging de Auditoria Estruturado**:
-  - Logs estruturados em JSON via `tracing` para conformidade.
-- **Validação**:
-  - **Formas de Tensores**: Validação automática de esquema para inputs/outputs de tensores (ex: `[28, 28]`).
-  - **Atributos de Pipeline**: Suporte para declarações `@deterministic(seed=...)` e `@external`.
-- **Melhorias no Parser**:
-  - Correções para sintaxe de braços de match (`=>`) e tipos de retorno de função (`->`).
-  - Recuperação de erros aprimorada e rastreamento de spans.
+- Interoperabilidade Python (`tupa-pyffi`) para invocação segura de passos `py:module.func`.
+- Resiliência de runtime com circuit breaker e suporte a async/await.
+- Fluxo de backtesting com avaliação de PnL/risco e logging de auditoria estruturado.
+- Melhorias de validação para shapes de tensores, atributos de pipeline e robustez de parser/typechecker.
+
+### Engenharia e CI Entregues
+
+- CI agora exige convenção de título de PR (`type(scope): subject`) e convenção de mensagem de commit.
+- Rotulagem automática de PR por tipo de mudança (`feat`, `fix`, `docs`, `refactor`, `test`, `ci`, `chore`, `breaking`).
+- Release Drafter habilitado com categorização automática.
+- Proteção de branch em `main` reforçada:
+  - checks obrigatórios (`pr-title-convention`, `commit-message-convention`, `lint`, `test`)
+  - exigência estrita de branch atualizada
+  - resolução de conversas obrigatória
+  - revisão de CODEOWNERS e 1 aprovação obrigatórias
+  - descarte de reviews obsoletas habilitado
+- CODEOWNERS adicionado para arquivos críticos de governança e workflows.
+- Governança de backport implementada:
+  - validação de labels `backport-X.Y`
+  - criação automática de issue de acompanhamento para PRs mergeadas com label de backport
+- Operação de release documentada em `release_guide.md` e `release_cut_checklist.md`.
+- Validação local padronizada com `scripts/ci-local.sh` (código + lint de docs/links).
+
+### Snapshot de Validação do Workspace
+
+- Checagem local completa executada em 2026-03-05: `./scripts/ci-local.sh`.
+- Resultado: pass (`fmt`, `clippy`, `test`, `markdownlint`, `lychee`).
+- Estado do working tree durante a validação: limpo na `main`.
+
+### Débito Técnico
+
+- A validação de convenção de commit ainda depende do contexto de PR; pushes diretos para branches protegidas devem permanecer bloqueados por política.
+- Os quality gates de docs são fortes no CI, mas a paridade de changelog multilíngue (`en`, `es`, `pt-br`) ainda não está automatizada.
+- O workflow de backport cria issues de acompanhamento, mas a automação de cherry-pick de backport ainda não foi implementada.
+- As metas de performance estão documentadas, mas não existe dashboard de tendência no CI com histórico de latência e throughput.
 
 ## 0.7.0 (2026-02-20)
 
