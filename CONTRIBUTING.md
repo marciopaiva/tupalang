@@ -68,6 +68,14 @@ Optional strict link check:
 CI_LOCAL_STRICT_LINKS=1 ./scripts/ci-local.sh
 ```
 
+## Backport labels
+
+If a merged PR must be backported, add labels using this format:
+
+- `backport-X.Y` (example: `backport-0.8`)
+
+The repository workflow validates this format and opens a tracking issue after merge.
+
 ## Documentation style
 
 - Clear, direct English.
