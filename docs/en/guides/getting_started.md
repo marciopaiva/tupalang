@@ -49,3 +49,4 @@ cargo test -p tupa-cli --test cli_golden
 - Read the [SPEC](../reference/spec.md)
 - Explore [Examples](../../examples/README.md)
 - Set up the environment in [Dev Environment](dev_env.md)
+nvalidation-markern
