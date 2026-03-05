@@ -1,2 +1,4 @@
-docs/en/reference/SPEC.md
-wiki/
+target/
+.venv/
+node_modules/
+examples/production/.venv/

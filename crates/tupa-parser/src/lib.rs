@@ -1910,10 +1910,21 @@ mod tests {
             // ( -> LParen
             // DB -> Str
             // ) -> RParen
-            
+
             let expected = vec![
-                "nested", "=", "[", "1", ",", "2", "]",
-                "call", "=", "ExternalCall", "(", "DB", ")"
+                "nested",
+                "=",
+                "[",
+                "1",
+                ",",
+                "2",
+                "]",
+                "call",
+                "=",
+                "ExternalCall",
+                "(",
+                "DB",
+                ")",
             ];
             assert_eq!(attr.args, expected);
         } else {

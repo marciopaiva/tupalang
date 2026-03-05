@@ -7,6 +7,7 @@ on:
     paths:
       - "**/*.md"
       - ".markdownlint.json"
+      - ".markdownlintignore"
       - ".github/workflows/docs-lint.yml"
   pull_request:
     paths:
