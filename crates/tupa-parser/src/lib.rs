@@ -1,6 +1,6 @@
-use thiserror::Error;
-pub use tupa_lexer::{lex_with_spans, Span, Token, TokenSpan, LexerError};
 use serde::Serialize;
+use thiserror::Error;
+pub use tupa_lexer::{lex_with_spans, LexerError, Span, Token, TokenSpan};
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Program {
@@ -428,12 +428,29 @@ impl Parser {
             self.expect(Token::LParen)?;
             while !matches!(self.peek(), Some(Token::RParen)) {
                 match self.next() {
-                    Some(TokenSpan { token: Token::Ident(arg), .. }) => args.push(arg),
-                    Some(TokenSpan { token: Token::Str(arg), .. }) => args.push(arg),
-                    Some(TokenSpan { token: Token::Int(arg), .. }) => args.push(arg),
-                    Some(TokenSpan { token: Token::Float(arg), .. }) => args.push(arg),
-                    Some(TokenSpan { token: Token::Equal, .. }) => args.push("=".to_string()),
-                    Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                    Some(TokenSpan {
+                        token: Token::Ident(arg),
+                        ..
+                    }) => args.push(arg),
+                    Some(TokenSpan {
+                        token: Token::Str(arg),
+                        ..
+                    }) => args.push(arg),
+                    Some(TokenSpan {
+                        token: Token::Int(arg),
+                        ..
+                    }) => args.push(arg),
+                    Some(TokenSpan {
+                        token: Token::Float(arg),
+                        ..
+                    }) => args.push(arg),
+                    Some(TokenSpan {
+                        token: Token::Equal,
+                        ..
+                    }) => args.push("=".to_string()),
+                    Some(TokenSpan { token, span }) => {
+                        return Err(ParserError::Unexpected(token, span))
+                    }
                     None => return Err(ParserError::Eof(self.eof_pos)),
                 }
                 if matches!(self.peek(), Some(Token::Comma)) {
@@ -465,21 +482,21 @@ impl Parser {
             None
         };
         let body = self.parse_block()?;
-        
+
         let mut external_spec = None;
         for attr in &attrs {
             if attr.name == "external" {
-                 if let Some(arg) = attr.args.first() {
-                     external_spec = Some(ExternalSpec {
-                         python: Some(arg.clone()),
-                         effects: Vec::new(),
-                     });
-                 } else {
-                     external_spec = Some(ExternalSpec {
-                         python: None,
-                         effects: Vec::new(),
-                     });
-                 }
+                if let Some(arg) = attr.args.first() {
+                    external_spec = Some(ExternalSpec {
+                        python: Some(arg.clone()),
+                        effects: Vec::new(),
+                    });
+                } else {
+                    external_spec = Some(ExternalSpec {
+                        python: None,
+                        effects: Vec::new(),
+                    });
+                }
             }
         }
 
@@ -656,19 +673,22 @@ impl Parser {
         }
 
         let start_span = self.expect_span(Token::LBrace)?;
-        
+
         let mut input_ty = Type::Unit;
         let mut output_ty = None;
         let mut constraints = Vec::new();
         let mut steps = Vec::new();
         let mut validation = None;
-        
+
         while !matches!(self.peek(), Some(Token::RBrace)) {
             let field_name = match self.peek() {
                 Some(Token::Ident(n)) => n.clone(),
                 Some(token) => {
-                     let span = self.tokens.get(self.pos).map(|t| t.span).unwrap_or(Span { start: self.eof_pos, end: self.eof_pos });
-                     return Err(ParserError::Unexpected(token.clone(), span));
+                    let span = self.tokens.get(self.pos).map(|t| t.span).unwrap_or(Span {
+                        start: self.eof_pos,
+                        end: self.eof_pos,
+                    });
+                    return Err(ParserError::Unexpected(token.clone(), span));
                 }
                 None => return Err(ParserError::Eof(self.eof_pos)),
             };
@@ -689,37 +709,64 @@ impl Parser {
                             match ts {
                                 Token::LBrace => self.expect_span(Token::LBrace)?,
                                 _ => {
-                                    let span = self.tokens.get(self.pos).map(|t| t.span).unwrap_or(Span { start: self.eof_pos, end: self.eof_pos });
+                                    let span =
+                                        self.tokens.get(self.pos).map(|t| t.span).unwrap_or(Span {
+                                            start: self.eof_pos,
+                                            end: self.eof_pos,
+                                        });
                                     return Err(ParserError::Unexpected(ts.clone(), span));
                                 }
                             }
                         } else {
                             return Err(ParserError::Eof(self.eof_pos));
                         };
-                        
+
                         // metric: "..."
                         match self.next() {
-                            Some(TokenSpan { token: Token::Ident(name), .. }) if name == "metric" => {}
-                            Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                            Some(TokenSpan {
+                                token: Token::Ident(name),
+                                ..
+                            }) if name == "metric" => {}
+                            Some(TokenSpan { token, span }) => {
+                                return Err(ParserError::Unexpected(token, span))
+                            }
                             None => return Err(ParserError::Eof(self.eof_pos)),
                         }
                         self.expect(Token::Colon)?;
                         let metric = match self.next() {
-                            Some(TokenSpan { token: Token::Str(value), .. }) => value,
-                            Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                            Some(TokenSpan {
+                                token: Token::Str(value),
+                                ..
+                            }) => value,
+                            Some(TokenSpan { token, span }) => {
+                                return Err(ParserError::Unexpected(token, span))
+                            }
                             None => return Err(ParserError::Eof(self.eof_pos)),
                         };
-                        
-                        if matches!(self.peek(), Some(Token::Comma)) { self.next(); }
+
+                        if matches!(self.peek(), Some(Token::Comma)) {
+                            self.next();
+                        }
 
                         // comparator: threshold
                         let (comparator, threshold) = match self.next() {
-                            Some(TokenSpan { token: Token::Ident(key), span }) => {
+                            Some(TokenSpan {
+                                token: Token::Ident(key),
+                                span,
+                            }) => {
                                 self.expect(Token::Colon)?;
                                 let value = match self.next() {
-                                    Some(TokenSpan { token: Token::Float(v), .. }) => v.parse::<f64>().unwrap_or(0.0),
-                                    Some(TokenSpan { token: Token::Int(v), .. }) => v.parse::<f64>().unwrap_or(0.0),
-                                    Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                                    Some(TokenSpan {
+                                        token: Token::Float(v),
+                                        ..
+                                    }) => v.parse::<f64>().unwrap_or(0.0),
+                                    Some(TokenSpan {
+                                        token: Token::Int(v),
+                                        ..
+                                    }) => v.parse::<f64>().unwrap_or(0.0),
+                                    Some(TokenSpan { token, span }) => {
+                                        return Err(ParserError::Unexpected(token, span))
+                                    }
                                     None => return Err(ParserError::Eof(self.eof_pos)),
                                 };
                                 let cmp = match key.as_str() {
@@ -728,14 +775,21 @@ impl Parser {
                                     "eq" => Comparator::Eq,
                                     "ge" => Comparator::Ge,
                                     "gt" => Comparator::Gt,
-                                    _ => return Err(ParserError::Unexpected(Token::Ident(key), span)),
+                                    _ => {
+                                        return Err(ParserError::Unexpected(
+                                            Token::Ident(key),
+                                            span,
+                                        ))
+                                    }
                                 };
                                 (cmp, value)
-                            },
-                            Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                            }
+                            Some(TokenSpan { token, span }) => {
+                                return Err(ParserError::Unexpected(token, span))
+                            }
                             None => return Err(ParserError::Eof(self.eof_pos)),
                         };
-                        
+
                         self.expect(Token::RBrace)?;
                         constraints.push(Constraint {
                             metric,
@@ -754,29 +808,41 @@ impl Parser {
                     self.expect(Token::LBracket)?;
                     while !matches!(self.peek(), Some(Token::RBracket)) {
                         match self.next() {
-                            Some(TokenSpan { token: Token::Ident(s), .. }) if s == "step" => {}, // allow "step" ident
-                            Some(TokenSpan { token: Token::Step, .. }) => {}, // allow Step token if exists
-                            Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                            Some(TokenSpan {
+                                token: Token::Ident(s),
+                                ..
+                            }) if s == "step" => {} // allow "step" ident
+                            Some(TokenSpan {
+                                token: Token::Step, ..
+                            }) => {} // allow Step token if exists
+                            Some(TokenSpan { token, span }) => {
+                                return Err(ParserError::Unexpected(token, span))
+                            }
                             None => return Err(ParserError::Eof(self.eof_pos)),
                         }
                         self.expect(Token::LParen)?;
                         let (step_name, name_span) = match self.next() {
-                            Some(TokenSpan { token: Token::Str(value), span }) => (value, span),
-                            Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+                            Some(TokenSpan {
+                                token: Token::Str(value),
+                                span,
+                            }) => (value, span),
+                            Some(TokenSpan { token, span }) => {
+                                return Err(ParserError::Unexpected(token, span))
+                            }
                             None => return Err(ParserError::Eof(self.eof_pos)),
                         };
                         self.expect(Token::RParen)?;
                         let _ = self.expect_span(Token::LBrace)?;
                         let body = self.parse_expr()?;
                         let _ = self.expect_span(Token::RBrace)?;
-                        
+
                         let body_span = body.span;
                         steps.push(PipelineStep {
                             name: step_name,
                             body,
                             span: merge_span(name_span, body_span),
                         });
-                        
+
                         if matches!(self.peek(), Some(Token::Comma)) {
                             self.next();
                         }
@@ -787,16 +853,19 @@ impl Parser {
                     validation = Some(self.parse_block()?);
                 }
                 _ => {
-                    let span = self.tokens.get(self.pos).map(|t| t.span).unwrap_or(Span { start: self.eof_pos, end: self.eof_pos });
+                    let span = self.tokens.get(self.pos).map(|t| t.span).unwrap_or(Span {
+                        start: self.eof_pos,
+                        end: self.eof_pos,
+                    });
                     return Err(ParserError::Unexpected(Token::Ident(field_name), span));
                 }
             }
-            
+
             if matches!(self.peek(), Some(Token::Comma)) {
                 self.next();
             }
         }
-        
+
         let end_span = self.expect_span(Token::RBrace)?;
 
         Ok(PipelineDecl {

@@ -1,6 +1,6 @@
 use serde_json::{json, Value};
-use tupa_runtime::{register_step, run_pipeline_async, evaluate_constraints};
-use tupa_codegen::execution_plan::{ExecutionPlan, StepPlan, TypeSchema, ConstraintPlan};
+use tupa_codegen::execution_plan::{ConstraintPlan, ExecutionPlan, StepPlan, TypeSchema};
+use tupa_runtime::{evaluate_constraints, register_step, run_pipeline_async};
 
 #[tokio::main]
 async fn main() -> Result<(), String> {
@@ -23,19 +23,24 @@ async fn main() -> Result<(), String> {
     register_step("mnist::validate_shape", |input: Value| {
         println!("Validating tensor shape...");
         // Access image from previous step
-        let image = input.get("mnist::load_image")
+        let image = input
+            .get("mnist::load_image")
             .and_then(|data| data.get("image"))
             .ok_or("Missing image")?;
-        
+
         let rows = image.as_array().ok_or("Image is not an array")?;
         if rows.len() != 28 {
             return Err(format!("Invalid rows: {}, expected 28", rows.len()));
         }
-        
+
         for (i, row) in rows.iter().enumerate() {
             let cols = row.as_array().ok_or(format!("Row {} is not an array", i))?;
             if cols.len() != 28 {
-                return Err(format!("Invalid cols at row {}: {}, expected 28", i, cols.len()));
+                return Err(format!(
+                    "Invalid cols at row {}: {}, expected 28",
+                    i,
+                    cols.len()
+                ));
             }
         }
 
@@ -61,11 +66,23 @@ async fn main() -> Result<(), String> {
         },
         output_schema: None,
         steps: vec![
-            StepPlan { name: "mnist::load_image".to_string(), function_ref: "mnist::load_image".to_string(), effects: vec![] },
-            StepPlan { name: "mnist::validate_shape".to_string(), function_ref: "mnist::validate_shape".to_string(), effects: vec![] },
+            StepPlan {
+                name: "mnist::load_image".to_string(),
+                function_ref: "mnist::load_image".to_string(),
+                effects: vec![],
+            },
+            StepPlan {
+                name: "mnist::validate_shape".to_string(),
+                function_ref: "mnist::validate_shape".to_string(),
+                effects: vec![],
+            },
         ],
         constraints: vec![
-            ConstraintPlan { metric: "mnist::validate_shape.valid".to_string(), comparator: "eq".to_string(), threshold: 1.0 }, // true -> 1.0
+            ConstraintPlan {
+                metric: "mnist::validate_shape.valid".to_string(),
+                comparator: "eq".to_string(),
+                threshold: 1.0,
+            }, // true -> 1.0
         ],
         metrics: std::collections::HashMap::new(),
         metric_plans: vec![],
@@ -73,7 +90,7 @@ async fn main() -> Result<(), String> {
 
     println!("Running pipeline...");
     let result = run_pipeline_async(&plan, json!({})).await;
-    
+
     match result {
         Ok(output) => {
             println!("Pipeline Output: {}", output);
@@ -85,6 +102,6 @@ async fn main() -> Result<(), String> {
             return Err(e.to_string());
         }
     }
-    
+
     Ok(())
 }

@@ -1,8 +1,8 @@
 use serde_json::{json, Value};
-use tupa_runtime::{register_step, run_pipeline_async, evaluate_constraints};
-use tupa_codegen::execution_plan::{ExecutionPlan, StepPlan, ConstraintPlan, TypeSchema};
 use std::thread;
 use std::time::Duration;
+use tupa_codegen::execution_plan::{ConstraintPlan, ExecutionPlan, StepPlan, TypeSchema};
+use tupa_runtime::{evaluate_constraints, register_step, run_pipeline_async};
 
 #[tokio::main]
 async fn main() -> Result<(), String> {
@@ -13,7 +13,7 @@ async fn main() -> Result<(), String> {
         println!("Step: Fetching market data (Sync)...");
         // Simulate network delay (blocking)
         thread::sleep(Duration::from_millis(100));
-        
+
         Ok(json!({
             "symbol": "BTC/USD",
             "price": 65000.0,
@@ -25,14 +25,15 @@ async fn main() -> Result<(), String> {
     register_step("viper::analyze", |input: Value| {
         println!("Step: Analyzing market data...");
         // Access data from previous step
-        let price = input.get("viper::fetch_data")
+        let price = input
+            .get("viper::fetch_data")
             .and_then(|data| data.get("price"))
             .and_then(|v| v.as_f64())
             .unwrap_or(0.0);
-        
+
         // Simple strategy: if price < 70000, buy
         let signal = if price < 70000.0 { "BUY" } else { "SELL" };
-        
+
         Ok(json!({
             "signal": signal,
             "confidence": 0.95
@@ -43,11 +44,12 @@ async fn main() -> Result<(), String> {
     register_step("viper::execute", |input: Value| {
         println!("Step: Executing order...");
         // Access data from previous step
-        let signal = input.get("viper::analyze")
+        let signal = input
+            .get("viper::analyze")
             .and_then(|data| data.get("signal"))
             .and_then(|v| v.as_str())
             .unwrap_or("HOLD");
-        
+
         if signal == "HOLD" {
             println!("No trade executed.");
             return Ok(json!({ "status": "skipped" }));
@@ -76,25 +78,39 @@ async fn main() -> Result<(), String> {
         },
         output_schema: None,
         steps: vec![
-            StepPlan { name: "viper::fetch_data".to_string(), function_ref: "viper::fetch_data".to_string(), effects: vec!["io".to_string()] },
-            StepPlan { name: "viper::analyze".to_string(), function_ref: "viper::analyze".to_string(), effects: vec![] },
-            StepPlan { name: "viper::execute".to_string(), function_ref: "viper::execute".to_string(), effects: vec!["io".to_string()] },
+            StepPlan {
+                name: "viper::fetch_data".to_string(),
+                function_ref: "viper::fetch_data".to_string(),
+                effects: vec!["io".to_string()],
+            },
+            StepPlan {
+                name: "viper::analyze".to_string(),
+                function_ref: "viper::analyze".to_string(),
+                effects: vec![],
+            },
+            StepPlan {
+                name: "viper::execute".to_string(),
+                function_ref: "viper::execute".to_string(),
+                effects: vec!["io".to_string()],
+            },
         ],
-        constraints: vec![
-            ConstraintPlan { metric: "viper::analyze.confidence".to_string(), comparator: "gt".to_string(), threshold: 0.9 },
-        ],
+        constraints: vec![ConstraintPlan {
+            metric: "viper::analyze.confidence".to_string(),
+            comparator: "gt".to_string(),
+            threshold: 0.9,
+        }],
         metrics: std::collections::HashMap::new(),
         metric_plans: vec![],
     };
 
     println!("\n--- Pipeline Execution ---");
-    
+
     // Initial State
     let initial_input = json!({});
-    
+
     // Execute Pipeline
     let result = run_pipeline_async(&plan, initial_input).await;
-    
+
     match result {
         Ok(output) => {
             println!("Pipeline Output: {}", output);
@@ -106,7 +122,7 @@ async fn main() -> Result<(), String> {
             return Err(e.to_string());
         }
     }
-    
+
     println!("\nPOC Complete.");
     Ok(())
 }

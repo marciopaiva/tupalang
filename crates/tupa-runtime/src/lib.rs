@@ -10,13 +10,13 @@
 //!
 //! See `examples/viper_backtest.rs` and `examples/viper_circuit_breaker.rs` for usage.
 
-use serde_json::{Value, json};
+use serde_json::{json, Value};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use thiserror::Error;
+use tracing::{error, info, instrument, warn};
 use tupa_codegen::execution_plan::ExecutionPlan;
-use tracing::{instrument, info, error, warn};
 
 pub type RuntimeResult<T> = Result<T, RuntimeError>;
 
@@ -55,10 +55,10 @@ pub struct CircuitBreaker {
 
 #[derive(Debug, Clone, PartialEq)]
 enum BreakerState {
-    Closed, // Normal operation
-    Open,   // Tripped, blocking calls
+    Closed,   // Normal operation
+    Open,     // Tripped, blocking calls
     HalfOpen, // Testing recovery
-    }
+}
 
 impl CircuitBreaker {
     pub fn new(failure_threshold: usize, reset_timeout: Duration) -> Self {
@@ -105,7 +105,8 @@ impl CircuitBreaker {
 
 // --- Runtime Architecture ---
 type StepFunction = Box<dyn Fn(Value) -> Result<Value, String> + Send + Sync>;
-type AsyncStepFunction = Box<dyn Fn(Value) -> futures::future::BoxFuture<'static, Result<Value, String>> + Send + Sync>;
+type AsyncStepFunction =
+    Box<dyn Fn(Value) -> futures::future::BoxFuture<'static, Result<Value, String>> + Send + Sync>;
 
 struct RuntimeState {
     steps: HashMap<String, StepFunction>,
@@ -151,7 +152,10 @@ impl Runtime {
 
     pub fn register_async_step<F>(&self, name: &str, func: F)
     where
-        F: Fn(Value) -> futures::future::BoxFuture<'static, Result<Value, String>> + Send + Sync + 'static,
+        F: Fn(Value) -> futures::future::BoxFuture<'static, Result<Value, String>>
+            + Send
+            + Sync
+            + 'static,
     {
         let mut state = self.state.lock().unwrap();
         state.async_steps.insert(name.to_string(), Box::new(func));
@@ -163,44 +167,54 @@ impl Runtime {
     }
 
     #[instrument(skip(self, plan), fields(pipeline = plan.name))]
-    pub async fn run_pipeline_async(&self, plan: &ExecutionPlan, input: Value) -> RuntimeResult<Value> {
+    pub async fn run_pipeline_async(
+        &self,
+        plan: &ExecutionPlan,
+        input: Value,
+    ) -> RuntimeResult<Value> {
         info!(target: "audit", event = "pipeline_start", plan = plan.name);
         let mut state = input;
-        
+
         for step in &plan.steps {
             // Check circuit breaker
             {
                 let mut guard = self.state.lock().unwrap();
                 if !guard.circuit_breaker.allow_request() {
                     warn!(target: "audit", event = "circuit_breaker_block", step = step.name);
-                    return Err(RuntimeError::CircuitBreakerOpen(format!("Circuit breaker open for step {}", step.name)));
+                    return Err(RuntimeError::CircuitBreakerOpen(format!(
+                        "Circuit breaker open for step {}",
+                        step.name
+                    )));
                 }
             }
-    
+
             // Check if async step exists
             let is_async = {
                 let guard = self.state.lock().unwrap();
                 guard.async_steps.contains_key(&step.function_ref)
             };
-    
+
             let result = if is_async {
-                self.call_async_step_function(&step.function_ref, state.clone()).await
+                self.call_async_step_function(&step.function_ref, state.clone())
+                    .await
             } else {
                 let func_name = step.function_ref.clone();
                 let input_clone = state.clone();
                 let runtime = self.clone(); // Clone runtime for closure
                 tokio::task::spawn_blocking(move || {
                     runtime.call_step_function(&func_name, input_clone)
-                }).await.map_err(|e| RuntimeError::AsyncError(e.to_string()))?
+                })
+                .await
+                .map_err(|e| RuntimeError::AsyncError(e.to_string()))?
             };
-    
+
             match result {
                 Ok(output) => {
                     {
                         let mut guard = self.state.lock().unwrap();
                         guard.circuit_breaker.record_success();
                     }
-                    
+
                     if let Some(obj) = state.as_object_mut() {
                         obj.insert(step.name.clone(), output);
                     } else {
@@ -222,7 +236,7 @@ impl Runtime {
                 }
             }
         }
-    
+
         info!(target: "audit", event = "pipeline_complete", result = ?state);
         Ok(state)
     }
@@ -242,45 +256,52 @@ impl Runtime {
     ///
     /// A `Value` containing the final PnL, trade count, and detailed history.
     #[instrument(skip(self, plan, dataset), fields(dataset_size = dataset.len()))]
-    pub async fn run_backtest(&self, plan: &ExecutionPlan, dataset: Vec<Value>) -> RuntimeResult<Value> {
+    pub async fn run_backtest(
+        &self,
+        plan: &ExecutionPlan,
+        dataset: Vec<Value>,
+    ) -> RuntimeResult<Value> {
         info!(target: "audit", event = "backtest_start", dataset_size = dataset.len());
-    
+
         let mut results = Vec::new();
         let mut portfolio_value = 10000.0; // Starting capital
         let mut position = 0.0; // Current holdings
-    
+
         for (i, input) in dataset.iter().enumerate() {
             let output = self.run_pipeline_async(plan, input.clone()).await?;
-            
+
             // Evaluate constraints (risk check)
             let constraint_report = evaluate_constraints(plan, &output);
-            
+
             // Simple PnL logic (can be made configurable)
             let price = input.get("close").and_then(|v| v.as_f64()).unwrap_or(0.0);
-            let action = output.get("action").and_then(|v| v.as_str()).unwrap_or("HOLD");
-            
+            let action = output
+                .get("action")
+                .and_then(|v| v.as_str())
+                .unwrap_or("HOLD");
+
             if constraint_report["success"].as_bool().unwrap_or(false) {
-                 match action {
-                     "BUY" => {
-                         if portfolio_value > price {
-                             position += 1.0;
-                             portfolio_value -= price;
-                             info!(target: "audit", event = "trade_executed", type = "BUY", price = price, index = i);
-                         }
-                     },
-                     "SELL" => {
-                         if position > 0.0 {
-                             position -= 1.0;
-                             portfolio_value += price;
-                             info!(target: "audit", event = "trade_executed", type = "SELL", price = price, index = i);
-                         }
-                     },
-                     _ => {}
-                 }
+                match action {
+                    "BUY" => {
+                        if portfolio_value > price {
+                            position += 1.0;
+                            portfolio_value -= price;
+                            info!(target: "audit", event = "trade_executed", type = "BUY", price = price, index = i);
+                        }
+                    }
+                    "SELL" => {
+                        if position > 0.0 {
+                            position -= 1.0;
+                            portfolio_value += price;
+                            info!(target: "audit", event = "trade_executed", type = "SELL", price = price, index = i);
+                        }
+                    }
+                    _ => {}
+                }
             } else {
-                 info!(target: "audit", event = "trade_blocked_by_risk", index = i);
+                info!(target: "audit", event = "trade_blocked_by_risk", index = i);
             }
-    
+
             results.push(json!({
                 "index": i,
                 "output": output,
@@ -288,12 +309,17 @@ impl Runtime {
                 "constraints": constraint_report
             }));
         }
-    
-        let final_price = dataset.last().unwrap().get("close").and_then(|v| v.as_f64()).unwrap_or(0.0);
+
+        let final_price = dataset
+            .last()
+            .unwrap()
+            .get("close")
+            .and_then(|v| v.as_f64())
+            .unwrap_or(0.0);
         let final_pnl = portfolio_value + (position * final_price) - 10000.0;
-        
+
         info!(target: "audit", event = "backtest_complete", final_pnl = final_pnl);
-    
+
         Ok(json!({
             "final_pnl": final_pnl,
             "trades": results.len(),
@@ -311,8 +337,8 @@ impl Runtime {
                 Err(e) => error!(target: "audit", event = "step_failure", error = %e),
             }
             return result;
-        } 
-        
+        }
+
         // Support "py:module.func" format from codegen
         if let Some(stripped) = name.strip_prefix("py:") {
             let parts: Vec<&str> = stripped.split('.').collect();
@@ -320,8 +346,12 @@ impl Runtime {
                 drop(guard);
                 let result = tupa_pyffi::call_python_function(parts[0], parts[1], input);
                 match &result {
-                    Ok(v) => info!(target: "audit", event = "step_success", type = "python", output = ?v),
-                    Err(e) => error!(target: "audit", event = "step_failure", type = "python", error = %e),
+                    Ok(v) => {
+                        info!(target: "audit", event = "step_success", type = "python", output = ?v)
+                    }
+                    Err(e) => {
+                        error!(target: "audit", event = "step_failure", type = "python", error = %e)
+                    }
                 }
                 return result;
             }
@@ -334,26 +364,30 @@ impl Runtime {
                 drop(guard);
                 let result = tupa_pyffi::call_python_function(parts[0], parts[1], input);
                 match &result {
-                    Ok(v) => info!(target: "audit", event = "step_success", type = "python", output = ?v),
-                    Err(e) => error!(target: "audit", event = "step_failure", type = "python", error = %e),
+                    Ok(v) => {
+                        info!(target: "audit", event = "step_success", type = "python", output = ?v)
+                    }
+                    Err(e) => {
+                        error!(target: "audit", event = "step_failure", type = "python", error = %e)
+                    }
                 }
                 return result;
             }
         }
-    
+
         Err(format!("Function {} not found", name))
     }
-    
+
     async fn call_async_step_function(&self, name: &str, input: Value) -> Result<Value, String> {
         let future_opt = {
             let guard = self.state.lock().unwrap();
             guard.async_steps.get(name).map(|f| f(input))
         };
-        
+
         if let Some(fut) = future_opt {
             return fut.await;
         }
-        
+
         Err(format!("Async function {} not found", name))
     }
 }
@@ -373,7 +407,10 @@ where
 
 pub fn register_async_step<F>(name: &str, func: F)
 where
-    F: Fn(Value) -> futures::future::BoxFuture<'static, Result<Value, String>> + Send + Sync + 'static,
+    F: Fn(Value) -> futures::future::BoxFuture<'static, Result<Value, String>>
+        + Send
+        + Sync
+        + 'static,
 {
     GLOBAL_RUNTIME.register_async_step(name, func)
 }
@@ -401,9 +438,11 @@ pub async fn run_backtest(plan: &ExecutionPlan, dataset: Vec<Value>) -> RuntimeR
 // Helper to access nested metrics for constraints
 fn get_metric_value(state: &Value, path: &str) -> Option<f64> {
     if let Some(v) = state.get(path) {
-        return v.as_f64().or_else(|| v.as_bool().map(|b| if b { 1.0 } else { 0.0 }));
+        return v
+            .as_f64()
+            .or_else(|| v.as_bool().map(|b| if b { 1.0 } else { 0.0 }));
     }
-    
+
     if path.contains('.') {
         let parts: Vec<&str> = path.split('.').collect();
         let mut current = state;
@@ -413,7 +452,9 @@ fn get_metric_value(state: &Value, path: &str) -> Option<f64> {
                 None => return None,
             }
         }
-        return current.as_f64().or_else(|| current.as_bool().map(|b| if b { 1.0 } else { 0.0 }));
+        return current
+            .as_f64()
+            .or_else(|| current.as_bool().map(|b| if b { 1.0 } else { 0.0 }));
     }
     None
 }
@@ -448,8 +489,11 @@ pub fn evaluate_constraints(plan: &ExecutionPlan, state: &Value) -> Value {
             "pass": pass,
             "status": if pass { "pass" } else { "fail" }
         });
-        
-        report["constraints"].as_array_mut().unwrap().push(constraint_result);
+
+        report["constraints"]
+            .as_array_mut()
+            .unwrap()
+            .push(constraint_result);
     }
 
     if !report["success"].as_bool().unwrap() {
@@ -463,7 +507,7 @@ pub fn evaluate_constraints(plan: &ExecutionPlan, state: &Value) -> Value {
 mod tests {
     use super::*;
     use std::thread::sleep;
-    use tupa_codegen::execution_plan::{ExecutionPlan, ConstraintPlan, TypeSchema};
+    use tupa_codegen::execution_plan::{ConstraintPlan, ExecutionPlan, TypeSchema};
 
     #[test]
     fn test_circuit_breaker_logic() {
@@ -484,16 +528,25 @@ mod tests {
 
         // Wait for timeout
         sleep(Duration::from_millis(150));
-        
+
         // Should transition to HalfOpen on next check
-        assert!(cb.allow_request(), "Should allow probe request after timeout");
-        
+        assert!(
+            cb.allow_request(),
+            "Should allow probe request after timeout"
+        );
+
         // Subsequent checks in HalfOpen should be blocked until success
-        assert!(!cb.allow_request(), "Should block subsequent requests in HalfOpen state");
+        assert!(
+            !cb.allow_request(),
+            "Should block subsequent requests in HalfOpen state"
+        );
 
         // Success -> Closed
         cb.record_success();
-        assert!(cb.allow_request(), "Should allow requests after success (Closed state)");
+        assert!(
+            cb.allow_request(),
+            "Should allow requests after success (Closed state)"
+        );
     }
 
     #[test]
@@ -503,7 +556,12 @@ mod tests {
             version: "1.0".into(),
             seed: None,
             input_schema: TypeSchema {
-                kind: "any".into(), elem: None, len: None, name: None, tensor_shape: None, tensor_dtype: None
+                kind: "any".into(),
+                elem: None,
+                len: None,
+                name: None,
+                tensor_shape: None,
+                tensor_dtype: None,
             },
             output_schema: None,
             steps: vec![],
@@ -517,7 +575,7 @@ mod tests {
                     metric: "nested.val".into(),
                     comparator: "eq".into(),
                     threshold: 10.0,
-                }
+                },
             ],
             metrics: HashMap::new(),
             metric_plans: vec![],
@@ -528,23 +586,32 @@ mod tests {
             "nested": { "val": 10.0 }
         });
         let report_pass = evaluate_constraints(&plan, &state_pass);
-        assert!(report_pass["success"].as_bool().unwrap(), "Constraints should pass");
+        assert!(
+            report_pass["success"].as_bool().unwrap(),
+            "Constraints should pass"
+        );
 
         let state_fail = json!({
             "score": 0.2,
             "nested": { "val": 10.0 }
         });
         let report_fail = evaluate_constraints(&plan, &state_fail);
-        assert!(!report_fail["success"].as_bool().unwrap(), "Constraints should fail on score");
+        assert!(
+            !report_fail["success"].as_bool().unwrap(),
+            "Constraints should fail on score"
+        );
 
         let state_fail_nested = json!({
             "score": 0.8,
             "nested": { "val": 9.9 }
         });
         let report_fail_nested = evaluate_constraints(&plan, &state_fail_nested);
-        assert!(!report_fail_nested["success"].as_bool().unwrap(), "Constraints should fail on nested val");
+        assert!(
+            !report_fail_nested["success"].as_bool().unwrap(),
+            "Constraints should fail on nested val"
+        );
     }
-    
+
     #[test]
     fn test_get_metric_value() {
         let data = json!({
@@ -555,7 +622,7 @@ mod tests {
             },
             "flag": true
         });
-        
+
         assert_eq!(get_metric_value(&data, "a"), Some(1.0));
         assert_eq!(get_metric_value(&data, "b.c"), Some(2.0));
         assert_eq!(get_metric_value(&data, "b.d.e"), Some(3.0));
@@ -569,10 +636,13 @@ mod tests {
         use tupa_codegen::execution_plan::StepPlan;
 
         let runtime = Runtime::new();
-        
+
         // Register a step
         runtime.register_step("double", |input| {
-            let val = input.get("value").and_then(|v| v.as_f64()).ok_or("Input must contain 'value'")?;
+            let val = input
+                .get("value")
+                .and_then(|v| v.as_f64())
+                .ok_or("Input must contain 'value'")?;
             Ok(json!(val * 2.0))
         });
 
@@ -581,36 +651,35 @@ mod tests {
             name: "integration_test".into(),
             version: "1.0".into(),
             seed: None,
-            input_schema: TypeSchema { 
-                kind: "object".into(), 
-                elem: None, 
-                len: None, 
-                name: None, 
-                tensor_shape: None, 
-                tensor_dtype: None 
+            input_schema: TypeSchema {
+                kind: "object".into(),
+                elem: None,
+                len: None,
+                name: None,
+                tensor_shape: None,
+                tensor_dtype: None,
             },
             output_schema: None,
-            steps: vec![
-                StepPlan {
-                    name: "result".into(),
-                    function_ref: "double".into(),
-                    effects: vec![],
-                }
-            ],
-            constraints: vec![
-                ConstraintPlan {
-                    metric: "result".into(),
-                    comparator: "gt".into(),
-                    threshold: 10.0,
-                }
-            ],
+            steps: vec![StepPlan {
+                name: "result".into(),
+                function_ref: "double".into(),
+                effects: vec![],
+            }],
+            constraints: vec![ConstraintPlan {
+                metric: "result".into(),
+                comparator: "gt".into(),
+                threshold: 10.0,
+            }],
             metrics: HashMap::new(),
             metric_plans: vec![],
         };
 
         // Test pipeline execution
         let input = json!({ "value": 10.0 });
-        let output = runtime.run_pipeline_async(&plan, input).await.expect("Pipeline failed");
+        let output = runtime
+            .run_pipeline_async(&plan, input)
+            .await
+            .expect("Pipeline failed");
         assert_eq!(output["result"], 20.0);
 
         // Test backtest
@@ -619,12 +688,15 @@ mod tests {
             json!({ "close": 110.0, "action": "SELL" }), // Should sell
             json!({ "close": 105.0, "action": "HOLD" }),
         ];
-        
+
         // We need a plan that produces "action" output for backtest logic to work
         // For this test, we'll register a mock strategy step
         runtime.register_step("strategy", |input| {
             // Just pass through the action from input
-            let action = input.get("action").and_then(|v| v.as_str()).unwrap_or("HOLD");
+            let action = input
+                .get("action")
+                .and_then(|v| v.as_str())
+                .unwrap_or("HOLD");
             Ok(json!(action))
         });
 
@@ -632,78 +704,83 @@ mod tests {
             name: "backtest_test".into(),
             version: "1.0".into(),
             seed: None,
-            input_schema: TypeSchema { 
-                kind: "object".into(), 
-                elem: None, 
-                len: None, 
-                name: None, 
-                tensor_shape: None, 
-                tensor_dtype: None 
+            input_schema: TypeSchema {
+                kind: "object".into(),
+                elem: None,
+                len: None,
+                name: None,
+                tensor_shape: None,
+                tensor_dtype: None,
             },
             output_schema: None,
-            steps: vec![
-                StepPlan {
-                    name: "action".into(),
-                    function_ref: "strategy".into(),
-                    effects: vec![],
-                }
-            ],
+            steps: vec![StepPlan {
+                name: "action".into(),
+                function_ref: "strategy".into(),
+                effects: vec![],
+            }],
             constraints: vec![], // No constraints, so always success
             metrics: HashMap::new(),
             metric_plans: vec![],
         };
 
-        let backtest_result = runtime.run_backtest(&backtest_plan, dataset).await.expect("Backtest failed");
-        
+        let backtest_result = runtime
+            .run_backtest(&backtest_plan, dataset)
+            .await
+            .expect("Backtest failed");
+
         // Verify PnL
         // Buy at 100, Sell at 110 => +10 profit
         // Initial capital 10000 -> 9900 (pos=1) -> 10010 (pos=0) -> PnL = 10
-        let pnl = backtest_result["final_pnl"].as_f64().expect("PnL should be f64");
-        assert!((pnl - 10.0).abs() < f64::EPSILON, "PnL should be 10.0, got {}", pnl);
+        let pnl = backtest_result["final_pnl"]
+            .as_f64()
+            .expect("PnL should be f64");
+        assert!(
+            (pnl - 10.0).abs() < f64::EPSILON,
+            "PnL should be 10.0, got {}",
+            pnl
+        );
     }
 
     #[tokio::test]
     async fn test_python_step_resolution() {
         use tupa_codegen::execution_plan::StepPlan;
-        
+
         // This test requires python environment with math module (standard)
         let runtime = Runtime::new();
-        
+
         // Plan with py:math.sqrt
         let plan = ExecutionPlan {
             name: "python_test".into(),
             version: "1.0".into(),
             seed: None,
-            input_schema: TypeSchema { 
-                kind: "number".into(), 
-                elem: None, 
-                len: None, 
-                name: None, 
-                tensor_shape: None, 
-                tensor_dtype: None 
+            input_schema: TypeSchema {
+                kind: "number".into(),
+                elem: None,
+                len: None,
+                name: None,
+                tensor_shape: None,
+                tensor_dtype: None,
             },
             output_schema: None,
-            steps: vec![
-                StepPlan {
-                    name: "root".into(),
-                    function_ref: "py:math.sqrt".into(),
-                    effects: vec![],
-                }
-            ],
+            steps: vec![StepPlan {
+                name: "root".into(),
+                function_ref: "py:math.sqrt".into(),
+                effects: vec![],
+            }],
             constraints: vec![],
             metrics: HashMap::new(),
             metric_plans: vec![],
         };
 
         let input = json!(16.0);
-        
-        // We expect this to fail if python is not set up correctly in CI, 
+
+        // We expect this to fail if python is not set up correctly in CI,
         // but locally it should work or fail with "Module not loaded".
         // If tupa-pyffi is compiled with extension-module, it might panic if not run in python.
         // But tupa-pyffi uses prepare_freethreaded_python(), so it should be fine for embedding.
-        
+
         let result = runtime.run_pipeline_async(&plan, input).await;
-        
+
         match result {
             Ok(output) => {
                 assert_eq!(output["root"], 4.0);

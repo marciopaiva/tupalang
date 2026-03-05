@@ -1,16 +1,14 @@
+use once_cell::sync::Lazy;
 use pyo3::prelude::*;
 use pyo3::types::PyModule;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::Mutex;
-use once_cell::sync::Lazy;
 
 pub mod serialize;
-use serialize::{ToPython, FromPython};
+use serialize::{FromPython, ToPython};
 
-pub static BRIDGE: Lazy<Mutex<PythonBridge>> = Lazy::new(|| {
-    Mutex::new(PythonBridge::default())
-});
+pub static BRIDGE: Lazy<Mutex<PythonBridge>> = Lazy::new(|| Mutex::new(PythonBridge::default()));
 
 pub struct PythonBridge {
     modules: HashMap<String, Py<PyModule>>,
@@ -43,8 +41,12 @@ impl PythonBridge {
 
     pub fn call(&self, module_name: &str, func_name: &str, arg: Value) -> PyResult<Value> {
         Python::with_gil(|py| {
-            let module = self.modules.get(module_name)
-                .ok_or_else(|| PyErr::new::<pyo3::exceptions::PyImportError, _>(format!("Module {} not loaded", module_name)))?;
+            let module = self.modules.get(module_name).ok_or_else(|| {
+                PyErr::new::<pyo3::exceptions::PyImportError, _>(format!(
+                    "Module {} not loaded",
+                    module_name
+                ))
+            })?;
             let func = module.bind(py).getattr(func_name)?;
             let py_arg = arg.to_python(py)?;
             let result = func.call1((py_arg,))?;
@@ -67,7 +69,9 @@ mod tests {
     fn test_math_sqrt() {
         let mut bridge = BRIDGE.lock().unwrap();
         bridge.ensure_module("math").unwrap();
-        let result = bridge.call("math", "sqrt", serde_json::json!(16.0)).unwrap();
+        let result = bridge
+            .call("math", "sqrt", serde_json::json!(16.0))
+            .unwrap();
         assert_eq!(result, serde_json::json!(4.0));
     }
 }

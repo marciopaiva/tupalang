@@ -104,6 +104,7 @@ Definir los hitos de lanzamiento desde v0.4.x hasta v1.0, alineados con la hoja 
 **Tema central**: Pipelines listos para producción con resiliencia e integración de IA en Python.
 
 #### Funcionalidades Entregadas
+
 - **Interop Python**: Puente `tupa-pyffi` para PyTorch/TensorFlow.
 - **Resiliencia del Runtime**: Patrón Circuit Breaker y soporte Async I/O.
 - **Simulación**: Motor de Backtesting completo con PnL y chequeos de Riesgo.
@@ -112,13 +113,15 @@ Definir los hitos de lanzamiento desde v0.4.x hasta v1.0, alineados con la hoja 
 
 #### 0.8.0 — Plan estratégico (Completado)
 
-**Prioridades técnicas**
+##### Prioridades técnicas
+
 1. Puente FFI Python con conversión de tipos segura. (Hecho)
 2. Mecanismo Circuit Breaker para llamadas externas. (Hecho)
 3. Runtime Async para pipelines de alto rendimiento. (Hecho)
 4. Motor de Backtesting para validación de estrategias. (Hecho)
 
-**Métrica de éxito**
+##### Métrica de éxito
+
 - Un pipeline de producción (MNIST/Trading) se ejecuta con total auditabilidad y resiliencia. (Logrado)
 
 - Ejecución de PyTorch/TensorFlow vía adaptadores controlados.

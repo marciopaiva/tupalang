@@ -11,6 +11,7 @@ This example demonstrates a complete end-to-end production pipeline using Tupã 
 ## Setup
 
 1. Run the setup script to create a virtual environment and install dependencies:
+
    ```bash
    chmod +x setup_pytorch.sh
    ./setup_pytorch.sh
@@ -36,6 +37,7 @@ cargo run -p tupa-cli -- run --pipeline MNISTAudit --input mnist_sample.json mni
 ## Expected Output
 
 The pipeline should execute the following steps:
+
 1. `preprocess`: Decode and normalize the input image.
 2. `inference`: Run the PyTorch model to get logits.
 3. `postprocess`: Apply softmax and argmax to get the predicted digit.

@@ -1,5 +1,5 @@
 //! # ViperTrade Circuit Breaker Example
-//! 
+//!
 //! This example demonstrates the Circuit Breaker mechanism in the Tupã Runtime.
 //! It simulates a flaky external API (e.g., an exchange) and shows how the runtime
 //! automatically stops execution to prevent cascading failures.
@@ -15,10 +15,10 @@
 //! ```
 
 use serde_json::{json, Value};
-use tupa_runtime::{run_pipeline_async, register_step, configure_circuit_breaker};
-use tupa_codegen::execution_plan::{ExecutionPlan, TypeSchema, StepPlan};
-use tracing_subscriber::fmt::format::FmtSpan;
 use std::time::Duration;
+use tracing_subscriber::fmt::format::FmtSpan;
+use tupa_codegen::execution_plan::{ExecutionPlan, StepPlan, TypeSchema};
+use tupa_runtime::{configure_circuit_breaker, register_step, run_pipeline_async};
 
 fn default_schema() -> TypeSchema {
     TypeSchema {
@@ -33,8 +33,11 @@ fn default_schema() -> TypeSchema {
 
 // Simulates a flaky external API (e.g., Binance)
 fn flaky_exchange_api(input: Value) -> Result<Value, String> {
-    let should_fail = input.get("simulate_fail").and_then(|v| v.as_bool()).unwrap_or(false);
-    
+    let should_fail = input
+        .get("simulate_fail")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+
     if should_fail {
         Err("Connection timeout (Simulated)".to_string())
     } else {
@@ -66,29 +69,27 @@ async fn main() {
         seed: None,
         input_schema: default_schema(),
         output_schema: None,
-        steps: vec![
-            StepPlan {
-                name: "price_data".to_string(),
-                function_ref: "exchange::get_price".to_string(),
-                effects: vec!["price".to_string()],
-            }
-        ],
+        steps: vec![StepPlan {
+            name: "price_data".to_string(),
+            function_ref: "exchange::get_price".to_string(),
+            effects: vec!["price".to_string()],
+        }],
         constraints: vec![],
         metric_plans: vec![],
         metrics: std::collections::HashMap::new(),
     };
 
-    // 4. Scenario: 
+    // 4. Scenario:
     // - Request 1: OK
     // - Request 2: FAIL
     // - Request 3: FAIL (Threshold Reached -> Breaker TRIPS)
     // - Request 4: BLOCKED immediately (Fast Fail)
-    
+
     tracing::info!(event = "test_start", scenario = "failure_cascade");
 
     // Req 1: OK
     let _ = run_pipeline_async(&plan, json!({"simulate_fail": false})).await;
-    
+
     // Req 2: Fail
     let _ = run_pipeline_async(&plan, json!({"simulate_fail": true})).await;
 
@@ -103,7 +104,7 @@ async fn main() {
             println!("Request 4 blocked as expected: {}", e);
         }
     }
-    
+
     // 5. Wait for Reset (Simulated)
     tracing::info!(event = "waiting_for_reset", seconds = 6);
     tokio::time::sleep(Duration::from_secs(6)).await;
@@ -113,7 +114,7 @@ async fn main() {
         Ok(_) => {
             tracing::info!(event = "breaker_reset_success");
             println!("Request 5 allowed after reset!");
-        },
+        }
         Err(e) => tracing::error!(event = "breaker_reset_failed", error = %e),
     }
 }

@@ -6,8 +6,8 @@ use nom::{
     sequence::{delimited, pair, tuple},
     IResult,
 };
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
-use serde::{Serialize, Deserialize};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Token {
@@ -165,17 +165,16 @@ fn skip_ws_and_comments(input: &str) -> &str {
 }
 
 fn token(input: &str) -> IResult<&str, Token> {
-    alt((
-        literal,
-        symbol,
-        ident_or_keyword,
-    ))(input)
+    alt((literal, symbol, ident_or_keyword))(input)
 }
 
 fn ident_or_keyword(input: &str) -> IResult<&str, Token> {
     map(
         recognize(pair(
-            alt((take_while1(|c: char| c.is_alphabetic() || c == '_'), tag("_"))),
+            alt((
+                take_while1(|c: char| c.is_alphabetic() || c == '_'),
+                tag("_"),
+            )),
             take_while(|c: char| c.is_alphanumeric() || c == '_'),
         )),
         |s: &str| match s {
@@ -199,7 +198,7 @@ fn ident_or_keyword(input: &str) -> IResult<&str, Token> {
             "false" => Token::False,
             "null" => Token::Null,
             _ => Token::Ident(s.to_string()),
-        }
+        },
     )(input)
 }
 
@@ -212,10 +211,7 @@ fn literal(input: &str) -> IResult<&str, Token> {
 }
 
 fn symbol(input: &str) -> IResult<&str, Token> {
-    alt((
-        symbol_two_char,
-        symbol_one_char,
-    ))(input)
+    alt((symbol_two_char, symbol_one_char))(input)
 }
 
 fn symbol_two_char(input: &str) -> IResult<&str, Token> {

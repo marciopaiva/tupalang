@@ -1,8 +1,6 @@
 use serde_json::{Map, Value};
 use sha3::{Digest, Sha3_256};
-use tupa_parser::{
-    Item, Program,
-};
+use tupa_parser::{Item, Program};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Hash(String);

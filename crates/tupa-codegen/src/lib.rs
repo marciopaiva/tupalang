@@ -2761,7 +2761,9 @@ mod tests {
     #[test]
     fn test_empty_function_codegen() {
         let program = Program {
-            items: vec![Item::Function(Function { attrs: vec![], external_spec: None,
+            items: vec![Item::Function(Function {
+                attrs: vec![],
+                external_spec: None,
                 name: "main".to_string(),
                 params: vec![],
                 return_type: None,
@@ -2777,7 +2779,9 @@ mod tests {
     #[test]
     fn test_function_with_return_codegen() {
         let program = Program {
-            items: vec![Item::Function(Function { attrs: vec![], external_spec: None,
+            items: vec![Item::Function(Function {
+                attrs: vec![],
+                external_spec: None,
                 name: "test".to_string(),
                 params: vec![],
                 return_type: Some(Type::Ident("i64".to_string())),
@@ -2795,7 +2799,9 @@ mod tests {
     #[test]
     fn test_string_literal_codegen() {
         let program = Program {
-            items: vec![Item::Function(Function { attrs: vec![], external_spec: None,
+            items: vec![Item::Function(Function {
+                attrs: vec![],
+                external_spec: None,
                 name: "test".to_string(),
                 params: vec![],
                 return_type: None,
@@ -2813,7 +2819,9 @@ mod tests {
     #[test]
     fn test_f64_pow_codegen() {
         let program = Program {
-            items: vec![Item::Function(Function { attrs: vec![], external_spec: None,
+            items: vec![Item::Function(Function {
+                attrs: vec![],
+                external_spec: None,
                 name: "powf".to_string(),
                 params: vec![Param {
                     name: "x".to_string(),
@@ -2844,7 +2852,9 @@ mod tests {
     #[test]
     fn test_f64_pow_folding() {
         let program = Program {
-            items: vec![Item::Function(Function { attrs: vec![], external_spec: None,
+            items: vec![Item::Function(Function {
+                attrs: vec![],
+                external_spec: None,
                 name: "powf_const".to_string(),
                 params: vec![],
                 return_type: Some(Type::Ident("f64".to_string())),
@@ -2872,7 +2882,9 @@ mod tests {
     #[test]
     fn test_i64_pow_folding() {
         let program = Program {
-            items: vec![Item::Function(Function { attrs: vec![], external_spec: None,
+            items: vec![Item::Function(Function {
+                attrs: vec![],
+                external_spec: None,
                 name: "powi_const".to_string(),
                 params: vec![],
                 return_type: Some(Type::Ident("i64".to_string())),
@@ -2899,7 +2911,9 @@ mod tests {
     #[test]
     fn test_lambda_captures_only_used_vars() {
         let program = Program {
-            items: vec![Item::Function(Function { attrs: vec![], external_spec: None,
+            items: vec![Item::Function(Function {
+                attrs: vec![],
+                external_spec: None,
                 name: "main".to_string(),
                 params: vec![],
                 return_type: None,

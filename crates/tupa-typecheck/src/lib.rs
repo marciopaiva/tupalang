@@ -42,7 +42,10 @@ pub enum Ty {
     Unknown,
 }
 
-pub fn analyze_effects(expr: &tupa_parser::Expr, external_effects: &HashMap<String, EffectSet>) -> EffectSet {
+pub fn analyze_effects(
+    expr: &tupa_parser::Expr,
+    external_effects: &HashMap<String, EffectSet>,
+) -> EffectSet {
     fn fold(e: &tupa_parser::Expr, external_effects: &HashMap<String, EffectSet>) -> EffectSet {
         use tupa_parser::ExprKind::*;
         match &e.kind {
@@ -74,7 +77,9 @@ pub fn analyze_effects(expr: &tupa_parser::Expr, external_effects: &HashMap<Stri
                 }
                 acc
             }
-            Index { expr, index } => fold(expr, external_effects).union(&fold(index, external_effects)),
+            Index { expr, index } => {
+                fold(expr, external_effects).union(&fold(index, external_effects))
+            }
             Field { expr, .. } => fold(expr, external_effects),
             Lambda { body, .. } => fold(body, external_effects),
             Block(stmts) => {
@@ -129,12 +134,12 @@ pub fn analyze_effects(expr: &tupa_parser::Expr, external_effects: &HashMap<Stri
                 }
                 acc
             }
-            Tuple(items) => items
-                .iter()
-                .fold(EffectSet::default(), |acc, it| acc.union(&fold(it, external_effects))),
-            ArrayLiteral(items) => items
-                .iter()
-                .fold(EffectSet::default(), |acc, it| acc.union(&fold(it, external_effects))),
+            Tuple(items) => items.iter().fold(EffectSet::default(), |acc, it| {
+                acc.union(&fold(it, external_effects))
+            }),
+            ArrayLiteral(items) => items.iter().fold(EffectSet::default(), |acc, it| {
+                acc.union(&fold(it, external_effects))
+            }),
             Assign { expr, .. } => fold(expr, external_effects),
             AssignIndex { expr, index, value } => {
                 let acc = fold(expr, external_effects).union(&fold(index, external_effects));
@@ -1014,15 +1019,23 @@ pub fn typecheck_program_with_warnings(program: &Program) -> Result<Vec<Warning>
                 let mut effects = EffectSet::default();
                 if let Some(spec) = &func.external_spec {
                     for eff in &spec.effects {
-                         match eff.as_str() {
-                             "IO" => effects.insert(tupa_effects::Effect::IO),
-                             "Random" => effects.insert(tupa_effects::Effect::Random),
-                             "Time" => effects.insert(tupa_effects::Effect::Time),
-                             other => effects.insert(tupa_effects::Effect::ExternalCall(other.to_string())),
-                         }
+                        match eff.as_str() {
+                            "IO" => effects.insert(tupa_effects::Effect::IO),
+                            "Random" => effects.insert(tupa_effects::Effect::Random),
+                            "Time" => effects.insert(tupa_effects::Effect::Time),
+                            other => effects
+                                .insert(tupa_effects::Effect::ExternalCall(other.to_string())),
+                        }
                     }
                 }
-                functions.insert(func.name.clone(), FuncSig { params, ret, effects });
+                functions.insert(
+                    func.name.clone(),
+                    FuncSig {
+                        params,
+                        ret,
+                        effects,
+                    },
+                );
             }
             Item::Pipeline(_) => {
                 // Pipelines don't contribute to function or enum registries
@@ -1867,7 +1880,12 @@ fn type_of_expr(
             let l = type_of_expr(left, env, functions, enums, traits, expected_return)?;
             let r = type_of_expr(right, env, functions, enums, traits, expected_return)?;
             match op {
-                BinaryOp::Add | BinaryOp::Sub | BinaryOp::Mul | BinaryOp::Div | BinaryOp::Pow | BinaryOp::Mod => {
+                BinaryOp::Add
+                | BinaryOp::Sub
+                | BinaryOp::Mul
+                | BinaryOp::Div
+                | BinaryOp::Pow
+                | BinaryOp::Mod => {
                     if l == r && (l == Ty::I64 || l == Ty::F64) {
                         Ok(l)
                     } else if l == Ty::Unknown && (r == Ty::I64 || r == Ty::F64) {
@@ -3567,7 +3585,10 @@ mod tests {
         "#;
         let program = parse_program(src).unwrap();
         match typecheck_program(&program) {
-            Err(TypeError::ImpureInDeterministic { forbidden_effect: tupa_effects::Effect::ExternalCall(name), .. }) => {
+            Err(TypeError::ImpureInDeterministic {
+                forbidden_effect: tupa_effects::Effect::ExternalCall(name),
+                ..
+            }) => {
                 assert_eq!(name, "DB");
             }
             res => panic!("Expected ExternalCall error, got {:?}", res),

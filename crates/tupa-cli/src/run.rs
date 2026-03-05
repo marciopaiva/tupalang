@@ -1,21 +1,34 @@
 use crate::Commands;
+use serde_json::json;
+use std::collections::HashMap;
 use tupa_codegen::execution_plan::{codegen_pipeline, ExecutionPlan};
 use tupa_codegen::generate_stub_with_types;
-use tupa_parser::{Item, parse_program, Expr, ExprKind, Span, ParserError};
 use tupa_lexer::LexerError;
+use tupa_parser::{parse_program, Expr, ExprKind, Item, ParserError, Span};
 use tupa_runtime::Runtime;
-use tupa_typecheck::{typecheck_program_with_warnings, analyze_effects, TypeError};
-use std::collections::HashMap;
-use serde_json::json;
+use tupa_typecheck::{analyze_effects, typecheck_program_with_warnings, TypeError};
 
 pub async fn run(command: Commands) -> Result<(), String> {
     match command {
-        Commands::Run { file, pipeline, input, plan } => run_pipeline(file, pipeline, input, plan).await,
+        Commands::Run {
+            file,
+            pipeline,
+            input,
+            plan,
+        } => run_pipeline(file, pipeline, input, plan).await,
         Commands::Check { file, format } => run_check(file, format).await,
-        Commands::Audit { file, format, input } => run_audit(file, format, input).await,
+        Commands::Audit {
+            file,
+            format,
+            input,
+        } => run_audit(file, format, input).await,
         Commands::Parse { file, format } => run_parse(file, format).await,
         Commands::Lex { file, format } => run_lex(file, format).await,
-        Commands::Codegen { file, format, plan_only } => run_codegen(file, format, plan_only).await,
+        Commands::Codegen {
+            file,
+            format,
+            plan_only,
+        } => run_codegen(file, format, plan_only).await,
         Commands::Effects { file, format } => run_effects(file, format).await,
     }
 }
@@ -48,21 +61,38 @@ async fn run_pipeline(
 
         // Find pipeline
         let target_pipeline = if let Some(name) = &pipeline_name {
-            program.items.iter().find_map(|item| {
-                if let Item::Pipeline(p) = item {
-                    if p.name == *name { Some(p) } else { None }
-                } else {
-                    None
-                }
-            }).ok_or_else(|| format!("Pipeline '{}' not found", name))?
+            program
+                .items
+                .iter()
+                .find_map(|item| {
+                    if let Item::Pipeline(p) = item {
+                        if p.name == *name {
+                            Some(p)
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    }
+                })
+                .ok_or_else(|| format!("Pipeline '{}' not found", name))?
         } else {
             // Default to first pipeline
-            program.items.iter().find_map(|item| {
-                if let Item::Pipeline(p) = item { Some(p) } else { None }
-            }).ok_or_else(|| "No pipeline found in file".to_string())?
+            program
+                .items
+                .iter()
+                .find_map(|item| {
+                    if let Item::Pipeline(p) = item {
+                        Some(p)
+                    } else {
+                        None
+                    }
+                })
+                .ok_or_else(|| "No pipeline found in file".to_string())?
         };
 
-        let plan_json = codegen_pipeline("main", target_pipeline, &program).map_err(|e| e.to_string())?;
+        let plan_json =
+            codegen_pipeline("main", target_pipeline, &program).map_err(|e| e.to_string())?;
         serde_json::from_str(&plan_json).map_err(|e| e.to_string())?
     } else {
         return Err("Either --plan or file argument must be provided".to_string());
@@ -70,7 +100,7 @@ async fn run_pipeline(
 
     // Execute
     let result = runtime.run_pipeline_async(&plan, input).await;
-    
+
     match result {
         Ok(output) => {
             println!("{}", serde_json::to_string_pretty(&output).unwrap());
@@ -84,54 +114,73 @@ async fn run_check(file: String, format: String) -> Result<(), String> {
     let content = std::fs::read_to_string(&file).map_err(|e| e.to_string())?;
 
     match parse_program(&content) {
-        Ok(program) => {
-            match typecheck_program_with_warnings(&program) {
-                Ok(_) => {
-                    if format == "json" {
-                        println!("{}", json!({ "status": "ok" }));
-                    } else {
-                        println!("OK");
-                    }
-                    Ok(())
+        Ok(program) => match typecheck_program_with_warnings(&program) {
+            Ok(_) => {
+                if format == "json" {
+                    println!("{}", json!({ "status": "ok" }));
+                } else {
+                    println!("OK");
                 }
-                Err(e) => {
-                    let span = match &e {
-                        TypeError::UnknownType { .. } |
-                        TypeError::InvalidTypeArity { .. } => Span { start: 0, end: 0 },
-                        
-                        TypeError::UnknownVar { span, .. } |
-                        TypeError::UnknownFunction { span, .. } |
-                        TypeError::UnknownVariant { span, .. } |
-                        TypeError::Mismatch { span, .. } |
-                        TypeError::ArityMismatch { span, .. } |
-                        TypeError::InvalidBinary { span, .. } |
-                        TypeError::InvalidUnary { span, .. } |
-                        TypeError::InvalidCallTarget { span, .. } |
-                        TypeError::ReturnMismatch { span, .. } |
-                        TypeError::MissingReturn { span } |
-                        TypeError::InvalidConstraint { span, .. } |
-                        TypeError::UnprovenConstraint { span, .. } |
-                        TypeError::BreakOutsideLoop { span } |
-                        TypeError::ContinueOutsideLoop { span } |
-                        TypeError::NonExhaustiveMatch { span } => (*span).unwrap_or(Span { start: 0, end: 0 }),
-                        
-                        TypeError::ImpureInDeterministic { span, .. } |
-                        TypeError::UndefinedMetric { span, .. } => *span,
-                    };
-                    let code = get_error_code(&e);
-                    if format == "json" {
-                        Err(format_json_error(e.to_string(), span, &file, &content, code))
-                    } else {
-                        Err(format_text_error(e.to_string(), span, &file, &content, code))
+                Ok(())
+            }
+            Err(e) => {
+                let span = match &e {
+                    TypeError::UnknownType { .. } | TypeError::InvalidTypeArity { .. } => {
+                        Span { start: 0, end: 0 }
                     }
+
+                    TypeError::UnknownVar { span, .. }
+                    | TypeError::UnknownFunction { span, .. }
+                    | TypeError::UnknownVariant { span, .. }
+                    | TypeError::Mismatch { span, .. }
+                    | TypeError::ArityMismatch { span, .. }
+                    | TypeError::InvalidBinary { span, .. }
+                    | TypeError::InvalidUnary { span, .. }
+                    | TypeError::InvalidCallTarget { span, .. }
+                    | TypeError::ReturnMismatch { span, .. }
+                    | TypeError::MissingReturn { span }
+                    | TypeError::InvalidConstraint { span, .. }
+                    | TypeError::UnprovenConstraint { span, .. }
+                    | TypeError::BreakOutsideLoop { span }
+                    | TypeError::ContinueOutsideLoop { span }
+                    | TypeError::NonExhaustiveMatch { span } => {
+                        (*span).unwrap_or(Span { start: 0, end: 0 })
+                    }
+
+                    TypeError::ImpureInDeterministic { span, .. }
+                    | TypeError::UndefinedMetric { span, .. } => *span,
+                };
+                let code = get_error_code(&e);
+                if format == "json" {
+                    Err(format_json_error(
+                        e.to_string(),
+                        span,
+                        &file,
+                        &content,
+                        code,
+                    ))
+                } else {
+                    Err(format_text_error(
+                        e.to_string(),
+                        span,
+                        &file,
+                        &content,
+                        code,
+                    ))
                 }
             }
-        }
+        },
         Err(e) => {
             let span = match &e {
                 ParserError::Unexpected(_, s) => *s,
-                ParserError::Eof(pos) => Span { start: *pos, end: *pos },
-                ParserError::Lexer(tupa_lexer::LexerError::Unexpected(_, pos)) => Span { start: *pos, end: *pos + 1 },
+                ParserError::Eof(pos) => Span {
+                    start: *pos,
+                    end: *pos,
+                },
+                ParserError::Lexer(tupa_lexer::LexerError::Unexpected(_, pos)) => Span {
+                    start: *pos,
+                    end: *pos + 1,
+                },
                 ParserError::MissingSemicolon(s) => *s,
             };
             let msg = match &e {
@@ -153,7 +202,8 @@ async fn run_audit(file: String, format: String, input: Option<String>) -> Resul
 
     let inputs = if let Some(input_file) = input {
         let input_content = std::fs::read_to_string(&input_file).map_err(|e| e.to_string())?;
-        let input_json: serde_json::Value = serde_json::from_str(&input_content).map_err(|e| e.to_string())?;
+        let input_json: serde_json::Value =
+            serde_json::from_str(&input_content).map_err(|e| e.to_string())?;
         if let serde_json::Value::Array(arr) = input_json {
             arr
         } else {
@@ -181,7 +231,7 @@ fn get_line_col(content: &str, pos: usize) -> (usize, usize, String) {
     let mut line = 1;
     let mut col = 1;
     let mut line_start = 0;
-    
+
     for (i, c) in content.char_indices() {
         if i == pos {
             break;
@@ -194,14 +244,23 @@ fn get_line_col(content: &str, pos: usize) -> (usize, usize, String) {
             col += 1;
         }
     }
-    
-    let line_end = content[line_start..].find('\n').map(|i| line_start + i).unwrap_or(content.len());
+
+    let line_end = content[line_start..]
+        .find('\n')
+        .map(|i| line_start + i)
+        .unwrap_or(content.len());
     let line_text = content[line_start..line_end].to_string();
-    
+
     (line, col, line_text)
 }
 
-fn format_json_error(message: String, span: Span, file: &str, content: &str, code: Option<&str>) -> String {
+fn format_json_error(
+    message: String,
+    span: Span,
+    file: &str,
+    content: &str,
+    code: Option<&str>,
+) -> String {
     let (line, col, line_text) = get_line_col(content, span.start);
     let json_err = json!({
         "error": {
@@ -217,24 +276,35 @@ fn format_json_error(message: String, span: Span, file: &str, content: &str, cod
     serde_json::to_string_pretty(&json_err).unwrap()
 }
 
-fn format_text_error(message: String, span: Span, file: &str, content: &str, code: Option<&str>) -> String {
+fn format_text_error(
+    message: String,
+    span: Span,
+    file: &str,
+    content: &str,
+    code: Option<&str>,
+) -> String {
     let (line, col, line_text) = get_line_col(content, span.start);
     let line_str = line.to_string();
     let pad = " ".repeat(line_str.len());
-    
+
     let error_part = if let Some(c) = code {
         format!("error[{}]: {}", c, message)
     } else {
         format!("error: {}", message)
     };
-    
+
     format!(
         "{}\n  --> {}:{}:{}\n {} |\n {} | {}\n {} | {}{}",
-        error_part, file, line, col, 
-        pad, 
-        line, line_text, 
-        pad, 
-        " ".repeat(col - 1), "^"
+        error_part,
+        file,
+        line,
+        col,
+        pad,
+        line,
+        line_text,
+        pad,
+        " ".repeat(col - 1),
+        "^"
     )
 }
 
@@ -277,8 +347,14 @@ async fn run_parse(file: String, format: String) -> Result<(), String> {
         Err(e) => {
             let span = match &e {
                 ParserError::Unexpected(_, s) => *s,
-                ParserError::Eof(pos) => Span { start: *pos, end: *pos },
-                ParserError::Lexer(tupa_lexer::LexerError::Unexpected(_, pos)) => Span { start: *pos, end: *pos + 1 },
+                ParserError::Eof(pos) => Span {
+                    start: *pos,
+                    end: *pos,
+                },
+                ParserError::Lexer(tupa_lexer::LexerError::Unexpected(_, pos)) => Span {
+                    start: *pos,
+                    end: *pos + 1,
+                },
                 ParserError::MissingSemicolon(s) => *s,
             };
             let msg = match &e {
@@ -310,7 +386,10 @@ async fn run_lex(file: String, format: String) -> Result<(), String> {
         }
         Err(e) => {
             let span = match &e {
-                LexerError::Unexpected(_, pos) => Span { start: *pos, end: *pos + 1 },
+                LexerError::Unexpected(_, pos) => Span {
+                    start: *pos,
+                    end: *pos + 1,
+                },
             };
             let msg = e.to_string();
             if format == "json" {
@@ -324,7 +403,7 @@ async fn run_lex(file: String, format: String) -> Result<(), String> {
 
 async fn run_codegen(file: String, format: String, plan_only: bool) -> Result<(), String> {
     let content = std::fs::read_to_string(&file).map_err(|e| e.to_string())?;
-    
+
     match parse_program(&content) {
         Ok(program) => {
             match typecheck_program_with_warnings(&program) {
@@ -332,33 +411,43 @@ async fn run_codegen(file: String, format: String, plan_only: bool) -> Result<()
                     if format == "json" || plan_only {
                         // Generate execution plans for all pipelines
                         let mut plans = Vec::new();
-                        let pipelines: Vec<_> = program.items.iter().filter_map(|item| {
-                            if let Item::Pipeline(p) = item { Some(p) } else { None }
-                        }).collect();
-                        
+                        let pipelines: Vec<_> = program
+                            .items
+                            .iter()
+                            .filter_map(|item| {
+                                if let Item::Pipeline(p) = item {
+                                    Some(p)
+                                } else {
+                                    None
+                                }
+                            })
+                            .collect();
+
                         if pipelines.is_empty() && plan_only {
                             return Err("No pipelines found to generate plan".to_string());
                         }
 
                         for p in &pipelines {
-                            let plan_json = codegen_pipeline("main", p, &program).map_err(|e| e.to_string())?;
+                            let plan_json =
+                                codegen_pipeline("main", p, &program).map_err(|e| e.to_string())?;
                             let plan: serde_json::Value = serde_json::from_str(&plan_json).unwrap();
                             plans.push(plan);
                         }
 
                         if plan_only {
-                             // Write to file
-                             // Use input filename stem
-                             let path = std::path::Path::new(&file);
-                             let stem = path.file_stem().unwrap().to_string_lossy();
-                             let output_path = format!("{}.plan.json", stem);
-                             
-                             if !plans.is_empty() {
-                                 // Write single object (first pipeline) to be compatible with `run --plan`
-                                 // If there are multiple, this might be ambiguous, but fits the simple test case.
-                                 let plan_json = serde_json::to_string_pretty(&plans[0]).unwrap();
-                                 std::fs::write(&output_path, plan_json).map_err(|e| e.to_string())?;
-                             }
+                            // Write to file
+                            // Use input filename stem
+                            let path = std::path::Path::new(&file);
+                            let stem = path.file_stem().unwrap().to_string_lossy();
+                            let output_path = format!("{}.plan.json", stem);
+
+                            if !plans.is_empty() {
+                                // Write single object (first pipeline) to be compatible with `run --plan`
+                                // If there are multiple, this might be ambiguous, but fits the simple test case.
+                                let plan_json = serde_json::to_string_pretty(&plans[0]).unwrap();
+                                std::fs::write(&output_path, plan_json)
+                                    .map_err(|e| e.to_string())?;
+                            }
                         } else {
                             println!("{}", serde_json::to_string_pretty(&plans).unwrap());
                         }
@@ -372,30 +461,39 @@ async fn run_codegen(file: String, format: String, plan_only: bool) -> Result<()
                 Err(e) => {
                     if format == "json" {
                         let span = match &e {
-                            TypeError::UnknownType { .. } |
-                            TypeError::InvalidTypeArity { .. } => Span { start: 0, end: 0 },
-                            
-                            TypeError::UnknownVar { span, .. } |
-                            TypeError::UnknownFunction { span, .. } |
-                            TypeError::UnknownVariant { span, .. } |
-                            TypeError::Mismatch { span, .. } |
-                            TypeError::ArityMismatch { span, .. } |
-                            TypeError::InvalidBinary { span, .. } |
-                            TypeError::InvalidUnary { span, .. } |
-                            TypeError::InvalidCallTarget { span, .. } |
-                            TypeError::ReturnMismatch { span, .. } |
-                            TypeError::MissingReturn { span } |
-                            TypeError::InvalidConstraint { span, .. } |
-                            TypeError::UnprovenConstraint { span, .. } |
-                            TypeError::BreakOutsideLoop { span } |
-                            TypeError::ContinueOutsideLoop { span } |
-                            TypeError::NonExhaustiveMatch { span } => (*span).unwrap_or(Span { start: 0, end: 0 }),
-                            
-                            TypeError::ImpureInDeterministic { span, .. } |
-                            TypeError::UndefinedMetric { span, .. } => *span,
+                            TypeError::UnknownType { .. } | TypeError::InvalidTypeArity { .. } => {
+                                Span { start: 0, end: 0 }
+                            }
+
+                            TypeError::UnknownVar { span, .. }
+                            | TypeError::UnknownFunction { span, .. }
+                            | TypeError::UnknownVariant { span, .. }
+                            | TypeError::Mismatch { span, .. }
+                            | TypeError::ArityMismatch { span, .. }
+                            | TypeError::InvalidBinary { span, .. }
+                            | TypeError::InvalidUnary { span, .. }
+                            | TypeError::InvalidCallTarget { span, .. }
+                            | TypeError::ReturnMismatch { span, .. }
+                            | TypeError::MissingReturn { span }
+                            | TypeError::InvalidConstraint { span, .. }
+                            | TypeError::UnprovenConstraint { span, .. }
+                            | TypeError::BreakOutsideLoop { span }
+                            | TypeError::ContinueOutsideLoop { span }
+                            | TypeError::NonExhaustiveMatch { span } => {
+                                (*span).unwrap_or(Span { start: 0, end: 0 })
+                            }
+
+                            TypeError::ImpureInDeterministic { span, .. }
+                            | TypeError::UndefinedMetric { span, .. } => *span,
                         };
                         let code = get_error_code(&e);
-                        Err(format_json_error(e.to_string(), span, &file, &content, code))
+                        Err(format_json_error(
+                            e.to_string(),
+                            span,
+                            &file,
+                            &content,
+                            code,
+                        ))
                     } else {
                         Err(e.to_string())
                     }
@@ -405,8 +503,14 @@ async fn run_codegen(file: String, format: String, plan_only: bool) -> Result<()
         Err(e) => {
             let span = match &e {
                 ParserError::Unexpected(_, s) => *s,
-                ParserError::Eof(pos) => Span { start: *pos, end: *pos },
-                ParserError::Lexer(tupa_lexer::LexerError::Unexpected(_, pos)) => Span { start: *pos, end: *pos + 1 },
+                ParserError::Eof(pos) => Span {
+                    start: *pos,
+                    end: *pos,
+                },
+                ParserError::Lexer(tupa_lexer::LexerError::Unexpected(_, pos)) => Span {
+                    start: *pos,
+                    end: *pos + 1,
+                },
                 ParserError::MissingSemicolon(s) => *s,
             };
             let msg = match &e {
@@ -424,7 +528,7 @@ async fn run_codegen(file: String, format: String, plan_only: bool) -> Result<()
 
 async fn run_effects(file: String, format: String) -> Result<(), String> {
     let content = std::fs::read_to_string(&file).map_err(|e| e.to_string())?;
-    
+
     match parse_program(&content) {
         Ok(program) => {
             match typecheck_program_with_warnings(&program) {
@@ -445,7 +549,8 @@ async fn run_effects(file: String, format: String) -> Result<(), String> {
                             Item::Pipeline(p) => {
                                 for step in &p.steps {
                                     let effs = analyze_effects(&step.body, &HashMap::new());
-                                    effects_map.insert(format!("pipeline:{}:{}", p.name, step.name), effs);
+                                    effects_map
+                                        .insert(format!("pipeline:{}:{}", p.name, step.name), effs);
                                 }
                             }
                             _ => {}
@@ -455,14 +560,17 @@ async fn run_effects(file: String, format: String) -> Result<(), String> {
                     if format == "json" {
                         let mut serializable_map = HashMap::new();
                         for (k, v) in effects_map {
-                             serializable_map.insert(k, v.to_names());
+                            serializable_map.insert(k, v.to_names());
                         }
-                        println!("{}", serde_json::to_string_pretty(&serializable_map).unwrap());
+                        println!(
+                            "{}",
+                            serde_json::to_string_pretty(&serializable_map).unwrap()
+                        );
                     } else {
                         // Sort keys for deterministic output
                         let mut sorted_keys: Vec<_> = effects_map.keys().collect();
                         sorted_keys.sort();
-                        
+
                         for name in sorted_keys {
                             let effs = effects_map.get(name).unwrap();
                             println!("{}: {:?}", name, effs.to_names());
@@ -473,30 +581,39 @@ async fn run_effects(file: String, format: String) -> Result<(), String> {
                 Err(e) => {
                     if format == "json" {
                         let span = match &e {
-                            TypeError::UnknownType { .. } |
-                            TypeError::InvalidTypeArity { .. } => Span { start: 0, end: 0 },
-                            
-                            TypeError::UnknownVar { span, .. } |
-                            TypeError::UnknownFunction { span, .. } |
-                            TypeError::UnknownVariant { span, .. } |
-                            TypeError::Mismatch { span, .. } |
-                            TypeError::ArityMismatch { span, .. } |
-                            TypeError::InvalidBinary { span, .. } |
-                            TypeError::InvalidUnary { span, .. } |
-                            TypeError::InvalidCallTarget { span, .. } |
-                            TypeError::ReturnMismatch { span, .. } |
-                            TypeError::MissingReturn { span } |
-                            TypeError::InvalidConstraint { span, .. } |
-                            TypeError::UnprovenConstraint { span, .. } |
-                            TypeError::BreakOutsideLoop { span } |
-                            TypeError::ContinueOutsideLoop { span } |
-                            TypeError::NonExhaustiveMatch { span } => (*span).unwrap_or(Span { start: 0, end: 0 }),
-                            
-                            TypeError::ImpureInDeterministic { span, .. } |
-                            TypeError::UndefinedMetric { span, .. } => *span,
+                            TypeError::UnknownType { .. } | TypeError::InvalidTypeArity { .. } => {
+                                Span { start: 0, end: 0 }
+                            }
+
+                            TypeError::UnknownVar { span, .. }
+                            | TypeError::UnknownFunction { span, .. }
+                            | TypeError::UnknownVariant { span, .. }
+                            | TypeError::Mismatch { span, .. }
+                            | TypeError::ArityMismatch { span, .. }
+                            | TypeError::InvalidBinary { span, .. }
+                            | TypeError::InvalidUnary { span, .. }
+                            | TypeError::InvalidCallTarget { span, .. }
+                            | TypeError::ReturnMismatch { span, .. }
+                            | TypeError::MissingReturn { span }
+                            | TypeError::InvalidConstraint { span, .. }
+                            | TypeError::UnprovenConstraint { span, .. }
+                            | TypeError::BreakOutsideLoop { span }
+                            | TypeError::ContinueOutsideLoop { span }
+                            | TypeError::NonExhaustiveMatch { span } => {
+                                (*span).unwrap_or(Span { start: 0, end: 0 })
+                            }
+
+                            TypeError::ImpureInDeterministic { span, .. }
+                            | TypeError::UndefinedMetric { span, .. } => *span,
                         };
                         let code = get_error_code(&e);
-                        Err(format_json_error(e.to_string(), span, &file, &content, code))
+                        Err(format_json_error(
+                            e.to_string(),
+                            span,
+                            &file,
+                            &content,
+                            code,
+                        ))
                     } else {
                         Err(e.to_string())
                     }
@@ -506,8 +623,14 @@ async fn run_effects(file: String, format: String) -> Result<(), String> {
         Err(e) => {
             let span = match &e {
                 ParserError::Unexpected(_, s) => *s,
-                ParserError::Eof(pos) => Span { start: *pos, end: *pos },
-                ParserError::Lexer(tupa_lexer::LexerError::Unexpected(_, pos)) => Span { start: *pos, end: *pos + 1 },
+                ParserError::Eof(pos) => Span {
+                    start: *pos,
+                    end: *pos,
+                },
+                ParserError::Lexer(tupa_lexer::LexerError::Unexpected(_, pos)) => Span {
+                    start: *pos,
+                    end: *pos + 1,
+                },
                 ParserError::MissingSemicolon(s) => *s,
             };
             let msg = match &e {

@@ -1,5 +1,5 @@
 //! # ViperTrade Backtesting Example
-//! 
+//!
 //! This example demonstrates how to use the Tupã Runtime to backtest a trading strategy.
 //! It simulates a Simple Moving Average (SMA) Crossover strategy against synthetic market data.
 //!
@@ -14,9 +14,9 @@
 //! ```
 
 use serde_json::{json, Value};
-use tupa_runtime::{run_backtest, register_step};
-use tupa_codegen::execution_plan::{ExecutionPlan, TypeSchema, StepPlan, ConstraintPlan};
 use tracing_subscriber::fmt::format::FmtSpan;
+use tupa_codegen::execution_plan::{ConstraintPlan, ExecutionPlan, StepPlan, TypeSchema};
+use tupa_runtime::{register_step, run_backtest};
 
 fn default_schema() -> TypeSchema {
     TypeSchema {
@@ -32,7 +32,10 @@ fn default_schema() -> TypeSchema {
 // Strategy: Simple Moving Average Crossover (simulated)
 fn simple_strategy(input: Value) -> Result<Value, String> {
     let price = input.get("close").and_then(|v| v.as_f64()).unwrap_or(0.0);
-    let ma_short = input.get("ma_short").and_then(|v| v.as_f64()).unwrap_or(0.0);
+    let ma_short = input
+        .get("ma_short")
+        .and_then(|v| v.as_f64())
+        .unwrap_or(0.0);
     let ma_long = input.get("ma_long").and_then(|v| v.as_f64()).unwrap_or(0.0);
 
     let action = if ma_short > ma_long && price > ma_short {
@@ -71,21 +74,17 @@ async fn main() {
         seed: None,
         input_schema: default_schema(),
         output_schema: None,
-        steps: vec![
-            StepPlan {
-                name: "signal".to_string(),
-                function_ref: "strategy::sma_cross".to_string(),
-                effects: vec!["action".to_string()],
-            }
-        ],
+        steps: vec![StepPlan {
+            name: "signal".to_string(),
+            function_ref: "strategy::sma_cross".to_string(),
+            effects: vec!["action".to_string()],
+        }],
         // Risk Management: Don't trade if signal is weak
-        constraints: vec![
-            ConstraintPlan {
-                metric: "signal.signal_strength".to_string(),
-                comparator: "gt".to_string(),
-                threshold: 0.5, // Minimum spread required
-            }
-        ],
+        constraints: vec![ConstraintPlan {
+            metric: "signal.signal_strength".to_string(),
+            comparator: "gt".to_string(),
+            threshold: 0.5, // Minimum spread required
+        }],
         metric_plans: vec![],
         metrics: std::collections::HashMap::new(),
     };
@@ -107,7 +106,7 @@ async fn main() {
         Ok(report) => {
             tracing::info!(event = "backtest_report", pnl = %report["final_pnl"]);
             println!("Final PnL: ${:.2}", report["final_pnl"].as_f64().unwrap());
-        },
+        }
         Err(e) => tracing::error!(event = "backtest_failed", error = %e),
     }
 }

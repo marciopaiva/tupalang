@@ -213,20 +213,25 @@ fn extract_metric_plans(module_name: &str, pipeline: &PipelineDecl) -> Vec<Metri
     list
 }
 
-pub fn codegen_pipeline(module_name: &str, pipeline: &PipelineDecl, program: &Program) -> serde_json::Result<String> {
+pub fn codegen_pipeline(
+    module_name: &str,
+    pipeline: &PipelineDecl,
+    program: &Program,
+) -> serde_json::Result<String> {
     let steps: Vec<StepPlan> = pipeline
         .steps
         .iter()
         .map(|step| {
             let effects = analyze_effects(&step.body, &HashMap::new()).to_names();
             let mut function_ref = format!("{module_name}::step_{}", step.name);
-            
+
             // Check if body is a direct call to an external function
             if let ExprKind::Call { callee, args } = &step.body.kind {
                 if let ExprKind::Ident(func_name) = &callee.kind {
                     // We only optimize direct calls with 'input' argument for now
-                    let is_simple_call = args.len() == 1 && matches!(&args[0].kind, ExprKind::Ident(n) if n == "input");
-                    
+                    let is_simple_call = args.len() == 1
+                        && matches!(&args[0].kind, ExprKind::Ident(n) if n == "input");
+
                     if is_simple_call {
                         // Find function definition
                         for item in &program.items {

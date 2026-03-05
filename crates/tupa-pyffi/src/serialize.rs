@@ -1,7 +1,7 @@
+use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use pyo3::types::{PyBool, PyDict, PyList};
-use pyo3::exceptions::PyValueError;
-use serde_json::{Value, Number, Map};
+use serde_json::{Map, Number, Value};
 
 pub trait ToPython {
     fn to_python(&self, py: Python) -> PyResult<PyObject>;
@@ -74,18 +74,18 @@ impl FromPython for Value {
             return Ok(Value::Null);
         }
         if obj.is_instance_of::<PyBool>() {
-             let b = bool::from_python(obj)?;
-             return Ok(Value::Bool(b));
+            let b = bool::from_python(obj)?;
+            return Ok(Value::Bool(b));
         }
         if let Ok(i) = i64::from_python(obj) {
             return Ok(Value::Number(Number::from(i)));
         }
         if let Ok(f) = f64::from_python(obj) {
-             if let Some(n) = Number::from_f64(f) {
+            if let Some(n) = Number::from_f64(f) {
                 return Ok(Value::Number(n));
             } else {
-                 return Err(PyErr::new::<PyValueError, _>(
-                    "NaN/Inf encountered in float conversion"
+                return Err(PyErr::new::<PyValueError, _>(
+                    "NaN/Inf encountered in float conversion",
                 ));
             }
         }
