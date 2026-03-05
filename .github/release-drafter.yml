@@ -1,0 +1,35 @@
+name-template: "v$RESOLVED_VERSION"
+tag-template: "v$RESOLVED_VERSION"
+change-template: "- $TITLE (#$NUMBER)"
+no-changes-template: "- No significant changes in this release."
+
+categories:
+  - title: "Features"
+    labels: ["feat"]
+  - title: "Fixes"
+    labels: ["fix"]
+  - title: "Documentation"
+    labels: ["docs"]
+  - title: "Refactor"
+    labels: ["refactor"]
+  - title: "Tests"
+    labels: ["test"]
+  - title: "CI"
+    labels: ["ci"]
+  - title: "Chore"
+    labels: ["chore"]
+
+change-title-escapes: "<>*&#@"
+version-resolver:
+  major:
+    labels: ["breaking"]
+  minor:
+    labels: ["feat"]
+  patch:
+    labels: ["fix", "docs", "refactor", "test", "ci", "chore"]
+  default: patch
+
+template: |
+  ## Changes
+
+  $CHANGES

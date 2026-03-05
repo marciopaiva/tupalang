@@ -24,7 +24,8 @@ Thank you for considering contributing to the Tupa project.
 2. Update/add relevant documentation.
 3. Run local checks before opening the PR.
 4. Open the PR with context, motivation, and scope.
-5. Wait for review.
+5. Use a Conventional Commits style title in the PR.
+6. Wait for review.
 
 ## Commit message convention
 
@@ -47,6 +48,11 @@ Examples:
 - `feat(parser): support typed pipeline attributes`
 - `fix(typecheck): reject now() in deterministic pipelines`
 - `docs(guides): add local CI usage section`
+
+Rules:
+
+- Generic messages like `ci:` or `docs:` without summary are rejected in CI.
+- PR titles must follow the same Conventional pattern.
 
 ## Local tests
 
