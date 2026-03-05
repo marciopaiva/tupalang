@@ -22,3 +22,4 @@ if ! grep -q '"name"[[:space:]]*:[[:space:]]*"ViperTradeValidation"' "$PLAN_FILE
 fi
 
 echo "vipertrade smoke: ok"
+# Smoke gate intentionally validates check+plan generation only.
