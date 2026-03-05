@@ -26,7 +26,6 @@ Wiki pages mirror this directory (`docs/`). Avoid manual edits in the wiki.
 
 ## New Contributors
 
-- [Architecture](overview/architecture.md)
 - [Style Guide](guides/style_guide.md)
 - [Docs Contribution Guide](guides/docs_contributing.md)
 - [CI Guide](guides/ci_guide.md)
@@ -40,4 +39,4 @@ Wiki pages mirror this directory (`docs/`). Avoid manual edits in the wiki.
 
 ## Internals & Planning
 
-- Releases: [Changelog](releases/changelog.md) • [Plan](releases/release_plan.md) • [Guide](releases/release_guide.md)
+- Releases: [Changelog](releases/changelog.md) • [Guide](releases/release_guide.md)

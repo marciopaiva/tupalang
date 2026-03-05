@@ -46,6 +46,5 @@ let wasm = tupa_backend_wasm::emit(&ir)?;
 
 ## Enlaces útiles
 
-- [Arquitectura](../overview/architecture.md)
 - [Codegen](codegen.md)
 - [Contribución](../../CONTRIBUTING.md)

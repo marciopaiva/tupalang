@@ -51,5 +51,4 @@ graph TD;
 
 ## Enlaces útiles
 
-- [Arquitectura](../overview/architecture.md)
 - [Diagnósticos](diagnostics_checklist.md)

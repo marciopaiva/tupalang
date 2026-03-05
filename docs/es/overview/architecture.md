@@ -42,4 +42,4 @@ El proyecto es un workspace Rust con múltiples crates implementando etapas del 
 - Los diagnósticos siguen spans y errores normalizados por etapa.
 - La salida JSON del CLI permite integración de herramientas.
 - Las pruebas goldens aseguran la estabilidad del pipeline.
-- Ver detalles del verificador de tipos en [typechecker_details.md](typechecker_details.md).
+- Ver detalles del verificador de tipos en [typechecker_details.md](../reference/typechecker_details.md).

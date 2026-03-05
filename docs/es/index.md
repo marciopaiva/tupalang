@@ -30,7 +30,6 @@ Las páginas del wiki se replican automáticamente desde `docs/`. Evita editar e
 
 ## Para nuevos colaboradores
 
-- [Arquitectura](overview/architecture.md)
 - [Guía de estilo](guides/style_guide.md)
 - [Guía de contribución de docs](guides/docs_contributing.md)
 - [Guía de CI](guides/ci_guide.md)
@@ -55,7 +54,6 @@ Las páginas del wiki se replican automáticamente desde `docs/`. Evita editar e
 - [Motor de auditoría](governance/audit_engine.md)
 - [Notas de diseño (IA)](overview/design_notes.md)
 - [Changelog](releases/changelog.md)
-- [Plan de release](releases/release_plan.md)
 - [Plan MVP](overview/mvp_plan.md)
 - [Plan de adopción](governance/adoption_plan.md)
 - [Checklist de release](releases/release_checklist.md)

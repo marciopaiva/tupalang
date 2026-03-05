@@ -114,7 +114,6 @@ Complete documentation is available in the `docs/` directory:
 
 - [Getting Started](docs/en/guides/getting_started.md)
 - [Language Specification](docs/en/reference/spec.md)
-- [Architecture Overview](docs/en/overview/architecture.md)
 - [Changelog](docs/en/releases/changelog.md)
 
 ## 🤝 Contributing

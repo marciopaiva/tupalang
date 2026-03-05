@@ -16,15 +16,15 @@ Governance and determinism for AI pipelines in critical systems, with formal saf
 
 ### 3) How do I contribute?
 
-See [CONTRIBUTING.md](../../CONTRIBUTING.md) and open an issue with context.
+See [CONTRIBUTING.md](../../../CONTRIBUTING.md) and open an issue with context.
 
 ### 4) Where can I find examples?
 
-In [examples](../../examples/README.md) and in [SPEC](../reference/spec.md#10-validated-examples).
+In [examples](../../../examples/README.md) and in [SPEC](../reference/spec.md#10-validated-examples).
 
 ### 4.1) Are there safe/alignment examples?
 
-Yes. See the `safe_*` examples in [examples](../../examples/README.md) and the `Safe<string, ...>` section in [SPEC](../reference/spec.md#alignment-types-ethical-constraints).
+Yes. See the `safe_*` examples in [examples](../../../examples/README.md) and the `Safe<string, ...>` section in [SPEC](../reference/spec.md#alignment-types-ethical-constraints).
 
 ### 5) What are `Safe<T, ...>` types?
 
@@ -36,7 +36,7 @@ Use `cargo run -p tupa-cli -- <command>` and check [Getting Started](getting_sta
 
 ### 7) Is there a roadmap?
 
-Yes: [Release Plan](../releases/release_plan.md) and [Changelog](../releases/changelog.md).
+Yes: [Changelog](../releases/changelog.md).
 
 ### 8) Can I propose SPEC changes?
 
@@ -60,4 +60,4 @@ See [SPEC](../reference/spec.md#comparison) for examples and comparisons, and [I
 
 ### 13) How do I contribute examples or documentation?
 
-See [CONTRIBUTING.md](../../CONTRIBUTING.md) and [Docs Contributing](docs_contributing.md).
+See [CONTRIBUTING.md](../../../CONTRIBUTING.md) and [Docs Contributing](docs_contributing.md).

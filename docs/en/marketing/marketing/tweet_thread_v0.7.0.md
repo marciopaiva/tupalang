@@ -27,7 +27,6 @@ tupa run --pipeline=FraudDetection --input=tx.json
 - [Pipeline Guide](../../guides/pipeline_guide.md)
 - [SPEC](../../reference/spec.md)
 - [Glossary](../../reference/glossary.md)
-- [Architecture](../../overview/architecture.md)
 
 6/ 🎥 Executable demo
 

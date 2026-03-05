@@ -7,8 +7,8 @@ Definir os marcos de lançamento de v0.4.x até v1.0, alinhados ao roadmap e às
 ## Referências
 
 - [Roadmap](roadmap.md)
-- [Plano de adoção](adoption_plan.md)
-- [Guia de versionamento](versioning.md)
+- [Plano de adoção](../governance/adoption_plan.md)
+- [Guia de versionamento](../reference/versioning.md)
 - [Changelog](changelog.md)
 
 ## Base (atual)
