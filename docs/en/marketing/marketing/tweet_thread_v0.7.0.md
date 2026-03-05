@@ -30,7 +30,7 @@ tupa run --pipeline=FraudDetection --input=tx.json
 
 6/ 🎥 Executable demo
 
-- Gist: [tupa-v0.7.0-demo](https://gist.github.com/<your_user>/tupa-v0.7.0-demo) (replace with real link)
+- Gist: [tupa-v0.7.0-demo](https://github.com/marciopaiva/tupalang/blob/main/examples/pipeline/fraud_complete.tp)
 
 7/ 🌩️ Thesis
 Not “another ML language”. It’s the language for regulated AI.
