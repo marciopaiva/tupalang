@@ -3,7 +3,7 @@
 ## Objetivos
 
 - Confiabilidade: garantir disparo previsivel em `push`/`pull_request`.
-- Velocidade: redunir tempo total de feedback para mudancas de codigo.
+- Velocidade: reduzir tempo total de feedback para mudancas de codigo.
 - Custo: evitar execucoes desnecessarias para mudancas so de documentacao.
 - Seguranca: minimizar permissoes e separar jobs de leitura/escrita.
 

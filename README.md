@@ -15,7 +15,7 @@
 ## ✨ Key Features
 
 - **🛡️ Deterministic by Design**: Pipelines are compiled to Rust with strict type checking, preventing runtime errors.
-- **🚀 High Performance**: Zero-overhead abstraction. The compiler generates optimined Rust code comparable to hand-written implementations.
+- **🚀 High Performance**: Zero-overhead abstraction. The compiler generates optimized Rust code comparable to hand-written implementations.
 - **🧠 Python AI Integration**: Seamlessly call Python functions (e.g., PyTorch, TensorFlow, scikit-learn) from Rust pipelines with automatic data marshaling.
 - **⚡ Trading-Ready**: Built-in support for backtesting, circuit breakers, and financial indicators.
 
@@ -87,7 +87,7 @@ tupa run --plan fraud_complete.plan.json --pipeline=FraudDetection --input examp
 
 ```bash
 cargo run -p tupa-runtime --example viper_backtest
-cargo run -p tupa-runtime --example viper_circuit_breake
+cargo run -p tupa-runtime --example viper_circuit_breaker
 ```
 
 ## 📦 Project Structure
