@@ -1,4 +1,4 @@
-﻿﻿# Tupã Language
+﻿# Tupã Language
 
 [![Build Status](https://img.shields.io/github/actions/workflow/status/tupalang/tupa/ci.yml?branch=main)](https://github.com/tupalang/tupa/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -12,14 +12,12 @@
 
 ---
 
-## 🚀 Why Tupã?
+## ✨ Key Features
 
-Modern data pipelines often suffer from "fragile glue code" problems—Python scripts that break in production due to type errors, missing dependencies, or non-deterministic behavior. Tupã solves this by providing:
-
-- **Deterministic Execution**: Guarantee reproducible outputs for the same inputs, eliminating "it works on my machine" issues.
-- **Type Safety**: Strong static analysis prevents runtime errors before execution, catching bugs early.
-- **Polyglot Runtime**: Seamlessly orchestrate Rust functions and Python AI models (via FFI) in a single pipeline.
-- **Zero-Cost Abstractions**: Compiles to efficient Rust execution plans with minimal overhead.
+- **🛡️ Deterministic by Design**: Pipelines are compiled to Rust with strict type checking, preventing runtime errors.
+- **🚀 High Performance**: Zero-overhead abstraction. The compiler generates optimized Rust code comparable to hand-written implementations.
+- **🧠 Python AI Integration**: Seamlessly call Python functions (e.g., PyTorch, TensorFlow, scikit-learn) from Rust pipelines with automatic data marshaling.
+- **⚡ Trading-Ready**: Built-in support for backtesting, circuit breakers, and financial indicators.
 
 ## 📄 Language Example
 
@@ -55,10 +53,10 @@ pipeline Strategy @deterministic(seed=42) {
 
 Tupã v0.8.0 introduces first-class support for financial systems, enabling robust trading bot development:
 
-*   **Circuit Breakers**: Built-in mechanism to halt execution when consecutive failures occur, preventing cascading losses.
-*   **Backtesting Engine**: Native support for historical simulation with PnL tracking and audit logging.
-*   **Audit Logging**: Structured JSON logs for every decision, compliant with financial auditing standards.
-*   **Risk Constraints**: Define strict limits (e.g., `max_drawdown`, `exposure`) directly in the pipeline definition.
+- **Circuit Breakers**: Built-in mechanism to halt execution when consecutive failures occur, preventing cascading losses.
+- **Backtesting Engine**: Native support for historical simulation with PnL tracking and audit logging.
+- **Audit Logging**: Structured JSON logs for every decision, compliant with financial auditing standards.
+- **Risk Constraints**: Define strict limits (e.g., `max_drawdown`, `exposure`) directly in the pipeline definition.
 
 See [Trading Support Documentation](docs/en/features/trading_support.md) for details.
 
@@ -83,6 +81,7 @@ tupa --version
 ## 💡 Quick Examples
 
 ### 1. Run a Backtest
+
 Simulate a trading strategy using the built-in example:
 
 ```bash
@@ -90,6 +89,7 @@ cargo run -p tupa-runtime --example viper_backtest
 ```
 
 ### 2. Circuit Breaker Demo
+
 Observe how the system handles external API failures:
 
 ```bash
@@ -101,7 +101,7 @@ cargo run -p tupa-runtime --example viper_circuit_breaker
 The project is organized as a Rust workspace:
 
 | Crate | Description |
-|-------|-------------|
+| --- | --- |
 | [`tupa-parser`](crates/tupa-parser) | Source code parser and AST generation |
 | [`tupa-runtime`](crates/tupa-runtime) | Execution engine with trading support and Python FFI |
 | [`tupa-cli`](crates/tupa-cli) | Command-line interface for compiling and running pipelines |
