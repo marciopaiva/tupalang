@@ -17,24 +17,55 @@ concurrency:
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   pr-title-convention:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    continue-on-error: true
     steps:
-      - name: Validate PR title convention (warning only)
+      - name: Validate PR title convention
         run: |
           title="${{ github.event.pull_request.title }}"
-          pattern='^(feat|fix|docs|refactor|test|ci|chore)(\([a-z0-9._-]+\))?: .+'
+          pattern='^(feat|fix|docs|refactor|test|ci|chore)(\([a-z0-9._/-]+\))?: .+'
           if echo "$title" | grep -Eq "$pattern"; then
             echo "PR title convention: ok"
           else
-            echo "::warning title=PR title convention::Use Conventional Commits style in PR title: <type>(<scope>): <summary>"
-            echo "Current title: $title"
+            echo "PR title does not follow Conventional Commits style"
+            echo "Expected: <type>(<scope>): <summary>"
+            echo "Current:  $title"
+            exit 1
           fi
+
+  commit-message-convention:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Validate commit messages in PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pattern = /^(feat|fix|docs|refactor|test|ci|chore)(\([a-z0-9._/-]+\))?: .+/;
+            const commits = await github.paginate(github.rest.pulls.listCommits, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              per_page: 100,
+            });
+
+            const invalid = commits
+              .map(c => c.commit.message.split("\n")[0])
+              .filter(msg => !pattern.test(msg));
+
+            if (invalid.length) {
+              core.setFailed(
+                `Invalid commit message(s):\n- ${invalid.join("\n- ")}`
+              );
+            } else {
+              core.info("All commit messages follow Conventional Commits.");
+            }
 
   lint:
     runs-on: ubuntu-latest
