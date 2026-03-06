@@ -60,15 +60,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: dist
-
-      - name: Flatten artifact directory
-        run: |
-          find dist -type f -maxdepth 3 -exec cp {} dist/ \;
+          merge-multiple: true
 
       - name: Generate checksums
         run: |
           cd dist
-          sha256sum tupa-* > checksums.txt
+          sha256sum tupa-linux-x86_64 tupa-macos-aarch64 tupa-windows-x86_64.exe > checksums.txt
 
       - name: Publish release assets
         uses: softprops/action-gh-release@v2
