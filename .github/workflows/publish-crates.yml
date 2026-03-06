@@ -42,6 +42,32 @@ jobs:
             MODE="--locked --dry-run"
           fi
 
+          publish_crate() {
+            local crate="$1"
+            echo "Publishing $crate ($MODE)"
+
+            set +e
+            OUTPUT=$(cargo publish -p "$crate" $MODE 2>&1)
+            CODE=$?
+            set -e
+
+            echo "$OUTPUT"
+
+            if [[ $CODE -eq 0 ]]; then
+              if [[ "$MODE" != *"--dry-run"* ]]; then
+                sleep 30
+              fi
+              return 0
+            fi
+
+            if [[ "$OUTPUT" == *"already exists on crates.io index"* ]]; then
+              echo "Skipping $crate: already published"
+              return 0
+            fi
+
+            return $CODE
+          }
+
           for crate in \
             tupa-lexer \
             tupa-effects \
@@ -50,11 +76,7 @@ jobs:
             tupa-codegen \
             tupa-pyffi \
             tupa-runtime; do
-            echo "Publishing $crate ($MODE)"
-            cargo publish -p "$crate" $MODE
-            if [[ "$MODE" != *"--dry-run"* ]]; then
-              sleep 30
-            fi
+            publish_crate "$crate"
           done
 
   publish-cli:
@@ -80,10 +102,32 @@ jobs:
             MODE="--locked --dry-run"
           fi
 
-          for crate in tupa-audit tupa-fmt tupa-lint tupa-cli; do
+          publish_crate() {
+            local crate="$1"
             echo "Publishing $crate ($MODE)"
-            cargo publish -p "$crate" $MODE
-            if [[ "$MODE" != *"--dry-run"* ]]; then
-              sleep 30
+
+            set +e
+            OUTPUT=$(cargo publish -p "$crate" $MODE 2>&1)
+            CODE=$?
+            set -e
+
+            echo "$OUTPUT"
+
+            if [[ $CODE -eq 0 ]]; then
+              if [[ "$MODE" != *"--dry-run"* ]]; then
+                sleep 30
+              fi
+              return 0
             fi
+
+            if [[ "$OUTPUT" == *"already exists on crates.io index"* ]]; then
+              echo "Skipping $crate: already published"
+              return 0
+            fi
+
+            return $CODE
+          }
+
+          for crate in tupa-audit tupa-fmt tupa-lint tupa-cli; do
+            publish_crate "$crate"
           done
