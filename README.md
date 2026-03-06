@@ -111,6 +111,7 @@ Release automation:
 
 - [.github/workflows/release.yml](.github/workflows/release.yml): multi-platform `tupa` binary artifacts
 - [.github/workflows/publish-crates.yml](.github/workflows/publish-crates.yml): ordered crates publication (`dry_run` and optional CLI publish)
+
 ## Project Structure
 
 | Crate | Description |

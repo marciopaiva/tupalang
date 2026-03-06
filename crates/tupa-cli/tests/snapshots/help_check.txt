@@ -1,6 +1,6 @@
 Check syntax and types
 
-Usage: tupa-cli check [OPTIONS] <FILE>
+Usage: tupa check [OPTIONS] <FILE>
 
 Arguments:
   <FILE>  Input file

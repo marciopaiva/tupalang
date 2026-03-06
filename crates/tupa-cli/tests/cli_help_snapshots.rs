@@ -1,12 +1,12 @@
 use std::process::Command;
 
 fn run_help(args: &[&str]) -> String {
-    let output = Command::new(env!("CARGO_BIN_EXE_tupa-cli"))
+    let output = Command::new(env!("CARGO_BIN_EXE_tupa"))
         .args(args)
         .output()
-        .expect("failed to run tupa-cli");
+        .expect("failed to run tupa");
 
-    assert!(output.status.success(), "tupa-cli --help failed");
+    assert!(output.status.success(), "tupa --help failed");
     String::from_utf8_lossy(&output.stdout).to_string()
 }
 

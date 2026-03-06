@@ -17,7 +17,7 @@ fn run_fraud_detection_plan_only_and_run() {
     }
 
     let root = repo_root();
-    let mut gen = Command::new(env!("CARGO_BIN_EXE_tupa-cli"));
+    let mut gen = Command::new(env!("CARGO_BIN_EXE_tupa"));
     gen.current_dir(&root)
         .args([
             "codegen",
@@ -27,7 +27,7 @@ fn run_fraud_detection_plan_only_and_run() {
         .assert()
         .success();
 
-    let mut run = Command::new(env!("CARGO_BIN_EXE_tupa-cli"));
+    let mut run = Command::new(env!("CARGO_BIN_EXE_tupa"));
     run.current_dir(&root)
         .args([
             "run",
@@ -54,7 +54,7 @@ fn run_credit_decision_report_contains_approved() {
     let tmp_path = root.join("tmp_input_i64.json");
     std::fs::write(&tmp_path, "100").unwrap();
 
-    let mut run = Command::new(env!("CARGO_BIN_EXE_tupa-cli"));
+    let mut run = Command::new(env!("CARGO_BIN_EXE_tupa"));
     run.current_dir(&root)
         .args([
             "run",
@@ -75,7 +75,7 @@ fn run_credit_decision_report_contains_approved() {
 fn perf_codegen_fraud_medium_under_target() {
     let root = repo_root();
     let start = Instant::now();
-    let mut gen = Command::new(env!("CARGO_BIN_EXE_tupa-cli"));
+    let mut gen = Command::new(env!("CARGO_BIN_EXE_tupa"));
     gen.current_dir(&root)
         .args(["codegen", "examples/pipeline/fraud_complete.tp"])
         .assert()
@@ -98,7 +98,7 @@ fn perf_codegen_fraud_medium_under_target() {
 fn perf_run_fraud_medium_under_target() {
     let root = repo_root();
     let start = Instant::now();
-    let mut run = Command::new(env!("CARGO_BIN_EXE_tupa-cli"));
+    let mut run = Command::new(env!("CARGO_BIN_EXE_tupa"));
     run.current_dir(&root)
         .args([
             "run",

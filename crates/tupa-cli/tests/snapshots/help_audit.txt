@@ -1,6 +1,6 @@
 Audit execution logs
 
-Usage: tupa-cli audit [OPTIONS] <FILE>
+Usage: tupa audit [OPTIONS] <FILE>
 
 Arguments:
   <FILE>  Input file

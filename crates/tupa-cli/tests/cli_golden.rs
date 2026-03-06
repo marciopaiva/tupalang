@@ -21,21 +21,21 @@ fn example_path(name: &str) -> PathBuf {
 }
 
 fn run_cli(args: &[&str]) -> String {
-    let exe = env!("CARGO_BIN_EXE_tupa-cli");
+    let exe = env!("CARGO_BIN_EXE_tupa");
     let output = Command::new(exe)
         .args(args)
         .output()
-        .expect("failed to run tupa-cli");
+        .expect("failed to run tupa");
     assert!(output.status.success(), "tupa-cli failed: {output:?}");
     String::from_utf8_lossy(&output.stdout).to_string()
 }
 
 fn run_cli_err(args: &[&str]) -> String {
-    let exe = env!("CARGO_BIN_EXE_tupa-cli");
+    let exe = env!("CARGO_BIN_EXE_tupa");
     let output = Command::new(exe)
         .args(args)
         .output()
-        .expect("failed to run tupa-cli");
+        .expect("failed to run tupa");
     assert!(!output.status.success(), "tupa-cli expected to fail");
     normalize_output(String::from_utf8_lossy(&output.stderr).as_ref())
 }
