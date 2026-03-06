@@ -2,7 +2,17 @@
 
 ## Purpose
 
-This document explains how to use Tupã's internal compiler API, extend functionality, and add new backends.
+This document explains how to use Tupã's compiler API, extend functionality, and embed Tupã in Rust systems.
+
+## Stable Embedding Surface (`v0.8.0-rc`)
+
+The stable embedding surface for this RC cycle is:
+
+- `tupa-parser`
+- `tupa-typecheck`
+- `tupa-runtime`
+
+For minimal embedding examples, see [Embedding](embedding.md).
 
 ## Library Usage
 
@@ -28,23 +38,11 @@ let ir = codegen(&typed)?;
 ## Example: Adding a WASM Backend
 
 1. Create a new crate `tupa-backend-wasm`.
-
-2. Implement the `CodegenBackend` trait:
-
-```rust
-pub trait CodegenBackend {
-    fn emit(&self, ir: &IrModule) -> Result<String, Error>;
-}
-```
-
-1. Integrate it into the CLI:
-
-```rust
-// ...existing code...
-let wasm = tupa_backend_wasm::emit(&ir)?;
-```
+2. Implement the `CodegenBackend` trait.
+3. Integrate it into the CLI.
 
 ## Useful Links
 
+- [Embedding](embedding.md)
 - [Codegen](codegen.md)
 - [Contribution](../../CONTRIBUTING.md)

@@ -15,6 +15,7 @@ Las páginas del wiki se replican automáticamente desde `docs/`. Evita editar e
 ## Para usuarios
 
 - [Guía de inicio rápido](guides/getting_started.md)
+- [Guía de instalación](guides/installation.md)
 - [Ejemplos](../../examples/README.md)
 - [Ejemplos Safe (restricciones éticas)](../../examples/README.md#files)
 - [Glosario](reference/glossary.md)
@@ -47,6 +48,7 @@ Las páginas del wiki se replican automáticamente desde `docs/`. Evita editar e
 - [Glosario de diagnósticos](reference/diagnostics_glossary.md)
 - [Guía de pruebas](guides/testing.md)
 - [Guía de mensajes de error](reference/error_messages.md)
+- [Embedding API](reference/embedding.md)
 
 ## Internos y planificación
 
@@ -59,3 +61,4 @@ Las páginas del wiki se replican automáticamente desde `docs/`. Evita editar e
 - [Checklist de release](releases/release_checklist.md)
 - [Guía de release](releases/release_guide.md)
 - [Guía de versionado](reference/versioning.md)
+- [Decisión de distribución híbrida](governance/hybrid_distribution_decision.md)

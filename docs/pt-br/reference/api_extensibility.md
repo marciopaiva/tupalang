@@ -2,7 +2,17 @@
 
 ## Propósito
 
-Explicar como usar a API interna do compilador Tupã, estender funcionalidades e adicionar novos backends.
+Explicar como usar a API do compilador do Tupã, estender funcionalidades e fazer embedding de Tupã em sistemas Rust.
+
+## Superfície estável de embedding (`v0.8.0-rc`)
+
+A superfície estável de embedding para este ciclo RC é:
+
+- `tupa-parser`
+- `tupa-typecheck`
+- `tupa-runtime`
+
+Para exemplos mínimos, veja [Embedding](embedding.md).
 
 ## Uso como biblioteca
 
@@ -25,26 +35,14 @@ let ir = codegen(&typed)?;
 - **Novo backend**: criar uma crate (por exemplo, `tupa-backend-wasm`) e implementar o trait `CodegenBackend`.
 - **CLI customizado**: usar `tupa-cli` como base e adicionar comandos.
 
-## Exemplo: adicionando um backend WASM
+## Exemplo: backend WASM
 
-1. Crie uma nova crate `tupa-backend-wasm`.
-
-2. Implemente o trait `CodegenBackend`:
-
-```rust
-pub trait CodegenBackend {
-    fn emit(&self, ir: &IrModule) -> Result<String, Error>;
-}
-```
-
-1. Integre no CLI:
-
-```rust
-// ...existing code...
-let wasm = tupa_backend_wasm::emit(&ir)?;
-```
+1. Criar uma nova crate `tupa-backend-wasm`.
+2. Implementar o trait `CodegenBackend`.
+3. Integrar no CLI.
 
 ## Links úteis
 
+- [Embedding](embedding.md)
 - [Codegen](codegen.md)
-- [Contribuição](../CONTRIBUTING.md)
+- [Contribuição](../../CONTRIBUTING.md)

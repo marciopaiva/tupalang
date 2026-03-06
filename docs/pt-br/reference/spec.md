@@ -1070,5 +1070,14 @@ error[E2002]: aridade incompatível: esperado 2, obtido 1
 
 ---
 
+## 14. Modelo de distribuição (Informativo)
+
+Para `v0.8.0-rc`, Tupã usa um modelo híbrido de distribuição:
+
+- Artefatos binários standalone para execução e operação por usuários finais.
+- Crates Rust públicas (`tupa-parser`, `tupa-typecheck`, `tupa-runtime`) para embedding em sistemas Rust.
+
+Esta seção é informativa e não altera regras normativas de gramática ou tipagem.
+
 *Especificação mantida pela comunidade Tupã • Licença: CC-BY-SA 4.0*  
 *Versão: 0.1-draft*
