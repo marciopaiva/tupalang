@@ -4,5 +4,5 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-tupa-parser = { path = "../tupa-parser" }
-tupa-lexer = { path = "../tupa-lexer" }
+tupa-parser = { path = "../tupa-parser", version = "0.8.0" }
+tupa-lexer = { path = "../tupa-lexer", version = "0.8.0" }
