@@ -5,6 +5,6 @@ edition = "2021"
 
 [dependencies]
 thiserror = "1.0"
-tupa-parser = { path = "../tupa-parser" }
-tupa-lexer = { path = "../tupa-lexer" }
-tupa-effects = { path = "../tupa-effects" }
+tupa-parser = { path = "../tupa-parser", version = "0.8.0" }
+tupa-lexer = { path = "../tupa-lexer", version = "0.8.0" }
+tupa-effects = { path = "../tupa-effects", version = "0.8.0" }
