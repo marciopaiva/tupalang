@@ -2,6 +2,11 @@
 name = "tupa-audit"
 version = "0.8.0"
 edition = "2021"
+description = "Audit utilities for TupaLang execution traces"
+license = "Apache-2.0"
+repository = "https://github.com/marciopaiva/tupalang"
+homepage = "https://github.com/marciopaiva/tupalang"
+documentation = "https://github.com/marciopaiva/tupalang/wiki"
 
 [dependencies]
 serde_json = "1.0"

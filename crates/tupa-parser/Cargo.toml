@@ -2,6 +2,11 @@
 name = "tupa-parser"
 version = "0.8.0"
 edition = "2021"
+description = "Parser for TupaLang source files"
+license = "Apache-2.0"
+repository = "https://github.com/marciopaiva/tupalang"
+homepage = "https://github.com/marciopaiva/tupalang"
+documentation = "https://github.com/marciopaiva/tupalang/wiki"
 
 [dependencies]
 tupa-lexer = { path = "../tupa-lexer", version = "0.8.0" }
