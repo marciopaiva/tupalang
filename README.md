@@ -6,22 +6,32 @@
 [![Rust](https://img.shields.io/badge/rust-1.75%2B-orange.svg)](https://www.rust-lang.org)
 [![Platform](https://img.shields.io/badge/platform-linux%20%7C%20macos%20%7C%20windows-lightgrey)](https://github.com/marciopaiva/tupalang)
 
-**Tupã** is a deterministic, type-safe pipeline orchestration language designed for mission-critical systems. It bridges the gap between static safety and dynamic runtime flexibility, making it the ideal choice for financial trading bots, AI inference workflows, and high-reliability data processing.
+**Tupã** is a deterministic, type-safe pipeline orchestration language designed for mission-critical systems.
+It bridges static safety and dynamic runtime flexibility for trading workflows, AI inference, and high-reliability data processing.
 
-> **Tupã** (Guaraní mythology): The spirit of thunder and enlightenment.
+> **Tupã** (Guaraní mythology): the spirit of thunder and enlightenment.
 
----
+## Distribution Model (v0.8.0-rc)
 
-## ✨ Key Features
+Tupã follows a **hybrid distribution** strategy:
 
-- **🛡️ Deterministic by Design**: Pipelines are compiled to Rust with strict type checking, preventing runtime errors.
-- **🚀 High Performance**: Zero-overhead abstraction. The compiler generates optimized Rust code comparable to hand-written implementations.
-- **🧠 Python AI Integration**: Seamlessly call Python functions (e.g., PyTorch, TensorFlow, scikit-learn) from Rust pipelines with automatic data marshaling.
-- **⚡ Trading-Ready**: Built-in support for backtesting, circuit breakers, and financial indicators.
+- **Primary**: standalone CLI binary artifacts for end users and operations.
+- **Secondary**: public Rust crates for embeddability (`tupa-parser`, `tupa-typecheck`, `tupa-runtime`).
 
-## 📄 Language Example
+Details:
 
-Tupã's syntax is declarative and pipeline-oriented. A minimal valid example:
+- [Hybrid Distribution Decision](docs/en/governance/hybrid_distribution_decision.md)
+- [Installation Guide](docs/en/guides/installation.md)
+- [Embedding in Rust](docs/en/reference/embedding.md)
+
+## Key Features
+
+- Deterministic by design with static type checking.
+- Native performance with Rust-based compilation/runtime.
+- Python integration path for AI workflows.
+- Trading-ready primitives (constraints, backtesting, circuit breakers, audit logs).
+
+## Language Example
 
 ```tupa
 enum MarketSignal {}
@@ -38,87 +48,80 @@ pipeline Strategy @deterministic(seed=42) {
 }
 ```
 
-## 💹 Trading Ready
+## Installation
 
-Tupã v0.8.0 introduces first-class support for financial systems, enabling robust trading bot development:
+### Recommended (release binary)
 
-- **Circuit Breakers**: Built-in mechanism to halt execution when consecutive failures occur, preventing cascading losses.
-- **Backtesting Engine**: Native support for historical simulation with PnL tracking and audit logging.
-- **Audit Logging**: Structured JSON logs for every decision, compliant with financial auditing standards.
-- **Risk Constraints**: Define strict limits (e.g., `max_drawdown`, `exposure`) directly in the pipeline definition.
+See the full matrix in [Installation Guide](docs/en/guides/installation.md).
 
-See [Trading Support Documentation](docs/en/features/trading_support.md) for details.
-
-## 🛠️ Installation
-
-Ensure you have [Rust](https://www.rust-lang.org/tools/install) installed (1.75+).
-
-### From Source
+Linux example:
 
 ```bash
-git clone https://github.com/marciopaiva/tupalang.git
-cd tupalang
-cargo install --path crates/tupa-cli
+curl -L https://github.com/marciopaiva/tupalang/releases/latest/download/tupa-linux-x86_64 -o /usr/local/bin/tupa
+chmod +x /usr/local/bin/tupa
 ```
 
-### Verify Installation
+### Rust developer path
 
 ```bash
-tupa --version
+cargo install tupa-cli
 ```
 
-## 💡 Quick Examples
+## Quick Usage
 
-### 1. Generate and Run a Pipeline
+If you installed via release binary:
 
 ```bash
-tupa codegen --format=json examples/pipeline/fraud_complete.tp
-tupa run --pipeline=FraudDetection --input examples/pipeline/tx.json examples/pipeline/fraud_complete.tp
+tupa --help
 ```
 
-### 2. Run from ExecutionPlan
+If you installed via Cargo:
 
 ```bash
-tupa codegen --plan-only examples/pipeline/fraud_complete.tp
-tupa run --plan fraud_complete.plan.json --pipeline=FraudDetection --input examples/pipeline/tx.json
+tupa-cli --help
 ```
 
-### 3. Runtime Trading Demos
+Pipeline example:
 
 ```bash
-cargo run -p tupa-runtime --example viper_backtest
-cargo run -p tupa-runtime --example viper_circuit_breaker
+tupa-cli codegen --format=json examples/pipeline/fraud_complete.tp
+tupa-cli run --pipeline=FraudDetection --input examples/pipeline/tx.json examples/pipeline/fraud_complete.tp
 ```
 
-## 📦 Project Structure
-
-The project is organized as a Rust workspace:
+## Project Structure
 
 | Crate | Description |
 | --- | --- |
-| [`tupa-parser`](crates/tupa-parser) | Source code parser and AST generation |
-| [`tupa-runtime`](crates/tupa-runtime) | Execution engine with trading support and Python FFI |
-| [`tupa-cli`](crates/tupa-cli) | Command-line interface for compiling and running pipelines |
-| [`tupa-codegen`](crates/tupa-codegen) | Rust code generation from Tupã pipelines |
+| [`tupa-parser`](crates/tupa-parser) | Source parser and AST generation |
 | [`tupa-typecheck`](crates/tupa-typecheck) | Static analysis and type validation |
+| [`tupa-codegen`](crates/tupa-codegen) | Code generation from Tupã pipelines |
+| [`tupa-runtime`](crates/tupa-runtime) | Runtime execution engine |
+| [`tupa-cli`](crates/tupa-cli) | Command-line interface |
 
-## 📚 Documentation
-
-Complete documentation is available in the `docs/` directory:
+## Documentation
 
 - [Getting Started](docs/en/guides/getting_started.md)
+- [Installation Guide](docs/en/guides/installation.md)
+- [Embedding in Rust](docs/en/reference/embedding.md)
 - [Language Specification](docs/en/reference/spec.md)
 - [Changelog](docs/en/releases/changelog.md)
 
-## ✅ Local CI
+## Local CI
 
-- Antes de fazer push, rode: ./scripts/ci-local.sh
-- Para validar links em modo estrito: CI_LOCAL_STRICT_LINKS=1 ./scripts/ci-local.sh
+```bash
+./scripts/ci-local.sh
+```
 
-## 🤝 Contributing
+Strict links mode:
 
-We welcome contributions! Please see our [Contributing Guide](docs/en/guides/contributing_faq.md) for details.
+```bash
+CI_LOCAL_STRICT_LINKS=1 ./scripts/ci-local.sh
+```
 
-## 📄 License
+## Contributing
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+See [Contributing FAQ](docs/en/guides/contributing_faq.md).
+
+## License
+
+MIT. See [LICENSE](LICENSE).
