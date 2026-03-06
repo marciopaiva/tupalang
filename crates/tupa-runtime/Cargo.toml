@@ -8,8 +8,8 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 thiserror = "1.0"
 lazy_static = "1.4"
-tupa-codegen = { path = "../tupa-codegen" }
-tupa-pyffi = { path = "../tupa-pyffi" }
+tupa-codegen = { path = "../tupa-codegen", version = "0.8.0" }
+tupa-pyffi = { path = "../tupa-pyffi", version = "0.8.0" }
 
 # Async Runtime
 tokio = { version = "1", features = ["full"] }

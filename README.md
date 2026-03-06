@@ -16,7 +16,7 @@ It bridges static safety and dynamic runtime flexibility for trading workflows, 
 Tupã follows a **hybrid distribution** strategy:
 
 - **Primary**: standalone CLI binary artifacts for end users and operations.
-- **Secondary**: public Rust crates for embeddability (`tupa-parser`, `tupa-typecheck`, `tupa-runtime`).
+- **Secondary**: public Rust crates for embeddability (`tupa-lexer`, `tupa-effects`, `tupa-parser`, `tupa-typecheck`, `tupa-codegen`, `tupa-pyffi`, `tupa-runtime`).
 
 Details:
 
@@ -64,7 +64,7 @@ chmod +x /usr/local/bin/tupa
 ### Rust developer path
 
 ```bash
-cargo install tupa-cli
+cargo install --locked tupa-cli
 ```
 
 ## Quick Usage
@@ -78,15 +78,39 @@ tupa --help
 If you installed via Cargo:
 
 ```bash
-tupa-cli --help
+tupa --help
 ```
 
 Pipeline example:
 
 ```bash
-tupa-cli codegen --format=json examples/pipeline/fraud_complete.tp
-tupa-cli run --pipeline=FraudDetection --input examples/pipeline/tx.json examples/pipeline/fraud_complete.tp
+tupa codegen --format=json examples/pipeline/fraud_complete.tp
+tupa run --pipeline=FraudDetection --input examples/pipeline/tx.json examples/pipeline/fraud_complete.tp
 ```
+
+## Crates.io (Rust Embedding)
+
+Starting with the `0.8.x` line, Tupã core crates are published to `crates.io` in dependency order during release.
+
+Core crates for embedding:
+
+- `tupa-parser`
+- `tupa-typecheck`
+- `tupa-runtime`
+
+`Cargo.toml` example:
+
+```toml
+[dependencies]
+tupa-parser = "0.8"
+tupa-typecheck = "0.8"
+tupa-runtime = "0.8"
+```
+
+Release automation:
+
+- [.github/workflows/release.yml](.github/workflows/release.yml): multi-platform `tupa` binary artifacts
+- [.github/workflows/publish-crates.yml](.github/workflows/publish-crates.yml): ordered crates publication (`dry_run` and optional CLI publish)
 
 ## Project Structure
 

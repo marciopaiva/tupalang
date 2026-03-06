@@ -1,6 +1,6 @@
 Run a Tupã program or pipeline
 
-Usage: tupa-cli run [OPTIONS] [FILE]
+Usage: tupa run [OPTIONS] [FILE]
 
 Arguments:
   [FILE]  Input file (optional if --plan is used)

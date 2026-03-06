@@ -1,6 +1,6 @@
 Tupã Language CLI
 
-Usage: tupa-cli <COMMAND>
+Usage: tupa <COMMAND>
 
 Commands:
   run      Run a Tupã program or pipeline

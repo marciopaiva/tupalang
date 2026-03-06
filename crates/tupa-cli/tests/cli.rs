@@ -13,7 +13,7 @@ fn repo_root() -> &'static Path {
 
 #[test]
 fn lex_outputs_tokens() {
-    let mut cmd = cargo_bin_cmd!("tupa-cli");
+    let mut cmd = cargo_bin_cmd!("tupa");
     cmd.current_dir(repo_root())
         .args(["lex", "examples/hello.tp"])
         .assert()
@@ -23,7 +23,7 @@ fn lex_outputs_tokens() {
 
 #[test]
 fn parse_outputs_ast() {
-    let mut cmd = cargo_bin_cmd!("tupa-cli");
+    let mut cmd = cargo_bin_cmd!("tupa");
     cmd.current_dir(repo_root())
         .args(["parse", "examples/hello.tp"])
         .assert()
@@ -33,7 +33,7 @@ fn parse_outputs_ast() {
 
 #[test]
 fn check_outputs_ok() {
-    let mut cmd = cargo_bin_cmd!("tupa-cli");
+    let mut cmd = cargo_bin_cmd!("tupa");
     cmd.current_dir(repo_root())
         .args(["check", "examples/hello.tp"])
         .assert()
@@ -44,7 +44,7 @@ fn check_outputs_ok() {
 #[test]
 fn audit_is_deterministic() {
     let root = repo_root();
-    let mut first = cargo_bin_cmd!("tupa-cli");
+    let mut first = cargo_bin_cmd!("tupa");
     first.current_dir(root).args([
         "audit",
         "examples/audit_hello.tp",
@@ -54,7 +54,7 @@ fn audit_is_deterministic() {
     let first_out = first.output().unwrap();
     assert!(first_out.status.success());
 
-    let mut second = cargo_bin_cmd!("tupa-cli");
+    let mut second = cargo_bin_cmd!("tupa");
     second.current_dir(root).args([
         "audit",
         "examples/audit_hello.tp",
@@ -68,7 +68,7 @@ fn audit_is_deterministic() {
 
 #[test]
 fn audit_rejects_invalid_inputs() {
-    let mut cmd = cargo_bin_cmd!("tupa-cli");
+    let mut cmd = cargo_bin_cmd!("tupa");
     cmd.current_dir(repo_root())
         .args([
             "audit",

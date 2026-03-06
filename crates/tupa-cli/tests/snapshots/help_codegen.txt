@@ -1,6 +1,6 @@
 Generate code (LLVM/Rust)
 
-Usage: tupa-cli codegen [OPTIONS] <FILE>
+Usage: tupa codegen [OPTIONS] <FILE>
 
 Arguments:
   <FILE>  Input file
