@@ -1070,5 +1070,14 @@ error[E2002]: arity mismatch: expected 2, got 1
 
 ---
 
+## 14. Distribution Model (Informative)
+
+For `v0.8.0-rc`, Tupã uses a hybrid distribution model:
+
+- Standalone binary artifacts for end-user execution and operations.
+- Public Rust crates (`tupa-parser`, `tupa-typecheck`, `tupa-runtime`) for embedding in Rust systems.
+
+This section is informative and does not change normative grammar or typing rules.
+
 *Specification maintained by the Tupã community • License: CC-BY-SA 4.0*  
 *Version: 0.1-draft*

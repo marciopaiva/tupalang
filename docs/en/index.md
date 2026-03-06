@@ -8,7 +8,7 @@ Everything needed to learn, build, and ship with Tupã — from the quick start 
 
 English is the canonical source. Translations:
 
-- PT‑BR: [docs/pt-br](../pt-br/index.md)
+- PT-BR: [docs/pt-br](../pt-br/index.md)
 - ES: [docs/es](../es/index.md)
 
 ## Single Source of Truth
@@ -18,6 +18,7 @@ Wiki pages mirror this directory (`docs/`). Avoid manual edits in the wiki.
 ## For Users
 
 - [Quick Start](guides/getting_started.md)
+- [Installation](guides/installation.md)
 - [Examples](../../examples/README.md) • [Safe examples](../../examples/README.md#files)
 - [SPEC](reference/spec.md) • [Glossary](reference/glossary.md)
 - [Examples Guide](guides/examples_guide.md) • [Tutorials](guides/tutorials.md)
@@ -36,7 +37,9 @@ Wiki pages mirror this directory (`docs/`). Avoid manual edits in the wiki.
 - [How to Contribute](../../CONTRIBUTING.md) • [Code of Conduct](../../CODE_OF_CONDUCT.md)
 - [Dev Environment](guides/dev_env.md) • [Testing](guides/testing.md)
 - [Diagnostics: Checklist](reference/diagnostics_checklist.md) • [Glossary](reference/diagnostics_glossary.md)
+- [Embedding API](reference/embedding.md)
 
 ## Internals & Planning
 
 - Releases: [Changelog](releases/changelog.md) • [Guide](releases/release_guide.md)
+- Governance: [Hybrid Distribution Decision](governance/hybrid_distribution_decision.md)
