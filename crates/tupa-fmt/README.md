@@ -10,3 +10,4 @@ use tupa_fmt::format_source;
 let out = format_source("fn main(){return;}");
 println!("{}", out);
 ```
+

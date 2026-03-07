@@ -19,4 +19,5 @@ tupa run path/to/file.tp
 ## Crate
 
 - Binary name: `tupa`
-- Source: https://github.com/marciopaiva/tupalang
+- Source: [tupalang](https://github.com/marciopaiva/tupalang)
+

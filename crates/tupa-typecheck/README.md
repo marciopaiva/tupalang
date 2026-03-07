@@ -16,4 +16,5 @@ typecheck_program(&program)?;
 ## Crate
 
 - Works with `tupa-parser` AST
-- Source: https://github.com/marciopaiva/tupalang
+- Source: [tupalang](https://github.com/marciopaiva/tupalang)
+

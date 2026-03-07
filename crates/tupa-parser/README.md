@@ -15,4 +15,5 @@ println!("{} top-level items", program.items.len());
 ## Crate
 
 - Depends on `tupa-lexer`
-- Source: https://github.com/marciopaiva/tupalang
+- Source: [tupalang](https://github.com/marciopaiva/tupalang)
+

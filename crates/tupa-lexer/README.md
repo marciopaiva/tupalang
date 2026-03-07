@@ -14,5 +14,6 @@ println!("{} tokens", tokens.len());
 
 ## Crate
 
-- Source: https://github.com/marciopaiva/tupalang
+- Source: [tupalang](https://github.com/marciopaiva/tupalang)
 - License: Apache-2.0
+

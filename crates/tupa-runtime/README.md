@@ -17,4 +17,5 @@ Use this crate together with execution plans produced by `tupa-codegen`.
 
 ## Crate
 
-- Source: https://github.com/marciopaiva/tupalang
+- Source: [tupalang](https://github.com/marciopaiva/tupalang)
+

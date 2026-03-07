@@ -14,3 +14,4 @@ let _ = call_python_function("module", "func", json!({"x": 1}));
 ## Notes
 
 - Requires Python runtime/toolchain in build or runtime environment.
+

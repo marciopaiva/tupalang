@@ -14,3 +14,4 @@ let hash = hash_execution(&program, &[json!({"x": 1})]);
 println!("{} {}", compiler_version(), hash);
 # Ok::<(), Box<dyn std::error::Error>>(())
 ```
+

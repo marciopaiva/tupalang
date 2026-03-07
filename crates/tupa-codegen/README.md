@@ -18,4 +18,5 @@ println!("{}", plan_json);
 
 ## Crate
 
-- Source: https://github.com/marciopaiva/tupalang
+- Source: [tupalang](https://github.com/marciopaiva/tupalang)
+
