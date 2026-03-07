@@ -19,4 +19,3 @@ println!("{}", plan_json);
 ## Crate
 
 - Source: [tupalang](https://github.com/marciopaiva/tupalang)
-

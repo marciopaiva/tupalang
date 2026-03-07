@@ -13,4 +13,3 @@ let warnings = lint_program(&program);
 println!("{} warnings", warnings.len());
 # Ok::<(), Box<dyn std::error::Error>>(())
 ```
-

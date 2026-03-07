@@ -17,4 +17,3 @@ typecheck_program(&program)?;
 
 - Works with `tupa-parser` AST
 - Source: [tupalang](https://github.com/marciopaiva/tupalang)
-

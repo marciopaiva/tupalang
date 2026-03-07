@@ -18,4 +18,3 @@ Use this crate together with execution plans produced by `tupa-codegen`.
 ## Crate
 
 - Source: [tupalang](https://github.com/marciopaiva/tupalang)
-

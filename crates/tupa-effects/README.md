@@ -8,4 +8,3 @@ This crate exposes shared effect definitions used across the TupaLang toolchain.
 
 - Source: [tupalang](https://github.com/marciopaiva/tupalang)
 - License: Apache-2.0
-

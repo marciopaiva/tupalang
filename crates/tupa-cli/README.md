@@ -20,4 +20,3 @@ tupa run path/to/file.tp
 
 - Binary name: `tupa`
 - Source: [tupalang](https://github.com/marciopaiva/tupalang)
-
