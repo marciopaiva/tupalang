@@ -7,6 +7,7 @@ license = "Apache-2.0"
 repository = "https://github.com/marciopaiva/tupalang"
 homepage = "https://github.com/marciopaiva/tupalang"
 documentation = "https://github.com/marciopaiva/tupalang/wiki"
+readme = "README.md"
 
 [dependencies]
 thiserror = "1.0"
