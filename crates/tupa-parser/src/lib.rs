@@ -486,6 +486,10 @@ pub fn parse_program(input: &str) -> Result<Program, ParserError> {
     let mut items = Vec::new();
 
     while !parser.is_eof() {
+        if parser.is_type_decl_start() {
+            parser.skip_type_decl()?;
+            continue;
+        }
         items.push(parser.parse_item()?);
     }
 
@@ -517,6 +521,56 @@ impl Parser {
 
     fn peek_next(&self) -> Option<&Token> {
         self.tokens.get(self.pos + 1).map(|t| &t.token)
+    }
+
+    fn is_type_decl_start(&self) -> bool {
+        matches!(
+            (self.peek(), self.peek_next()),
+            (Some(Token::Ident(keyword)), Some(Token::Ident(_))) if keyword == "type"
+        )
+    }
+
+    fn skip_type_decl(&mut self) -> Result<(), ParserError> {
+        match self.next() {
+            Some(TokenSpan {
+                token: Token::Ident(keyword),
+                ..
+            }) if keyword == "type" => {}
+            Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+            None => return Err(ParserError::Eof(self.eof_pos)),
+        }
+
+        match self.next() {
+            Some(TokenSpan {
+                token: Token::Ident(_),
+                ..
+            }) => {}
+            Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+            None => return Err(ParserError::Eof(self.eof_pos)),
+        }
+
+        self.expect(Token::LBrace)?;
+        let mut depth = 1usize;
+        while depth > 0 {
+            match self.next() {
+                Some(TokenSpan {
+                    token: Token::LBrace,
+                    ..
+                }) => depth += 1,
+                Some(TokenSpan {
+                    token: Token::RBrace,
+                    ..
+                }) => depth = depth.saturating_sub(1),
+                Some(_) => {}
+                None => return Err(ParserError::Eof(self.eof_pos)),
+            }
+        }
+
+        if matches!(self.peek(), Some(Token::Comma | Token::Semicolon)) {
+            self.next();
+        }
+
+        Ok(())
     }
 
     fn is_index_assignment(&self) -> bool {
@@ -2397,5 +2451,24 @@ mod tests {
             panic!("expected let");
         };
         assert!(matches!(expr.kind, ExprKind::Index { .. }));
+    }
+    #[test]
+    fn parse_program_with_type_declarations() {
+        let src = r#"
+            type MarketSignal {
+                symbol: string,
+                current_price: f64,
+            }
+
+            pipeline ViperSmartCopy {
+                input: i64,
+                steps: [],
+                output: i64
+            }
+        "#;
+
+        let program = parse_program(src).unwrap();
+        assert_eq!(program.items.len(), 1);
+        assert!(matches!(program.items[0], Item::Pipeline(_)));
     }
 }
