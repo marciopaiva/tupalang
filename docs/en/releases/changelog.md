@@ -4,6 +4,16 @@
 
 This document records relevant changes per version.
 
+## 0.8.0-rc.5 (2026-03-07)
+
+- Parser compatibility fixes for ViperTrade pipeline adoption:
+  - tolerate top-level `type` declarations
+  - tolerate top-level `extern fn ...;` declarations
+  - accept unquoted step names (`step(name)`) in pipelines
+- Crate publication docs improved:
+  - added `README.md` to all publishable crates
+  - added `readme = "README.md"` in all crate manifests
+
 ## 0.8.0 (2026-03-05)
 
 - Release theme: controlled, auditable Python integration for production pipelines.
