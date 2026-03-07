@@ -490,6 +490,10 @@ pub fn parse_program(input: &str) -> Result<Program, ParserError> {
             parser.skip_type_decl()?;
             continue;
         }
+        if parser.is_extern_decl_start() {
+            parser.skip_extern_decl()?;
+            continue;
+        }
         items.push(parser.parse_item()?);
     }
 
@@ -573,6 +577,34 @@ impl Parser {
         Ok(())
     }
 
+    fn is_extern_decl_start(&self) -> bool {
+        matches!(
+            (self.peek(), self.peek_next()),
+            (Some(Token::Ident(_)), Some(Token::Fn))
+        )
+    }
+    fn skip_extern_decl(&mut self) -> Result<(), ParserError> {
+        match self.next() {
+            Some(TokenSpan {
+                token: Token::Ident(_),
+                ..
+            }) => {}
+            Some(TokenSpan { token, span }) => return Err(ParserError::Unexpected(token, span)),
+            None => return Err(ParserError::Eof(self.eof_pos)),
+        }
+        self.expect(Token::Fn)?;
+        loop {
+            match self.next() {
+                Some(TokenSpan {
+                    token: Token::Semicolon,
+                    ..
+                }) => break,
+                Some(_) => {}
+                None => return Err(ParserError::Eof(self.eof_pos)),
+            }
+        }
+        Ok(())
+    }
     fn is_index_assignment(&self) -> bool {
         if !matches!(self.peek(), Some(Token::Ident(_))) {
             return false;
@@ -1043,6 +1075,10 @@ impl Parser {
                         let (step_name, name_span) = match self.next() {
                             Some(TokenSpan {
                                 token: Token::Str(value),
+                                span,
+                            }) => (value, span),
+                            Some(TokenSpan {
+                                token: Token::Ident(value),
                                 span,
                             }) => (value, span),
                             Some(TokenSpan { token, span }) => {
