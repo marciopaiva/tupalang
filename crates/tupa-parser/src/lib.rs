@@ -1077,6 +1077,10 @@ impl Parser {
                                 token: Token::Str(value),
                                 span,
                             }) => (value, span),
+                            Some(TokenSpan {
+                                token: Token::Ident(value),
+                                span,
+                            }) => (value, span),
                             Some(TokenSpan { token, span }) => {
                                 return Err(ParserError::Unexpected(token, span))
                             }
