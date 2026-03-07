@@ -112,6 +112,24 @@ Release automation:
 - [.github/workflows/release.yml](.github/workflows/release.yml): multi-platform `tupa` binary artifacts
 - [.github/workflows/publish-crates.yml](.github/workflows/publish-crates.yml): ordered crates publication (`dry_run` and optional CLI publish)
 
+## Crate Docs
+
+Each publishable crate now includes a crate-local `README.md` and manifest metadata (`readme = "README.md"`) for crates.io package pages.
+
+Direct crate docs:
+
+- [`tupa-audit`](crates/tupa-audit/README.md)
+- [`tupa-cli`](crates/tupa-cli/README.md)
+- [`tupa-codegen`](crates/tupa-codegen/README.md)
+- [`tupa-effects`](crates/tupa-effects/README.md)
+- [`tupa-fmt`](crates/tupa-fmt/README.md)
+- [`tupa-lexer`](crates/tupa-lexer/README.md)
+- [`tupa-lint`](crates/tupa-lint/README.md)
+- [`tupa-parser`](crates/tupa-parser/README.md)
+- [`tupa-pyffi`](crates/tupa-pyffi/README.md)
+- [`tupa-runtime`](crates/tupa-runtime/README.md)
+- [`tupa-typecheck`](crates/tupa-typecheck/README.md)
+
 ## Project Structure
 
 | Crate | Description |
