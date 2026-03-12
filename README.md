@@ -72,8 +72,10 @@ cargo install --locked tupa-cli
 ```bash
 ./scripts/build-base-images.sh
 ./scripts/build-tupa-cli-image.sh
-podman run --rm tupalang-cli:local --help
+docker run --rm tupalang-cli:local --help
 ```
+
+The build scripts auto-detect `docker` first and fall back to `podman`. You can force the engine with `CONTAINER_ENGINE=docker` or `CONTAINER_ENGINE=podman`.
 
 ## Quick Usage
 
