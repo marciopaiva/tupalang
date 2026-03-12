@@ -67,6 +67,14 @@ chmod +x /usr/local/bin/tupa
 cargo install --locked tupa-cli
 ```
 
+### Docker base images (local standard)
+
+```bash
+./scripts/build-base-images.sh
+./scripts/build-tupa-cli-image.sh
+podman run --rm tupalang-cli:local --help
+```
+
 ## Quick Usage
 
 If you installed via release binary:
