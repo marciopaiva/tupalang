@@ -77,6 +77,27 @@ docker run --rm tupalang-cli:local --help
 
 The build scripts auto-detect `docker` first and fall back to `podman`. You can force the engine with `CONTAINER_ENGINE=docker` or `CONTAINER_ENGINE=podman`.
 
+### Local Rust validation with the builder image
+
+After building the base images, you can run workspace validation inside the
+standard Rust builder without relying on the host toolchain:
+
+```bash
+docker run --rm \
+  -e PYO3_PYTHON=/usr/bin/python3 \
+  -v "$PWD":/work \
+  -w /work \
+  tupalang-base-rust-builder:1.93 \
+  /usr/local/cargo/bin/cargo check --workspace --locked
+
+docker run --rm \
+  -e PYO3_PYTHON=/usr/bin/python3 \
+  -v "$PWD":/work \
+  -w /work \
+  tupalang-base-rust-builder:1.93 \
+  /usr/local/cargo/bin/cargo clippy --all-targets --workspace -- -D warnings
+```
+
 ## Quick Usage
 
 If you installed via release binary:
