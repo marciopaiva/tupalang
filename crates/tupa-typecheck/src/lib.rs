@@ -1050,7 +1050,7 @@ fn effect_from_external_spec(eff: &str) -> tupa_effects::Effect {
 }
 #[allow(clippy::result_large_err)]
 pub fn typecheck_program_with_warnings(program: &Program) -> Result<Vec<Warning>, TypeError> {
-    let mut functions = HashMap::new();
+    let mut functions = builtin_functions();
     let mut enums = HashMap::new();
     let mut traits = HashMap::new();
     for item in &program.items {
@@ -3027,6 +3027,39 @@ pub struct FuncSig {
     pub effects: EffectSet,
 }
 
+fn builtin_reason_return(passed: bool, severity: &str) -> TypeSig {
+    TypeSig {
+        ty: Ty::Record(vec![
+            ("passed".into(), Ty::Bool),
+            ("severity".into(), Ty::String),
+            ("reason".into(), Ty::String),
+        ]),
+        constraints: Some(vec![
+            format!("passed={passed}"),
+            format!("severity={severity}"),
+        ]),
+    }
+}
+
+fn builtin_reason_function(passed: bool, severity: &str) -> FuncSig {
+    FuncSig {
+        params: vec![TypeSig {
+            ty: Ty::String,
+            constraints: None,
+        }],
+        ret: builtin_reason_return(passed, severity),
+        effects: EffectSet::default(),
+    }
+}
+
+fn builtin_functions() -> HashMap<String, FuncSig> {
+    HashMap::from([
+        ("pass".into(), builtin_reason_function(true, "pass")),
+        ("fail".into(), builtin_reason_function(false, "fail")),
+        ("warn".into(), builtin_reason_function(false, "warn")),
+    ])
+}
+
 #[derive(Debug, Clone)]
 struct EnumInfo {
     params: Vec<String>,
@@ -3567,6 +3600,51 @@ mod tests {
         assert!(matches!(
             typecheck_program(&program),
             Err(TypeError::UnknownField { field, .. }) if field == "missing"
+        ));
+    }
+
+    #[test]
+    fn typecheck_pass_builtin_assignment() {
+        let program = parse_program(
+            "fn main() { let outcome: { passed: bool, severity: string, reason: string } = pass(\"entry_confirmed\"); }",
+        )
+        .unwrap();
+        assert!(typecheck_program(&program).is_ok());
+    }
+
+    #[test]
+    fn typecheck_warn_builtin_assignment() {
+        let program = parse_program(
+            "fn main() { let outcome: { passed: bool, severity: string, reason: string } = warn(\"entry_weakening\"); }",
+        )
+        .unwrap();
+        assert!(typecheck_program(&program).is_ok());
+    }
+
+    #[test]
+    fn typecheck_fail_builtin_wrong_arg_type() {
+        let program = parse_program("fn main() { let outcome = fail(true); }").unwrap();
+        assert!(matches!(
+            typecheck_program(&program),
+            Err(TypeError::Mismatch {
+                expected: Ty::String,
+                found: Ty::Bool,
+                ..
+            })
+        ));
+    }
+
+    #[test]
+    fn typecheck_pass_builtin_wrong_arity() {
+        let program =
+            parse_program("fn main() { let outcome = pass(\"ok\", \"extra\"); }").unwrap();
+        assert!(matches!(
+            typecheck_program(&program),
+            Err(TypeError::ArityMismatch {
+                expected: 1,
+                found: 2,
+                ..
+            })
         ));
     }
 
