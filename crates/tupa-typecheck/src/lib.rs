@@ -82,6 +82,9 @@ pub fn analyze_effects(
                 fold(expr, external_effects).union(&fold(index, external_effects))
             }
             Field { expr, .. } => fold(expr, external_effects),
+            RecordLiteral(fields) => fields.iter().fold(EffectSet::default(), |acc, (_, it)| {
+                acc.union(&fold(it, external_effects))
+            }),
             Lambda { body, .. } => fold(body, external_effects),
             Block(stmts) => {
                 let mut acc = EffectSet::default();
@@ -346,6 +349,11 @@ fn collect_vars(expr: &Expr, vars: &mut std::collections::HashSet<String>) {
         }
         ExprKind::Tuple(items) => {
             for item in items {
+                collect_vars(item, vars);
+            }
+        }
+        ExprKind::RecordLiteral(fields) => {
+            for (_, item) in fields {
                 collect_vars(item, vars);
             }
         }
@@ -627,6 +635,19 @@ fn infer_lambda_param_types(
                 expected_return,
             )?;
         }
+        ExprKind::RecordLiteral(fields) => {
+            for (_, value) in fields {
+                infer_lambda_param_types(
+                    value,
+                    env,
+                    param_types,
+                    functions,
+                    enums,
+                    traits,
+                    expected_return,
+                )?;
+            }
+        }
         ExprKind::Await(expr) => {
             infer_lambda_param_types(
                 expr,
@@ -768,6 +789,11 @@ fn infer_param_type_from_expr(
         }
         ExprKind::Tuple(items) => {
             for item in items {
+                infer_param_type_from_expr(item, expected_ty.clone(), param_types, env)?;
+            }
+        }
+        ExprKind::RecordLiteral(fields) => {
+            for (_, item) in fields {
                 infer_param_type_from_expr(item, expected_ty.clone(), param_types, env)?;
             }
         }
@@ -1455,6 +1481,16 @@ fn type_of_expr(
                 )?);
             }
             Ok(Ty::Tuple(tys))
+        }
+        ExprKind::RecordLiteral(fields) => {
+            let mut field_tys = Vec::with_capacity(fields.len());
+            for (name, value) in fields {
+                field_tys.push((
+                    name.clone(),
+                    type_of_expr(value, env, functions, enums, traits, expected_return)?,
+                ));
+            }
+            Ok(Ty::Record(field_tys))
         }
         ExprKind::Ident(name) => {
             if let Some(ty) = env.get_var_and_mark(name) {
@@ -3499,6 +3535,27 @@ mod tests {
         )
         .unwrap();
         assert!(typecheck_program(&program).is_ok());
+    }
+
+    #[test]
+    fn typecheck_record_literal_assignment() {
+        let program = parse_program(
+            "fn main() { let entry: { reason: string, score: f64 } = { reason: \"ok\", score: 1.0 }; }",
+        )
+        .unwrap();
+        assert!(typecheck_program(&program).is_ok());
+    }
+
+    #[test]
+    fn typecheck_record_literal_type_mismatch() {
+        let program = parse_program(
+            "fn main() { let entry: { reason: string, score: f64 } = { reason: \"ok\", score: true }; }",
+        )
+        .unwrap();
+        assert!(matches!(
+            typecheck_program(&program),
+            Err(TypeError::Mismatch { .. })
+        ));
     }
 
     #[test]
