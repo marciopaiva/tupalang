@@ -177,6 +177,7 @@ pub enum ExprKind {
     Null,
     Ident(String),
     Tuple(Vec<Expr>),
+    RecordLiteral(Vec<(String, Expr)>),
     Assign {
         name: String,
         expr: Box<Expr>,
@@ -1713,6 +1714,9 @@ impl Parser {
     }
 
     fn parse_primary(&mut self) -> Result<Expr, ParserError> {
+        if self.is_record_literal_start() {
+            return self.parse_record_literal();
+        }
         if matches!(self.peek(), Some(Token::LBrace)) {
             let (block, span) = self.parse_block_with_span()?;
             return Ok(Expr::new(ExprKind::Block(block), span));
@@ -1949,6 +1953,57 @@ impl Parser {
         }
 
         Ok(expr)
+    }
+
+    fn is_record_literal_start(&self) -> bool {
+        matches!(
+            (
+                self.peek(),
+                self.tokens.get(self.pos + 1).map(|t| &t.token),
+                self.tokens.get(self.pos + 2).map(|t| &t.token),
+            ),
+            (
+                Some(Token::LBrace),
+                Some(Token::Ident(_)),
+                Some(Token::Colon)
+            )
+        )
+    }
+
+    fn parse_record_literal(&mut self) -> Result<Expr, ParserError> {
+        let start = self.expect_span(Token::LBrace)?;
+        let mut fields = Vec::new();
+
+        loop {
+            let field_name = match self.next() {
+                Some(TokenSpan {
+                    token: Token::Ident(name),
+                    ..
+                }) => name,
+                Some(TokenSpan { token, span }) => {
+                    return Err(ParserError::Unexpected(token, span))
+                }
+                None => return Err(ParserError::Eof(self.eof_pos)),
+            };
+            self.expect(Token::Colon)?;
+            let field_expr = self.parse_expr()?;
+            fields.push((field_name, field_expr));
+
+            if matches!(self.peek(), Some(Token::Comma)) {
+                self.next();
+                if matches!(self.peek(), Some(Token::RBrace)) {
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+
+        let end = self.expect_span(Token::RBrace)?;
+        Ok(Expr::new(
+            ExprKind::RecordLiteral(fields),
+            merge_span(start, end),
+        ))
     }
 
     fn token_to_binary_op(token: &Token) -> Option<(BinaryOp, u8, bool)> {
@@ -2398,6 +2453,31 @@ mod tests {
                 ("eligible".into(), Type::Ident("bool".into())),
             ]))
         );
+    }
+
+    #[test]
+    fn parse_record_literal() {
+        let src = "fn main() { let entry = { reason: \"ok\", score: 1.0, eligible: true }; }";
+        let program = parse_program(src).unwrap();
+        let func = match &program.items[0] {
+            Item::Trait(_) => panic!("expected function"),
+            Item::Enum(_) => panic!("expected function"),
+            Item::Pipeline(_) => panic!("expected function"),
+            Item::Function(func) => func,
+        };
+        let Stmt::Let { expr, .. } = &func.body[0] else {
+            panic!("expected let");
+        };
+        let ExprKind::RecordLiteral(fields) = &expr.kind else {
+            panic!("expected record literal");
+        };
+        assert_eq!(fields.len(), 3);
+        assert_eq!(fields[0].0, "reason");
+        assert!(matches!(fields[0].1.kind, ExprKind::Str(_)));
+        assert_eq!(fields[1].0, "score");
+        assert!(matches!(fields[1].1.kind, ExprKind::Float(_)));
+        assert_eq!(fields[2].0, "eligible");
+        assert!(matches!(fields[2].1.kind, ExprKind::Bool(true)));
     }
 
     #[test]

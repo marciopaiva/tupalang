@@ -454,6 +454,11 @@ impl Codegen {
                     self.collect_used_in_expr(item, env);
                 }
             }
+            ExprKind::RecordLiteral(fields) => {
+                for (_, value) in fields {
+                    self.collect_used_in_expr(value, env);
+                }
+            }
             ExprKind::Field { expr: base, .. } => {
                 self.collect_used_in_expr(base, env);
             }
