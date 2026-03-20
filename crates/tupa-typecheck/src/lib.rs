@@ -3052,11 +3052,62 @@ fn builtin_reason_function(passed: bool, severity: &str) -> FuncSig {
     }
 }
 
+fn builtin_score_return() -> TypeSig {
+    TypeSig {
+        ty: Ty::Record(vec![
+            ("score".into(), Ty::F64),
+            ("weight".into(), Ty::F64),
+            ("reason".into(), Ty::String),
+        ]),
+        constraints: None,
+    }
+}
+
+fn builtin_score_function() -> FuncSig {
+    FuncSig {
+        params: vec![
+            TypeSig {
+                ty: Ty::F64,
+                constraints: None,
+            },
+            TypeSig {
+                ty: Ty::String,
+                constraints: None,
+            },
+        ],
+        ret: builtin_score_return(),
+        effects: EffectSet::default(),
+    }
+}
+
+fn builtin_weighted_function() -> FuncSig {
+    FuncSig {
+        params: vec![
+            TypeSig {
+                ty: Ty::F64,
+                constraints: None,
+            },
+            TypeSig {
+                ty: Ty::F64,
+                constraints: None,
+            },
+            TypeSig {
+                ty: Ty::String,
+                constraints: None,
+            },
+        ],
+        ret: builtin_score_return(),
+        effects: EffectSet::default(),
+    }
+}
+
 fn builtin_functions() -> HashMap<String, FuncSig> {
     HashMap::from([
         ("pass".into(), builtin_reason_function(true, "pass")),
         ("fail".into(), builtin_reason_function(false, "fail")),
         ("warn".into(), builtin_reason_function(false, "warn")),
+        ("score".into(), builtin_score_function()),
+        ("weighted".into(), builtin_weighted_function()),
     ])
 }
 
@@ -3643,6 +3694,60 @@ mod tests {
             Err(TypeError::ArityMismatch {
                 expected: 1,
                 found: 2,
+                ..
+            })
+        ));
+    }
+
+    #[test]
+    fn typecheck_score_builtin_assignment() {
+        let program = parse_program(
+            "fn main() { let component: { score: f64, weight: f64, reason: string } = score(12.5, \"momentum_confirmed\"); }",
+        )
+        .unwrap();
+        assert!(typecheck_program(&program).is_ok());
+    }
+
+    #[test]
+    fn typecheck_weighted_builtin_assignment() {
+        let program = parse_program(
+            "fn main() { let component: { score: f64, weight: f64, reason: string } = weighted(0.8, 30.0, \"consensus_side\"); }",
+        )
+        .unwrap();
+        assert!(typecheck_program(&program).is_ok());
+    }
+
+    #[test]
+    fn typecheck_weighted_builtin_field_access() {
+        let program = parse_program(
+            "fn component(): f64 { let c = weighted(0.8, 30.0, \"consensus_side\"); return c.score; }",
+        )
+        .unwrap();
+        assert!(typecheck_program(&program).is_ok());
+    }
+
+    #[test]
+    fn typecheck_weighted_builtin_wrong_arg_type() {
+        let program =
+            parse_program("fn main() { let component = weighted(0.8, true, \"macro\"); }").unwrap();
+        assert!(matches!(
+            typecheck_program(&program),
+            Err(TypeError::Mismatch {
+                expected: Ty::F64,
+                found: Ty::Bool,
+                ..
+            })
+        ));
+    }
+
+    #[test]
+    fn typecheck_score_builtin_wrong_arity() {
+        let program = parse_program("fn main() { let component = score(12.5); }").unwrap();
+        assert!(matches!(
+            typecheck_program(&program),
+            Err(TypeError::ArityMismatch {
+                expected: 2,
+                found: 1,
                 ..
             })
         ));
