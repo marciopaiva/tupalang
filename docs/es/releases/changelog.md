@@ -5,7 +5,7 @@
 
 Registrar cambios relevantes por versión.
 
-## 0.8.1 (planificada)
+## 0.8.1 (planned)
 
 - Tema planificado del release: soporte para estrategias de produccion en sistemas reales de politica.
 - Alcance planificado:
