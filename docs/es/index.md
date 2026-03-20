@@ -56,6 +56,7 @@ Las páginas del wiki se replican automáticamente desde `docs/`. Evita editar e
 - [Motor de auditoría](governance/audit_engine.md)
 - [Notas de diseño (IA)](overview/design_notes.md)
 - [Changelog](releases/changelog.md)
+- [RFC v0.8.1 Soporte para Estrategias de Trading](releases/rfc_v0.8.1_trading_strategy_support.md)
 - [Plan MVP](overview/mvp_plan.md)
 - [Plan de adopción](governance/adoption_plan.md)
 - [Checklist de release](releases/release_checklist.md)

@@ -6,6 +6,12 @@ Resumir el plan de evolución del proyecto.
 
 ## Corto plazo
 
+- v0.8.1: fortalecer el soporte para estrategias de trading en sistemas reales de politica.
+- Agregar salidas estructuradas por step y `reason` de primera clase.
+- Agregar predicados reutilizables para composicion de estrategia.
+- Agregar soporte para score ponderado en evaluacion de politica.
+- Agregar primitivas declarativas para confirmacion y cooldown.
+
 - Consolidar la SPEC v0.1 (ajustes finos y ejemplos validados).
 - Mejorar el typechecker (restricciones y diagnósticos).
 - Estabilizar el IR textual de codegen y las salidas del CLI.
