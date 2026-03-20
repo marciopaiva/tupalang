@@ -22,6 +22,7 @@ fn default_schema() -> TypeSchema {
     TypeSchema {
         kind: "any".to_string(),
         elem: None,
+        fields: None,
         len: None,
         name: None,
         tensor_shape: None,

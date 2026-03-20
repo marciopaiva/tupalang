@@ -137,6 +137,7 @@ async fn run_check(file: String, format: String) -> Result<(), String> {
                     | TypeError::InvalidBinary { span, .. }
                     | TypeError::InvalidUnary { span, .. }
                     | TypeError::InvalidCallTarget { span, .. }
+                    | TypeError::UnknownField { span, .. }
                     | TypeError::ReturnMismatch { span, .. }
                     | TypeError::MissingReturn { span }
                     | TypeError::InvalidConstraint { span, .. }
@@ -322,6 +323,7 @@ fn get_error_code(e: &TypeError) -> Option<&'static str> {
         TypeError::InvalidCallTarget { .. } => Some("E2005"),
         TypeError::ReturnMismatch { .. } => Some("E2006"),
         TypeError::MissingReturn { .. } => Some("E2007"),
+        TypeError::UnknownField { .. } => Some("E2008"),
         TypeError::InvalidConstraint { .. } => Some("E3001"),
         TypeError::UnprovenConstraint { .. } => Some("E3002"),
         TypeError::BreakOutsideLoop { .. } => Some("E4001"),
@@ -473,6 +475,7 @@ async fn run_codegen(file: String, format: String, plan_only: bool) -> Result<()
                             | TypeError::InvalidBinary { span, .. }
                             | TypeError::InvalidUnary { span, .. }
                             | TypeError::InvalidCallTarget { span, .. }
+                            | TypeError::UnknownField { span, .. }
                             | TypeError::ReturnMismatch { span, .. }
                             | TypeError::MissingReturn { span }
                             | TypeError::InvalidConstraint { span, .. }
@@ -593,6 +596,7 @@ async fn run_effects(file: String, format: String) -> Result<(), String> {
                             | TypeError::InvalidBinary { span, .. }
                             | TypeError::InvalidUnary { span, .. }
                             | TypeError::InvalidCallTarget { span, .. }
+                            | TypeError::UnknownField { span, .. }
                             | TypeError::ReturnMismatch { span, .. }
                             | TypeError::MissingReturn { span }
                             | TypeError::InvalidConstraint { span, .. }

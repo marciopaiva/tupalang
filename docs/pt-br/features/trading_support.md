@@ -1,6 +1,6 @@
 # Suporte a Bot de Trade no Tupã
 
-Este documento detalha as funcionalidades implementadas no Runtime do Tupã (v0.8.0) especificamente para suportar aplicações de trading algorítmico como o `ViperTrade`.
+Este documento detalha as funcionalidades implementadas no Runtime do Tupã (v0.8.1-dev) especificamente para suportar aplicações de trading algorítmico como o `ViperTrade`.
 
 ## Visão Geral
 

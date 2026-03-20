@@ -1,6 +1,6 @@
 [package]
 name = "tupa-cli"
-version = "0.8.0"
+version = "0.8.1"
 edition = "2021"
 description = "Command-line interface for TupaLang"
 license = "Apache-2.0"
@@ -17,14 +17,14 @@ path = "src/main.rs"
 clap = { version = "4.5", features = ["derive"] }
 tokio = { version = "1.0", features = ["full"] }
 serde_json = "1.0"
-tupa-audit = { path = "../tupa-audit", version = "0.8.0" }
-tupa-lexer = { path = "../tupa-lexer", version = "0.8.0" }
-tupa-parser = { path = "../tupa-parser", version = "0.8.0" }
-tupa-typecheck = { path = "../tupa-typecheck", version = "0.8.0" }
-tupa-codegen = { path = "../tupa-codegen", version = "0.8.0" }
-tupa-effects = { path = "../tupa-effects", version = "0.8.0" }
-tupa-runtime = { path = "../tupa-runtime", version = "0.8.0" }
-tupa-pyffi = { path = "../tupa-pyffi", version = "0.8.0" }
+tupa-audit = { path = "../tupa-audit", version = "0.8.1" }
+tupa-lexer = { path = "../tupa-lexer", version = "0.8.1" }
+tupa-parser = { path = "../tupa-parser", version = "0.8.1" }
+tupa-typecheck = { path = "../tupa-typecheck", version = "0.8.1" }
+tupa-codegen = { path = "../tupa-codegen", version = "0.8.1" }
+tupa-effects = { path = "../tupa-effects", version = "0.8.1" }
+tupa-runtime = { path = "../tupa-runtime", version = "0.8.1" }
+tupa-pyffi = { path = "../tupa-pyffi", version = "0.8.1" }
 tupa-fmt = { path = "../tupa-fmt", version = "0.1.0" }
 tupa-lint = { path = "../tupa-lint", version = "0.1.0" }
 

@@ -1,6 +1,6 @@
 [package]
 name = "tupa-parser"
-version = "0.8.0"
+version = "0.8.1"
 edition = "2021"
 description = "Parser for TupaLang source files"
 license = "Apache-2.0"
@@ -10,6 +10,6 @@ documentation = "https://github.com/marciopaiva/tupalang/wiki"
 readme = "README.md"
 
 [dependencies]
-tupa-lexer = { path = "../tupa-lexer", version = "0.8.0" }
+tupa-lexer = { path = "../tupa-lexer", version = "0.8.1" }
 thiserror = "1.0"
 serde = { version = "1.0", features = ["derive"] }

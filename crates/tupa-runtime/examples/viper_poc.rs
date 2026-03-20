@@ -71,6 +71,7 @@ async fn main() -> Result<(), String> {
         input_schema: TypeSchema {
             kind: "any".to_string(),
             elem: None,
+            fields: None,
             len: None,
             name: None,
             tensor_shape: None,

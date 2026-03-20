@@ -137,6 +137,7 @@ pub enum Type {
         name: String,
         args: Vec<Type>,
     },
+    Record(Vec<(String, Type)>),
     Tuple(Vec<Type>),
     Safe {
         base: Box<Type>,
@@ -1340,6 +1341,38 @@ impl Parser {
                 }
             }
             Some(TokenSpan {
+                token: Token::LBrace,
+                ..
+            }) => {
+                let mut fields = Vec::new();
+                while !matches!(self.peek(), Some(Token::RBrace)) {
+                    let field_name = match self.next() {
+                        Some(TokenSpan {
+                            token: Token::Ident(name),
+                            ..
+                        }) => name,
+                        Some(TokenSpan { token, span }) => {
+                            return Err(ParserError::Unexpected(token, span))
+                        }
+                        None => return Err(ParserError::Eof(self.eof_pos)),
+                    };
+                    self.expect(Token::Colon)?;
+                    let field_ty = self.parse_type()?;
+                    fields.push((field_name, field_ty));
+
+                    if matches!(self.peek(), Some(Token::Comma)) {
+                        self.next();
+                        if matches!(self.peek(), Some(Token::RBrace)) {
+                            break;
+                        }
+                    } else {
+                        break;
+                    }
+                }
+                self.expect(Token::RBrace)?;
+                Ok(Type::Record(fields))
+            }
+            Some(TokenSpan {
                 token: Token::Fn, ..
             }) => {
                 self.expect(Token::LParen)?;
@@ -2342,6 +2375,29 @@ mod tests {
             panic!("expected let");
         };
         assert!(matches!(ty, Some(Type::Slice { .. })));
+    }
+
+    #[test]
+    fn parse_record_type() {
+        let src = "fn main() { let entry: { reason: string, score: f64, eligible: bool } = 0; }";
+        let program = parse_program(src).unwrap();
+        let func = match &program.items[0] {
+            Item::Trait(_) => panic!("expected function"),
+            Item::Enum(_) => panic!("expected function"),
+            Item::Pipeline(_) => panic!("expected function"),
+            Item::Function(func) => func,
+        };
+        let Stmt::Let { ty, .. } = &func.body[0] else {
+            panic!("expected let");
+        };
+        assert_eq!(
+            ty,
+            &Some(Type::Record(vec![
+                ("reason".into(), Type::Ident("string".into())),
+                ("score".into(), Type::Ident("f64".into())),
+                ("eligible".into(), Type::Ident("bool".into())),
+            ]))
+        );
     }
 
     #[test]

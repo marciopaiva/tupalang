@@ -16,7 +16,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use thiserror::Error;
 use tracing::{error, info, instrument, warn};
-use tupa_codegen::execution_plan::ExecutionPlan;
+use tupa_codegen::execution_plan::{ExecutionPlan, TypeSchema};
 
 pub type RuntimeResult<T> = Result<T, RuntimeError>;
 
@@ -173,6 +173,7 @@ impl Runtime {
         input: Value,
     ) -> RuntimeResult<Value> {
         info!(target: "audit", event = "pipeline_start", plan = plan.name);
+        validate_value_against_schema(&input, &plan.input_schema, "input")?;
         let mut state = input;
 
         for step in &plan.steps {
@@ -237,6 +238,9 @@ impl Runtime {
             }
         }
 
+        if let Some(output_schema) = &plan.output_schema {
+            validate_value_against_schema(&state, output_schema, "output")?;
+        }
         info!(target: "audit", event = "pipeline_complete", result = ?state);
         Ok(state)
     }
@@ -435,6 +439,101 @@ pub async fn run_backtest(plan: &ExecutionPlan, dataset: Vec<Value>) -> RuntimeR
     GLOBAL_RUNTIME.run_backtest(plan, dataset).await
 }
 
+fn validate_value_against_schema(
+    value: &Value,
+    schema: &TypeSchema,
+    path: &str,
+) -> RuntimeResult<()> {
+    match schema.kind.as_str() {
+        "any" | "unknown" | "ident" | "tensor" => Ok(()),
+        "i64" => {
+            if value.as_i64().is_some() {
+                Ok(())
+            } else {
+                Err(RuntimeError::ValidationError(format!(
+                    "{path} expected i64, got {value}"
+                )))
+            }
+        }
+        "f64" | "number" => {
+            if value.is_number() {
+                Ok(())
+            } else {
+                Err(RuntimeError::ValidationError(format!(
+                    "{path} expected f64, got {value}"
+                )))
+            }
+        }
+        "bool" => {
+            if value.is_boolean() {
+                Ok(())
+            } else {
+                Err(RuntimeError::ValidationError(format!(
+                    "{path} expected bool, got {value}"
+                )))
+            }
+        }
+        "string" => {
+            if value.is_string() {
+                Ok(())
+            } else {
+                Err(RuntimeError::ValidationError(format!(
+                    "{path} expected string, got {value}"
+                )))
+            }
+        }
+        "null" => {
+            if value.is_null() {
+                Ok(())
+            } else {
+                Err(RuntimeError::ValidationError(format!(
+                    "{path} expected null, got {value}"
+                )))
+            }
+        }
+        "object" => {
+            let obj = value.as_object().ok_or_else(|| {
+                RuntimeError::ValidationError(format!("{path} expected object, got {value}"))
+            })?;
+            if let Some(fields) = &schema.fields {
+                for (field_name, field_schema) in fields {
+                    let field_value = obj.get(field_name).ok_or_else(|| {
+                        RuntimeError::ValidationError(format!(
+                            "{path}.{field_name} missing required field"
+                        ))
+                    })?;
+                    validate_value_against_schema(
+                        field_value,
+                        field_schema,
+                        &format!("{path}.{field_name}"),
+                    )?;
+                }
+            }
+            Ok(())
+        }
+        "array" | "slice" => {
+            let items = value.as_array().ok_or_else(|| {
+                RuntimeError::ValidationError(format!("{path} expected array, got {value}"))
+            })?;
+            if let Some(len) = schema.len {
+                if items.len() as i64 != len {
+                    return Err(RuntimeError::ValidationError(format!(
+                        "{path} expected array length {len}, got {}",
+                        items.len()
+                    )));
+                }
+            }
+            if let Some(elem_schema) = &schema.elem {
+                for (index, item) in items.iter().enumerate() {
+                    validate_value_against_schema(item, elem_schema, &format!("{path}[{index}]"))?;
+                }
+            }
+            Ok(())
+        }
+        _ => Ok(()),
+    }
+}
+
 // Helper to access nested metrics for constraints
 fn get_metric_value(state: &Value, path: &str) -> Option<f64> {
     if let Some(v) = state.get(path) {
@@ -559,6 +658,7 @@ mod tests {
             input_schema: TypeSchema {
                 kind: "any".into(),
                 elem: None,
+                fields: None,
                 len: None,
                 name: None,
                 tensor_shape: None,
@@ -694,6 +794,7 @@ mod tests {
             input_schema: TypeSchema {
                 kind: "object".into(),
                 elem: None,
+                fields: None,
                 len: None,
                 name: None,
                 tensor_shape: None,
@@ -747,6 +848,7 @@ mod tests {
             input_schema: TypeSchema {
                 kind: "object".into(),
                 elem: None,
+                fields: None,
                 len: None,
                 name: None,
                 tensor_shape: None,
@@ -796,6 +898,7 @@ mod tests {
             input_schema: TypeSchema {
                 kind: "number".into(),
                 elem: None,
+                fields: None,
                 len: None,
                 name: None,
                 tensor_shape: None,
@@ -830,5 +933,125 @@ mod tests {
                 println!("Python test skipped/failed: {}", e);
             }
         }
+    }
+
+    #[tokio::test]
+    async fn test_runtime_validates_structured_input_schema() {
+        use tupa_codegen::execution_plan::StepPlan;
+
+        let runtime = Runtime::new();
+        runtime.register_step("noop", Ok);
+
+        let plan = ExecutionPlan {
+            name: "record_input".into(),
+            version: "1.0".into(),
+            seed: None,
+            input_schema: TypeSchema {
+                kind: "object".into(),
+                elem: None,
+                fields: Some(HashMap::from([
+                    (
+                        "reason".into(),
+                        TypeSchema {
+                            kind: "string".into(),
+                            elem: None,
+                            fields: None,
+                            len: None,
+                            name: None,
+                            tensor_shape: None,
+                            tensor_dtype: None,
+                        },
+                    ),
+                    (
+                        "score".into(),
+                        TypeSchema {
+                            kind: "f64".into(),
+                            elem: None,
+                            fields: None,
+                            len: None,
+                            name: None,
+                            tensor_shape: None,
+                            tensor_dtype: None,
+                        },
+                    ),
+                ])),
+                len: None,
+                name: None,
+                tensor_shape: None,
+                tensor_dtype: None,
+            },
+            output_schema: None,
+            steps: vec![StepPlan {
+                name: "result".into(),
+                function_ref: "noop".into(),
+                effects: vec![],
+            }],
+            constraints: vec![],
+            metrics: HashMap::new(),
+            metric_plans: vec![],
+        };
+
+        let err = runtime
+            .run_pipeline_async(&plan, json!({ "reason": "weakening" }))
+            .await
+            .expect_err("input schema should fail");
+        assert!(matches!(err, RuntimeError::ValidationError(_)));
+    }
+
+    #[tokio::test]
+    async fn test_runtime_validates_structured_output_schema() {
+        use tupa_codegen::execution_plan::StepPlan;
+
+        let runtime = Runtime::new();
+        runtime.register_step("emit_score", |_| Ok(json!(12.5)));
+
+        let plan = ExecutionPlan {
+            name: "record_output".into(),
+            version: "1.0".into(),
+            seed: None,
+            input_schema: TypeSchema {
+                kind: "object".into(),
+                elem: None,
+                fields: None,
+                len: None,
+                name: None,
+                tensor_shape: None,
+                tensor_dtype: None,
+            },
+            output_schema: Some(TypeSchema {
+                kind: "object".into(),
+                elem: None,
+                fields: Some(HashMap::from([(
+                    "result".into(),
+                    TypeSchema {
+                        kind: "string".into(),
+                        elem: None,
+                        fields: None,
+                        len: None,
+                        name: None,
+                        tensor_shape: None,
+                        tensor_dtype: None,
+                    },
+                )])),
+                len: None,
+                name: None,
+                tensor_shape: None,
+                tensor_dtype: None,
+            }),
+            steps: vec![StepPlan {
+                name: "result".into(),
+                function_ref: "emit_score".into(),
+                effects: vec![],
+            }],
+            constraints: vec![],
+            metrics: HashMap::new(),
+            metric_plans: vec![],
+        };
+
+        let err = runtime
+            .run_pipeline_async(&plan, json!({}))
+            .await
+            .expect_err("output schema should fail");
+        assert!(matches!(err, RuntimeError::ValidationError(_)));
     }
 }

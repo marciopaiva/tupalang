@@ -952,7 +952,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-audit"
-version = "0.8.0"
+version = "0.8.1"
 dependencies = [
  "serde_json",
  "sha3",
@@ -961,7 +961,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-cli"
-version = "0.8.0"
+version = "0.8.1"
 dependencies = [
  "assert_cmd",
  "clap",
@@ -982,7 +982,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-codegen"
-version = "0.8.0"
+version = "0.8.1"
 dependencies = [
  "serde",
  "serde_json",
@@ -993,7 +993,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-effects"
-version = "0.8.0"
+version = "0.8.1"
 
 [[package]]
 name = "tupa-fmt"
@@ -1004,7 +1004,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-lexer"
-version = "0.8.0"
+version = "0.8.1"
 dependencies = [
  "nom",
  "serde",
@@ -1022,7 +1022,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-parser"
-version = "0.8.0"
+version = "0.8.1"
 dependencies = [
  "serde",
  "thiserror",
@@ -1031,7 +1031,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-pyffi"
-version = "0.8.0"
+version = "0.8.1"
 dependencies = [
  "once_cell",
  "pyo3",
@@ -1044,7 +1044,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-runtime"
-version = "0.8.0"
+version = "0.8.1"
 dependencies = [
  "async-trait",
  "futures",
@@ -1061,7 +1061,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-typecheck"
-version = "0.8.0"
+version = "0.8.1"
 dependencies = [
  "thiserror",
  "tupa-effects",

@@ -10,4 +10,4 @@ documentation = "https://github.com/marciopaiva/tupalang/wiki"
 readme = "README.md"
 
 [dependencies]
-tupa-lexer = { path = "../tupa-lexer", version = "0.8.0" }
+tupa-lexer = { path = "../tupa-lexer", version = "0.8.1" }
