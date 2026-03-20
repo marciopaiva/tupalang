@@ -17,6 +17,34 @@ Registrar mudanças relevantes por versão.
 - Referência de planejamento:
   - `docs/pt-br/releases/rfc_v0.8.1_trading_strategy_support.md`
 
+### Escopo Entregue
+
+- Suporte planejado de linguagem e runtime para sistemas de estratégia de produção.
+- Melhorias planejadas para modelagem declarativa de estratégia:
+  - outputs estruturados por step
+  - `reason` de primeira classe
+  - predicados reutilizáveis
+  - suporte a score ponderado
+  - suporte declarativo a políticas temporais
+
+### Engenharia e CI Entregues
+
+- RFC adicionada em inglês, PT-BR e espanhol para preservar a paridade de docs.
+- Roadmap, changelog e índices de docs atualizados para apontar para a trilha de planejamento da `0.8.1`.
+
+### Snapshot de Validação do Workspace
+
+- Status atual: apenas RFC de planejamento, sem implementação mergeada ainda.
+- Expectativa de validação antes do release:
+  - docs parity verde
+  - markdownlint verde
+  - CI verde para as mudanças de linguagem e runtime incluídas no escopo final do release
+
+### Débito Técnico
+
+- A RFC define a direção de planejamento, mas ainda não há slices de implementação commitados.
+- O escopo final do release ainda depende do custo de implementação e do resultado das revisões.
+
 ## 0.8.0-rc.5 (2026-03-07)
 
 - Correções de compatibilidade do parser para adoção dos pipelines do ViperTrade:

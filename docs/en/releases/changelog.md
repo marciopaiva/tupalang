@@ -16,6 +16,34 @@ This document records relevant changes per version.
 - Planning reference:
   - `docs/en/releases/rfc_v0.8.1_trading_strategy_support.md`
 
+### Delivered Scope
+
+- Planned language and runtime support for production strategy systems.
+- Planned improvements for declarative strategy modeling:
+  - structured step outputs
+  - first-class policy reasons
+  - reusable predicates
+  - weighted score support
+  - declarative temporal policy support
+
+### Engineering and CI Completed
+
+- RFC added in English, PT-BR, and Spanish to preserve docs parity.
+- Roadmap, changelog, and docs indices updated to point to the `0.8.1` planning track.
+
+### Validation Snapshot (workspace)
+
+- Current status: planning RFC only, no implementation merged yet.
+- Validation expectation before release:
+  - docs parity green
+  - markdownlint green
+  - CI green for language and runtime changes included in the final release scope
+
+### Technical Debt
+
+- The RFC defines planning direction, but no implementation slices are committed yet.
+- Final release scope still depends on implementation cost and review outcomes.
+
 ## 0.8.0-rc.5 (2026-03-07)
 
 - Parser compatibility fixes for ViperTrade pipeline adoption:
