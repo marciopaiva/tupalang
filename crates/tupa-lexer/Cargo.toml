@@ -1,6 +1,6 @@
 [package]
 name = "tupa-lexer"
-version = "0.8.0"
+version = "0.8.1"
 edition = "2021"
 description = "Lexer for TupãLang with tokens for pipelines, steps, and effects"
 license = "Apache-2.0"

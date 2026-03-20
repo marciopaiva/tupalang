@@ -1,6 +1,6 @@
 [package]
 name = "tupa-typecheck"
-version = "0.8.0"
+version = "0.8.1"
 edition = "2021"
 description = "Static type checker for TupaLang"
 license = "Apache-2.0"
@@ -11,6 +11,6 @@ readme = "README.md"
 
 [dependencies]
 thiserror = "1.0"
-tupa-parser = { path = "../tupa-parser", version = "0.8.0" }
-tupa-lexer = { path = "../tupa-lexer", version = "0.8.0" }
-tupa-effects = { path = "../tupa-effects", version = "0.8.0" }
+tupa-parser = { path = "../tupa-parser", version = "0.8.1" }
+tupa-lexer = { path = "../tupa-lexer", version = "0.8.1" }
+tupa-effects = { path = "../tupa-effects", version = "0.8.1" }
