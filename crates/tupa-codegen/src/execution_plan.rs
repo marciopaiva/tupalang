@@ -34,6 +34,8 @@ pub struct ConstraintPlan {
 pub struct TypeSchema {
     pub kind: String,
     pub elem: Option<Box<TypeSchema>>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub fields: Option<HashMap<String, TypeSchema>>,
     pub len: Option<i64>,
     pub name: Option<String>,
     pub tensor_shape: Option<Vec<Option<usize>>>,
@@ -52,6 +54,7 @@ pub fn type_to_schema(ty: &Type) -> TypeSchema {
         Type::Tensor(t) => TypeSchema {
             kind: "tensor".into(),
             elem: None,
+            fields: None,
             len: None,
             name: None,
             tensor_shape: Some(t.shape.iter().map(|&x| x.map(|n| n as usize)).collect()),
@@ -60,6 +63,7 @@ pub fn type_to_schema(ty: &Type) -> TypeSchema {
         Type::Array { elem, len } => TypeSchema {
             kind: "array".into(),
             elem: Some(Box::new(type_to_schema(elem))),
+            fields: None,
             len: Some(*len),
             name: None,
             tensor_shape: None,
@@ -68,6 +72,21 @@ pub fn type_to_schema(ty: &Type) -> TypeSchema {
         Type::Slice { elem } => TypeSchema {
             kind: "slice".into(),
             elem: Some(Box::new(type_to_schema(elem))),
+            fields: None,
+            len: None,
+            name: None,
+            tensor_shape: None,
+            tensor_dtype: None,
+        },
+        Type::Record(fields) => TypeSchema {
+            kind: "object".into(),
+            elem: None,
+            fields: Some(
+                fields
+                    .iter()
+                    .map(|(name, ty)| (name.clone(), type_to_schema(ty)))
+                    .collect(),
+            ),
             len: None,
             name: None,
             tensor_shape: None,
@@ -78,6 +97,7 @@ pub fn type_to_schema(ty: &Type) -> TypeSchema {
             "i64" => TypeSchema {
                 kind: "i64".into(),
                 elem: None,
+                fields: None,
                 len: None,
                 name: None,
                 tensor_shape: None,
@@ -86,6 +106,7 @@ pub fn type_to_schema(ty: &Type) -> TypeSchema {
             "f64" => TypeSchema {
                 kind: "f64".into(),
                 elem: None,
+                fields: None,
                 len: None,
                 name: None,
                 tensor_shape: None,
@@ -94,6 +115,7 @@ pub fn type_to_schema(ty: &Type) -> TypeSchema {
             "bool" => TypeSchema {
                 kind: "bool".into(),
                 elem: None,
+                fields: None,
                 len: None,
                 name: None,
                 tensor_shape: None,
@@ -102,6 +124,7 @@ pub fn type_to_schema(ty: &Type) -> TypeSchema {
             "string" => TypeSchema {
                 kind: "string".into(),
                 elem: None,
+                fields: None,
                 len: None,
                 name: None,
                 tensor_shape: None,
@@ -110,6 +133,7 @@ pub fn type_to_schema(ty: &Type) -> TypeSchema {
             _ => TypeSchema {
                 kind: "ident".into(),
                 elem: None,
+                fields: None,
                 len: None,
                 name: Some(name.clone()),
                 tensor_shape: None,
@@ -119,6 +143,7 @@ pub fn type_to_schema(ty: &Type) -> TypeSchema {
         _ => TypeSchema {
             kind: "unknown".into(),
             elem: None,
+            fields: None,
             len: None,
             name: None,
             tensor_shape: None,

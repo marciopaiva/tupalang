@@ -18,6 +18,7 @@ pub enum Ty {
     Unit,
     Tensor(TensorType),
     Tuple(Vec<Ty>),
+    Record(Vec<(String, Ty)>),
     Array {
         elem: Box<Ty>,
         len: i64,
@@ -234,6 +235,12 @@ pub enum TypeError {
     },
     #[error("undefined metric in pipeline constraints: '{metric}' not found in validation block")]
     UndefinedMetric { metric: String, span: Span },
+    #[error("unknown field '{field}' on type {base:?}")]
+    UnknownField {
+        field: String,
+        base: Ty,
+        span: Option<Span>,
+    },
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -1738,7 +1745,27 @@ fn type_of_expr(
                         span,
                     }),
                 },
-                tupa_parser::FieldAccess::Ident(_) => Ok(Ty::Unknown),
+                tupa_parser::FieldAccess::Ident(name) => match base_ty {
+                    Ty::Record(fields) => {
+                        if let Some((_, field_ty)) =
+                            fields.iter().find(|(field_name, _)| field_name == name)
+                        {
+                            Ok(field_ty.clone())
+                        } else {
+                            Err(TypeError::UnknownField {
+                                field: name.clone(),
+                                base: Ty::Record(fields),
+                                span,
+                            })
+                        }
+                    }
+                    Ty::Unknown => Ok(Ty::Unknown),
+                    other => Err(TypeError::UnknownField {
+                        field: name.clone(),
+                        base: other,
+                        span,
+                    }),
+                },
             }
         }
         ExprKind::Index { expr, index } => {
@@ -2113,6 +2140,30 @@ fn infer_generic_bindings(
         Type::Safe { base, .. } => {
             infer_generic_bindings(base, found, info, enums, traits, mapping)
         }
+        Type::Record(fields) => match &found.ty {
+            Ty::Record(found_fields) => {
+                for (name, field_ty) in fields {
+                    if let Some((_, found_field_ty)) = found_fields
+                        .iter()
+                        .find(|(found_name, _)| found_name == name)
+                    {
+                        infer_generic_bindings(
+                            field_ty,
+                            &TypeSig {
+                                ty: found_field_ty.clone(),
+                                constraints: None,
+                            },
+                            info,
+                            enums,
+                            traits,
+                            mapping,
+                        )?;
+                    }
+                }
+                Ok(())
+            }
+            _ => Ok(()),
+        },
         Type::Tuple(items) => match &found.ty {
             Ty::Tuple(found_items) if items.len() == found_items.len() => {
                 for (item, found_item) in items.iter().zip(found_items.iter()) {
@@ -2534,6 +2585,13 @@ fn type_from_ast(
             })
         }
         Type::Safe { base, .. } => type_from_ast(base, enums, traits),
+        Type::Record(fields) => {
+            let tys = fields
+                .iter()
+                .map(|(name, ty)| Ok((name.clone(), type_from_ast(ty, enums, traits)?)))
+                .collect::<Result<Vec<_>, _>>()?;
+            Ok(Ty::Record(tys))
+        }
         Type::Tuple(items) => {
             let tys = items
                 .iter()
@@ -2637,6 +2695,18 @@ fn type_from_ast_with_generics(
             })
         }
         Type::Safe { base, .. } => type_from_ast_with_generics(base, enums, traits, generics),
+        Type::Record(fields) => {
+            let tys = fields
+                .iter()
+                .map(|(name, ty)| {
+                    Ok((
+                        name.clone(),
+                        type_from_ast_with_generics(ty, enums, traits, generics)?,
+                    ))
+                })
+                .collect::<Result<Vec<_>, _>>()?;
+            Ok(Ty::Record(tys))
+        }
         Type::Tuple(items) => {
             let tys = items
                 .iter()
@@ -2713,6 +2783,12 @@ fn validate_safe_annotations_in_type_with_generics(
         Type::Array { elem, .. } => {
             validate_safe_annotations_in_type_with_generics(elem, enums, traits, generics)
         }
+        Type::Record(fields) => {
+            for (_, field_ty) in fields {
+                validate_safe_annotations_in_type_with_generics(field_ty, enums, traits, generics)?;
+            }
+            Ok(())
+        }
         Type::Slice { elem } => {
             validate_safe_annotations_in_type_with_generics(elem, enums, traits, generics)
         }
@@ -2779,6 +2855,12 @@ fn validate_safe_annotations_in_type(
             validate_safe_annotations_in_type(base, enums, traits)
         }
         Type::Array { elem, .. } => validate_safe_annotations_in_type(elem, enums, traits),
+        Type::Record(fields) => {
+            for (_, field_ty) in fields {
+                validate_safe_annotations_in_type(field_ty, enums, traits)?;
+            }
+            Ok(())
+        }
         Type::Slice { elem } => validate_safe_annotations_in_type(elem, enums, traits),
         Type::Func { params, ret } => {
             for param in params {
@@ -3404,7 +3486,31 @@ mod tests {
     #[test]
     fn typecheck_field_access() {
         let program = parse_program("fn main() { let xs = [1, 2, 3]; let y = xs.len; }").unwrap();
+        assert!(matches!(
+            typecheck_program(&program),
+            Err(TypeError::UnknownField { field, .. }) if field == "len"
+        ));
+    }
+
+    #[test]
+    fn typecheck_record_field_access() {
+        let program = parse_program(
+            "fn score(entry: { reason: string, score: f64 }): f64 { return entry.score; }",
+        )
+        .unwrap();
         assert!(typecheck_program(&program).is_ok());
+    }
+
+    #[test]
+    fn typecheck_unknown_record_field_is_error() {
+        let program = parse_program(
+            "fn bad(entry: { reason: string, score: f64 }) { let bad = entry.missing; }",
+        )
+        .unwrap();
+        assert!(matches!(
+            typecheck_program(&program),
+            Err(TypeError::UnknownField { field, .. }) if field == "missing"
+        ));
     }
 
     #[test]

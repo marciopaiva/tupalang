@@ -62,6 +62,7 @@ fn main() {
         input_schema: TypeSchema {
             kind: "ident".to_string(),
             elem: None,
+            fields: None,
             len: None,
             name: Some("TradeSignal".to_string()),
             tensor_shape: None,
