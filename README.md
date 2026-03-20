@@ -160,6 +160,18 @@ Strict links mode:
 CI_LOCAL_STRICT_LINKS=1 ./scripts/ci-local.sh
 ```
 
+Containerized local CI:
+
+```bash
+./scripts/ci-local-container.sh
+```
+
+Or through `make`:
+
+```bash
+make ci-local-container
+```
+
 ## Contributing
 
 See [Contributing FAQ](docs/en/guides/contributing_faq.md).

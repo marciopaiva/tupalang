@@ -1,88 +1,128 @@
 
 # Changelog
 
-## PropÛsito
+## Prop√≥sito
 
-Registrar cambios relevantes por versiÛn.
+Registrar cambios relevantes por versi√≥n.
 
-## 0.8.0-rc.5 (2026-03-07)
+## 0.8.1 (planned)
 
-- Correcciones de compatibilidad del parser para adopciÛn de pipelines de ViperTrade:
-  - tolerar declaraciones `type` en nivel superior
-  - tolerar declaraciones `extern fn ...;` en nivel superior
-  - aceptar nombres de step sin comillas (`step(name)`) en pipelines
-- Mejora de documentaciÛn de publicaciÛn de crates:
-  - se aÒadiÛ `README.md` en todos los crates publicables
-  - se aÒadiÛ `readme = "README.md"` en todos los manifests de crates
-
-## 0.8.0 (2026-03-05)
-
-- Tema del release: integraciÛn Python controlada y auditable para pipelines de producciÛn.
-- Principio guÌa: "Integrar sin perder gobernanza - cada llamada Python es rastreada, validada y auditable."
+- Tema planificado del release: soporte para estrategias de produccion en sistemas reales de politica.
+- Alcance planificado:
+  - salidas estructuradas por step
+  - `reason` de primera clase
+  - predicados reutilizables
+  - soporte para score ponderado
+  - soporte declarativo para politicas temporales
+- Referencia de planificacion:
+  - `docs/es/releases/rfc_v0.8.1_trading_strategy_support.md`
 
 ### Alcance Entregado
 
-- Interoperabilidad Python (`tupa-pyffi`) para invocaciÛn segura de pasos `py:module.func`.
+- Soporte planificado de lenguaje y runtime para sistemas de estrategia de produccion.
+- Mejoras planificadas para modelado declarativo de estrategia:
+  - salidas estructuradas por step
+  - `reason` de primera clase
+  - predicados reutilizables
+  - soporte para score ponderado
+  - soporte declarativo para politicas temporales
+
+### Ingenier√≠a y CI Completados
+
+- RFC agregada en ingles, PT-BR y espanol para preservar la paridad de docs.
+- Hoja de ruta, changelog e indices de docs actualizados para apuntar al plan de `0.8.1`.
+
+### Snapshot de Validaci√≥n del Workspace
+
+- Estado actual: solo RFC de planificacion, sin implementacion mergeada todavia.
+- Expectativa de validacion antes del release:
+  - docs parity en verde
+  - markdownlint en verde
+  - CI en verde para los cambios de lenguaje y runtime incluidos en el alcance final del release
+
+### Deuda T√©cnica
+
+- La RFC define la direccion de planificacion, pero todavia no hay slices de implementacion commiteados.
+- El alcance final del release todavia depende del costo de implementacion y del resultado de las revisiones.
+
+## 0.8.0-rc.5 (2026-03-07)
+
+- Correcciones de compatibilidad del parser para adopci√≥n de pipelines de ViperTrade:
+  - tolerar declaraciones `type` en nivel superior
+  - tolerar declaraciones `extern fn ...;` en nivel superior
+  - aceptar nombres de step sin comillas (`step(name)`) en pipelines
+- Mejora de documentaci√≥n de publicaci√≥n de crates:
+  - se a√±adi√≥ `README.md` en todos los crates publicables
+  - se a√±adi√≥ `readme = "README.md"` en todos los manifests de crates
+
+## 0.8.0 (2026-03-05)
+
+- Tema del release: integraci√≥n Python controlada y auditable para pipelines de producci√≥n.
+- Principio gu√≠a: "Integrar sin perder gobernanza - cada llamada Python es rastreada, validada y auditable."
+
+### Alcance Entregado
+
+- Interoperabilidad Python (`tupa-pyffi`) para invocaci√≥n segura de pasos `py:module.func`.
 - Resiliencia de runtime con circuit breaker y soporte async/await.
-- Flujo de backtesting con evaluaciÛn de PnL/riesgo y logging de auditorÌa estructurado.
-- Mejoras de validaciÛn para shapes de tensores, atributos de pipeline y robustez de parser/typechecker.
+- Flujo de backtesting con evaluaci√≥n de PnL/riesgo y logging de auditor√≠a estructurado.
+- Mejoras de validaci√≥n para shapes de tensores, atributos de pipeline y robustez de parser/typechecker.
 
-### IngenierÌa y CI Completados
+### Ingenier√≠a y CI Completados
 
-- CI ahora exige convenciÛn de tÌtulo de PR (`type(scope): subject`) y convenciÛn de mensajes de commit.
-- Etiquetado autom·tico de PR por tipo de cambio (`feat`, `fix`, `docs`, `refactor`, `test`, `ci`, `chore`, `breaking`).
-- Release Drafter habilitado con categorizaciÛn autom·tica.
-- ProtecciÛn de rama en `main` reforzada:
+- CI ahora exige convenci√≥n de t√≠tulo de PR (`type(scope): subject`) y convenci√≥n de mensajes de commit.
+- Etiquetado autom√°tico de PR por tipo de cambio (`feat`, `fix`, `docs`, `refactor`, `test`, `ci`, `chore`, `breaking`).
+- Release Drafter habilitado con categorizaci√≥n autom√°tica.
+- Protecci√≥n de rama en `main` reforzada:
   - checks requeridos (`pr-title-convention`, `commit-message-convention`, `lint`, `test`)
   - requisito estricto de rama actualizada
-  - resoluciÛn de conversaciones requerida
-  - revisiÛn de CODEOWNERS y 1 aprobaciÛn requeridas
+  - resoluci√≥n de conversaciones requerida
+  - revisi√≥n de CODEOWNERS y 1 aprobaci√≥n requeridas
   - descarte de revisiones obsoletas habilitado
-- CODEOWNERS agregado para archivos crÌticos de gobernanza y workflows.
+- CODEOWNERS agregado para archivos cr√≠ticos de gobernanza y workflows.
 - Gobernanza de backport implementada:
-  - validaciÛn de etiquetas `backport-X.Y`
-  - creaciÛn autom·tica de issue de seguimiento para PRs mergeados con etiqueta de backport
-- OperaciÛn de releases documentada en `release_guide.md` y `release_cut_checklist.md`.
-- ValidaciÛn local estandarizada con `scripts/ci-local.sh` (cÛdigo + lint de docs/links).
+  - validaci√≥n de etiquetas `backport-X.Y`
+  - creaci√≥n autom√°tica de issue de seguimiento para PRs mergeados con etiqueta de backport
+- Operaci√≥n de releases documentada en `release_guide.md` y `release_cut_checklist.md`.
+- Validaci√≥n local estandarizada con `scripts/ci-local.sh` (c√≥digo + lint de docs/links).
 
-### Snapshot de ValidaciÛn del Workspace
+### Snapshot de Validaci√≥n del Workspace
 
 - Chequeo local completo ejecutado en 2026-03-05: `./scripts/ci-local.sh`.
 - Resultado: pass (`fmt`, `clippy`, `test`, `markdownlint`, `lychee`).
-- Estado del working tree durante la validaciÛn: limpio en `main`.
+- Estado del working tree durante la validaci√≥n: limpio en `main`.
 
-### Deuda TÈcnica
+### Deuda T√©cnica
 
-- La validaciÛn de convenciÛn de commit a˙n depende del contexto de PR; los pushes directos a ramas protegidas deben permanecer bloqueados por polÌtica.
-- Los quality gates de docs son sÛlidos en CI, y la paridad multilenguaje de estructura y versiÛn m·s reciente ya est· automatizada; la paridad sem·ntica completa del contenido traducido sigue siendo manual.
-- El workflow de backport crea issues de seguimiento, pero la automatizaciÛn de cherry-pick de backport a˙n no est· implementada.
-- Los objetivos de rendimiento est·n documentados, pero no existe dashboard de tendencia en CI con histÛrico de latencia y throughput.
+- La validaci√≥n de convenci√≥n de commit a√∫n depende del contexto de PR; los pushes directos a ramas protegidas deben permanecer bloqueados por pol√≠tica.
+- Los quality gates de docs son s√≥lidos en CI, y la paridad multilenguaje de estructura y versi√≥n m√°s reciente ya est√° automatizada; la paridad sem√°ntica completa del contenido traducido sigue siendo manual.
+- El workflow de backport crea issues de seguimiento, pero la automatizaci√≥n de cherry-pick de backport a√∫n no est√° implementada.
+- Los objetivos de rendimiento est√°n documentados, pero no existe dashboard de tendencia en CI con hist√≥rico de latencia y throughput.
 
 ## 0.7.0 (2026-02-20)
 
-- Release: motor hÌbrido con gobernanza nativa de pipelines
+- Release: motor h√≠brido con gobernanza nativa de pipelines
 - CLI: `tupa run` con `--plan`, `--plan-only`, `--output`
-- Runtime: reporte JSON con mÈtricas y restricciones (pass/fail), hash de auditorÌa
+- Runtime: reporte JSON con m√©tricas y restricciones (pass/fail), hash de auditor√≠a
 - Determinismo: `@deterministic(seed=...)` parseado y seed propagada al PRNG
 - Codegen: `ExecutionPlan` JSON con `steps`, `constraints`, `metrics`, `metric_plans`
-- ValidaciÛn: entrada JSON validada contra `TypeSchema` antes de ejecutar
+- Validaci√≥n: entrada JSON validada contra `TypeSchema` antes de ejecutar
 
-### AÒadido
+### A√±adido
 
-- Backend hÌbrido:
+- Backend h√≠brido:
   - ExecutionPlan JSON para pipelines
   - CLI `tupa codegen --format=llvm` emite `.ll` y `.plan.json`
   - Runtime de pipeline (`tupa-runtime`) y comando `tupa run`
 - Validador de pipeline:
   - `@deterministic` rechaza `Random`/`Time` (E2005)
-  - Restricciones con mÈtricas indefinidas (E2006)
+  - Restricciones con m√©tricas indefinidas (E2006)
 - Sin breaking changes
 
 ### Rendimiento
 
-- Tiempo de compilaciÛn (ejemplo medio): objetivo < 200ms
-- Estado: no benchmarkeado explÌcitamente en CI; seguido como objetivo de producto
-- CÛmo medir localmente:
+- Tiempo de compilaci√≥n (ejemplo medio): objetivo < 200ms
+- Estado: no benchmarkeado expl√≠citamente en CI; seguido como objetivo de producto
+- C√≥mo medir localmente:
   - Construye el CLI: `cargo build --quiet`
   - Comandos de benchmark (ejemplo):
     - `tupa codegen --format=llvm examples/pipeline/minimal.tp`
@@ -91,40 +131,40 @@ Registrar cambios relevantes por versiÛn.
     - `hyperfine --warmup 3 'tupa codegen --format=llvm examples/pipeline/minimal.tp' 'tupa run --pipeline=FraudDetection --input examples/pipeline/inputs/tx.json'`
   - Condiciones: Linux, Rust stable (>=1.75), builds release cuando aplique
 - Hardware y condiciones:
-  - Linux x86_64, Rust stable, m·quina local de dev, cold run
+  - Linux x86_64, Rust stable, m√°quina local de dev, cold run
 - Referencia de test (imprime timing):
   - `cargo test -p tupa-cli perf -- --nocapture`
-  - Observado localmente: `codegen fraud_complete ò 1ms`, `run fraud_complete ò 3ms` (fuera de CI, ilustrativo)
+  - Observado localmente: `codegen fraud_complete ¬ò 1ms`, `run fraud_complete ¬ò 3ms` (fuera de CI, ilustrativo)
 
 ## 0.6.0 (2026-02-13)
 
-- Inferencia de constructor de enum con genÈricos y restricciones Safe en variants.
+- Inferencia de constructor de enum con gen√©ricos y restricciones Safe en variants.
 - Los patrones de match ahora soportan destructuring de constructor con patrones de tupla.
 - Uso de binding en guard de match validado en el typechecker.
-- DiagnÛsticos de match no exhaustivo ahora apuntan a spans del scrutinee.
-- Pruebas aÒadidas para restricciones de constructor de enum y destructuring/guards de match.
-- Prototipo del motor de auditorÌa con hash determinÌstico para AST y entradas.
+- Diagn√≥sticos de match no exhaustivo ahora apuntan a spans del scrutinee.
+- Pruebas a√±adidas para restricciones de constructor de enum y destructuring/guards de match.
+- Prototipo del motor de auditor√≠a con hash determin√≠stico para AST y entradas.
 - Comando `tupa audit` en el CLI con salida JSON para hashes.
-- El CLI de auditorÌa ahora usa SHA3-256 y flag `--input`.
-- Soporte aÒadido a anotaciones `@safety` en el parsing.
-- Ejemplo de auditorÌa `fraud_pipeline.tp` alineado con las restricciones Safe actuales.
+- El CLI de auditor√≠a ahora usa SHA3-256 y flag `--input`.
+- Soporte a√±adido a anotaciones `@safety` en el parsing.
+- Ejemplo de auditor√≠a `fraud_pipeline.tp` alineado con las restricciones Safe actuales.
 - Warning `private_interfaces` del typechecker resuelto para `Ty::Enum`.
 
 ## 0.5.0 (2026-02-12)
 
-- FinalizaciÛn de restricciones del typechecker y correcciones de validaciÛn.
-- Restricciones Safe<string, ...>: diagnÛsticos para !hate_speech y !misinformation.
-- Mejoras de claridad en diagnÛsticos y pase de consistencia.
+- Finalizaci√≥n de restricciones del typechecker y correcciones de validaci√≥n.
+- Restricciones Safe<string, ...>: diagn√≥sticos para !hate_speech y !misinformation.
+- Mejoras de claridad en diagn√≥sticos y pase de consistencia.
 - Cobertura de pruebas ampliada con casos negativos.
-- Ejemplos de misinformation y goldens aÒadidos para Safe<string, ...>.
-- Docs actualizadas con ejemplos safe y referencias de diagnÛsticos.
+- Ejemplos de misinformation y goldens a√±adidos para Safe<string, ...>.
+- Docs actualizadas con ejemplos safe y referencias de diagn√≥sticos.
 - Docs alineadas con el posicionamiento del README y actualizaciones de la hoja de ruta.
-- Docs incluyen un ejemplo borrador de orquestaciÛn de pipeline.
+- Docs incluyen un ejemplo borrador de orquestaci√≥n de pipeline.
 - Plan de release alineado con la hoja de ruta de gobernanza de pipelines.
-- DiagnÛsticos de match ahora apuntan a spans de patrÛn inv·lido; cobertura de pruebas negativas aÒadida.
-- Anotaciones Safe ahora validan restricciones base; ejemplos de par·metros/retorno inv·lidos aÒadidos.
-- Casos negativos de lex/parse y salidas de error JSON aÒadidos a los goldens.
-- El script de actualizaciÛn de goldens ahora cubre todos los ejemplos negativos.
+- Diagn√≥sticos de match ahora apuntan a spans de patr√≥n inv√°lido; cobertura de pruebas negativas a√±adida.
+- Anotaciones Safe ahora validan restricciones base; ejemplos de par√°metros/retorno inv√°lidos a√±adidos.
+- Casos negativos de lex/parse y salidas de error JSON a√±adidos a los goldens.
+- El script de actualizaci√≥n de goldens ahora cubre todos los ejemplos negativos.
 
 ## 0.4.0 (2026-02-11)
 
@@ -132,45 +172,45 @@ Registrar cambios relevantes por versiÛn.
 - Mejoras de restricciones del typechecker y mejor inferencia de lambdas.
 - Actualizaciones del flujo del CLI para el pipeline typecheck/codegen.
 - SPEC y errores comunes actualizados para el nuevo comportamiento.
-- Limpieza de documentaciÛn: inglÈs canÛnico, Ìndices consolidados y entrada PT-BR.
+- Limpieza de documentaci√≥n: ingl√©s can√≥nico, √≠ndices consolidados y entrada PT-BR.
 
 ## 0.3.0 (2026-02-07)
 
-- Soporte de closures con captura real de variables (estructuras de entorno, asignaciÛn en heap).
-- Mejoras en inferencia de tipos para lambdas con par·metros Unknown.
-- Soporte para compatibilidad de tipo Func con par·metros Unknown en llamadas de funciÛn.
-- Mejoras de calidad de cÛdigo: Clippy y rustfmt en CI, correcciones de warnings.
-- Soporte b·sico para traits (parsing, typechecking, codegen).
-- Soporte b·sico para enums (parsing, typechecking, codegen).
-- Tests unitarios aÒadidos a codegen.
-- Ejemplo de enum aÒadido a la documentaciÛn.
-- Õndice/SUMMARY centralizado y enlaces internos de docs.
-- SincronizaciÛn de CHANGELOG, VERSIONING y RELEASE_GUIDE.
-- DetecciÛn de captura de variables en lambdas (closures en desarrollo).
+- Soporte de closures con captura real de variables (estructuras de entorno, asignaci√≥n en heap).
+- Mejoras en inferencia de tipos para lambdas con par√°metros Unknown.
+- Soporte para compatibilidad de tipo Func con par√°metros Unknown en llamadas de funci√≥n.
+- Mejoras de calidad de c√≥digo: Clippy y rustfmt en CI, correcciones de warnings.
+- Soporte b√°sico para traits (parsing, typechecking, codegen).
+- Soporte b√°sico para enums (parsing, typechecking, codegen).
+- Tests unitarios a√±adidos a codegen.
+- Ejemplo de enum a√±adido a la documentaci√≥n.
+- √çndice/SUMMARY centralizado y enlaces internos de docs.
+- Sincronizaci√≥n de CHANGELOG, VERSIONING y RELEASE_GUIDE.
+- Detecci√≥n de captura de variables en lambdas (closures en desarrollo).
 - Correcciones de TODOs residuales en codegen para mayor robustez.
-- ImplementaciÛn de inferencia de tipos para par·metros de lambda.
-- Soporte b·sico de closures en codegen (a˙n sin captura de entorno).
+- Implementaci√≥n de inferencia de tipos para par√°metros de lambda.
+- Soporte b√°sico de closures en codegen (a√∫n sin captura de entorno).
 - Correcciones de golden tests para casos de error (mensajes de cargo removidos).
 
 ## 0.2.0 (2026-02-06)
 
-- Soporte de closures con captura real de variables (estructuras de entorno, asignaciÛn en heap).
-- Mejoras en inferencia de tipos para lambdas con par·metros Unknown.
-- Soporte para compatibilidad de tipo Func con par·metros Unknown en llamadas de funciÛn.
-- Mejoras de calidad de cÛdigo: Clippy y rustfmt en CI, correcciones de warnings.
-- Soporte b·sico para traits (parsing, typechecking, codegen).
-- Soporte b·sico para enums (parsing, typechecking, codegen).
-- Tests unitarios aÒadidos a codegen.
-- Ejemplo de enum aÒadido a la documentaciÛn.
-- Õndice/SUMMARY centralizado y enlaces internos de docs.
-- SincronizaciÛn de CHANGELOG, VERSIONING y RELEASE_GUIDE.
-- DetecciÛn de captura de variables en lambdas (closures en desarrollo).
+- Soporte de closures con captura real de variables (estructuras de entorno, asignaci√≥n en heap).
+- Mejoras en inferencia de tipos para lambdas con par√°metros Unknown.
+- Soporte para compatibilidad de tipo Func con par√°metros Unknown en llamadas de funci√≥n.
+- Mejoras de calidad de c√≥digo: Clippy y rustfmt en CI, correcciones de warnings.
+- Soporte b√°sico para traits (parsing, typechecking, codegen).
+- Soporte b√°sico para enums (parsing, typechecking, codegen).
+- Tests unitarios a√±adidos a codegen.
+- Ejemplo de enum a√±adido a la documentaci√≥n.
+- √çndice/SUMMARY centralizado y enlaces internos de docs.
+- Sincronizaci√≥n de CHANGELOG, VERSIONING y RELEASE_GUIDE.
+- Detecci√≥n de captura de variables en lambdas (closures en desarrollo).
 - Correcciones de TODOs residuales en codegen para mayor robustez.
-- ImplementaciÛn de inferencia de tipos para par·metros de lambda.
-- Soporte b·sico de closures en codegen (a˙n sin captura de entorno).
+- Implementaci√≥n de inferencia de tipos para par√°metros de lambda.
+- Soporte b√°sico de closures en codegen (a√∫n sin captura de entorno).
 - Correcciones de golden tests para casos de error (mensajes de cargo removidos).
 
 ## 0.1.0
 
 - Specification v0.1 publicada.
-- Lexer, parser, typechecker y CLI b·sicos.
+- Lexer, parser, typechecker y CLI b√°sicos.

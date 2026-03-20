@@ -11,5 +11,6 @@
 - [Tutoriais](guides/tutorials.md)
 - [Embedding API](reference/embedding.md)
 - [Changelog](releases/changelog.md)
+- [RFC v0.8.1 Suporte a Estratégias de Trading](releases/rfc_v0.8.1_trading_strategy_support.md)
 - [Decisão de distribuição híbrida](governance/hybrid_distribution_decision.md)
 - [Guia de contribuição](../../CONTRIBUTING.md)

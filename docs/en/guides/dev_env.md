@@ -62,3 +62,19 @@ cargo test -p tupa-cli
 # full suite
 cargo test
 ```
+
+## Local CI
+
+If your host already has the required tooling, run:
+
+```bash
+./scripts/ci-local.sh
+```
+
+If you want a reproducible environment closer to GitHub Actions, use:
+
+```bash
+./scripts/ci-local-container.sh
+```
+
+This path avoids relying on host-installed `rustfmt`, `clippy`, `markdownlint`, and `lychee`.
