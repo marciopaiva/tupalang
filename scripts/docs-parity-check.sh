@@ -37,7 +37,7 @@ release_body() {
   local file="$1"
   local ver="$2"
   awk -v ver="$ver" '
-    $0 ~ ("^## " ver "(\\s|$)") {in_block=1; next}
+    $0 ~ ("^## " ver "([[:space:]]|$)") {in_block=1; next}
     in_block && $0 ~ /^## [0-9]+\.[0-9]+\.[0-9]+/ {exit}
     in_block {print}
   ' "$file"

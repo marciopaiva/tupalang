@@ -37,3 +37,24 @@ File: `.github/workflows/wiki-sync.yml`
 
 - If a test fails, run the command locally.
 - For local docs lint: `markdownlint "**/*.md"`.
+
+## Local CI options
+
+### Host-based
+
+Use the host environment when Rust, `markdownlint`, and `lychee` are already installed:
+
+```bash
+./scripts/ci-local.sh
+```
+
+### Containerized
+
+Use the containerized path when you want a reproducible environment closer to GitHub Actions:
+
+```bash
+./scripts/ci-local-container.sh
+```
+
+This flow builds `docker/ci-local.Dockerfile` and then runs `./scripts/ci-local.sh`
+inside the container.
