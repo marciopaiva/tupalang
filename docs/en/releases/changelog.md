@@ -4,6 +4,18 @@
 
 This document records relevant changes per version.
 
+## 0.8.1 (planned)
+
+- Planned release theme: production strategy support for real policy systems.
+- Planned scope:
+  - structured step outputs
+  - first-class policy reasons
+  - reusable predicates
+  - weighted score support
+  - declarative temporal policy support
+- Planning reference:
+  - `docs/en/releases/rfc_v0.8.1_trading_strategy_support.md`
+
 ## 0.8.0-rc.5 (2026-03-07)
 
 - Parser compatibility fixes for ViperTrade pipeline adoption:

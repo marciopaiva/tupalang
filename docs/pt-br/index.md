@@ -11,6 +11,7 @@ Esta documentação é mantida alinhada com a versão em inglês e atualizada à
 ## Índice
 
 - [Sumário (PT-BR)](summary.md)
+- [RFC v0.8.1 Suporte a Estratégias de Trading](releases/rfc_v0.8.1_trading_strategy_support.md)
 
 ## Contribuição
 

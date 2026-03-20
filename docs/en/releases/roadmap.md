@@ -6,6 +6,12 @@ This document summarizes the project evolution plan.
 
 ## Short Term
 
+- v0.8.1: strengthen trading strategy support for production policy systems.
+- Add structured step outputs and first-class policy reasons.
+- Add reusable predicates for strategy composition.
+- Add weighted score support for policy evaluation.
+- Add declarative temporal policy primitives for confirmation and cooldown semantics.
+
 - Consolidate SPEC v0.1 (fine-tuning and validated examples).
 - Improve the typechecker (constraints and diagnostics).
 - Stabilize codegen textual IR and CLI outputs.
