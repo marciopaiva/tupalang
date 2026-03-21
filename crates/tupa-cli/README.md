@@ -5,7 +5,7 @@ Command-line interface for TupaLang.
 ## Install
 
 ```bash
-cargo install tupa-cli
+cargo install --locked tupa-cli
 ```
 
 ## Basic commands
