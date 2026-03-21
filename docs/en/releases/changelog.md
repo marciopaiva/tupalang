@@ -4,45 +4,54 @@
 
 This document records relevant changes per version.
 
-## 0.8.1 (planned)
+## 0.8.1 (2026-03-21)
 
-- Planned release theme: production strategy support for real policy systems.
-- Planned scope:
-  - structured step outputs
-  - first-class policy reasons
-  - reusable predicates
-  - weighted score support
-  - declarative temporal policy support
+- Release theme: production strategy support for real policy systems.
 - Planning reference:
   - `docs/en/releases/rfc_v0.8.1_trading_strategy_support.md`
 
 ### Delivered Scope
 
-- Planned language and runtime support for production strategy systems.
-- Planned improvements for declarative strategy modeling:
+- Language and runtime support for production strategy systems.
+- Declarative strategy modeling improvements:
   - structured step outputs
   - first-class policy reasons
-  - reusable predicates
   - weighted score support
+  - typed config input pattern via nested records
   - declarative temporal policy support
+- Type system and runtime slices delivered:
+  - record types
+  - record literals
+  - typed field access
+  - runtime schema validation for structured inputs and outputs
+- Temporal policy builtins delivered:
+  - `confirm(...)`
+  - `cooldown(...)`
 
 ### Engineering and CI Completed
 
 - RFC added in English, PT-BR, and Spanish to preserve docs parity.
-- Roadmap, changelog, and docs indices updated to point to the `0.8.1` planning track.
+- Docs parity maintained across the release planning and implementation cycle.
+- Containerized local CI added to reduce drift between host environments and GitHub Actions.
+- Trading support docs and examples expanded with:
+  - config-driven pipeline example
+  - temporal policy example
+- ViperTrade integration used as a functional proving ground for the 0.8.1 slices.
 
 ### Validation Snapshot (workspace)
 
-- Current status: planning RFC only, no implementation merged yet.
-- Validation expectation before release:
+- Release-prep status: implementation merged on `main`, awaiting tag and published binary artifacts.
+- Validation status:
   - docs parity green
   - markdownlint green
-  - CI green for language and runtime changes included in the final release scope
+  - CI green for merged language/runtime changes
+  - ViperTrade local CI green against the current `main`
 
 ### Technical Debt
 
-- The RFC defines planning direction, but no implementation slices are committed yet.
-- Final release scope still depends on implementation cost and review outcomes.
+- Typed config access is solved pragmatically through structured `input`, not dedicated config-binding syntax.
+- Temporal policy remains declarative at the policy layer; host-managed state still lives outside the language runtime.
+- Release automation is ready, but the public `v0.8.1` tag and binary artifacts have not been cut yet.
 
 ## 0.8.0-rc.5 (2026-03-07)
 

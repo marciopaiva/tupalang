@@ -6,11 +6,9 @@ This document summarizes the project evolution plan.
 
 ## Short Term
 
-- v0.8.1: strengthen trading strategy support for production policy systems.
-- Add structured step outputs and first-class policy reasons.
-- Add reusable predicates for strategy composition.
-- Add weighted score support for policy evaluation.
-- Add declarative temporal policy primitives for confirmation and cooldown semantics.
+- Cut and publish the `v0.8.1` release artifacts and crates.
+- Validate ViperTrade against the official `v0.8.1` standalone CLI release.
+- Refine reusable predicate ergonomics on top of the new policy-modeling primitives.
 
 - Consolidate SPEC v0.1 (fine-tuning and validated examples).
 - Improve the typechecker (constraints and diagnostics).
