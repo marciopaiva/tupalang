@@ -1,0 +1,69 @@
+fn passes_spread_limit(
+  input: {
+    symbol: string,
+    signal: {
+      spread_pct: f64,
+      trend_score: f64
+    },
+    config: {
+      entry: {
+        max_spread_pct: f64,
+        min_trend_score_long: f64
+      }
+    }
+  }
+): {
+  passed: bool,
+  severity: string,
+  reason: string
+} {
+  if input.signal.spread_pct <= input.config.entry.max_spread_pct {
+    return pass("spread_within_limit");
+  }
+  return fail("spread_above_limit");
+}
+
+fn score_entry(
+  input: {
+    symbol: string,
+    signal: {
+      spread_pct: f64,
+      trend_score: f64
+    },
+    config: {
+      entry: {
+        max_spread_pct: f64,
+        min_trend_score_long: f64
+      }
+    }
+  }
+): {
+  score: f64,
+  weight: f64,
+  reason: string
+} {
+  if input.signal.trend_score >= input.config.entry.min_trend_score_long {
+    return weighted(1.0, 100.0, "trend_score_ok");
+  }
+  return weighted(0.0, 100.0, "trend_score_low");
+}
+
+pipeline ConfigDrivenStrategy @deterministic(seed=42) {
+  input: {
+    symbol: string,
+    signal: {
+      spread_pct: f64,
+      trend_score: f64
+    },
+    config: {
+      entry: {
+        max_spread_pct: f64,
+        min_trend_score_long: f64
+      }
+    }
+  },
+  steps: [
+    step("spread_gate") { passes_spread_limit(input) },
+    step("entry_score") { score_entry(input) }
+  ],
+}

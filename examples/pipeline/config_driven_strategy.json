@@ -1,0 +1,13 @@
+{
+  "symbol": "DOGEUSDT",
+  "signal": {
+    "spread_pct": 0.0005,
+    "trend_score": 0.42
+  },
+  "config": {
+    "entry": {
+      "max_spread_pct": 0.001,
+      "min_trend_score_long": 0.30
+    }
+  }
+}

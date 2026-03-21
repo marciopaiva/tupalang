@@ -55,6 +55,41 @@ Compliance-ready logging using the `tracing` crate.
   - `trade_blocked_by_risk` (when constraints fail)
   - `circuit_breaker_tripped`
 
+### 5. Typed host-provided config via structured input
+
+Tupã already supports a practical config-binding pattern for production strategy systems:
+
+- declare pipeline input as a nested record
+- pass market data and config in the same typed input object
+- use ordinary field access inside policy functions
+
+This is already enough for many strategy cases such as:
+
+- per-symbol thresholds
+- mode/profile overlays
+- trailing parameters
+- confirmation thresholds
+
+Example shape:
+
+```text
+input: {
+  symbol: string,
+  signal: { spread_pct: f64, trend_score: f64 },
+  config: {
+    entry: {
+      max_spread_pct: f64,
+      min_trend_score_long: f64
+    }
+  }
+}
+```
+
+See:
+
+- `examples/pipeline/config_driven_strategy.tp`
+- `examples/pipeline/config_driven_strategy.json`
+
 ## Usage Example
 
 ```rust
