@@ -41,18 +41,19 @@ Registrar mudanças relevantes por versão.
 
 ### Snapshot de Validação do Workspace
 
-- Status de preparação de release: implementação mergeada na `main`, aguardando tag e binários públicos.
+- Status do release: tag `v0.8.1` cortada, crates publicados e artefatos standalone liberados.
 - Status de validação:
   - docs parity verde
   - markdownlint verde
   - CI verde para as mudanças de linguagem e runtime mergeadas
-  - CI local do ViperTrade verde contra a `main` atual
+  - CI local do ViperTrade verde contra a linha do release
+  - runtime do ViperTrade alinhado com a release oficial do CLI standalone `v0.8.1`
 
 ### Débito Técnico
 
 - O acesso tipado à configuração foi resolvido pragmaticamente por meio de `input` estruturado, não por sintaxe dedicada.
 - A política temporal continua declarativa na camada de policy; o estado do host continua fora do runtime da linguagem.
-- A automação de release está pronta, mas a tag pública `v0.8.1` e os binários ainda não foram publicados.
+- A ergonomia de política reutilizável ainda depende majoritariamente de funções normais e composição explícita de records.
 
 ## 0.8.0-rc.5 (2026-03-07)
 

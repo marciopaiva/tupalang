@@ -12,6 +12,7 @@ Esta documentação é mantida alinhada com a versão em inglês e atualizada à
 
 - [Sumário (PT-BR)](summary.md)
 - [RFC v0.8.1 Suporte a Estratégias de Trading](releases/rfc_v0.8.1_trading_strategy_support.md)
+- [Notas Pós-Release: v0.8.1](releases/post_release_v0.8.1.md)
 
 ## Contribuição
 
