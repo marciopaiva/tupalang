@@ -3080,6 +3080,75 @@ fn builtin_score_function() -> FuncSig {
     }
 }
 
+fn builtin_confirm_return() -> TypeSig {
+    TypeSig {
+        ty: Ty::Record(vec![
+            ("passed".into(), Ty::Bool),
+            ("pending".into(), Ty::Bool),
+            ("remaining_hits".into(), Ty::I64),
+            ("reason".into(), Ty::String),
+        ]),
+        constraints: None,
+    }
+}
+
+fn builtin_confirm_function() -> FuncSig {
+    FuncSig {
+        params: vec![
+            TypeSig {
+                ty: Ty::Bool,
+                constraints: None,
+            },
+            TypeSig {
+                ty: Ty::I64,
+                constraints: None,
+            },
+            TypeSig {
+                ty: Ty::I64,
+                constraints: None,
+            },
+            TypeSig {
+                ty: Ty::String,
+                constraints: None,
+            },
+        ],
+        ret: builtin_confirm_return(),
+        effects: EffectSet::default(),
+    }
+}
+
+fn builtin_cooldown_return() -> TypeSig {
+    TypeSig {
+        ty: Ty::Record(vec![
+            ("blocked".into(), Ty::Bool),
+            ("remaining_ticks".into(), Ty::I64),
+            ("reason".into(), Ty::String),
+        ]),
+        constraints: None,
+    }
+}
+
+fn builtin_cooldown_function() -> FuncSig {
+    FuncSig {
+        params: vec![
+            TypeSig {
+                ty: Ty::Bool,
+                constraints: None,
+            },
+            TypeSig {
+                ty: Ty::I64,
+                constraints: None,
+            },
+            TypeSig {
+                ty: Ty::String,
+                constraints: None,
+            },
+        ],
+        ret: builtin_cooldown_return(),
+        effects: EffectSet::default(),
+    }
+}
+
 fn builtin_weighted_function() -> FuncSig {
     FuncSig {
         params: vec![
@@ -3108,6 +3177,8 @@ fn builtin_functions() -> HashMap<String, FuncSig> {
         ("warn".into(), builtin_reason_function(false, "warn")),
         ("score".into(), builtin_score_function()),
         ("weighted".into(), builtin_weighted_function()),
+        ("confirm".into(), builtin_confirm_function()),
+        ("cooldown".into(), builtin_cooldown_function()),
     ])
 }
 
@@ -3735,6 +3806,62 @@ mod tests {
             Err(TypeError::Mismatch {
                 expected: Ty::F64,
                 found: Ty::Bool,
+                ..
+            })
+        ));
+    }
+
+    #[test]
+    fn typecheck_confirm_builtin_assignment() {
+        let program = parse_program(
+            "fn main() { let gate: { passed: bool, pending: bool, remaining_hits: i64, reason: string } = confirm(true, 2, 3, \"signal_confirmation\"); }",
+        )
+        .unwrap();
+        assert!(typecheck_program(&program).is_ok());
+    }
+
+    #[test]
+    fn typecheck_confirm_builtin_field_access() {
+        let program = parse_program(
+            "fn remaining(): i64 { let gate = confirm(true, 2, 3, \"signal_confirmation\"); return gate.remaining_hits; }",
+        )
+        .unwrap();
+        assert!(typecheck_program(&program).is_ok());
+    }
+
+    #[test]
+    fn typecheck_confirm_builtin_wrong_arg_type() {
+        let program =
+            parse_program("fn main() { let gate = confirm(true, 2.0, 3, \"signal\"); }").unwrap();
+        assert!(matches!(
+            typecheck_program(&program),
+            Err(TypeError::Mismatch {
+                expected: Ty::I64,
+                found: Ty::F64,
+                ..
+            })
+        ));
+    }
+
+    #[test]
+    fn typecheck_cooldown_builtin_assignment() {
+        let program = parse_program(
+            "fn main() { let gate: { blocked: bool, remaining_ticks: i64, reason: string } = cooldown(true, 4, \"stop_loss_cooldown\"); }",
+        )
+        .unwrap();
+        assert!(typecheck_program(&program).is_ok());
+    }
+
+    #[test]
+    fn typecheck_cooldown_builtin_wrong_arity() {
+        let program =
+            parse_program("fn main() { let gate = cooldown(true, 4, \"cooldown\", \"extra\"); }")
+                .unwrap();
+        assert!(matches!(
+            typecheck_program(&program),
+            Err(TypeError::ArityMismatch {
+                expected: 3,
+                found: 4,
                 ..
             })
         ));

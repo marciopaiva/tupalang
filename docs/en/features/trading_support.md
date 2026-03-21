@@ -90,6 +90,47 @@ See:
 - `examples/pipeline/config_driven_strategy.tp`
 - `examples/pipeline/config_driven_strategy.json`
 
+### 6. Declarative temporal policy via host-provided state
+
+Tupã can already model a first slice of temporal strategy policy without moving host state into the
+language runtime:
+
+- the host keeps counters and timers
+- the pipeline receives that temporal state as structured input
+- built-ins express the policy result shape for confirmation and cooldown decisions
+
+Current built-ins:
+
+- `confirm(observed, consecutive_hits, required_hits, reason)`
+- `cooldown(active, remaining_ticks, reason)`
+
+These are designed for cases such as:
+
+- signal confirmation after `N` consecutive observations
+- stop-loss cooldown gates
+- thesis persistence thresholds driven by host-maintained counters
+
+Example shape:
+
+```text
+input: {
+  signal: {
+    observed: bool,
+    consecutive_hits: i64,
+    required_hits: i64
+  },
+  guards: {
+    cooldown_active: bool,
+    remaining_ticks: i64
+  }
+}
+```
+
+See:
+
+- `examples/pipeline/temporal_policy.tp`
+- `examples/pipeline/temporal_policy.json`
+
 ## Usage Example
 
 ```rust

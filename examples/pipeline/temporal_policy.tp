@@ -1,0 +1,67 @@
+fn evaluate_signal_confirmation(
+  input: {
+    signal: {
+      observed: bool,
+      consecutive_hits: i64,
+      required_hits: i64
+    },
+    guards: {
+      cooldown_active: bool,
+      remaining_ticks: i64
+    }
+  }
+): {
+  passed: bool,
+  pending: bool,
+  remaining_hits: i64,
+  reason: string
+} {
+  return confirm(
+    input.signal.observed,
+    input.signal.consecutive_hits,
+    input.signal.required_hits,
+    "signal_confirmation"
+  );
+}
+
+fn evaluate_stop_loss_cooldown(
+  input: {
+    signal: {
+      observed: bool,
+      consecutive_hits: i64,
+      required_hits: i64
+    },
+    guards: {
+      cooldown_active: bool,
+      remaining_ticks: i64
+    }
+  }
+): {
+  blocked: bool,
+  remaining_ticks: i64,
+  reason: string
+} {
+  return cooldown(
+    input.guards.cooldown_active,
+    input.guards.remaining_ticks,
+    "stop_loss_cooldown"
+  );
+}
+
+pipeline TemporalPolicySupport @deterministic(seed=42) {
+  input: {
+    signal: {
+      observed: bool,
+      consecutive_hits: i64,
+      required_hits: i64
+    },
+    guards: {
+      cooldown_active: bool,
+      remaining_ticks: i64
+    }
+  },
+  steps: [
+    step("signal_confirmation") { evaluate_signal_confirmation(input) },
+    step("cooldown_guard") { evaluate_stop_loss_cooldown(input) }
+  ],
+}

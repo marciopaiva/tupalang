@@ -5,6 +5,7 @@
 - loan_underwriting.tp: underwriting with risk metrics.
 - customer_churn.tp: churn and retention metrics.
 - config_driven_strategy.tp: typed nested input pattern for host-provided strategy config.
+- temporal_policy.tp: temporal policy pattern with host-provided confirmation and cooldown state.
 
 ## Run
 
@@ -28,4 +29,14 @@ tupa run \
   --pipeline=ConfigDrivenStrategy \
   --input examples/pipeline/config_driven_strategy.json \
   examples/pipeline/config_driven_strategy.tp
+```
+
+Temporal policy example:
+
+```bash
+tupa check examples/pipeline/temporal_policy.tp
+tupa run \
+  --pipeline=TemporalPolicySupport \
+  --input examples/pipeline/temporal_policy.json \
+  examples/pipeline/temporal_policy.tp
 ```
