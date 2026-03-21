@@ -1,6 +1,6 @@
 # Trading Bot Support in Tupã
 
-This document details the features implemented in the Tupã Runtime (v0.8.1-dev) specifically to support algorithmic trading applications like `ViperTrade`.
+This document details the features implemented in the Tupã Runtime for the `0.8.1` line, specifically to support algorithmic trading applications like `ViperTrade`.
 
 See also the `0.8.1` strategy-modeling RFC:
 
@@ -114,14 +114,21 @@ Example shape:
 
 ```text
 input: {
-  signal: {
-    observed: bool,
-    consecutive_hits: i64,
-    required_hits: i64
-  },
-  guards: {
-    cooldown_active: bool,
-    remaining_ticks: i64
+  temporal: {
+    signal_confirmation: {
+      observed: bool,
+      consecutive_hits: i64,
+      required_hits: i64
+    },
+    cooldown_guard: {
+      active: bool,
+      remaining_seconds: i64
+    },
+    thesis_confirmation: {
+      observed: bool,
+      consecutive_hits: i64,
+      required_hits: i64
+    }
   }
 }
 ```

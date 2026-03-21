@@ -23,7 +23,7 @@ Release candidates use the `vX.Y.Z-rc.N` format and must be treated as pre-GA bu
 - RC tags publish release artifacts for validation.
 - API guarantees are limited to documented stable surfaces.
 
-## Distribution Model (v0.8.0-rc)
+## Distribution Model (v0.8.1)
 
 Tupa uses a hybrid model:
 
