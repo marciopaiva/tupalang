@@ -42,5 +42,6 @@ Wiki pages mirror this directory (`docs/`). Avoid manual edits in the wiki.
 ## Internals & Planning
 
 - Releases: [Changelog](releases/changelog.md) • [Guide](releases/release_guide.md)
+- Retrospective: [Post-Release Notes: v0.8.1](releases/post_release_v0.8.1.md)
 - Planning: [RFC v0.8.1 Trading Strategy Support](releases/rfc_v0.8.1_trading_strategy_support.md)
 - Governance: [Hybrid Distribution Decision](governance/hybrid_distribution_decision.md)

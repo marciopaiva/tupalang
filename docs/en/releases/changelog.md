@@ -40,18 +40,19 @@ This document records relevant changes per version.
 
 ### Validation Snapshot (workspace)
 
-- Release-prep status: implementation merged on `main`, awaiting tag and published binary artifacts.
+- Release status: `v0.8.1` tag cut, crates published, and standalone artifacts released.
 - Validation status:
   - docs parity green
   - markdownlint green
   - CI green for merged language/runtime changes
-  - ViperTrade local CI green against the current `main`
+  - ViperTrade local CI green against the release line
+  - ViperTrade runtime aligned with the official standalone `v0.8.1` CLI release
 
 ### Technical Debt
 
 - Typed config access is solved pragmatically through structured `input`, not dedicated config-binding syntax.
 - Temporal policy remains declarative at the policy layer; host-managed state still lives outside the language runtime.
-- Release automation is ready, but the public `v0.8.1` tag and binary artifacts have not been cut yet.
+- Reusable policy ergonomics still depend mostly on normal functions and explicit record composition.
 
 ## 0.8.0-rc.5 (2026-03-07)
 

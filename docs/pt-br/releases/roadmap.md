@@ -6,9 +6,9 @@ Resumir o plano de evolução do projeto.
 
 ## Curto prazo
 
-- Cortar e publicar os artefatos e crates do release `v0.8.1`.
-- Validar o ViperTrade contra a release oficial do CLI standalone `v0.8.1`.
+- Consolidar em docs e exemplos os aprendizados da release `v0.8.1`.
 - Refinar a ergonomia de predicados reutilizáveis sobre as novas primitivas de policy.
+- Decidir se alguns breakdowns estruturados devem virar contratos públicos estáveis.
 
 - Consolidar a SPEC v0.1 (ajustes finos e exemplos validados).
 - Melhorar o typechecker (restrições e diagnósticos).
