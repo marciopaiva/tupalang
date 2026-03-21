@@ -1054,4 +1054,101 @@ mod tests {
             .expect_err("output schema should fail");
         assert!(matches!(err, RuntimeError::ValidationError(_)));
     }
+
+    #[tokio::test]
+    async fn test_runtime_accepts_nested_config_input_schema() {
+        use tupa_codegen::execution_plan::StepPlan;
+
+        let runtime = Runtime::new();
+        runtime.register_step("noop", Ok);
+
+        let plan = ExecutionPlan {
+            name: "config_input".into(),
+            version: "1.0".into(),
+            seed: None,
+            input_schema: TypeSchema {
+                kind: "object".into(),
+                elem: None,
+                fields: Some(HashMap::from([
+                    (
+                        "symbol".into(),
+                        TypeSchema {
+                            kind: "string".into(),
+                            elem: None,
+                            fields: None,
+                            len: None,
+                            name: None,
+                            tensor_shape: None,
+                            tensor_dtype: None,
+                        },
+                    ),
+                    (
+                        "config".into(),
+                        TypeSchema {
+                            kind: "object".into(),
+                            elem: None,
+                            fields: Some(HashMap::from([(
+                                "entry".into(),
+                                TypeSchema {
+                                    kind: "object".into(),
+                                    elem: None,
+                                    fields: Some(HashMap::from([(
+                                        "max_spread_pct".into(),
+                                        TypeSchema {
+                                            kind: "f64".into(),
+                                            elem: None,
+                                            fields: None,
+                                            len: None,
+                                            name: None,
+                                            tensor_shape: None,
+                                            tensor_dtype: None,
+                                        },
+                                    )])),
+                                    len: None,
+                                    name: None,
+                                    tensor_shape: None,
+                                    tensor_dtype: None,
+                                },
+                            )])),
+                            len: None,
+                            name: None,
+                            tensor_shape: None,
+                            tensor_dtype: None,
+                        },
+                    ),
+                ])),
+                len: None,
+                name: None,
+                tensor_shape: None,
+                tensor_dtype: None,
+            },
+            output_schema: None,
+            steps: vec![StepPlan {
+                name: "result".into(),
+                function_ref: "noop".into(),
+                effects: vec![],
+            }],
+            constraints: vec![],
+            metrics: HashMap::new(),
+            metric_plans: vec![],
+        };
+
+        let result = runtime
+            .run_pipeline_async(
+                &plan,
+                json!({
+                    "symbol": "DOGEUSDT",
+                    "config": {
+                        "entry": {
+                            "max_spread_pct": 0.001
+                        }
+                    }
+                }),
+            )
+            .await
+            .expect("nested config input should pass");
+
+        assert_eq!(result["symbol"], json!("DOGEUSDT"));
+        assert_eq!(result["result"]["config"]["entry"]["max_spread_pct"], json!(0.001));
+    }
 }
