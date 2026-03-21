@@ -11,7 +11,7 @@ It bridges static safety and dynamic runtime flexibility for trading workflows, 
 
 > **Tupã** (Guaraní mythology): the spirit of thunder and enlightenment.
 
-## Distribution Model (v0.8.0-rc)
+## Distribution Model (v0.8.1)
 
 Tupã follows a **hybrid distribution** strategy:
 

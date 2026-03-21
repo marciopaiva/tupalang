@@ -6,11 +6,9 @@ Resumir o plano de evolução do projeto.
 
 ## Curto prazo
 
-- v0.8.1: fortalecer o suporte a estratégias de trading para sistemas reais de política.
-- Adicionar outputs estruturados por step e `reason` de primeira classe.
-- Adicionar predicados reutilizáveis para composição de estratégia.
-- Adicionar suporte a score ponderado para avaliação de política.
-- Adicionar primitivas declarativas para confirmação e cooldown.
+- Cortar e publicar os artefatos e crates do release `v0.8.1`.
+- Validar o ViperTrade contra a release oficial do CLI standalone `v0.8.1`.
+- Refinar a ergonomia de predicados reutilizáveis sobre as novas primitivas de policy.
 
 - Consolidar a SPEC v0.1 (ajustes finos e exemplos validados).
 - Melhorar o typechecker (restrições e diagnósticos).

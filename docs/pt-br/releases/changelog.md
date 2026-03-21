@@ -5,45 +5,54 @@
 
 Registrar mudanças relevantes por versão.
 
-## 0.8.1 (planned)
+## 0.8.1 (2026-03-21)
 
-- Tema planejado do release: suporte a estratégias de produção para sistemas reais de política.
-- Escopo planejado:
-  - outputs estruturados por step
-  - `reason` de primeira classe
-  - predicados reutilizáveis
-  - suporte a score ponderado
-  - suporte declarativo a políticas temporais
+- Tema do release: suporte a estratégias de produção para sistemas reais de política.
 - Referência de planejamento:
   - `docs/pt-br/releases/rfc_v0.8.1_trading_strategy_support.md`
 
 ### Escopo Entregue
 
-- Suporte planejado de linguagem e runtime para sistemas de estratégia de produção.
-- Melhorias planejadas para modelagem declarativa de estratégia:
+- Suporte de linguagem e runtime para sistemas de estratégia de produção.
+- Melhorias para modelagem declarativa de estratégia:
   - outputs estruturados por step
   - `reason` de primeira classe
-  - predicados reutilizáveis
   - suporte a score ponderado
+  - padrão de input tipado para configuração com records aninhados
   - suporte declarativo a políticas temporais
+- Slices de type system e runtime entregues:
+  - record types
+  - record literals
+  - acesso tipado a campos
+  - validação de schema no runtime para inputs e outputs estruturados
+- Builtins temporais entregues:
+  - `confirm(...)`
+  - `cooldown(...)`
 
 ### Engenharia e CI Entregues
 
 - RFC adicionada em inglês, PT-BR e espanhol para preservar a paridade de docs.
-- Roadmap, changelog e índices de docs atualizados para apontar para a trilha de planejamento da `0.8.1`.
+- Paridade de docs mantida durante o ciclo de planejamento e implementação.
+- CI local containerizado adicionado para reduzir drift entre host e GitHub Actions.
+- Docs e exemplos de trading expandidos com:
+  - exemplo de pipeline guiado por configuração
+  - exemplo de política temporal
+- A integração com o ViperTrade foi usada como prova funcional dos slices da `0.8.1`.
 
 ### Snapshot de Validação do Workspace
 
-- Status atual: apenas RFC de planejamento, sem implementação mergeada ainda.
-- Expectativa de validação antes do release:
+- Status de preparação de release: implementação mergeada na `main`, aguardando tag e binários públicos.
+- Status de validação:
   - docs parity verde
   - markdownlint verde
-  - CI verde para as mudanças de linguagem e runtime incluídas no escopo final do release
+  - CI verde para as mudanças de linguagem e runtime mergeadas
+  - CI local do ViperTrade verde contra a `main` atual
 
 ### Débito Técnico
 
-- A RFC define a direção de planejamento, mas ainda não há slices de implementação commitados.
-- O escopo final do release ainda depende do custo de implementação e do resultado das revisões.
+- O acesso tipado à configuração foi resolvido pragmaticamente por meio de `input` estruturado, não por sintaxe dedicada.
+- A política temporal continua declarativa na camada de policy; o estado do host continua fora do runtime da linguagem.
+- A automação de release está pronta, mas a tag pública `v0.8.1` e os binários ainda não foram publicados.
 
 ## 0.8.0-rc.5 (2026-03-07)
 
