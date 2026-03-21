@@ -1149,6 +1149,9 @@ mod tests {
             .expect("nested config input should pass");
 
         assert_eq!(result["symbol"], json!("DOGEUSDT"));
-        assert_eq!(result["result"]["config"]["entry"]["max_spread_pct"], json!(0.001));
+        assert_eq!(
+            result["result"]["config"]["entry"]["max_spread_pct"],
+            json!(0.001)
+        );
     }
 }
