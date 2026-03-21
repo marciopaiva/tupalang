@@ -51,6 +51,82 @@ Logging pronto para conformidade usando a crate `tracing`.
   - `trade_blocked_by_risk` (quando restrições falham)
   - `circuit_breaker_tripped`
 
+### 5. Config tipada fornecida pelo host via input estruturado
+
+O Tupã já suporta um padrão prático de config binding para sistemas de estratégia em produção:
+
+- declarar o input do pipeline como um record aninhado
+- passar dados de mercado e config no mesmo objeto tipado
+- usar field access comum dentro das funções de policy
+
+Isso já cobre muitos casos de estratégia, como:
+
+- thresholds por símbolo
+- overlays por modo/perfil
+- parâmetros de trailing
+- thresholds de confirmação
+
+Shape de exemplo:
+
+```text
+input: {
+  symbol: string,
+  signal: { spread_pct: f64, trend_score: f64 },
+  config: {
+    entry: {
+      max_spread_pct: f64,
+      min_trend_score_long: f64
+    }
+  }
+}
+```
+
+Veja:
+
+- `examples/pipeline/config_driven_strategy.tp`
+- `examples/pipeline/config_driven_strategy.json`
+
+### 6. Política temporal declarativa via estado fornecido pelo host
+
+O Tupã já consegue modelar um primeiro slice de política temporal sem mover o estado do host para
+o runtime da linguagem:
+
+- o host mantém contadores e timers
+- o pipeline recebe esse estado temporal como input estruturado
+- built-ins expressam o shape do resultado para confirmação e cooldown
+
+Built-ins atuais:
+
+- `confirm(observed, consecutive_hits, required_hits, reason)`
+- `cooldown(active, remaining_ticks, reason)`
+
+Isso é útil para casos como:
+
+- confirmação de sinal após `N` observações consecutivas
+- cooldown após stop loss
+- persistência de tese dirigida por contadores mantidos no host
+
+Shape de exemplo:
+
+```text
+input: {
+  signal: {
+    observed: bool,
+    consecutive_hits: i64,
+    required_hits: i64
+  },
+  guards: {
+    cooldown_active: bool,
+    remaining_ticks: i64
+  }
+}
+```
+
+Veja:
+
+- `examples/pipeline/temporal_policy.tp`
+- `examples/pipeline/temporal_policy.json`
+
 ## Exemplo de Uso
 
 ```rust

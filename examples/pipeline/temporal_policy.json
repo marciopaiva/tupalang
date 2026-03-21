@@ -1,0 +1,11 @@
+{
+  "signal": {
+    "observed": true,
+    "consecutive_hits": 2,
+    "required_hits": 3
+  },
+  "guards": {
+    "cooldown_active": true,
+    "remaining_ticks": 4
+  }
+}
