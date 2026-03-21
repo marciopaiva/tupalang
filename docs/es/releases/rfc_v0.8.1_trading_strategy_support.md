@@ -17,6 +17,7 @@ Esta RFC propone un tema de release acotado y pragmatico:
 - salidas estructuradas por step
 - `reason` como concepto de primera clase
 - predicados reutilizables
+- bindings tipados para configuracion
 - soporte para score ponderado
 - soporte declarativo para politicas temporales
 
@@ -47,6 +48,7 @@ La `0.8.1` debe hacer que TupaLang sea materialmente mejor para sistemas de estr
 - Permitir que los steps devuelvan resultados estructurados tipados, en lugar de solo valores primitivos.
 - Permitir que las reglas de estrategia emitan reasons legibles por maquina directamente.
 - Permitir composicion de politicas con predicados reutilizables.
+- Permitir que las politicas de estrategia lean configuracion de runtime tipada sin empujar toda la semantica al host.
 - Permitir scores ponderados de forma declarativa.
 - Permitir describir politicas temporales sin incrustar toda la semantica en el host.
 
@@ -131,7 +133,25 @@ Capacidades deseadas:
 - clamp/rango
 - comparacion con thresholds
 
-### 5. Soporte declarativo para politicas temporales
+### 5. Bindings tipados para configuracion
+
+Soportar acceso tipado a valores de configuracion provistos por el host y usados por sistemas de estrategia en produccion.
+
+Casos de uso ilustrativos:
+
+- thresholds por simbolo
+- overlays por modo
+- parametros de trailing
+- thresholds de confirmacion
+- thresholds de filtros macro
+
+Capacidades deseadas:
+
+- lecturas tipadas desde un objeto de configuracion provisto por el host
+- defaults explicitos o reglas claras de fallback
+- validacion de shape antes de la ejecucion del runtime
+
+### 6. Soporte declarativo para politicas temporales
 
 Soportar semanticas que dependen de persistencia a lo largo de ciclos de evaluacion.
 
@@ -162,27 +182,58 @@ Eso dejaria a Rust enfocado en las responsabilidades correctas:
 - transporte de eventos
 - plumbing de riesgo
 
+## Refinamiento de prioridad despues de la integracion con ViperTrade
+
+La migracion `0.8.1` de ViperTrade dejo claro el siguiente cuello de botella real.
+
+Lo que el lenguaje ya resuelve lo suficientemente bien:
+
+- records tipados
+- record literals
+- helpers de `reason`
+- helpers de score ponderado
+- reutilizacion mediante funciones normales para buena parte de los helpers tipo predicado
+
+Lo que todavia fuerza demasiado wiring del lado del host:
+
+- acceso a configuracion
+- overlays de modo/perfil
+- seleccion de thresholds desde la configuracion de la estrategia
+- semantica temporal de confirmacion y cooldown
+
+Como resultado, la siguiente prioridad de implementacion deberia ser:
+
+1. bindings tipados para configuracion
+2. soporte declarativo para politicas temporales
+3. mejor ergonomia para predicados reutilizables cuando las funciones comunes sigan siendo insuficientes
+
 ## Orden de entrega propuesta
 
 ### Fase 1
 
 - salidas estructuradas por step
 - `reason` de primera clase
-- predicados reutilizables
+- soporte para score ponderado
 
-Este es el minimo necesario para mover entry policy y hold reasons a TupaLang.
+Este es el minimo necesario para mover politica de entrada, reasons de `HOLD` y modelos de score a TupaLang.
 
 ### Fase 2
 
-- soporte para score ponderado
+- bindings tipados para configuracion
 
-Esto habilita un `position_health_score` declarativo.
+Esto habilita estrategias de produccion como ViperTrade a leer thresholds y overlays de perfil de forma declarativa.
 
 ### Fase 3
 
 - soporte declarativo para politicas temporales
 
 Esto habilita confirmacion de senal, ventanas de persistencia de tesis y semantica de cooldown.
+
+### Fase 4
+
+- ergonomia para predicados reutilizables
+
+Los predicados con nombre siguen siendo utiles, pero ViperTrade mostro que las funciones normales ya cubren parte de esa necesidad hoy.
 
 ## Impacto esperado
 

@@ -17,6 +17,7 @@ This RFC proposes a narrow, pragmatic release theme:
 - structured step outputs
 - first-class policy reasons
 - reusable predicates
+- typed config bindings
 - weighted score support
 - declarative temporal policy support
 
@@ -47,6 +48,7 @@ That split reduces the value of the language in the exact area where it should h
 - Allow steps to return typed structured results instead of only primitive values.
 - Allow strategy rules to produce machine-readable reasons directly.
 - Allow policies to be composed from reusable predicates.
+- Allow strategy policies to read typed runtime configuration without routing all semantics through host code.
 - Allow weighted scores to be expressed declaratively.
 - Allow temporal decision policies to be described without embedding all semantics in host code.
 
@@ -131,7 +133,25 @@ Desired capabilities:
 - clamp/range handling
 - threshold comparisons
 
-### 5. Declarative temporal policy support
+### 5. Typed config bindings
+
+Support typed access to host-provided configuration values used by production strategy systems.
+
+Illustrative use cases:
+
+- per-symbol thresholds
+- mode-specific overlays
+- trailing parameters
+- confirmation thresholds
+- macro filter thresholds
+
+Desired capabilities:
+
+- typed reads from a host-provided config object
+- explicit defaults or fallback rules
+- shape validation before runtime execution
+
+### 6. Declarative temporal policy support
 
 Support policy semantics that depend on persistence across evaluation cycles.
 
@@ -162,27 +182,58 @@ That would leave Rust focused on the right concerns:
 - event transport
 - risk plumbing
 
+## Priority refinement after ViperTrade integration
+
+The ViperTrade `0.8.1` migration clarified the next real bottleneck.
+
+What the language already solves well enough:
+
+- typed records
+- record literals
+- first-class reason helpers
+- weighted score helpers
+- ordinary function reuse for many predicate-like helpers
+
+What still forces too much host-side policy wiring:
+
+- configuration access
+- mode/profile overlays
+- threshold selection from strategy config
+- temporal confirmation and cooldown semantics
+
+As a result, the next implementation priority should be:
+
+1. typed config bindings
+2. declarative temporal policy support
+3. reusable predicate ergonomics where plain functions still feel too blunt
+
 ## Proposed delivery order
 
 ### Phase 1
 
 - structured step outputs
 - first-class reasons
-- reusable predicates
+- weighted score support
 
-This is the minimum needed to move entry policy and hold reasons into TupaLang.
+This is the minimum needed to move entry policy, hold reasons, and scoring models into TupaLang.
 
 ### Phase 2
 
-- weighted score support
+- typed config bindings
 
-This enables declarative `position_health_score`.
+This enables production strategies such as ViperTrade to read thresholds and profile overlays declaratively.
 
 ### Phase 3
 
 - declarative temporal policy support
 
 This enables signal confirmation, thesis persistence windows, and cooldown semantics.
+
+### Phase 4
+
+- reusable predicate ergonomics
+
+Named predicate helpers are still useful, but ViperTrade showed that ordinary functions already cover part of this need today.
 
 ## Expected impact
 
