@@ -23,3 +23,8 @@ Run `tupa-typecheck` before generating plans so the execution plan is produced f
 ## Crate
 
 - Source: [tupalang](https://github.com/marciopaiva/tupalang)
+
+## Applied usage
+
+- Applied reference repository: [ViperTrade](https://github.com/marciopaiva/vipertrade)
+- ViperTrade uses `tupa-codegen` in-process to build execution plans for strategy and analyst pipelines that run inside Rust services.

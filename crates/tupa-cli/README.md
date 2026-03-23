@@ -20,3 +20,8 @@ tupa run path/to/file.tp
 
 - Binary name: `tupa`
 - Source: [tupalang](https://github.com/marciopaiva/tupalang)
+
+## Applied usage
+
+- Applied reference repository: [ViperTrade](https://github.com/marciopaiva/vipertrade)
+- ViperTrade uses `tupa-cli` in local and CI validation flows to typecheck and validate strategy pipelines before runtime deployment.

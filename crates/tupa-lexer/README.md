@@ -16,3 +16,8 @@ println!("{} tokens", tokens.len());
 
 - Source: [tupalang](https://github.com/marciopaiva/tupalang)
 - License: Apache-2.0
+
+## Applied usage
+
+- Applied reference repository: [ViperTrade](https://github.com/marciopaiva/vipertrade)
+- ViperTrade depends on the parser/typecheck/runtime stack built on top of `tupa-lexer` for embedded strategy and diagnostics pipelines.

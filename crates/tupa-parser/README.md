@@ -16,3 +16,8 @@ println!("{} top-level items", program.items.len());
 
 - Depends on `tupa-lexer`
 - Source: [tupalang](https://github.com/marciopaiva/tupalang)
+
+## Applied usage
+
+- Applied reference repository: [ViperTrade](https://github.com/marciopaiva/vipertrade)
+- ViperTrade uses `tupa-parser` as part of its embedded pipeline compilation path for strategies and analyst diagnostics.

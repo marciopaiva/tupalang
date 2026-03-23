@@ -14,3 +14,8 @@ let hash = hash_execution(&program, &[json!({"x": 1})]);
 println!("{} {}", compiler_version(), hash);
 # Ok::<(), Box<dyn std::error::Error>>(())
 ```
+
+## Applied usage
+
+- Applied reference repository: [ViperTrade](https://github.com/marciopaiva/vipertrade)
+- ViperTrade uses `tupa-audit` together with the embedded Tupa runtime to hash and persist strategy execution diagnostics for recent trade and pipeline analysis.
