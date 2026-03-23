@@ -17,3 +17,8 @@ typecheck_program(&program)?;
 
 - Works with `tupa-parser` AST
 - Source: [tupalang](https://github.com/marciopaiva/tupalang)
+
+## Applied usage
+
+- Applied reference repository: [ViperTrade](https://github.com/marciopaiva/vipertrade)
+- ViperTrade uses `tupa-typecheck` to validate strategy and diagnostics pipelines before code generation and embedded runtime execution.

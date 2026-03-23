@@ -48,3 +48,8 @@ Use this crate together with validated execution plans produced by `tupa-codegen
 ## Crate
 
 - Source: [tupalang](https://github.com/marciopaiva/tupalang)
+
+## Applied usage
+
+- Applied reference repository: [ViperTrade](https://github.com/marciopaiva/vipertrade)
+- ViperTrade uses `tupa-runtime` as an embedded execution engine inside the strategy and AI analyst services, rather than spawning `tupa run` per event.
