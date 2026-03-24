@@ -6,6 +6,7 @@ Resumir o plano de evolução do projeto.
 
 ## Curto prazo
 
+- Usar o [`Checklist da v0.8.2`](checklist_v0.8.2.md) como âncora de planejamento da próxima linha de release.
 - Consolidar em docs e exemplos os aprendizados da release `v0.8.1`.
 - Refinar a ergonomia de predicados reutilizáveis sobre as novas primitivas de policy.
 - Decidir se alguns breakdowns estruturados devem virar contratos públicos estáveis.
