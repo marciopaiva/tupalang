@@ -11,4 +11,5 @@
 - [Changelog](releases/changelog.md)
 - [RFC v0.8.1 Trading Strategy Support](releases/rfc_v0.8.1_trading_strategy_support.md)
 - [Post-Release Notes: v0.8.1](releases/post_release_v0.8.1.md)
+- [Checklist: v0.8.2](releases/checklist_v0.8.2.md)
 - [Contribution Guide](../../CONTRIBUTING.md)

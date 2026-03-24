@@ -6,6 +6,7 @@ This document summarizes the project evolution plan.
 
 ## Short Term
 
+- Use [`v0.8.2 Checklist`](checklist_v0.8.2.md) as the planning anchor for the next release line.
 - Consolidate the `v0.8.1` release learnings into examples and docs.
 - Refine reusable predicate ergonomics on top of the new policy-modeling primitives.
 - Decide whether any structured policy breakdowns should become stable public contracts.
