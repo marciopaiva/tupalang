@@ -114,5 +114,9 @@ fn item_to_value(item: &Item) -> Value {
             ("kind", Value::String("Trait".to_string())),
             ("name", Value::String(t.name.clone())),
         ]),
+        Item::Config(c) => object(vec![
+            ("kind", Value::String("Config".to_string())),
+            ("name", Value::String(c.name.clone())),
+        ]),
     }
 }

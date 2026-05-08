@@ -2,15 +2,61 @@
 
 ## Propósito
 
-Describir la superficie soportada de embedding para `v0.8.0-rc`.
+Describir la superficie soportada de embedding para `v0.8.2`.
 
 ## Crates públicas soportadas
 
 - `tupa-parser`
 - `tupa-typecheck`
 - `tupa-runtime`
+- `tupa-codegen`
 
-Estas crates son la superficie estable de embedding para este ciclo RC.
+Estas crates son la superficie estable de embedding para esta release.
+
+## API de Extensiones
+
+Los proyectos pueden definir funciones de paso personalizadas a través del trait `TupaExtension`:
+
+```rust
+use tupa_runtime::{Runtime, TupaExtension};
+
+pub struct MisExtensiones;
+impl TupaExtension for MisExtensiones {
+    fn name(&self) -> &str { "mi_proyecto" }
+    fn register(&self, runtime: &Runtime) {
+        runtime.register_step("mi::helper", |input| {
+            // lógica de negocio
+            Ok(serde_json::json!({ "status": "ok" }))
+        });
+    }
+}
+
+// Durante la inicialización
+MisExtensiones.register(&runtime);
+```
+
+## Sistema de Plugins
+
+Carga dinámica de plugins (crate `tupa-plugin`):
+
+```rust
+use tupa_plugin::PluginManager;
+
+let mut manager = PluginManager::new();
+manager.load_plugin("./plugins/mi_plugin.so")?;
+manager.register_all(&runtime);
+```
+
+Los plugins son bibliotecas compartidas que exportan `_tupa_plugin_name` y `_tupa_plugin_register`.
+
+## Hot Reload
+
+Habilitar feature `hot-reload` para observar cambios en archivos:
+
+```rust
+let (tx, rx) = runtime.watch_and_reload("./strategies")?;
+// Notifica cambios automáticamente
+```
 
 ## Ejemplo mínimo
 

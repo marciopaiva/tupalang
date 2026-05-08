@@ -1,6 +1,6 @@
 # Trading Bot Support in Tupã
 
-This document details the features implemented in the Tupã Runtime for the `0.8.1` line, specifically to support algorithmic trading applications like `ViperTrade`.
+This document details the features implemented in the Tupã Runtime for the `0.8.2` line, specifically to support algorithmic trading applications like `ViperTrade`.
 
 See also the `0.8.1` strategy-modeling RFC:
 
@@ -149,3 +149,13 @@ runtime.configure_circuit_breaker(3, Duration::from_secs(10));
 let result = runtime.run_backtest(&plan, historical_data).await?;
 println!("Final PnL: {}", result["final_pnl"]);
 ```
+
+## v0.8.2 Additions
+
+- **Built-in Functions**: `tupa::weighted`, `tupa::warn`, `tupa::pass`, `tupa::confirm`, `tupa::cooldown` provide structured decision outputs and temporal policy primitives.
+- **Extension API**: `TupaExtension` trait allows projects to register custom step helpers directly in Rust (`ViperExtensions` in ViperTrade).
+- **Plugin System**: `tupa-plugin` crate loads step functions from shared libraries, enabling dynamic extension without recompiling the pipeline.
+- **Schema Registry**: Versioned schemas in `tupa-codegen` support migrations and deprecation warnings for evolving input/output contracts.
+- **Hot Reload**: `Runtime::watch_and_reload()` observes `.tp` file changes and reloads pipelines on the fly (feature flag `hot-reload`).
+
+These enhancements collectively improve Tupã's ergonomics for production trading systems, enabling clearer policy expression, better modularization, and faster iteration.

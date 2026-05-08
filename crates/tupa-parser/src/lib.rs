@@ -13,6 +13,7 @@ pub enum Item {
     Enum(EnumDef),
     Trait(TraitDef),
     Pipeline(PipelineDecl),
+    Config(ConfigDecl),
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -56,6 +57,21 @@ pub struct PipelineDecl {
     pub constraints: Vec<Constraint>,
     pub steps: Vec<PipelineStep>,
     pub validation: Option<Block>,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct ConfigDecl {
+    pub name: String,
+    pub fields: Vec<ConfigField>,
+    pub span: Span,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct ConfigField {
+    pub name: String,
+    pub ty: Type,
+    pub default: Option<Expr>,
     pub span: Span,
 }
 
@@ -2129,6 +2145,7 @@ mod tests {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Pipeline(_) => panic!("expected function"),
+            Item::Config(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         assert_eq!(func.body.len(), 2);
@@ -2142,6 +2159,7 @@ mod tests {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Pipeline(_) => panic!("expected function"),
+            Item::Config(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         assert_eq!(func.body.len(), 1);
@@ -2261,6 +2279,7 @@ mod tests {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Pipeline(_) => panic!("expected function"),
+            Item::Config(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         assert_eq!(func.body.len(), 1);
@@ -2274,6 +2293,7 @@ mod tests {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Pipeline(_) => panic!("expected function"),
+            Item::Config(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         assert_eq!(func.body.len(), 2);
@@ -2287,6 +2307,7 @@ mod tests {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Pipeline(_) => panic!("expected function"),
+            Item::Config(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         let Stmt::Let { expr, .. } = &func.body[0] else {
@@ -2316,6 +2337,7 @@ mod tests {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Pipeline(_) => panic!("expected function"),
+            Item::Config(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         let Stmt::Let { expr, .. } = &func.body[0] else {
@@ -2384,6 +2406,7 @@ mod tests {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Pipeline(_) => panic!("expected function"),
+            Item::Config(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         let Stmt::Let { expr, .. } = &func.body[0] else {
@@ -2402,6 +2425,7 @@ mod tests {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Pipeline(_) => panic!("expected function"),
+            Item::Config(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         assert_eq!(func.params.len(), 2);
@@ -2420,6 +2444,7 @@ mod tests {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Pipeline(_) => panic!("expected function"),
+            Item::Config(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         let Stmt::Let { ty, .. } = &func.body[0] else {
@@ -2440,6 +2465,7 @@ mod tests {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Pipeline(_) => panic!("expected function"),
+            Item::Config(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         let Stmt::Let { ty, .. } = &func.body[0] else {
@@ -2463,6 +2489,7 @@ mod tests {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Pipeline(_) => panic!("expected function"),
+            Item::Config(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         let Stmt::Let { expr, .. } = &func.body[0] else {
@@ -2488,6 +2515,7 @@ mod tests {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Pipeline(_) => panic!("expected function"),
+            Item::Config(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         let Stmt::Let { ty, .. } = &func.body[0] else {
@@ -2510,6 +2538,7 @@ mod tests {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Pipeline(_) => panic!("expected function"),
+            Item::Config(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         let Stmt::Let { ty, .. } = &func.body[0] else {
@@ -2532,6 +2561,7 @@ mod tests {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Pipeline(_) => panic!("expected function"),
+            Item::Config(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         assert!(matches!(func.body[0], Stmt::While { .. }));
@@ -2546,6 +2576,7 @@ mod tests {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Pipeline(_) => panic!("expected function"),
+            Item::Config(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         let Stmt::Let { expr, .. } = &func.body[0] else {
@@ -2562,6 +2593,7 @@ mod tests {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Pipeline(_) => panic!("expected function"),
+            Item::Config(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         let Stmt::Let { expr, .. } = &func.body[0] else {
@@ -2584,6 +2616,7 @@ mod tests {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Pipeline(_) => panic!("expected function"),
+            Item::Config(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         assert_eq!(func.body.len(), 1);
@@ -2597,6 +2630,7 @@ mod tests {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Pipeline(_) => panic!("expected function"),
+            Item::Config(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         assert_eq!(func.body.len(), 2);
@@ -2617,6 +2651,7 @@ mod tests {
             Item::Trait(_) => panic!("expected function"),
             Item::Enum(_) => panic!("expected function"),
             Item::Pipeline(_) => panic!("expected function"),
+            Item::Config(_) => panic!("expected function"),
             Item::Function(func) => func,
         };
         let Stmt::Let { expr, .. } = &func.body[0] else {

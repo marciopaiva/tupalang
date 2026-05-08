@@ -1,6 +1,6 @@
 [package]
 name = "tupa-runtime"
-version = "0.8.1"
+version = "0.8.2"
 edition = "2021"
 description = "Runtime for executing TupaLang programs"
 license = "Apache-2.0"
@@ -14,8 +14,8 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 thiserror = "1.0"
 lazy_static = "1.4"
-tupa-codegen = { path = "../tupa-codegen", version = "0.8.1" }
-tupa-pyffi = { path = "../tupa-pyffi", version = "0.8.1" }
+tupa-codegen = { path = "../tupa-codegen", version = "0.8.2" }
+tupa-pyffi = { path = "../tupa-pyffi", version = "0.8.2" }
 
 # Async Runtime
 tokio = { version = "1", features = ["full"] }
@@ -25,3 +25,9 @@ futures = "0.3"
 # Observability & Audit
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["json", "env-filter"] }
+
+# Optional: Hot reload support
+notify = { version = "6.0", optional = true }
+
+[features]
+hot-reload = ["notify"]

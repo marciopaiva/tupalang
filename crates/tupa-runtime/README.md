@@ -2,19 +2,27 @@
 
 Execution engine for TupaLang pipelines.
 
+## Features
+
+- Built-in step functions: `tupa::weighted`, `tupa::warn`, `tupa::pass`, `tupa::confirm`, `tupa::cooldown`
+- Custom extension API via `TupaExtension` trait
+- Hot reload support via `watch_and_reload()` (requires `hot-reload` feature)
+- Async pipeline execution with structured audit output
+
 ## Usage
 
 ```rust
 use serde_json::json;
 use tupa_codegen::execution_plan::{ExecutionPlan, TypeSchema, StepPlan};
-use tupa_runtime::Runtime;
+use tupa_runtime::{Runtime, TupaExtension};
 
+// Create runtime and register extensions
 let runtime = Runtime::new();
-runtime.register_step("demo::step_echo", |state| Ok(state));
+MyExtensions.register(&runtime);
 
 let plan = ExecutionPlan {
     name: "demo".into(),
-    version: "0.8.1".into(),
+    version: "0.8.2".into(),
     seed: None,
     input_schema: TypeSchema {
         kind: "string".into(),
@@ -44,6 +52,36 @@ assert_eq!(output, json!("hello"));
 ```
 
 Use this crate together with validated execution plans produced by `tupa-codegen`.
+
+## Extension Example
+
+```rust
+use tupa_runtime::{Runtime, TupaExtension};
+
+pub struct MyHelpers;
+impl TupaExtension for MyHelpers {
+    fn name(&self) -> &str { "my_project" }
+    fn register(&self, runtime: &Runtime) {
+        runtime.register_step("my::custom", |input| {
+            // custom logic
+            Ok(input)
+        });
+    }
+}
+```
+
+## Hot Reload
+
+```rust
+let (tx, rx) = runtime.watch_and_reload("./strategies")?;
+// Receiver yields () on file changes; call reload_pipeline() to apply
+```
+
+Enable with feature flag:
+
+```bash
+cargo add tupa-runtime --features hot-reload
+```
 
 ## Crate
 

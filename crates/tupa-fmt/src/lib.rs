@@ -40,13 +40,16 @@ pub fn format_source(source: &str) -> String {
                 }
                 '/' => {
                     // Check for // comment
-                    if i + 1 < chars.len() && chars[i + 1] == '/' {
-                        in_comment = true;
-                        current_line.push(c);
-                        current_line.push(chars[i + 1]);
-                        i += 1; // Skip next /
-                    } else {
-                        current_line.push(c);
+                    match i + 1 < chars.len() && chars[i + 1] == '/' {
+                        true => {
+                            in_comment = true;
+                            current_line.push(c);
+                            current_line.push(chars[i + 1]);
+                            i += 1; // Skip next /
+                        }
+                        false => {
+                            current_line.push(c);
+                        }
                     }
                 }
                 '{' => {

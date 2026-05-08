@@ -24,7 +24,7 @@
 ```json
 {
   "name": "FraudDetection",
-  "version": "0.8.0",
+   "version": "0.8.2",
   "seed": 42,
   "input_schema": { "kind": "ident", "name": "Transaction" },
   "steps": [

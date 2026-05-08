@@ -13,7 +13,7 @@
 
 <p align="center">
   <a href="https://github.com/marciopaiva/tupalang/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/marciopaiva/tupalang/ci.yml?branch=main&label=CI" /></a>
-  <a href="docs/en/releases/changelog.md"><img alt="Version" src="https://img.shields.io/badge/version-0.8.1-blue.svg" /></a>
+   <a href="docs/en/releases/changelog.md"><img alt="Version" src="https://img.shields.io/badge/version-0.8.2-blue.svg" /></a>
   <img alt="Rust" src="https://img.shields.io/badge/Rust-1.83-black?logo=rust" />
   <img alt="Distribution" src="https://img.shields.io/badge/Distribution-binary%20%2B%20crates-orange" />
   <img alt="Applied In" src="https://img.shields.io/badge/Applied%20In-ViperTrade-0f766e" />
@@ -155,6 +155,7 @@ Supporting published crates:
 - `tupa-fmt`
 - `tupa-lexer`
 - `tupa-lint`
+- `tupa-plugin`
 - `tupa-pyffi`
 
 `Cargo.toml` example:
@@ -176,6 +177,7 @@ Crate-specific docs:
 - [`tupa-lexer`](crates/tupa-lexer/README.md)
 - [`tupa-lint`](crates/tupa-lint/README.md)
 - [`tupa-parser`](crates/tupa-parser/README.md)
+- [`tupa-plugin`](crates/tupa-plugin/README.md)
 - [`tupa-pyffi`](crates/tupa-pyffi/README.md)
 - [`tupa-runtime`](crates/tupa-runtime/README.md)
 - [`tupa-typecheck`](crates/tupa-typecheck/README.md)

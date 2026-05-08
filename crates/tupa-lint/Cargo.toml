@@ -1,6 +1,6 @@
 [package]
 name = "tupa-lint"
-version = "0.1.0"
+version = "0.8.2"
 edition = "2021"
 description = "Linter for TupaLang source code"
 license = "Apache-2.0"
@@ -10,5 +10,5 @@ documentation = "https://github.com/marciopaiva/tupalang/wiki"
 readme = "README.md"
 
 [dependencies]
-tupa-parser = { path = "../tupa-parser", version = "0.8.1" }
-tupa-lexer = { path = "../tupa-lexer", version = "0.8.1" }
+tupa-parser = { path = "../tupa-parser", version = "0.8.2" }
+tupa-lexer = { path = "../tupa-lexer", version = "0.8.2" }
