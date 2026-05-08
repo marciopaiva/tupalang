@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-EXPECTED_DIR="$REPO_ROOT/examples/expected"
+EXPECTED_DIR="${EXPECTED_DIR:-$REPO_ROOT/examples/expected}"
 mkdir -p "$EXPECTED_DIR"
 
 # Normalize output similar to tests (remove workspace root)
@@ -38,6 +38,10 @@ run_and_save_stdout check_hello.txt check examples/hello.tp
 run_and_save_stdout check_hello.json check --format json examples/hello.tp
 run_and_save_stdout audit_hello.txt audit examples/audit_hello.tp --input examples/audit_inputs.json
 run_and_save_stdout audit_hello.json audit --format json examples/audit_hello.tp --input examples/audit_inputs.json
+run_and_save_stdout effects_io.json effects --format json examples/effects/io.tp
+run_and_save_stdout effects_pure_function.json effects --format json examples/effects/pure_function.tp
+run_and_save_stdout check_pipeline_valid.txt check examples/pipeline/fraud_complete.tp
+run_and_save_stdout check_pipeline_valid.json check --format json examples/pipeline/fraud_complete.tp
 
 # Codegen outputs (a representative subset)
 run_and_save_stdout codegen_hello.txt codegen examples/hello.tp
@@ -57,6 +61,16 @@ run_and_save_stdout codegen_string_concat.txt codegen examples/string_concat.tp
 run_and_save_stdout codegen_string_array_ops.txt codegen examples/string_array_ops.tp
 run_and_save_stdout codegen_lambda_basic.txt codegen examples/lambda_basic.tp
 run_and_save_stdout codegen_if_unit_expr.txt codegen examples/if_unit_expr.tp
+run_and_save_stdout codegen_bool_ops.txt codegen examples/bool_ops.tp
+run_and_save_stdout codegen_break_continue.txt codegen examples/break_continue.tp
+run_and_save_stdout codegen_float_array_ops.txt codegen examples/float_array_ops.tp
+run_and_save_stdout codegen_float_ops.txt codegen examples/float_ops.tp
+run_and_save_stdout codegen_function_call.txt codegen examples/function_call.tp
+run_and_save_stdout codegen_match_bind.txt codegen examples/match_bind.tp
+run_and_save_stdout codegen_match_guard.txt codegen examples/match_guard.tp
+run_and_save_stdout codegen_match_guard_if_expr.txt codegen examples/match_guard_if_expr.tp
+run_and_save_stdout codegen_string_eq.txt codegen examples/string_eq.tp
+run_and_save_stdout codegen_string_plus_eq.txt codegen examples/string_plus_eq.tp
 
 # Negative cases (stderr)
 run_and_save_stderr lex_invalid_char.txt lex examples/invalid_lex_char.tp
@@ -117,5 +131,21 @@ run_and_save_stderr check_invalid_safe_param_base.txt check examples/invalid_saf
 run_and_save_stderr check_invalid_safe_param_base.json check --format json examples/invalid_safe_param_base.tp
 run_and_save_stderr check_invalid_safe_return_base.txt check examples/invalid_safe_return_base.tp
 run_and_save_stderr check_invalid_safe_return_base.json check --format json examples/invalid_safe_return_base.tp
+run_and_save_stderr check_invalid_safe_hate_speech.txt check examples/invalid_safe_hate_speech.tp
+run_and_save_stderr check_invalid_safe_hate_speech.json check --format json examples/invalid_safe_hate_speech.tp
+run_and_save_stderr check_invalid_safe_hate_speech_base.txt check examples/invalid_safe_hate_speech_base.tp
+run_and_save_stderr check_invalid_safe_hate_speech_base.json check --format json examples/invalid_safe_hate_speech_base.tp
+run_and_save_stderr check_invalid_safe_misinformation.txt check examples/invalid_safe_misinformation.tp
+run_and_save_stderr check_invalid_safe_misinformation.json check --format json examples/invalid_safe_misinformation.tp
+run_and_save_stderr check_invalid_safe_misinformation_base.txt check examples/invalid_safe_misinformation_base.tp
+run_and_save_stderr check_invalid_safe_misinformation_base.json check --format json examples/invalid_safe_misinformation_base.tp
+run_and_save_stderr check_pipeline_deterministic_violation.txt check examples/pipeline/deterministic_violation.tp
+run_and_save_stderr check_pipeline_deterministic_violation.json check --format json examples/pipeline/deterministic_violation.tp
+run_and_save_stderr check_pipeline_now_violation.txt check examples/pipeline/now_violation.tp
+run_and_save_stderr check_pipeline_now_violation.json check --format json examples/pipeline/now_violation.tp
+run_and_save_stderr check_pipeline_time_violation.txt check examples/pipeline/time_violation.tp
+run_and_save_stderr check_pipeline_time_violation.json check --format json examples/pipeline/time_violation.tp
+run_and_save_stderr check_pipeline_undefined_metric.txt check examples/pipeline/undefined_metric.tp
+run_and_save_stderr check_pipeline_undefined_metric.json check --format json examples/pipeline/undefined_metric.tp
 
 echo "All goldens updated in $EXPECTED_DIR" >&2

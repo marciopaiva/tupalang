@@ -18,7 +18,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 RUN rustup component add rustfmt clippy
-RUN cargo install lychee
+# Install lychee version compatible with current Rust
+RUN cargo install lychee --version 0.18.1 || cargo install lychee
 RUN npm install -g markdownlint-cli@0.41.0
 
 WORKDIR /workspace

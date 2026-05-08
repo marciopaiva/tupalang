@@ -4,6 +4,71 @@
 
 This document records relevant changes per version.
 
+## 0.8.2 (2026-05-08)
+
+- Release theme: extensions system, plugins, and hot reload.
+- Planning reference:
+  - `.kilo/TUPALANG_EVOLUTION.md`
+
+### Delivered Scope
+
+- **Built-in Functions (Phase 1)**:
+  - `tupa::weighted(score, weight, reason)` — weighted score with reason
+  - `tupa::warn(reason)` — pass with warning
+  - `tupa::pass(reason)` — pure pass with reason
+  - `tupa::confirm(observed, consecutive, required, reason)` — consecutive confirmation policy
+  - `tupa::cooldown(active, remaining_seconds, reason)` — temporal cooldown block
+  - Backward compatibility: un-prefixed calls still work
+- **Schema Registry (Phase 2)**:
+  - `SchemaRegistry` in `tupa-codegen/src/schema_registry.rs`
+  - Versioned schemas with migrations
+  - `SchemaDiff` for type evolution
+  - Runtime field insertion with deprecation warnings
+- **Hot Reload (Phase 2)**:
+  - `Runtime::watch_and_reload()` in `tupa-runtime/src/hot_reload.rs`
+  - File watching for `.tp` via `notify` crate
+  - `Runtime::reload_pipeline()` applies new plan without restart
+  - Feature flag: `--features hot-reload`
+- **Extension API (Phase 3)**:
+  - `TupaExtension` trait in `tupa-runtime/src/extensions.rs`
+  - `register()` and `name()` for external project integration
+  - ViperTrade implements `ViperExtensions` in `vipertrade/services/strategy/src/tupa_extensions.rs`
+  - `viper_smart_copy.tp` updated to use `tupa::` prefix
+- **Plugin System (Phase 4)**:
+  - `tupa-plugin` crate for dynamic `.so`/`.dll` loading
+  - C entry points: `_tupa_plugin_name` and `_tupa_plugin_register`
+  - `PluginManager::load_plugin()`, `register_all()`, `list_functions()`
+  - `StepFunction`: `Arc<dyn Fn(Value) -> Result<Value, String> + Send + Sync>`
+- **Config DSL (Phase 4)**:
+  - `ConfigDecl` and `ConfigField` nodes in parser (`tupa-parser/src/lib.rs`)
+  - `config Name { type field, ... }` syntax as first-class AST
+  - Declarative pre-conditions for pipelines
+- **Crates updated**:
+  - All 10 Tupa-Lang crates to `0.8.2`
+
+### Engineering and CI Completed
+
+- Features validated end-to-end via ViperTrade integration.
+- `tupa-plugin` added to workspace.
+- Unit tests for `ViperExtensions` (name, trailing_status, position_sizing).
+- Documentation parity maintained across PT-BR and EN.
+
+### Validation Snapshot (workspace)
+
+- Release status: `v0.8.2` tag cut, crates published and standalone artifacts released.
+- Validation status:
+  - docs parity green
+  - markdownlint green
+  - CI green for merged language/runtime changes
+  - CI local of ViperTrade green against the release line
+  - ViperTrade runtime aligned with the official standalone `v0.8.2` CLI release
+
+### Technical Debt
+
+- crates.io publication blocked by `path =` dependencies in manifests.
+- Config DSL documentation could use more practical examples.
+- Hot reload opt-in via feature flag; default disabled for throughput.
+
 ## 0.8.1 (2026-03-21)
 
 - Release theme: production strategy support for real policy systems.

@@ -1102,6 +1102,9 @@ pub fn typecheck_program_with_warnings(program: &Program) -> Result<Vec<Warning>
             Item::Trait(trait_def) => {
                 traits.insert(trait_def.name.clone(), trait_def.methods.clone());
             }
+            Item::Config(_) => {
+                // Config declarations don't need typechecking yet
+            }
         }
     }
     let mut warnings = Vec::new();
@@ -1115,6 +1118,7 @@ pub fn typecheck_program_with_warnings(program: &Program) -> Result<Vec<Warning>
             }
             Item::Enum(_) => {} // enums don't need typechecking beyond declaration
             Item::Trait(_) => {} // traits don't need typechecking beyond declaration
+            Item::Config(_) => {} // config declarations don't need typechecking yet
         }
     }
     Ok(warnings)

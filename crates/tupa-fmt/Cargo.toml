@@ -1,7 +1,7 @@
 [package]
 name = "tupa-fmt"
-version = "0.1.0"
-edition = "2024"
+version = "0.8.2"
+edition = "2021"
 description = "Formatter for TupaLang source code"
 license = "Apache-2.0"
 repository = "https://github.com/marciopaiva/tupalang"
@@ -10,4 +10,4 @@ documentation = "https://github.com/marciopaiva/tupalang/wiki"
 readme = "README.md"
 
 [dependencies]
-tupa-lexer = { path = "../tupa-lexer", version = "0.8.1" }
+tupa-lexer = { path = "../tupa-lexer", version = "0.8.2" }

@@ -7,6 +7,7 @@
 //! - **Circuit Breaker**: `CircuitBreaker` struct for failure handling.
 //! - **Backtesting**: `run_backtest` function for historical simulation.
 //! - **Audit Logs**: Structured JSON logging for compliance.
+//! - **Extensions**: `TupaExtension` trait for custom step registration.
 //!
 //! See `examples/viper_backtest.rs` and `examples/viper_circuit_breaker.rs` for usage.
 
@@ -17,6 +18,16 @@ use std::time::{Duration, Instant};
 use thiserror::Error;
 use tracing::{error, info, instrument, warn};
 use tupa_codegen::execution_plan::{ExecutionPlan, TypeSchema};
+
+// Re-export extension types
+mod extensions;
+pub use extensions::{ExtensionRegistry, TupaExtension};
+
+// Hot reload support
+#[cfg(feature = "hot-reload")]
+mod hot_reload;
+#[cfg(feature = "hot-reload")]
+pub use hot_reload::{HotReloadBuilder, HotReloadWatcher};
 
 pub type RuntimeResult<T> = Result<T, RuntimeError>;
 
@@ -137,9 +148,166 @@ impl Default for Runtime {
 
 impl Runtime {
     pub fn new() -> Self {
-        Self {
+        let runtime = Self {
             state: Arc::new(Mutex::new(RuntimeState::new())),
-        }
+        };
+        runtime.register_builtins();
+        runtime
+    }
+
+    /// Register built-in helper functions
+    fn register_builtins(&self) {
+        // Register with tupa:: prefix (recommended)
+        self.register_step("tupa::weighted", |input: Value| {
+            let score = input.get("score").and_then(|v| v.as_f64()).unwrap_or(0.0);
+            let weight = input.get("weight").and_then(|v| v.as_f64()).unwrap_or(1.0);
+            let reason = input
+                .get("reason")
+                .and_then(|v| v.as_str())
+                .unwrap_or("weighted");
+            Ok(json!({
+                "score": score,
+                "weight": weight,
+                "reason": reason
+            }))
+        });
+
+        self.register_step("tupa::warn", |input: Value| {
+            let reason = input.as_str().unwrap_or("warn");
+            Ok(json!({
+                "passed": true,
+                "severity": "warn",
+                "reason": reason
+            }))
+        });
+
+        self.register_step("tupa::pass", |input: Value| {
+            let reason = input.as_str().unwrap_or("pass");
+            Ok(json!({
+                "passed": true,
+                "severity": "info",
+                "reason": reason
+            }))
+        });
+
+        self.register_step("tupa::confirm", |input: Value| {
+            let observed = input
+                .get("observed")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+            let consecutive = input
+                .get("consecutive")
+                .and_then(|v| v.as_i64())
+                .unwrap_or(0);
+            let required = input.get("required").and_then(|v| v.as_i64()).unwrap_or(1);
+            let reason = input
+                .get("reason")
+                .and_then(|v| v.as_str())
+                .unwrap_or("confirm");
+            let passed = observed && consecutive >= required;
+            Ok(json!({
+                "passed": passed,
+                "pending": !passed,
+                "remaining_hits": if passed { 0 } else { required - consecutive },
+                "reason": reason
+            }))
+        });
+
+        self.register_step("tupa::cooldown", |input: Value| {
+            let active = input
+                .get("active")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+            let remaining = input
+                .get("remaining_seconds")
+                .and_then(|v| v.as_i64())
+                .unwrap_or(0);
+            let reason = input
+                .get("reason")
+                .and_then(|v| v.as_str())
+                .unwrap_or("cooldown");
+            Ok(json!({
+                "blocked": active,
+                "remaining_ticks": remaining / 1000,
+                "reason": reason
+            }))
+        });
+
+        // Register without prefix for backward compatibility with existing .tp files
+        self.register_step("warn", |input: Value| {
+            let reason = input.as_str().unwrap_or("warn");
+            Ok(json!({
+                "passed": true,
+                "severity": "warn",
+                "reason": reason
+            }))
+        });
+
+        self.register_step("pass", |input: Value| {
+            let reason = input.as_str().unwrap_or("pass");
+            Ok(json!({
+                "passed": true,
+                "severity": "info",
+                "reason": reason
+            }))
+        });
+
+        self.register_step("weighted", |input: Value| {
+            let score = input.get("score").and_then(|v| v.as_f64()).unwrap_or(0.0);
+            let weight = input.get("weight").and_then(|v| v.as_f64()).unwrap_or(1.0);
+            let reason = input
+                .get("reason")
+                .and_then(|v| v.as_str())
+                .unwrap_or("weighted");
+            Ok(json!({
+                "score": score,
+                "weight": weight,
+                "reason": reason
+            }))
+        });
+
+        self.register_step("confirm", |input: Value| {
+            let observed = input
+                .get("observed")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+            let consecutive = input
+                .get("consecutive")
+                .and_then(|v| v.as_i64())
+                .unwrap_or(0);
+            let required = input.get("required").and_then(|v| v.as_i64()).unwrap_or(1);
+            let reason = input
+                .get("reason")
+                .and_then(|v| v.as_str())
+                .unwrap_or("confirm");
+            let passed = observed && consecutive >= required;
+            Ok(json!({
+                "passed": passed,
+                "pending": !passed,
+                "remaining_hits": if passed { 0 } else { required - consecutive },
+                "reason": reason
+            }))
+        });
+
+        self.register_step("cooldown", |input: Value| {
+            let active = input
+                .get("active")
+                .and_then(|v| v.as_bool())
+                .unwrap_or(false);
+            let remaining = input
+                .get("remaining_seconds")
+                .and_then(|v| v.as_i64())
+                .unwrap_or(0);
+            let reason = input
+                .get("reason")
+                .and_then(|v| v.as_str())
+                .unwrap_or("cooldown");
+            Ok(json!({
+                "blocked": active,
+                "remaining_ticks": remaining / 1000,
+                "reason": reason
+            }))
+        });
     }
 
     pub fn register_step<F>(&self, name: &str, func: F)
@@ -286,19 +454,15 @@ impl Runtime {
 
             if constraint_report["success"].as_bool().unwrap_or(false) {
                 match action {
-                    "BUY" => {
-                        if portfolio_value > price {
-                            position += 1.0;
-                            portfolio_value -= price;
-                            info!(target: "audit", event = "trade_executed", type = "BUY", price = price, index = i);
-                        }
+                    "BUY" if portfolio_value > price => {
+                        position += 1.0;
+                        portfolio_value -= price;
+                        info!(target: "audit", event = "trade_executed", type = "BUY", price = price, index = i);
                     }
-                    "SELL" => {
-                        if position > 0.0 {
-                            position -= 1.0;
-                            portfolio_value += price;
-                            info!(target: "audit", event = "trade_executed", type = "SELL", price = price, index = i);
-                        }
+                    "SELL" if position > 0.0 => {
+                        position -= 1.0;
+                        portfolio_value += price;
+                        info!(target: "audit", event = "trade_executed", type = "SELL", price = price, index = i);
                     }
                     _ => {}
                 }
@@ -608,7 +772,7 @@ pub fn evaluate_constraints(plan: &ExecutionPlan, state: &Value) -> Value {
 mod tests {
     use super::*;
     use std::thread::sleep;
-    use tupa_codegen::execution_plan::{ConstraintPlan, ExecutionPlan, TypeSchema};
+    use tupa_codegen::execution_plan::{ConstraintPlan, ExecutionPlan, StepPlan, TypeSchema};
 
     #[test]
     fn test_circuit_breaker_logic() {
@@ -1153,5 +1317,211 @@ mod tests {
             result["result"]["config"]["entry"]["max_spread_pct"],
             json!(0.001)
         );
+    }
+
+    #[tokio::test]
+    async fn test_builtin_warn() {
+        let runtime = Runtime::new();
+
+        let plan = ExecutionPlan {
+            name: "test".into(),
+            version: "1.0".into(),
+            seed: None,
+            input_schema: TypeSchema {
+                kind: "any".into(),
+                elem: None,
+                fields: None,
+                len: None,
+                name: None,
+                tensor_shape: None,
+                tensor_dtype: None,
+            },
+            output_schema: None,
+            steps: vec![StepPlan {
+                name: "result".into(),
+                function_ref: "tupa::warn".into(),
+                effects: vec![],
+            }],
+            constraints: vec![],
+            metrics: HashMap::new(),
+            metric_plans: vec![],
+        };
+
+        let output = runtime
+            .run_pipeline_async(&plan, json!("test_reason"))
+            .await
+            .unwrap();
+        assert_eq!(output["result"]["passed"], true);
+        assert_eq!(output["result"]["severity"], "warn");
+        assert_eq!(output["result"]["reason"], "test_reason");
+    }
+
+    #[tokio::test]
+    async fn test_builtin_pass() {
+        let runtime = Runtime::new();
+
+        let plan = ExecutionPlan {
+            name: "test".into(),
+            version: "1.0".into(),
+            seed: None,
+            input_schema: TypeSchema {
+                kind: "any".into(),
+                elem: None,
+                fields: None,
+                len: None,
+                name: None,
+                tensor_shape: None,
+                tensor_dtype: None,
+            },
+            output_schema: None,
+            steps: vec![StepPlan {
+                name: "result".into(),
+                function_ref: "tupa::pass".into(),
+                effects: vec![],
+            }],
+            constraints: vec![],
+            metrics: HashMap::new(),
+            metric_plans: vec![],
+        };
+
+        let output = runtime
+            .run_pipeline_async(&plan, json!("all_good"))
+            .await
+            .unwrap();
+        assert_eq!(output["result"]["passed"], true);
+        assert_eq!(output["result"]["severity"], "info");
+        assert_eq!(output["result"]["reason"], "all_good");
+    }
+
+    #[tokio::test]
+    async fn test_builtin_weighted() {
+        let runtime = Runtime::new();
+
+        let plan = ExecutionPlan {
+            name: "test".into(),
+            version: "1.0".into(),
+            seed: None,
+            input_schema: TypeSchema {
+                kind: "any".into(),
+                elem: None,
+                fields: None,
+                len: None,
+                name: None,
+                tensor_shape: None,
+                tensor_dtype: None,
+            },
+            output_schema: None,
+            steps: vec![StepPlan {
+                name: "result".into(),
+                function_ref: "tupa::weighted".into(),
+                effects: vec![],
+            }],
+            constraints: vec![],
+            metrics: HashMap::new(),
+            metric_plans: vec![],
+        };
+
+        let output = runtime
+            .run_pipeline_async(
+                &plan,
+                json!({"score": 0.8, "weight": 25.0, "reason": "test_component"}),
+            )
+            .await
+            .unwrap();
+        assert_eq!(output["result"]["score"], 0.8);
+        assert_eq!(output["result"]["weight"], 25.0);
+        assert_eq!(output["result"]["reason"], "test_component");
+    }
+
+    #[tokio::test]
+    async fn test_builtin_confirm() {
+        let runtime = Runtime::new();
+
+        // Test passing case
+        let plan = ExecutionPlan {
+            name: "test".into(),
+            version: "1.0".into(),
+            seed: None,
+            input_schema: TypeSchema {
+                kind: "any".into(),
+                elem: None,
+                fields: None,
+                len: None,
+                name: None,
+                tensor_shape: None,
+                tensor_dtype: None,
+            },
+            output_schema: None,
+            steps: vec![StepPlan {
+                name: "result".into(),
+                function_ref: "tupa::confirm".into(),
+                effects: vec![],
+            }],
+            constraints: vec![],
+            metrics: HashMap::new(),
+            metric_plans: vec![],
+        };
+
+        let output = runtime
+            .run_pipeline_async(
+                &plan,
+                json!({"observed": true, "consecutive": 3, "required": 3, "reason": "ready"}),
+            )
+            .await
+            .unwrap();
+        assert_eq!(output["result"]["passed"], true);
+        assert_eq!(output["result"]["pending"], false);
+
+        // Test pending case
+        let output = runtime
+            .run_pipeline_async(
+                &plan,
+                json!({"observed": true, "consecutive": 2, "required": 3, "reason": "waiting"}),
+            )
+            .await
+            .unwrap();
+        assert_eq!(output["result"]["passed"], false);
+        assert_eq!(output["result"]["pending"], true);
+        assert_eq!(output["result"]["remaining_hits"], 1);
+    }
+
+    #[tokio::test]
+    async fn test_builtin_cooldown() {
+        let runtime = Runtime::new();
+
+        let plan = ExecutionPlan {
+            name: "test".into(),
+            version: "1.0".into(),
+            seed: None,
+            input_schema: TypeSchema {
+                kind: "any".into(),
+                elem: None,
+                fields: None,
+                len: None,
+                name: None,
+                tensor_shape: None,
+                tensor_dtype: None,
+            },
+            output_schema: None,
+            steps: vec![StepPlan {
+                name: "result".into(),
+                function_ref: "tupa::cooldown".into(),
+                effects: vec![],
+            }],
+            constraints: vec![],
+            metrics: HashMap::new(),
+            metric_plans: vec![],
+        };
+
+        let output = runtime
+            .run_pipeline_async(
+                &plan,
+                json!({"active": true, "remaining_seconds": 5000, "reason": "guard_active"}),
+            )
+            .await
+            .unwrap();
+        assert_eq!(output["result"]["blocked"], true);
+        assert_eq!(output["result"]["remaining_ticks"], 5);
+        assert_eq!(output["result"]["reason"], "guard_active");
     }
 }
