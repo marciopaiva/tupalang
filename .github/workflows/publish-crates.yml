@@ -75,7 +75,8 @@ jobs:
             tupa-typecheck \
             tupa-codegen \
             tupa-pyffi \
-            tupa-runtime; do
+            tupa-runtime \
+            tupa-plugin; do
             publish_crate "$crate"
           done
 
