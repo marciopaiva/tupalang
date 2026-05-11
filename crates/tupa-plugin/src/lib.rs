@@ -46,7 +46,9 @@ pub struct PluginManager {
 impl PluginManager {
     /// Create a new empty plugin manager.
     pub fn new() -> Self {
-        Self { plugins: Vec::new() }
+        Self {
+            plugins: Vec::new(),
+        }
     }
 
     /// Load a plugin from a dynamic library file (`.so`/`.dll`/`.dylib`).
@@ -54,7 +56,8 @@ impl PluginManager {
     /// The library must export `_tupa_plugin_name` and `_tupa_plugin_register` C symbols.
     pub fn load_plugin<P: AsRef<Path>>(&mut self, path: P) -> Result<&Plugin, PluginError> {
         let path = path.as_ref();
-        let lib = unsafe { Library::new(path).map_err(|e| PluginError::LibraryLoad(e.to_string()))? };
+        let lib =
+            unsafe { Library::new(path).map_err(|e| PluginError::LibraryLoad(e.to_string()))? };
 
         let name_sym: Symbol<unsafe extern "C" fn() -> *const i8> = unsafe {
             lib.get(b"_tupa_plugin_name\0")

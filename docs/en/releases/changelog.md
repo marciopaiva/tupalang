@@ -325,8 +325,3 @@ This document records relevant changes per version.
 - LSP (`tupa-lsp`) not implemented (deferred; rust-analyzer covers DSL)
 - Benchmark suite (`criterion`) not yet created (Phase 4)
 - Some public items in `tupa-core`/`tupa-engine` lack `///` docs (need API doc pass before 1.0)
-
-## 0.8.2 (2026-05-08)
-
-- Specification v0.1 published.
-- Basic lexer, parser, typechecker, and CLI.

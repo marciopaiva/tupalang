@@ -102,6 +102,7 @@ impl Parse for StepDecl {
     }
 }
 
+#[allow(clippy::collapsible_match)]
 impl Parse for ConstraintDecl {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let call_expr: Expr = input.parse()?;

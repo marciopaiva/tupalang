@@ -284,6 +284,7 @@ dependencies = [
  "ciborium",
  "clap",
  "criterion-plot",
+ "futures",
  "is-terminal",
  "itertools",
  "num-traits",
@@ -1660,13 +1661,13 @@ dependencies = [
 
 [[package]]
 name = "tupa-pyffi"
-version = "0.8.2"
+version = "0.9.0"
 dependencies = [
  "once_cell",
  "pyo3",
- "serde",
  "serde_json",
- "thiserror",
+ "tupa-core",
+ "tupa-engine",
 ]
 
 [[package]]

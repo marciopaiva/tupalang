@@ -326,8 +326,3 @@ Registrar cambios relevantes por versión.
 - LSP (`tupa-lsp`) no implementado (diferido; rust-analyzer cubre DSL)
 - Suite de benchmarks (`criterion`) no creada (Phase 4)
 - Algunos items públicos en `tupa-core`/`tupa-engine` carecen de docs `///` (necesita pass de文档 antes de 1.0)
-
-## 0.8.2 (2026-05-08)
-
-- Specification v0.1 publicada.
-- Lexer, parser, typechecker y CLI básicos.
