@@ -274,6 +274,7 @@ pub trait ParallelPipeline: ExecutorPipeline {
 
 /// Result of pipeline execution.
 #[derive(Debug, Clone)]
+#[must_use]
 pub struct PipelineResult {
     /// All collected metric values (keyed by metric or step name)
     pub values: HashMap<String, Value>,
@@ -311,6 +312,16 @@ pub struct ConstraintFailure {
     pub expected: Value,
     /// The actual value observed.
     pub actual: Value,
+}
+
+impl std::fmt::Display for ConstraintFailure {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "constraint failed: {} {} {} (actual: {})",
+            self.metric, self.operator, self.expected, self.actual
+        )
+    }
 }
 
 /// Execution engine errors.

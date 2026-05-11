@@ -1650,6 +1650,7 @@ dependencies = [
 name = "tupa-plugin"
 version = "0.9.0"
 dependencies = [
+ "criterion",
  "libloading",
  "serde",
  "serde_json",
