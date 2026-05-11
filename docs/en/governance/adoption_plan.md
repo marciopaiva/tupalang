@@ -22,12 +22,14 @@ This document defines the incremental path to make Tupã production-ready **as a
 ## Phase 0: Minimal core ✅ COMPLETE
 
 **Deliverables (all checked):**
+
 - ✅ Core subset defined (syntax and basic types) — captured in `docs/reference/spec.md`
 - ✅ Minimal formal specification — `spec.md` (human-readable) + `grammar.ebnf` (machine-readable) + `type_semantics.md` (type rules)
 - ✅ Conformance test suite — `crates/tupa-conformance` (29 tests, all passing)
 - ✅ JSON diagnostics — `tupa-cli check --format json` (proven)
 
 **Artifacts location:**
+
 - `docs/reference/spec.md` — normative specification
 - `docs/reference/grammar.ebnf` — EBNF grammar
 - `docs/reference/type_semantics.md` — formal type semantics
@@ -48,6 +50,7 @@ This document defines the incremental path to make Tupã production-ready **as a
 | Language server | ❌ | Optional: `tupa-lsp` only for legacy `.tp` files (DSL users use rust-analyzer) |
 
 **Success criteria:**
+
 - `cargo install tupa-cli` works (wrapper command)
 - `cargo tupa fmt src/strategy.tp` formats file
 - `cargo tupa lint src/` returns warnings/errors with codes
@@ -66,6 +69,7 @@ This document defines the incremental path to make Tupã production-ready **as a
 | Didactic error messages | Diagnostic codes (`E2001`, `E3002`), span info, hints, `--explain` support |
 
 **Quality bar:**
+
 - All error messages include: code, message, file:line:col, suggestion
 - JSON output for IDE integration (rust-analyzer compatible)
 - Examples: `tupa-core` README has 5+ complete, runnable snippets
@@ -97,6 +101,7 @@ This document defines the incremental path to make Tupã production-ready **as a
 | Versioning policy | SemVer 2.0: breaking changes in major, features in minor, fixes in patch |
 
 **1.0.0 criteria (cumulative):**
+
 1. Phase 0 ✅ complete
 2. Phase 1 ✅ toolchain stable (no breaking changes in 0.x)
 3. Phase 2 ✅ templates published, error messages didactic
@@ -120,14 +125,14 @@ This document defines the incremental path to make Tupã production-ready **as a
 
 ## Phase Timeline (Estimative)
 
-```
+```text
 Month 1–2:  Phase 1 (toolchain) — crates published
 Month 3–4:  Phase 2 (DX) — templates, polished CLI
 Month 5–6:  Phase 3 (FFI) — C/Python bindings
 Month 7–8:  Phase 4 (quality) — benchmarks, stabilization
 Month 9–10: 1.0.0 release candidate
 Month 11–12: Production hardening → 1.0.0
-```
+```text
 
 **Accelerated path:** 6 months if ViperTrade migrates early and provides feedback.
 

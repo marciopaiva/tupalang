@@ -45,4 +45,4 @@ El wiki se sincroniza automáticamente vía workflow. Si necesitas forzar, ejecu
 
 ```bash
 bash scripts/sync-wiki.sh
-```
+```text

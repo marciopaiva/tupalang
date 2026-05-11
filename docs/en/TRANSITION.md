@@ -9,12 +9,14 @@
 ## Why This Change?
 
 The standalone `.tp` language required:
+
 - Installing a custom toolchain (`tupa` binary)
 - Learning a new syntax (similar to Rust but different)
 - Debugging across language boundaries
 - Limited IDE support (waiting for LSP)
 
 **The Rust crate approach gives you:**
+
 - `cargo add tupa-core` — no new toolchain
 - Rust syntax + macros — Rust IDE support immediately
 - Full type checking by rustc before macro expansion
@@ -47,14 +49,14 @@ pipeline MyStrategy {
     metric("sharpe").ge(1.5)
   ]
 }
-```
+```text
 
 ```bash
 # Old workflow
 tupa check strategy.tp
 tupa codegen --format json strategy.tp
 tupa run --pipeline MyStrategy --input signal.json strategy.tp
-```
+```text
 
 ---
 
@@ -86,7 +88,7 @@ pipeline! {
         metric("sharpe").ge(1.5)
     ]
 }
-```
+```text
 
 ```rust
 // src/main.rs
@@ -100,7 +102,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Result: {:?}", result);
     Ok(())
 }
-```
+```text
 
 ```bash
 # New workflow
@@ -109,7 +111,7 @@ cargo tupa fmt            # formats .tp files if still used
 cargo tupa lint           # lints Rust code for Tupã patterns
 cargo build --release
 cargo run --release
-```
+```text
 
 ---
 
@@ -138,44 +140,48 @@ cargo run --release
 [dependencies]
 tupa-core = "1.0"
 tupa-engine = "1.0"
-```
+```text
 
 ### Step 2: Convert enum/type definitions
 
 `.tp`:
+
 ```tupa
 enum MarketEvent {
   Tick(symbol: string, price: f64),
   Bar(symbol: string, open: f64, close: f64)
 }
-```
+```text
 
 Rust:
+
 ```rust
 #[derive(Debug, Clone)]
 enum MarketEvent {
     Tick { symbol: String, price: f64 },
     Bar { symbol: String, open: f64, close: f64 },
 }
-```
+```text
 
 ### Step 3: Port pure functions
 
 `.tp`:
+
 ```tupa
 fn sma(prices: [f64], window: i64): f64 {
   let sum = prices.slice(-window).sum();
   return sum / window as f64;
 }
-```
+```text
 
 Rust:
+
 ```rust
 fn sma(prices: &[f64], window: usize) -> f64 {
     let sum: f64 = prices.iter().rev().take(window).sum();
     sum / window as f64
 }
-```
+```text
 
 ### Step 4: Wrap in `pipeline!` macro
 
@@ -190,7 +196,7 @@ pipeline! {
         metric("max_leverage").le(2.0)
     ]
 }
-```
+```text
 
 ### Step 5: Remove `.tp` file
 
@@ -205,7 +211,7 @@ Delete `strategy.tp`. All logic now lives in `.rs` files.
 # (new)
 - run: cargo tupa check  # checks embedded DSL via proc-macro
 - run: cargo test         # unit tests for pipeline logic
-```
+```text
 
 ---
 
@@ -216,7 +222,7 @@ We will provide `tupa-migrate` command:
 ```bash
 # Convert .tp → Rust DSL skeletons (human refinement needed)
 tupa-migrate convert strategy.tp --output src/generated/
-```
+```text
 
 **Status:** Not yet implemented. Track issue #XXX.
 
@@ -233,15 +239,16 @@ match x {
   (1, _) | (2, _) => print("one or two"),
   _ => print("other")
 }
-```
+```text
 
 In Rust DSL:
+
 ```rust
 match x {
     (1, _) | (2, _) => println!("one or two"),
     _ => println!("other"),
 }
-```
+```text
 
 Works the same — good.
 
@@ -253,13 +260,13 @@ Works the same — good.
 fn divide(a: f64, b: f64): Result<f64, string> {
   if b == 0.0 { Err("div by zero") } else { Ok(a/b) }
 }
-```
+```text
 
 ```rust
 fn divide(a: f64, b: f64) -> Result<f64, String> {
   if b == 0.0 { Err("div by zero".into()) } else { Ok(a / b) }
 }
-```
+```text
 
 Same concept, Rust standard types.
 
@@ -268,12 +275,13 @@ Same concept, Rust standard types.
 `.tp` special syntax: `Tensor<f32, shape=[28,28], density=0.1>`
 
 Rust DSL:
+
 ```rust
 use tupa_types::Tensor;
 
 type Image = Tensor<f32, { shape: [28, 28], density: 0.1 }>;
 // or via const generics (exact syntax TBD in 0.1)
-```
+```text
 
 Still being designed — expect 0.1 design iteration.
 
@@ -282,6 +290,7 @@ Still being designed — expect 0.1 design iteration.
 `.tp`: `let g = ∇square(3.0)` automatic differentiation.
 
 Rust DSL:
+
 ```rust
 use tupa_core::grad;
 
@@ -290,7 +299,7 @@ grad!(|x| x * x)(3.0);  // returns (6.0,)
 let squared = |x: f64| x * x;
 let grad_fn = grad!(squared);
 grad_fn(3.0);
-```
+```text
 
 Gradient operator becomes a procedural macro `grad!` that generates backward pass at compile time.
 
@@ -299,11 +308,13 @@ Gradient operator becomes a procedural macro `grad!` that generates backward pas
 ## Testing
 
 Old:
+
 ```bash
 tupa check strategy.tp
-```
+```text
 
 New:
+
 ```rust
 #[cfg(test)]
 mod tests {
@@ -319,12 +330,12 @@ mod tests {
         assert!(out.score > 0);
     }
 }
-```
+```text
 
 ```bash
 cargo test          # runs unit tests
 cargo tupa check    # validates DSL macros (compile-time)
-```
+```text
 
 ---
 
@@ -333,6 +344,7 @@ cargo tupa check    # validates DSL macros (compile-time)
 **Standalone `.tp`:** Waiting for LSP (Phase 1). Basic syntax highlighting only.
 
 **Rust DSL:** Full rust-analyzer:
+
 - Autocomplete for pipeline steps, constraints
 - Go to definition on `step("score")` → `fn score()`
 - Inline type errors from rustc
@@ -382,14 +394,15 @@ Benchmark target: <1μs per step decision.
 ## Summary
 
 You're trading:
+
 - ✗ One syntax to learn
 - ✗ Separate toolchain install
 
 For:
-+ Rust toolchain everywhere
-+ IDE support day one
-+ Safer types (Rust compiler guarantees)
-+ Faster path to production (v1.0 in 6–12 months)
+- Rust toolchain everywhere
+- IDE support day one
+- Safer types (Rust compiler guarantees)
+- Faster path to production (v1.0 in 6–12 months)
 
 **Bottom line:** Porting a `.tp` file to Rust DSL takes 30–60 minutes per file for experienced Rustaceans. The resulting code is more maintainable and debuggable.
 

@@ -25,13 +25,13 @@ This document describes the release process with clear, repeatable steps.
 
 ```bash
 ./scripts/ci-local.sh
-```
+```text
 
 5. Run release verification gate:
 
 ```bash
 ./scripts/release-verify.sh X.Y.Z
-```
+```text
 
 6. Confirm all required CI checks are green on `main`.
 7. Verify main examples in `examples/` and multilingual docs.
@@ -40,7 +40,7 @@ This document describes the release process with clear, repeatable steps.
 ```bash
 git tag -a vX.Y.Z -m "vX.Y.Z"
 git push origin vX.Y.Z
-```
+```text
 
 9. Create the GitHub release using the generated draft notes.
 

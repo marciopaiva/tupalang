@@ -38,7 +38,7 @@
     { "name": "false_positive_rate", "function_ref": "fraud_complete::compute_fpr", "args": [true, false] }
   ]
 }
-```
+```text
 
 ## Compatibilidad
 

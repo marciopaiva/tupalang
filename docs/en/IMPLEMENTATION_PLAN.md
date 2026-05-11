@@ -58,10 +58,11 @@ This document details the concrete implementation tasks, milestones, and accepta
 - Publish 0.9.0 to crates.io (beta)
 
 **Acceptance:**
+
 ```bash
 cargo add tupa-core --pre
 cargo build  # succeeds
-```
+```text
 
 #### 1.2 Create `tupa-engine` crate
 
@@ -71,7 +72,7 @@ cargo build  # succeeds
   - `new()` — initialize channel pool
   - `run(pipeline, input)` — synchronous execution
   - `run_async(pipeline, input)` — async execution (if pipeline has async steps)
-- Constraint evaluator: 
+- Constraint evaluator:
   - Collect metric values after each step
   - Compare against constraint thresholds
   - Return `PipelineResult { passed, values, failures }`
@@ -79,10 +80,11 @@ cargo build  # succeeds
 - Publish 0.9.0 to crates.io
 
 **Acceptance:**
+
 ```bash
 cargo add tupa-engine --pre
 cargo test  # unit tests pass
-```
+```text
 
 #### 1.3 Create `cargo-tupa` wrapper (optional but planned)
 
@@ -92,10 +94,11 @@ cargo test  # unit tests pass
 - Subcommands: `cargo tupa check`, `cargo tupa fmt`, `cargo tupa lint`, `cargo tupa run`
 
 **Acceptance:**
+
 ```bash
 cargo install cargo-tupa
 cargo tupa check --help
-```
+```text
 
 #### 1.4 Port 3 example pipelines from ViperTrade
 
@@ -104,10 +107,11 @@ cargo tupa check --help
 - Validate: compiles, runs, produces same results as `.tp` version
 
 **Acceptance:**
+
 ```bash
 cargo run --example fraud_complete
 cargo run --example credit_decision
-```
+```text
 
 ---
 
@@ -159,6 +163,7 @@ cargo run --example credit_decision
 #### 2.4 Expand `tupa-lint`
 
 Current rules (legacy):
+
 - Unused variable
 - Shadowed variable
 - Missing constraint annotation
@@ -166,6 +171,7 @@ Current rules (legacy):
 - Snake/PascalCase checking
 
 New rules for DSL:
+
 - Step function purity verification
 - Constraint expression complexity (cyclomatic)
 - Metric naming conventions
@@ -209,11 +215,13 @@ New rules for DSL:
 - Current `tupa-pyffi` depends on `tupa-parser`/`typecheck`
 - Refactor to use `tupa-core` + `tupa-engine` instead
 - Provide Python module `tupa`:
+
   ```python
   import tupa
   pipeline = tupa.Pipeline.from_rust("my_pipeline")
   result = pipeline.run(input_data)
   ```
+
 - Publish to PyPI (optional, Phase 3b)
 
 ---
@@ -297,6 +305,7 @@ Before moving to next phase:
 |---|---|---|
 | Macro API too complex | Keep expansions readable; `tupa-expand --pretty` tool | Compiler team |
 | Performance < targets | Profile early; add Cranelift JIT later if needed | Perf team |
+
 - FFI ABI instability | Freeze ABI at 1.0; use `cbindgen` for reproducible headers | FFI team |
 | Community adoption slow | Early adopter program; ViperTrade migration; tutorials | Marketing |
 
@@ -346,11 +355,12 @@ After 1.0:
 | Project template `tupa-template` | ✅ | `crates/tupa-template` |
 
 **Acceptance:**
+
 ```bash
 cargo run --example minimal --features parallel
 cargo tupa check
 cargo tupa run
-```
+```text
 
 ---
 
@@ -363,7 +373,7 @@ cargo tupa run
 - Day 8–10: AST generation, trait impl generation
 - Day 11–14: Unit tests for macro expansion, publish 0.9.0
 
-**Sprint 2 (Weeks 3–4): Constraint solver**
+### Sprint 2 (Weeks 3–4): Constraint solver
 
 - Day 1–3: Constraint expression AST (`metric("x").gt(5)`)
 - Day 4–7: Constant folding engine

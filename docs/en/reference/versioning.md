@@ -36,7 +36,7 @@ tupa-core = "0.9"
 tupa-engine = "0.9"
 tupa-plugin = "0.9"
 cargo-tupa = "0.9"
-```
+```text
 
 ---
 
@@ -83,7 +83,7 @@ For any feature or entire crate:
 3. **Document** migration path in next minor release notes.
 4. **Remove** after:
     - **Pre-1.0:** at least one minor version (e.g., deprecated in 0.9.0, removed in 0.10.0)
-   - **Post-1.0:** at least 6 months
+    - **Post-1.0:** at least 6 months
 
 Deprecated crates will receive security patches only until EOL date, then removed from crates.io.
 
@@ -94,6 +94,7 @@ Deprecated crates will receive security patches only until EOL date, then remove
 ### Pre-1.0 (0.x)
 
 Between 0.9.0 and 1.0.0:
+
 - Minor releases (0.1 → 0.2, 0.2 → 0.3) **may** contain breaking changes to the DSL macro or executor API.
 - Each minor release includes a **migration guide** in its `CHANGELOG.md`.
 - Patch releases (0.1.1, 0.1.2) are backward-compatible within the same minor series.
@@ -101,6 +102,7 @@ Between 0.9.0 and 1.0.0:
 ### Post-1.0
 
 After a crate reaches 1.0.0:
+
 - Major version reserved for breaking changes.
 - At least **6 months deprecation cycle** for any removed feature.
 - Migration guide required for every major bump.

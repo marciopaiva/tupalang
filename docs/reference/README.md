@@ -49,7 +49,7 @@ pipeline! {
         metric("sharpe").ge(1.5)
     ]
 }
-```
+```text
 
 Expands to a struct implementing the `Pipeline` trait. Type-checked by rustc.
 
@@ -59,7 +59,7 @@ Expands to a struct implementing the `Pipeline` trait. Type-checked by rustc.
 use tupa_core::Safe;
 
 let x: Safe<f64, !nan> = Safe::new(3.14);  // Compile-time NaN check
-```
+```text
 
 Corresponds to `Safe<T, !c>` in the SPEC (section 3.2.6).
 
@@ -69,7 +69,7 @@ Corresponds to `Safe<T, !c>` in the SPEC (section 3.2.6).
 use tupa_core::Tensor;
 
 type Image = Tensor<f32, { shape: [28, 28], density: 1.0 }>;
-```
+```text
 
 Corresponds to `Tensor<T, shape=[...], density=d>` in SPEC (section 3.2.5).
 
@@ -81,7 +81,7 @@ metric("latency").le(50.0)         // ≤
 metric("error_rate").lt(0.01)      // <
 metric("profit").gt(0.0)           // >
 metric("ratio").eq(1.0)            // ==
-```
+```text
 
 Constraints are checked **at compile time** when possible, **at runtime** when values are dynamic.
 
@@ -93,7 +93,7 @@ use tupa_core::grad;
 let f = |x: f64| x * x;
 let df = grad!(f);
 assert_eq!(df(3.0), (6.0,));  // derivative
-```
+```text
 
 Corresponds to `∇f(x)` in SPEC (section 4.2.1). Only works on pure functions.
 
@@ -105,7 +105,7 @@ The `tupa-conformance` test suite validates that the crates behave according to 
 
 ```bash
 cargo run -p tupa-conformance
-```
+```text
 
 All public crates must pass conformance before release.
 

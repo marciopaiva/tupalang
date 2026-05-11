@@ -80,7 +80,7 @@ Definir a especificação formal da linguagem Tupã, incluindo gramática, regra
 
 /* Comentário
    de múltiplas linhas */
-```
+```text
 
 ### 2.3 Identificadores
 
@@ -88,7 +88,7 @@ Definir a especificação formal da linguagem Tupã, incluindo gramática, regra
 identifier = letter { letter | digit | "_" } ;
 letter     = "a".."z" | "A".."Z" | "\u{0080}".."\u{10FFFF}" ;
 digit      = "0".."9" ;
-```
+```text
 
 **Normalização Unicode (Normativo)**:
 
@@ -105,7 +105,7 @@ fn let if else match while for in return async spawn await
 pipeline step
 true false null i64 f64 f32 f16 bool string tensor option result
 safe unsafe extern import export
-```
+```text
 
 ### 2.5 Literais
 
@@ -116,7 +116,7 @@ string_literal  = '"' { unicode_char | escape_sequence } '"' ;
 escape_sequence = "\\" ("n" | "t" | '"' | "\\" | "u{" hex_digit {1,6} "}") ;
 hex_digit       = digit | "a".."f" | "A".."F" ;
 tensor_literal  = "[" expression { "," expression } "]" ;
-```
+```text
 
 **Exemplos**:
 
@@ -127,7 +127,7 @@ tensor_literal  = "[" expression { "," expression } "]" ;
 "Olá 🌩️"   // string com Unicode
 "newline\n" // sequência de escape
 [1, 2, 3]   // tensor_literal
-```
+```text
 
 ---
 
@@ -150,18 +150,18 @@ tensor_literal  = "[" expression { "," expression } "]" ;
 
 ```ebnf
 tuple_type = "(" type { "," type } [","] ")" ;
-```
+```text
 
 ```tupa
 let pair: (i64, string) = (42, "answer")
 let first = pair.0  // 42
-```
+```text
 
 #### 3.2.2 Tipos de função (Normativo)
 
 ```ebnf
 func_type = "fn" "(" [ type { "," type } ] ")" "->" type ;
-```
+```text
 
 ```tupa
 let f: fn(i64, i64) -> i64 = add
@@ -176,7 +176,7 @@ fn hello(name: string) {
   print("Olá, " + name)
 }
 hello("Tupã")
-```
+```text
 
 **Comparação:**
 
@@ -193,7 +193,7 @@ Veja mais exemplos no [Guia de exemplos](../guides/examples_guide.md) e no [exam
 enum_decl = "enum" identifier [ "<" identifier { "," identifier } ">" ] "{" enum_variant { "," enum_variant } [ "," ] "}" ;
 enum_variant = identifier [ "(" type { "," type } [ "," ] ")" ] ;
 enum_type = identifier [ "<" type { "," type } ">" ] ;
-```
+```text
 
 ```tupa
 enum Result<T, E> {
@@ -204,14 +204,14 @@ enum Result<T, E> {
 fn use_result(r: Result<Safe<f64, !nan>, string>) {
   print("ok")
 }
-```
+```text
 
 #### 3.2.4 Option / Result (tratamento de erros)
 
 ```ebnf
 option_type = "Option" "<" type ">" ;
 result_type = "Result" "<" type "," type ">" ;
-```
+```text
 
 ```tupa
 fn divide(a: f64, b: f64): Result<f64, string> {
@@ -220,7 +220,7 @@ fn divide(a: f64, b: f64): Result<f64, string> {
   }
   return Ok(a / b)
 }
-```
+```text
 
 #### 3.2.5 Tensores (IA de primeira classe)
 
@@ -231,7 +231,7 @@ tensor_type = "Tensor" "<"
               [ "," "density" "=" float_literal ] 
             ">" ;
 dimension   = integer_literal | "..." ;  // "..." = dimensão dinâmica
-```
+```text
 
 ```tupa
 // Tensor denso 28x28 (MNIST)
@@ -239,14 +239,14 @@ let image: Tensor<f32, shape=[28, 28]> = load("digit.tp")
 
 // Tensor esparso 90% (recomendado para LLMs)
 let weights: Tensor<f16, shape=[4096, 4096], density=0.1> = load("llama3.tp")
-```
+```text
 
 #### 3.2.6 Tipos de alinhamento (restrições éticas)
 
 ```ebnf
 safe_type = "Safe" "<" type "," constraint_list ">" ;
 constraint_list = "!" identifier { "," "!" identifier } ;
-```
+```text
 
 ```tupa
 // Texto que não pode conter discurso de ódio
@@ -254,7 +254,7 @@ let summary: Safe<string, !hate_speech> = summarize(article)
 
 // Número que não pode ser NaN/Inf (crítico para treinamento estável)
 let loss: Safe<f64, !nan, !inf> = compute_loss(predictions, targets)
-```
+```text
 
 Exemplo com propagação via enum:
 
@@ -275,7 +275,7 @@ fn classify(text: string): LLMResponse<Safe<string, !misinformation>> {
   }
   return Safe(text)
 }
-```
+```text
 
 Exemplo com correspondência de padrões:
 
@@ -287,7 +287,7 @@ fn handle(response: LLMResponse<Safe<string, !misinformation>>) {
     Blocked(reason) => reject(reason),
   }
 }
-```
+```text
 
 > **Nota**: Restrições são verificadas via:
 >
@@ -327,12 +327,12 @@ Para cada restrição `!c` em `Safe<T, !c>`:
 ```ebnf
 array_type = "[" type ";" integer_literal "]" ;  // tamanho fixo
 slice_type = "[" type "]" ;                      // tamanho dinâmico
-```
+```text
 
 ```tupa
 let fixed: [i64; 5] = [1, 2, 3, 4, 5]
 let dynamic: [i64] = vec![1, 2, 3]
-```
+```text
 
 **Semântica (Normativa)**:
 
@@ -408,7 +408,7 @@ primary_expr      = literal
 argument_list     = expression { "," expression } ;
 field_access      = identifier | integer_literal ;
 literal           = integer_literal | float_literal | string_literal | "true" | "false" | "null" ;
-```
+```text
 
 ### 4.2 Expressões-chave
 
@@ -427,7 +427,7 @@ fn mse(pred: f64, target: f64): f64 {
 }
 
 let (d_pred, d_target) = ∇mse(0.8, 1.0)  // → (-0.4, 0.4)
-```
+```text
 
 **Tipo de retorno**:
 
@@ -464,14 +464,14 @@ match http_status {
   code if code >= 500 => f"Erro do servidor {code}",
   _ => "Desconhecido"
 }
-```
+```text
 
 #### 4.2.3 Interpolação de strings
 
 ```tupa
 let name = "Tupã"
 print(f"Olá, {name}!")  // → "Olá, Tupã!"
-```
+```text
 
 ---
 
@@ -512,7 +512,7 @@ control_flow      = "return" [ expression ] ";"
                   | "for" identifier "in" range_expr block ;
 
 range_expr        = expression ".." expression ;  // fim exclusivo
-```
+```text
 
 ### 5.2 Vinculação de variáveis
 
@@ -527,7 +527,7 @@ let name: string = "Tupã"
 // Mutabilidade explícita (padrão é imutável)
 let mut counter = 0
 counter = counter + 1  // permitido
-```
+```text
 
 ### 5.3 Funções
 
@@ -548,7 +548,7 @@ async fn fetch_user(id: i64): Result<User, string> {
   let resp = await http.get(f"/api/users/{id}")
   return parse_user(resp)
 }
-```
+```text
 
 ### 5.4 Controle de fluxo
 
@@ -567,7 +567,7 @@ while i < 10 {
 for i in 0..10 {
   print(i)  // 0, 1, 2, ..., 9 (fim exclusivo)
 }
-```
+```text
 
 ### 5.5 Escopo e sombreado (Normativa)
 
@@ -583,7 +583,7 @@ fn foo() {
   let x = 20
   print(x)  // 20
 }
-```
+```text
 
 ---
 
@@ -599,7 +599,7 @@ Exemplo:
 ```tupa
 let x: i64 = 9223372036854775807
 let y = x.wrap_add(1)
-```
+```text
 
 ---
 
@@ -609,7 +609,7 @@ let y = x.wrap_add(1)
 
 ```ebnf
 spawn_stmt = "spawn" expression ";" ;
-```
+```text
 
 ```tupa
 spawn async fn worker(id: i64) {
@@ -622,7 +622,7 @@ spawn async {
   let result = await heavy_computation()
   send_to_main(result)
 }
-```
+```text
 
 ### 6.2 Canais
 
@@ -641,7 +641,7 @@ match await rx.recv_timeout(1000) {  // 1000ms
   Some(v) => print(f"Recebido: {v}"),
   None => print("Timeout!")
 }
-```
+```text
 
 > **Garantia**: Canais são *baseados em ownership*, tornando corridas de dados impossíveis via sistema de tipos.
 
@@ -659,7 +659,7 @@ export fn square(x: f64): f64 { x * x }
 import "math" as math
 
 let result = math.square(5.0)
-```
+```text
 
 ### 7.2 Interface de função estrangeira (C)
 
@@ -674,7 +674,7 @@ fn main() {
   // ... uso ...
   unsafe { free(ptr) }
 }
-```
+```text
 
 **ABI mínimo (Normativa)**:
 
@@ -815,7 +815,7 @@ pipeline_body   = "input" ":" type ","
                   [ "validation" ":" block ] ;
 step_list       = step_decl { "," step_decl } ;
 step_decl       = "step" "(" string_literal ")" "{" expression "}" ;
-```
+```text
 
 ---
 
@@ -835,7 +835,7 @@ AST tipada
 LLVM IR 
   ↓ [Otimizador LLVM (-O3)]
 Binário nativo (ELF/Mach-O/PE)
-```
+```text
 
 ### 9.2 Estratégia de compilação de gradientes
 
@@ -867,7 +867,7 @@ define { double, double } @square_grad(double %x) {
   %ret2 = insertvalue { double, double } %ret, double %grad, 1
   ret { double, double } %ret2
 }
-```
+```text
 
 ### 9.3 Verificação de tipos de alinhamento
 
@@ -911,7 +911,7 @@ error[E2001]: tipos incompatíveis
    |
 8 | let x: i64 = "text"
    |            ^^^^^^^^
-```
+```text
 
 ---
 
@@ -931,7 +931,7 @@ error[E2001]: tipos incompatíveis
 fn main() {
   print("🌩️ Olá, Tupã!")
 }
-```
+```text
 
 ### 10.2 Inferência MNIST (Tensor esparso)
 
@@ -949,7 +949,7 @@ fn predict(image: Tensor<f32, shape=[28, 28]>): i64 {
   let probs = softmax(logits)
   return probs.argmax()
 }
-```
+```text
 
 ### 10.3 Resumo com alinhamento garantido
 
@@ -966,7 +966,7 @@ fn main() {
   let summary = summarize(article)  // ✅ Compila apenas se a segurança for comprovada
   publish(summary)  // Nunca publica conteúdo perigoso
 }
-```
+```text
 
 ### 10.4 Detecção de fraude diferenciável (Neurosimbólica)
 
@@ -987,7 +987,7 @@ fn train_step(batch: [Transaction], targets: [f64], lr: f64) {
   let (loss, grad) = ∇compute_loss(batch, targets)
   update_weights(grad, lr)
 }
-```
+```text
 
 ---
 
@@ -1010,7 +1010,7 @@ error[E0003]: esperado ';' após a expressão
    |
  3 |  let age = 28
    |                 ^
-```
+```text
 
 ### 11.2 Formato de aviso
 
@@ -1033,7 +1033,7 @@ error[E2001]: incompatibilidade de tipos: esperado I64, obtido Bool
    |
  2 |  let x: i64 = true;
    |               ^^^^
-```
+```text
 
 Para aridade incorreta:
 
@@ -1043,7 +1043,7 @@ error[E2002]: aridade incompatível: esperado 2, obtido 1
    |
  6 |  let y = add(1);
    |          ^^^^^^
-```
+```text
 
 ---
 

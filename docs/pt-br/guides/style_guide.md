@@ -37,4 +37,4 @@ fn sum(a: i64, b: i64) -> i64 {
 
 let score: Safe<f64, !nan> = risk_score(tx)
 let summary: Safe<string, !misinformation, !hate_speech> = review(text)
-```
+```text

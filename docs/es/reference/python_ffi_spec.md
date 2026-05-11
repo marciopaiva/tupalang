@@ -7,7 +7,7 @@
 fn linear_layer(input: Tensor) -> Tensor {
     // Cuerpo vacío — implementación delegada a Python
 }
-```
+```text
 
 ### Cumplimiento de Esquema (Schema Enforcement)
 
@@ -31,14 +31,14 @@ pipeline SafeInference @deterministic {
         step("predict") { linear_layer(input) }  // ❌ Rechazado: ExternalCall en @deterministic
     ]
 }
-```
+```text
 
 ## 2. Estructura de Crates
 
 ```bash
 # Nuevo crate para FFI
 cargo new --lib crates/tupa-pyffi
-```
+```text
 
 ```toml
 # crates/tupa-pyffi/Cargo.toml
@@ -48,7 +48,7 @@ serde = "1.0"
 serde_json = "1.0"
 tupa-parser = { path = "../tupa-parser" } # Reemplaza tupa-ast
 tupa-typecheck = { path = "../tupa-typecheck" }
-```
+```text
 
 ## 3. Contrato de Compilación
 
@@ -57,7 +57,7 @@ tupa-typecheck = { path = "../tupa-typecheck" }
 [workspace.metadata.tupa]
 python-min-version = "3.9"
 pytorch-min-version = "2.0"  # Documentado, no forzado aún
-```
+```text
 
 ## 4. Flujo de Ejecución
 
@@ -69,4 +69,4 @@ graph TD
     PyO3 -->|Validate Type| Validator[Schema Validator]
     Validator -->|Ok| Tupa
     Validator -->|Error| TupaError[Runtime Error]
-```
+```text

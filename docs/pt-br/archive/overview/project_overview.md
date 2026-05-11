@@ -39,7 +39,7 @@ pipeline FraudTraining {
   audit(hash_for_all: true)
   export("fraud_model_v1.tupamodel")
 }
-```
+```text
 
 ## Onde contribuir
 

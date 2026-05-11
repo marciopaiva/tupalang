@@ -32,7 +32,7 @@ It is **not** a general-purpose language. Think of it as a **DSL for policy/stra
 
 ```bash
 cargo add tupa-core tupa-engine
-```
+```text
 
 Then write a `pipeline! { ... }` block. See [Getting Started](../guides/getting_started.md).
 
@@ -86,7 +86,7 @@ Types that prove at compile time a constraint holds:
 ```rust
 let x: Safe<f64, !nan> = Safe::new(3.14);  // OK
 // let y: Safe<f64, !nan> = Safe::new(f64::NAN); // ❌ Compile error
-```
+```text
 
 The constraint `!nan` is verified via constant folding or static analysis. If the compiler cannot prove it, you get an error.
 
@@ -104,7 +104,7 @@ use tupa_core::grad;
 let f = |x: f64| x * x;
 let df = grad!(f);
 let derivative = df(3.0);  // (6.0,)
-```
+```text
 
 Only works on **pure** functions (no I/O, no randomness). The macro generates a backward-pass function at compile time via symbolic differentiation.
 
@@ -113,6 +113,7 @@ Only works on **pure** functions (no I/O, no randomness). The macro generates a 
 ### 9) Are there plans for a language server (LSP)?
 
 **Not needed for Rust DSL** — rust-analyzer already provides:
+
 - Completion inside `pipeline!{}`
 - Go to definition for step functions
 - Type hints and errors
@@ -133,7 +134,7 @@ match result {
     Err(Error::ConstraintFailed { metric, expected, actual }) => ...,
     Err(Error::StepPanic { step, reason }) => ...,
 }
-```
+```text
 
 **Tracing:** enable `RUST_LOG=tupa_engine=debug` for step-by-step logs.
 

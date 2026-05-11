@@ -10,13 +10,13 @@ Guiar a usuarios de distintos niveles en tareas comunes y proyectos de ejemplo c
 
 ```tupa
 print("¡Hola, Tupã!")
-```
+```text
 
 Ejecuta:
 
 ```bash
 cargo run -p tupa-cli -- check examples/hello.tp
-```
+```text
 
 ---
 
@@ -25,7 +25,7 @@ cargo run -p tupa-cli -- check examples/hello.tp
 ```tupa
 let inc: fn(int) -> int = |x| x + 1
 print(inc(41)) // salida: 42
-```
+```text
 
 ---
 
@@ -34,7 +34,7 @@ print(inc(41)) // salida: 42
 ```tupa
 let name = "Tupã"
 print("Bienvenido, " + name)
-```
+```text
 
 ---
 
@@ -48,7 +48,7 @@ fn safe(x: f64): Safe<f64, !nan> {
 fn safe_text(x: Safe<string, !misinformation>) -> Safe<string, !misinformation> {
   return x
 }
-```
+```text
 
 ---
 
@@ -65,7 +65,7 @@ fn sum(v: [int]) -> int {
   return total
 }
 print(sum([1,2,3,4])) // salida: 10
-```
+```text
 
 ---
 

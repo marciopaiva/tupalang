@@ -288,6 +288,7 @@ Registrar mudanças relevantes por versão.
 ## 0.9.0 (Próximo)
 
 ### Adicionado
+
 - Nova arquitetura crate-first: `tupa-core` (macro pipeline!), `tupa-engine` (executor paralelo)
 - Execução paralela de passos baseada em canais com validação de DAG e detecção de ciclos
 - Sistema de plugins dinâmicos (`tupa-plugin`) com ABI C compatível com FFI
@@ -296,11 +297,13 @@ Registrar mudanças relevantes por versão.
 - Suítes de exemplos e testes de integração abrangentes
 
 ### Mudado
+
 - Execução paralela via `Executor::run_parallel` (requer Tokio)
 - Constraints avaliadas após conclusão do pipeline; `ExecutionResult` com pass/fail e valores de métricas
 - Anotações de `produces`/`requires` por passo controlam escalonamento
 
 ### Notas
+
 - Este release marca a transição de compilação `.tp` standalone para pipelines Rust DSL.
 - Crates legados (`tupa-parser`, `tupa-typecheck`, `tupa-codegen`, `tupa-runtime`, `tupa-effects`) estão deprecados mas permanecem disponíveis até 2027-01-01.
 - Guia de migração e exemplos em `docs/pt-br/TRANSITION.md` e `examples/migration/`.

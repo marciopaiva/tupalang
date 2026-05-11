@@ -18,28 +18,28 @@ Padronizar o conteúdo e o formato das mensagens de erro.
 ```text
 error[E2001]: type mismatch: expected I64, got F64
   --> examples/types.tp:4:10
-```
+```text
 
 ### Variável indefinida
 
 ```text
 error[E1002]: undefined variable 'x'
   --> examples/types.tp:2:1
-```
+```text
 
 ### Restrição não comprovada
 
 ```text
 error[E3002]: cannot prove constraint 'hate_speech' at compile time
   --> examples/invalid_safe_hate_speech.tp:2:38
-```
+```text
 
 ### Restrição não comprovada (misinformation)
 
 ```text
 error[E3002]: cannot prove constraint 'misinformation' at compile time
   --> examples/invalid_safe_misinformation.tp:2:41
-```
+```text
 
 ### Restrição não comprovada com sugestão
 
@@ -52,7 +52,7 @@ error[E3002]: constraint !misinformation not proven
    |
    = help: add safety proof: `@safety(score=0.98, dataset="factcheck-v3")`
    = note: required by return type `Safe<string, !misinformation>`
-```
+```text
 
 ### Restrição não comprovada (misinformation, JSON)
 
@@ -71,21 +71,21 @@ error[E3002]: constraint !misinformation not proven
     }
   }
 }
-```
+```text
 
 ### Restrição inválida
 
 ```text
 error[E3001]: invalid constraint 'hate_speech' for base type F64
   --> examples/invalid_safe_hate_speech_base.tp:2:35
-```
+```text
 
 ### Restrição inválida (misinformation)
 
 ```text
 error[E3001]: invalid constraint 'misinformation' for base type F64
   --> examples/invalid_safe_misinformation_base.tp:2:38
-```
+```text
 
 ## Referências
 

@@ -23,7 +23,7 @@ use serde_json::json;
 
 let mut pm = PluginManager::new();
 pm.load_plugin("./plugins/my_strategy_plugin.so")?;
-```
+```text
 
 ### Call a plugin function from a step
 
@@ -49,7 +49,7 @@ pipeline! {
     ],
     constraints: []
 }
-```
+```text
 
 You can also capture `pm` directly in the step expression if it's in scope:
 
@@ -64,7 +64,7 @@ pipeline! {
         }
     ]
 }
-```
+```text
 
 ### Plugin development
 
@@ -73,7 +73,7 @@ Get a template:
 ```rust
 let template = tupa_plugin::create_plugin_template();
 std::fs::write("my_plugin.rs", template)?;
-```
+```text
 
 A plugin must export two C symbols:
 
@@ -87,7 +87,7 @@ Each step function must have the exact signature:
 pub extern "C" fn my_step(input: serde_json::Value) -> serde_json::Value {
     // compute and return a value
 }
-```
+```text
 
 ## API
 
@@ -106,6 +106,6 @@ pub extern "C" fn my_step(input: serde_json::Value) -> serde_json::Value {
 
 ## Crates
 
-- Source: https://github.com/marciopaiva/tupalang
+- Source: <https://github.com/marciopaiva/tupalang>
 - License: Apache-2.0
-- Docs: https://docs.rs/tupa-plugin
+- Docs: <https://docs.rs/tupa-plugin>

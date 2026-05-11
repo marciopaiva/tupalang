@@ -83,7 +83,7 @@ step("entry_policy") {
     reason: "entry_confirmed_consensus_and_momentum"
   }
 }
-```
+```text
 
 ### 2. First-class reasons
 
@@ -96,7 +96,7 @@ Illustrative shape:
   passed: false,
   reason: "entry_blocked_low_volume"
 }
-```
+```text
 
 This avoids duplicating logic in host applications just to explain why a rule failed.
 

@@ -18,13 +18,13 @@ Descrever o processo de release com passos claros e repet?veis.
 
 ```bash
 ./scripts/ci-local.sh
-```
+```text
 
 5. Execute o gate de verifica??o de release:
 
 ```bash
 ./scripts/release-verify.sh X.Y.Z
-```
+```text
 
 6. Confirme checks obrigat?rios verdes em `main`.
 7. Verifique exemplos principais e docs multil?ngues.
@@ -33,7 +33,7 @@ Descrever o processo de release com passos claros e repet?veis.
 ```bash
 git tag -a vX.Y.Z -m "vX.Y.Z"
 git push origin vX.Y.Z
-```
+```text
 
 9. Crie o release no GitHub a partir do draft.
 

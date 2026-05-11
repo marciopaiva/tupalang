@@ -11,6 +11,7 @@ Python FFI bridge for calling external Python functions from Tupã pipelines (pl
 ## Future (Phase 3)
 
 Will provide:
+
 - Python bindings to `tupa-core` DSL
 - Ability to embed Python functions as pipeline steps
 - `pip install tupa-pyffi` distribution

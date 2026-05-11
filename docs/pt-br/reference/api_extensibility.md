@@ -27,7 +27,7 @@ use tupa_codegen::codegen;
 let ast = parse("fn main() { print(42) }")?;
 let typed = typecheck(&ast)?;
 let ir = codegen(&typed)?;
-```
+```text
 
 ## Pontos de extensão
 
@@ -60,7 +60,7 @@ impl TupaExtension for MeusHelpers {
         });
     }
 }
-```
+```text
 
 Chame `MeusHelpers.register(&runtime)` durante a inicialização.
 
@@ -76,7 +76,7 @@ pm.load_plugin("./plugins/meu_plugin.so")?;
 
 // Em um passo do pipeline, chame:
 // pm.call("nome_step", json!(input))?
-```
+```text
 
 Plugins são bibliotecas compartilhadas que exportam `_tupa_plugin_name` e `_tupa_plugin_register`.
 
@@ -94,7 +94,7 @@ registry.register_schema(
     schema,
     migrations,
 )?;
-```
+```text
 
 Schemas evoluem entre versões de pipeline com warnings de depreciação.
 
@@ -105,13 +105,13 @@ Observação de arquivos para hot reload (`tupa-runtime/src/hot_reload.rs`):
 ```rust
 let (tx, rx) = runtime.watch_and_reload("./strategies")?;
 // Receptor notifica mudanças; call reload_pipeline() para aplicar
-```
+```text
 
 Habilitado com feature flag:
 
 ```bash
 cargo add tupa-runtime --features hot-reload
-```
+```text
 
 ## Exemplo: Adicionar um Backend WASM
 

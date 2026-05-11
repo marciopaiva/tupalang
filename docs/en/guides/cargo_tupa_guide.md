@@ -6,7 +6,7 @@ Cargo subcommand for Tupã policy development.
 
 ```bash
 cargo install cargo-tupa
-```
+```text
 
 ## Commands
 
@@ -18,7 +18,7 @@ Validates the `pipeline!` macro expansion and type checking. Runs `cargo check` 
 cargo tupa check          # check current package
 cargo tupa check -v       # verbose
 cargo tupa check --manifest-path path/to/Cargo.toml
-```
+```text
 
 ### `cargo tupa run`
 
@@ -36,7 +36,7 @@ TUPA_INPUT='{"x":42}' TUPA_PARALLEL=1 cargo tupa run
 
 # With a file
 cargo tupa run --input data.json
-```
+```text
 
 Your `src/main.rs` should read `TUPA_INPUT` (or use the default) and call `Executor::run` or `Executor::run_parallel`.
 
@@ -56,7 +56,7 @@ Generate a new project from the template:
 cargo generate --git https://github.com/marciopaiva/tupalang#crates/tupa-template
 # or local:
 cargo generate --path crates/tupa-template
-```
+```text
 
 The template includes a sample pipeline, Cargo.toml with dependencies, and a `main.rs` that integrates with `cargo-tupa run`.
 

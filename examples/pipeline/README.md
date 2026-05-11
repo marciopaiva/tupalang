@@ -12,14 +12,14 @@
 ```bash
 tupa codegen --format=json examples/pipeline/fraud_complete.tp
 tupa run --pipeline=FraudDetection --input examples/pipeline/tx.json examples/pipeline/fraud_complete.tp
-```
+```text
 
 Generate plan and run from plan:
 
 ```bash
 tupa codegen --plan-only examples/pipeline/fraud_complete.tp
 tupa run --plan fraud_complete.plan.json --pipeline=FraudDetection --input examples/pipeline/tx.json
-```
+```text
 
 Config-driven strategy example:
 
@@ -29,7 +29,7 @@ tupa run \
   --pipeline=ConfigDrivenStrategy \
   --input examples/pipeline/config_driven_strategy.json \
   examples/pipeline/config_driven_strategy.tp
-```
+```text
 
 Temporal policy example:
 
@@ -39,4 +39,4 @@ tupa run \
   --pipeline=TemporalPolicySupport \
   --input examples/pipeline/temporal_policy.json \
   examples/pipeline/temporal_policy.tp
-```
+```text

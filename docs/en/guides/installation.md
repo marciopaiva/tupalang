@@ -8,13 +8,13 @@ Add Tupã crates to your `Cargo.toml`:
 [dependencies]
 tupa-core = "0.2"      # DSL macros and policy types
 tupa-engine = "0.2"    # Pipeline executor
-```
+```text
 
 Run:
 
 ```bash
 cargo build
-```
+```text
 
 That's it — there's **no separate toolchain to install**. The crates integrate directly into your Rust build.
 
@@ -37,13 +37,13 @@ pipeline! {
     ],
     constraints: []
 }
-```
+```text
 
 Build:
 
 ```bash
 cargo check
-```
+```text
 
 Should succeed with no errors.
 
@@ -67,14 +67,14 @@ chmod +x /usr/local/bin/tupa
 # macOS (Apple Silicon)
 curl -L https://github.com/marciopaiva/tupalang/releases/latest/download/tupa-macos-aarch64 -o /usr/local/bin/tupa
 chmod +x /usr/local/bin/tupa
-```
+```text
 
 ### Install via Cargo (legacy CLI)
 
 ```bash
 cargo install tupa-cli
 tupa --help
-```
+```text
 
 **Note:** The CLI does not support the new `pipeline!` DSL directly. Use `cargo check` for that. The CLI is only for `.tp` files (deprecated).
 
@@ -86,6 +86,7 @@ tupa --help
 |---|---|
 | New Rust application needing policy/strategy logic | **Crates** (`tupa-core`, `tupa-engine`) |
 | Existing ViperTrade project migrating from `.tp` | **Crates** (see [Transition Guide](../TRANSITION.md)) |
+
 - One-off validation of a `.tp` file | **Standalone CLI** (`tupa check file.tp`) |
 - CI pipeline that checks legacy `.tp` files | **Standalone CLI** installed via curl or `cargo install tupa-cli` |
 - Building a new non-Rust system that needs Tupã | **FFI** via `tupa-sys` (coming in Phase 3) |
@@ -102,7 +103,7 @@ To remove the standalone binary:
 rm /usr/local/bin/tupa   # if installed via curl
 # or
 cargo uninstall tupa-cli  # if installed via cargo
-```
+```text
 
 Crates are removed like any Rust dependency: delete from `Cargo.toml` and `cargo update`.
 

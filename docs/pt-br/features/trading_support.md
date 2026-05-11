@@ -79,7 +79,7 @@ input: {
     }
   }
 }
-```
+```text
 
 Veja:
 
@@ -127,7 +127,7 @@ input: {
     }
   }
 }
-```
+```text
 
 Veja:
 
@@ -144,7 +144,7 @@ runtime.configure_circuit_breaker(3, Duration::from_secs(10));
 // Rodando um backtest
 let result = runtime.run_backtest(&plan, historical_data).await?;
 println!("PnL Final: {}", result["final_pnl"});
-```
+```text
 
 ## v0.8.2 Adições
 

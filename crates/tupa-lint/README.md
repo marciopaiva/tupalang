@@ -19,7 +19,7 @@ let warnings = lint_program(&program);
 for w in warnings {
     println!("{}", w.message());
 }
-```
+```text
 
 ## Future
 

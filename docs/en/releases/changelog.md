@@ -287,6 +287,7 @@ This document records relevant changes per version.
 ## 0.9.0 (Upcoming)
 
 ### Added
+
 - New crate-first architecture: `tupa-core` (pipeline! macro), `tupa-engine` (parallel executor)
 - Channel-based parallel step execution with DAG validation and cycle detection
 - Dynamic plugin system (`tupa-plugin`) with FFI-safe C ABI
@@ -295,11 +296,13 @@ This document records relevant changes per version.
 - Comprehensive example suites and integration tests
 
 ### Changed
+
 - Parallel execution via `Executor::run_parallel` (Tokio required)
 - Constraints evaluated after pipeline completion; `ExecutionResult` with pass/fail and metric values
 - Step-level `produces`/`requires` annotations drive dependency scheduling
 
 ### Notes
+
 - This release marks the transition from standalone `.tp` compilation to Rust DSL pipelines.
 - Legacy crates (`tupa-parser`, `tupa-typecheck`, `tupa-codegen`, `tupa-runtime`, `tupa-effects`) are deprecated but remain available until 2027-01-01.
 - Migration guide and examples provided in `docs/en/TRANSITION.md` and `examples/migration/`.

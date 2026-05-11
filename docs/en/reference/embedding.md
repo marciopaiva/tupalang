@@ -29,7 +29,7 @@ Tupã is designed to be embedded as a Rust library. There is **no separate runti
 [dependencies]
 tupa-core = "0.2"
 tupa-engine = "0.2"
-```
+```text
 
 ```rust
 // src/lib.rs
@@ -61,7 +61,7 @@ pipeline! {
         metric("risk_score").le(0.9)
     ]
 }
-```
+```text
 
 ```rust
 // src/main.rs or inside your trading service
@@ -77,7 +77,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("All constraints passed: {}", result.all_constraints_passed);
     Ok(())
 }
-```
+```text
 
 ---
 
@@ -93,7 +93,7 @@ pm.load_plugin("./plugins/custom_strategies.so")?;
 
 // Later, inside a pipeline step:
 // pm.call("strategy_name", json!(input))?
-```
+```text
 
 See [tupa-plugin README](../../crates/tupa-plugin/README.md) for plugin development.
 
@@ -136,7 +136,7 @@ extern "C" {
     int tupa_pipeline_run(tupa_pipeline_t*, const void* input, void* output);
     void tupa_pipeline_free(tupa_pipeline_t*);
 }
-```
+```text
 
 ### Python bindings (planned)
 
@@ -145,7 +145,7 @@ import tupa
 
 pipeline = tupa.Pipeline.from_rust_module("my_strategy")
 result = pipeline.run(input_data)
-```
+```text
 
 Track progress: [tupa-pyffi crate](../../crates/tupa-pyffi/).
 
@@ -178,7 +178,7 @@ mod tests {
         assert!(res.all_constraints_passed);
     }
 }
-```
+```text
 
 CI integration: run `cargo test` as usual.
 

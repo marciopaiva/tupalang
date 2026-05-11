@@ -15,14 +15,14 @@ cargo test -p tupa-lexer
 cargo test -p tupa-parser
 cargo test -p tupa-typecheck
 cargo test -p tupa-cli
-```
+```text
 
 ## CLI tests
 
 ```bash
 # golden outputs
 cargo test -p tupa-cli -- tests::cli_golden
-```
+```text
 
 ## Performance Tests
 
@@ -42,7 +42,7 @@ cargo test -p tupa-cli -- tests::cli_golden
 ```bash
 cargo run -p tupa-cli -- check examples/invalid_safe_misinformation.tp
 cargo run -p tupa-cli -- check examples/invalid_safe_misinformation_base.tp
-```
+```text
 
 ## Triage Tips
 

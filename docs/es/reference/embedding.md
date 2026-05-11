@@ -33,7 +33,7 @@ impl TupaExtension for MisExtensiones {
 
 // Durante la inicialización
 MisExtensiones.register(&runtime);
-```
+```text
 
 ## Sistema de Plugins
 
@@ -47,7 +47,7 @@ pm.load_plugin("./plugins/mi_plugin.so")?;
 
 // En un paso del pipeline, llamar a una función del plugin:
 // pm.call("mi_step", json!(input))?
-```
+```text
 
 Los plugins son bibliotecas compartidas que exportan `_tupa_plugin_name` y `_tupa_plugin_register`.
 
@@ -58,7 +58,7 @@ Habilitar feature `hot-reload` para observar cambios en archivos:
 ```rust
 let (tx, rx) = runtime.watch_and_reload("./strategies")?;
 // Notifica cambios automáticamente
-```
+```text
 
 ## Ejemplo mínimo
 
@@ -72,7 +72,7 @@ fn main() -> anyhow::Result<()> {
     let _typed = typecheck(&ast)?;
     Ok(())
 }
-```
+```text
 
 ## Notas de compatibilidad
 

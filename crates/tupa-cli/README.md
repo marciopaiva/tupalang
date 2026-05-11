@@ -19,7 +19,7 @@ tupa parse path/to/strategy.tp
 
 # Run a pipeline
 tupa run --pipeline=MyPipeline path/to/strategy.tp
-```
+```text
 
 All commands support `--format json`.
 
@@ -28,7 +28,7 @@ All commands support `--format json`.
 ```bash
 cargo install --locked tupa-cli
 # or download binary from GitHub Releases
-```
+```text
 
 ## Status
 

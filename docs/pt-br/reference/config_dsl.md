@@ -12,7 +12,7 @@ config Nome {
     tipo outro_campo: OutroTipo
     ...
 }
-```
+```text
 
 - `config` — palavra-chave que introduz uma declaração de configuração.
 - `Nome` — identificador para o tipo de configuração (usado depois como `Nome`).
@@ -41,7 +41,7 @@ step avaliar {
     let risco = ...
     // ...
 }
-```
+```text
 
 O step `avaliar` declara que requer `ParametrosEstrategia` como entrada. Em runtime, o chamador fornece um objeto JSON correspondente a `{ "limiar": 0.7, "posicao_maxima": 1000 }`. O type checker garante que `limiar` e `posicao_maxima` são usados com os tipos corretos dentro do step.
 
@@ -71,7 +71,7 @@ step executar {
     let tamanho = min(config.posicao_maxima, capital as i64 / 2)
     // lógica de trading...
 }
-```
+```text
 
 Neste pipeline:
 

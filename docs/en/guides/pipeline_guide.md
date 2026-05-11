@@ -37,7 +37,7 @@ pipeline! {
     /// (e.g., @deterministic, @audit, @version("1.0"))
     /// Attributes go after the name but before body
 }
-```
+```text
 
 **Expands to:**
 
@@ -50,7 +50,7 @@ impl Pipeline for MyPolicy {
     fn constraints(&self) -> &'static [ConstraintDescriptor] { ... }
     fn run_step(&self, ctx: &mut StepContext, step: &str, input: &Trade) -> Result<Value, Error> { ... }
 }
-```
+```text
 
 ---
 
@@ -68,9 +68,10 @@ By default, step expressions must be **pure** (no side effects). They can:
 fn compute_fee(amount: f64) -> f64 {
     amount * 0.001  // 0.1% fee
 }
-```
+```text
 
 Should not:
+
 - Print to stdout (use logging via `@side_effects(io)` if needed)
 - Read files/network
 - Use `rand()` or current time
@@ -84,7 +85,7 @@ Mark with `#[tupa::side_effects(io)]`:
 fn log_decision(decision: &str) {
     println!("[AUDIT] {}", decision);
 }
-```
+```text
 
 Use sparingly — impure steps cannot be used in gradient computations.
 
@@ -97,7 +98,7 @@ async fn fetch_price(symbol: &str) -> f64 {
     let resp = reqwest::get(&format!("https://api.example.com/price/{}", symbol)).await?;
     resp.json().await
 }
-```
+```text
 
 Pipeline executor supports async steps automatically (requires `tokio` runtime).
 
@@ -107,7 +108,7 @@ Pipeline executor supports async steps automatically (requires `tokio` runtime).
 step("expensive") {
     heavy_computation(input)
 } @parallel  // run in parallel with other @parallel steps (experimental)
-```
+```text
 
 Attributes:
 
@@ -144,17 +145,17 @@ pipeline! {
         metric("x").eq(42)  // ✅ proven at compile time
     ]
 }
-```
+```text
 
 If you change `42` to `43`, compilation fails:
 
-```
+```text
 error[E3002]: cannot prove constraint at compile time: x == 43
     --> src/lib.rs:12:5
      |
 12  |         metric("x").eq(43)
      |         ^^^^^^^^^^^^^^^^^^
-```
+```text
 
 This is the same mechanism as `Safe<f64, !nan>` — the compiler tries to prove the predicate via constant folding.
 
@@ -171,7 +172,7 @@ pipeline! {
         metric("size_ok").eq(true)  // checked at runtime
     ]
 }
-```
+```text
 
 If constraint fails, pipeline returns `ConstraintFailure` result.
 
@@ -199,13 +200,13 @@ pipeline! {
         metric("rsi").le(70.0)  // not overbought
     ]
 }
-```
+```text
 
 **Implicit metric naming:** The step identifier becomes the metric name automatically. Explicit override:
 
 ```rust
 step("volatility") { compute_vol(input) } -> metric("risk")
-```
+```text
 
 (if step returns a value, it's bound to `"risk"` metric name)
 
@@ -220,7 +221,7 @@ pipeline! {
     input: MyInputStruct,  // any Rust type
     ...
 }
-```
+```text
 
 The input type must be:
 
@@ -237,13 +238,13 @@ struct PipelineResult {
     passed: bool,                     // all constraints satisfied
     failures: Vec<ConstraintFailure>, // details if any failed
 }
-```
+```text
 
 You can extract typed values:
 
 ```rust
 let profit: f64 = result.values["profit"].as_f64().unwrap();
-```
+```text
 
 Better: define a custom result type via associated type on `Pipeline` trait (advanced).
 
@@ -264,7 +265,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let result = executor.run_async(policy, &input).await?;
     Ok(())
 }
-```
+```text
 
 Without async steps, `Executor::run()` (sync) is fine.
 
@@ -292,7 +293,7 @@ pipeline! {
     ],
     constraints: []
 }
-```
+```text
 
 The executor schedules `fetch_a` and `fetch_b` concurrently; `combine` waits for both.
 
@@ -318,9 +319,10 @@ pipeline! {
     ],
     constraints: []
 }
-```
+```text
 
 **Features:**
+
 - Compile-time shape checking when dimensions are constants
 - Runtime validation for dynamic shapes (`...` in `.tp` — future)
 - Sparsity hint via `density` (guides backend optimizations)
@@ -345,7 +347,7 @@ let x: Safe<f64, !nan> = Safe::new(3.14);  // OK
 fn process(x: Safe<f64, !nan>) -> Safe<f64, !nan> {
     x.map(|v| v * 2.0)  // preserves !nan
 }
-```
+```text
 
 **Available constraints** (see SPEC section 3.2.6):
 
@@ -370,9 +372,10 @@ let f = |x: f64| x * x + 2.0 * x;
 let df = grad!(f);
 
 let (y, dy) = df(3.0);  // y=15.0, dy=8.0 (derivative)
-```
+```text
 
 **Rules:**
+
 - Function must be pure (no I/O, no global mutation, no randomness)
 - Works for multi-argument functions: `grad!(|x, y| x * y)(2.0, 3.0)` → `(3.0, 2.0)`
 - Returns tuple of partial derivatives matching argument count
@@ -390,7 +393,7 @@ use tupa_plugin::PluginManager;
 
 let mut pm = PluginManager::new();
 pm.load_plugin("./plugins/my_steps.so")?;  // shared library
-```
+```text
 
 Plugin functions are invoked via `pm.call("function_name", input)` inside a step body:
 
@@ -403,7 +406,7 @@ pipeline! {
         }
     ]
 }
-```
+```text
 
 See [tupa-plugin crate docs](../../crates/tupa-plugin/README.md) for the full API.
 
@@ -421,7 +424,7 @@ error[E2005]: step function not found: unknown_function
    |
 15 |         step("bad") { unknown_function(input) }
    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-```
+```text
 
 ### Runtime Errors
 
@@ -436,7 +439,7 @@ match res {
         eprintln!("Step {} panicked: {}", step, reason);
     }
 }
-```
+```text
 
 ---
 
@@ -449,7 +452,7 @@ match res {
 fn test_compute_fee() {
     assert_eq!(compute_fee(100.0), 0.1);
 }
-```
+```text
 
 ### Integration Test Full Pipeline
 
@@ -462,7 +465,7 @@ async fn test_policy_end_to_end() {
     let res = engine.run(policy, &input).unwrap();
     assert!(res.passed);
 }
-```
+```text
 
 ### Property-Based Testing
 
@@ -476,7 +479,7 @@ proptest! {
         prop_assert!(fee >= 0.0);
     }
 }
-```
+```text
 
 ---
 

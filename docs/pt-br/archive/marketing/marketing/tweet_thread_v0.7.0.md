@@ -20,7 +20,7 @@
 tupa new my-audit-pipeline
 cd my-audit-pipeline
 tupa run --pipeline=FraudDetection --input=tx.json
-```
+```text
 
 5/ 📚 Docs
 

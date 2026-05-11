@@ -113,9 +113,9 @@
 
 ### 6.1 Expressions
 
-```
+```text
 Γ ⊢ e : τ   means "expression e has type τ in environment Γ"
-```
+```text
 
 - **Literal**: `Γ ⊢ 42 : i64` (by token)
 - **Variable**: `Γ(x) = τ  ⇒  Γ ⊢ x : τ`
@@ -135,6 +135,7 @@
 ### 6.3 Constraints (`Safe`)
 
 For `Safe<τ, !c>`:
+
 - **Proving**: compiler runs constraint solver.
   - `!nan`: prove value ∈ ℝ \ {NaN}
   - `!inf`: prove value finite
@@ -155,13 +156,13 @@ All type errors must include:
 
 Example:
 
-```
+```text
 E2001: type mismatch
    --> main.tp:12:5
     |
 12  | let x: i64 = "text"
     |            ^^^^^^^ expected i64, found string
-```
+```text
 
 ---
 

@@ -21,7 +21,7 @@ This document describes frequent errors and quick solutions.
 fn foo(x: int): bool {
   x + true
 }
-```
+```text
 
 Typical message:
 
@@ -31,7 +31,7 @@ error: type mismatch: expected int, found bool
   |
 2 |     x + true
   |         ^^^^
-```
+```text
 
 ## 3) E2002 — Incorrect arity
 
@@ -45,7 +45,7 @@ fn bar(x: int, y: int): int {
   x + y
 }
 bar(1)
-```
+```text
 
 Typical message:
 
@@ -55,7 +55,7 @@ error: argument count mismatch: expected 2, found 1
   |
 6 | bar(1)
   | ^^^^^
-```
+```text
 
 ## 4) E2007 — Missing return
 
@@ -68,7 +68,7 @@ error: argument count mismatch: expected 2, found 1
 fn f(): int {
   // no return
 }
-```
+```text
 
 Typical message:
 
@@ -78,7 +78,7 @@ error: function does not return a value for type int
   |
 1 | fn f(): int {
   | ^^^^^^^^^^^
-```
+```text
 
 ## 5) E2101 — Lambda type mismatch
 
@@ -88,7 +88,7 @@ error: function does not return a value for type int
 
 ```tupa
 let f: fn(int) -> int = |x| x + "a"
-```
+```text
 
 Typical message:
 
@@ -98,7 +98,7 @@ error: type mismatch: expected int, found string
   |
 1 | let f: fn(int) -> int = |x| x + "a"
   |                             ^^^^^^
-```
+```text
 
 ## 6) E2102 — Incorrect print usage
 
@@ -109,7 +109,7 @@ error: type mismatch: expected int, found string
 
 ```tupa
 print(1, 2)
-```
+```text
 
 Typical message:
 
@@ -119,7 +119,7 @@ error: argument count mismatch: expected 1, found 2
   |
 1 | print(1, 2)
   | ^^^^^^^^^
-```
+```text
 
 ## 7) E2103 — Incompatible concatenation
 
@@ -130,7 +130,7 @@ error: argument count mismatch: expected 1, found 2
 
 ```tupa
 let s = "abc" + 123
-```
+```text
 
 Typical message:
 
@@ -140,7 +140,7 @@ error: incompatible concatenation: expected string operands
   |
 1 | let s = "abc" + 123
   |               ^^^
-```
+```text
 
 ## 8) E3002 — Unproven constraint
 
@@ -151,14 +151,14 @@ error: incompatible concatenation: expected string operands
 
 ```tupa
 let x: Safe<string, !hate_speech> = "ok"
-```
+```text
 
 Typical message:
 
 ```text
 error[E3002]: cannot prove constraint 'hate_speech' at compile time
   --> main.tupa:1:33
-```
+```text
 
 **Positive example (propagation):**
 
@@ -166,7 +166,7 @@ error[E3002]: cannot prove constraint 'hate_speech' at compile time
 fn pass(x: Safe<string, !misinformation>) -> Safe<string, !misinformation> {
   return x
 }
-```
+```text
 
 ## 9) E3001 — Invalid constraint
 
@@ -177,27 +177,27 @@ fn pass(x: Safe<string, !misinformation>) -> Safe<string, !misinformation> {
 
 ```tupa
 let x: Safe<f64, !hate_speech> = 1.0
-```
+```text
 
 Typical message:
 
 ```text
 error[E3001]: invalid constraint 'hate_speech' for base type F64
   --> main.tupa:1:32
-```
+```text
 
 **Example (misinformation):**
 
 ```tupa
 let x: Safe<f64, !misinformation> = 1.0
-```
+```text
 
 Typical message:
 
 ```text
 error[E3001]: invalid constraint 'misinformation' for base type F64
   --> main.tupa:1:35
-```
+```text
 
 ## References
 

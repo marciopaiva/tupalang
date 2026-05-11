@@ -16,7 +16,7 @@ Describir el entorno necesario para compilar y probar el proyecto en WSL Fedora 
 
 ```bash
 sudo dnf -y update
-```
+```text
 
 ### 2) Dependencias de build
 
@@ -29,7 +29,7 @@ sudo dnf -y install \
   make \
   openssl-devel \
   pkgconf-pkg-config
-```
+```text
 
 ### 3) Rust (toolchain estable)
 
@@ -37,20 +37,20 @@ Instala vía rustup (recomendado):
 
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-```
+```text
 
 Luego carga el entorno de Rust:
 
 ```bash
 source "$HOME/.cargo/env"
-```
+```text
 
 ### 4) Verificación
 
 ```bash
 rustc --version
 cargo --version
-```
+```text
 
 ## Ejecutar pruebas localmente
 
@@ -61,4 +61,4 @@ cargo test -p tupa-cli
 
 # suite completa
 cargo test
-```
+```text
