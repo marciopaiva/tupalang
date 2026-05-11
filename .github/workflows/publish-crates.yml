@@ -69,9 +69,10 @@ jobs:
           }
 
           # New crate-first architecture (0.9.0)
+          # Publish order: dependencies first
           for crate in \
-            tupa-core \
             tupa-core-macros \
+            tupa-core \
             tupa-engine \
             tupa-plugin; do
             publish_crate "$crate"
