@@ -26,6 +26,21 @@ All notable changes to `tupa-plugin` will be documented in this file.
 - Legacy `.tp` FFI extensions are handled by `tupa-effects` (deprecated)
 - New plugin system is the recommended way to add custom behavior
 
+## [0.9.1] - 2026-05-11
+
+### Added
+
+- Plugin FFI overhead benchmark (`benches/plugin_bench.rs`) measuring `PluginManager::call` latency
+
+### Documentation
+
+- cargo-tupa guide updated with `plugin new` subcommand
+- Performance tuning guide added (multi-language)
+
+### Fixed
+
+- Template Cargo.toml pinned dependencies
+
 ## [Unreleased]
 
 - Planned: Plugin hot-reload support
