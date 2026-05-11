@@ -22,6 +22,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - It is a proc-macro crate and cannot be used directly; import via `tupa_core::pipeline`.
 - API subject to change before 1.0.
 
+## [0.9.1] - 2026-05-11
+
+### Documentation
+
+- Updated cargo-tupa guide with subcommand details
+- Added performance tuning guide (multi-language)
+
+### Fixed
+
+- Template dependencies pinned in generated projects
+
 ## [Unreleased]
 
 - Planned: Improved error messages with span information and hints

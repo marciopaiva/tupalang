@@ -23,6 +23,16 @@ All notable changes to `cargo-tupa` will be documented in this file.
 - The `plugin` commands require `tupa-plugin` 0.9.0+ installed
 - Legacy `.tp` file support is provided via deprecated crates; new pipelines should use Rust DSL
 
+## [0.9.1] - 2026-05-11
+
+### Documentation
+
+- cargo-tupa guide now includes `fmt`, `lint`, `test`, and `plugin new` usage examples
+
+### Fixed
+
+- Template pinned dependencies for generated projects
+
 ## [Unreleased]
 
 - Planned: `tupa migrate` — convert legacy `.tp` pipelines to Rust DSL

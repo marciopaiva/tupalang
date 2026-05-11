@@ -20,6 +20,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - This is the first alpha release of the new Rust-first Tupã architecture.
 - The legacy `.tp` DSL and related crates (`tupa-parser`, `tupa-typecheck`, etc.) are deprecated but still supported until 2027-01-01.
 
+## [0.9.1] - 2026-05-11
+
+### Documentation
+
+- Updated cargo-tupa guide with subcommand details (`fmt`, `lint`, `test`, `plugin new`)
+- Added performance tuning guide (EN/ES/PT-BR)
+
+### Fixed
+
+- Template Cargo.toml dependencies pinned to `=0.9.0`
+
 ## [Unreleased]
 
 - Planned: `tupa-migrate` CLI tool for automated `.tp` → Rust DSL conversion

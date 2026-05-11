@@ -40,13 +40,69 @@ cargo tupa run --input data.json
 
 Your `src/main.rs` should read `TUPA_INPUT` (or use the default) and call `Executor::run` or `Executor::run_parallel`.
 
-### `cargo tupa fmt` (future)
+### `cargo tupa fmt`
 
-Formats legacy `.tp` files.
+Formats legacy `.tp` pipeline files using the Tupã formatter.
 
-### `cargo tupa lint` (future)
+```bash
+cargo tupa fmt                # format all .tp files in the package
+cargo tupa fmt --dry-run       # show what would change
+cargo tupa fmt --check         # fail if any file needs formatting
+```
 
-Runs static analysis on pipeline definitions.
+### `cargo tupa lint`
+
+Runs static analysis on pipeline definitions (both `.tp` and Rust DSL).
+
+```bash
+cargo tupa lint                # lint current package
+cargo tupa lint --json         # machine-readable output
+cargo tupa lint --deny warnings # treat warnings as errors
+```
+
+### `cargo tupa test`
+
+Runs pipeline unit tests and example validations.
+
+```bash
+cargo tupa test                # run all tests
+cargo tupa test --example credit_decision  # test specific example
+cargo tupa test -- --nocapture  # pass args through to cargo test
+```
+
+### `cargo tupa plugin new`
+
+Generates a new plugin scaffold for custom step functions.
+
+```bash
+cargo tupa plugin new my_plugin.rs  # creates my_plugin.rs template
+```
+
+This creates a template `my_plugin.rs` exporting:
+
+- `_tupa_plugin_name()`: returns plugin name
+- `_tupa_plugin_register(ctx)`: registers step functions
+- Sample step function `my_step(input: Value) -> Value`
+
+Build as a cdylib:
+
+```bash
+cargo build --crate-type=cdylib --release
+# target/release/libmy_plugin.so (or .dll/.dylib)
+```
+
+Load in your pipeline:
+
+```rust
+use tupa_plugin::PluginManager;
+
+let mut pm = PluginManager::new();
+pm.load_plugin("./target/release/libmy_plugin.so")?;
+
+fn use_plugin(pm: &PluginManager, input: &MyInput) -> Result<Value, String> {
+    pm.call("my_step", serde_json::to_value(input)?).map_err(|e| e.to_string())
+}
+```
 
 ## Project Template
 
@@ -62,9 +118,12 @@ The template includes a sample pipeline, Cargo.toml with dependencies, and a `ma
 
 ## How It Works
 
-- `check`: Delegates to `cargo check --message-format=json` and surfaces Tupã macro errors.
-- `run`: Builds and executes your binary with `TUPA_INPUT` set, enabling quick iteration.
-- Future subcommands will leverage `tupa-lint` and `tupa-fmt`.
+- `check`: Delegates to `cargo check --message-format=json`, filters Tupã macro errors.
+- `run`: Builds and executes your binary with `TUPA_INPUT` set; your binary calls `Executor::run` or `Executor::run_parallel`.
+- `test`: Runs `cargo test --examples` to validate pipeline unit tests.
+- `fmt`: Calls `tupa-fmt` on `.tp` files; uses `rustfmt` for Rust DSL.
+- `lint`: Runs `tupa-lint` on legacy files and surfaces Rust warnings.
+- `plugin new`: Generates a plugin template (`_tupa_plugin_name`, `_tupa_plugin_register`, sample step function).
 
 ## Notes
 
