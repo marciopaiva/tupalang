@@ -2,7 +2,7 @@
 name = "tupa-runtime"
 version = "0.8.2"
 edition = "2021"
-description = "Runtime for executing TupaLang programs"
+description = "Runtime for executing Tupã programs"
 license = "Apache-2.0"
 repository = "https://github.com/marciopaiva/tupalang"
 homepage = "https://github.com/marciopaiva/tupalang"

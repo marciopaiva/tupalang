@@ -2,7 +2,7 @@
 name = "tupa-codegen"
 version = "0.8.2"
 edition = "2021"
-description = "Code generation layer for TupaLang"
+description = "Code generation layer for Tupã"
 license = "Apache-2.0"
 repository = "https://github.com/marciopaiva/tupalang"
 homepage = "https://github.com/marciopaiva/tupalang"

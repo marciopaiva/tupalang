@@ -1,4 +1,4 @@
-//! Hot reload support for TupaLang pipelines
+//! Hot reload support for Tupã pipelines
 //!
 //! This module provides file watching and pipeline reloading capabilities
 //! for development workflows.

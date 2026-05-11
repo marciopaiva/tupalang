@@ -2,7 +2,7 @@
 name = "tupa-parser"
 version = "0.8.2"
 edition = "2021"
-description = "Parser for TupaLang source files"
+description = "Parser for Tupã source files"
 license = "Apache-2.0"
 repository = "https://github.com/marciopaiva/tupalang"
 homepage = "https://github.com/marciopaiva/tupalang"

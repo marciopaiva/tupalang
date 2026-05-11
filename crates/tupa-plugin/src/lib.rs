@@ -126,7 +126,7 @@ extern "C" fn step_register_trampoline(_name: *const i8, _func: *const u8) {
 }
 
 pub fn create_plugin_template() -> &'static str {
-    r#"// TupaLang Plugin Template
+    r#"// Tupã Plugin Template
 // Build as: cargo build --crate-type=cdylib
 
 use serde_json::Value;

@@ -285,30 +285,49 @@ Registrar mudanças relevantes por versão.
 - Suporte básico a closures no codegen (ainda sem captura de ambiente).
 - Correções de golden tests para casos de erro (mensagens do cargo removidas).
 
-## 0.9.0 (Próximo)
+## 0.9.0 (2026-05-11)
 
-### Adicionado
+### Escopo Entregue
 
-- Nova arquitetura crate-first: `tupa-core` (macro pipeline!), `tupa-engine` (executor paralelo)
-- Execução paralela de passos baseada em canais com validação de DAG e detecção de ciclos
-- Sistema de plugins dinâmicos (`tupa-plugin`) com ABI C compatível com FFI
-- Subcomando CLI `cargo tupa` para desenvolvimento de pipelines (check, test, run, plugin new)
-- Depreciação de todos os crates `.tp` legados com guias de migração
-- Suítes de exemplos e testes de integração abrangentes
+- **Nova arquitetura crate-first**: `tupa-core` (macro pipeline! + tipos), `tupa-engine` (executor paralelo), `tupa-plugin` (carregamento dinâmico), `cargo-tupa` (CLI)
+- **Execução paralela**: Scheduler DAG baseado em canais com detecção de ciclos (`Executor::run_parallel`)
+- **Sistema de constraints**: Verificação em compile-time + runtime com DSL `metric("name").op(valor)`
+- **Plugin FFI**: ABI C para registro de step functions (`libloading` + `extern "C"`)
+- **Ferramentas de migração**: Exemplos e guias para conversão `.tp` → Rust DSL
+- **Paridade de documentação**: EN, ES, PT-BR com links cruzados completos
 
-### Mudado
+### Engenharia e CI Entregues
 
-- Execução paralela via `Executor::run_parallel` (requer Tokio)
-- Constraints avaliadas após conclusão do pipeline; `ExecutionResult` com pass/fail e valores de métricas
-- Anotações de `produces`/`requires` por passo controlam escalonamento
+- Workflows CI: lint (clippy, rustfmt), test (workspace), docs-lint (markdownlint, parity, lychee), smoke gate vipertrade
+- Golden tests regenerados com `RUSTFLAGS="-Awarnings"` para suprimir warnings de depreciação
+- Todos os links relativos quebrados corrigidos (grammar.ebnf, type_semantics, PROPOSAL, TRANSITION, etc.)
+- URLs externas atualizadas (caminhos ViperTrade, GitHub Discussions → Issues)
+- `tupa-cli` preservado para fluxo `.tp` legacy; `cargo-tupa` para Rust DSL
+- Bump de versões: `tupa-core` 0.9.0, `tupa-core-macros` 0.9.0, `tupa-engine` 0.9.0, `tupa-plugin` 0.9.0, `cargo-tupa` 0.9.0, `tupa-template` 0.9.0
 
-### Notas
+### Snapshot de Validação (workspace)
 
-- Este release marca a transição de compilação `.tp` standalone para pipelines Rust DSL.
-- Crates legados (`tupa-parser`, `tupa-typecheck`, `tupa-codegen`, `tupa-runtime`, `tupa-effects`) estão deprecados mas permanecem disponíveis até 2027-01-01.
-- Guia de migração e exemplos em `docs/pt-br/TRANSITION.md` e `examples/migration/`.
+- **Status do release**: Tag `v0.9.0` criada; crates publicados no crates.io (core, engine, plugin, cargo-tupa)
+- **Status de validação**:
+  - docs parity: verde (todos arquivos necessários presentes em EN/ES/PT-BR)
+  - markdownlint: verde
+  - link-check (lychee): 0 erros
+  - CI: todos jobs passando (lint, test, vipertrade-smoke)
+  - ViperTrade smoke gate valida `tupa-cli` check + codegen para `vipertrade_smoke.tp`
+- **Crates publicados**: `tupa-core@0.9.0`, `tupa-engine@0.9.0`, `tupa-plugin@0.9.0`, `cargo-tupa@0.9.0`
+- **Crates legacy mantidos**: `tupa-parser`, `tupa-typecheck`, `tupa-codegen`, `tupa-runtime`, `tupa-effects`, `tupa-audit`, `tupa-fmt`, `tupa-lint` em 0.8.x
 
-## 0.1.0
+### Dívida Técnica
+
+- `tupa-conformance` não publicado (validador SPEC — artifact Phase 0, pode permanecer como dev-dependency)
+- `tupa-core-macros` sem CHANGELOG.md (deve ser adicionado)
+- `crates/tupa-template` usa path dependencies no Cargo.toml template — precisa de patch para projetos gerados
+- PyFFI (`tupa-pyffi`) ainda em 0.8.2 — migração para API 0.9.0 pendente (Phase 3)
+- LSP (`tupa-lsp`) não implementado (adiado; rust-analyzer cobre DSL)
+- Suite de benchmarks (`criterion`) não criada (Phase 4)
+- Alguns itens públicos em `tupa-core`/`tupa-engine` carecem de docs `///` (necessita pass de文档 antes de 1.0)
+
+## 0.8.2 (2026-05-08)
 
 - Specification v0.1 publicada.
 - Lexer, parser, typechecker e CLI básicos.

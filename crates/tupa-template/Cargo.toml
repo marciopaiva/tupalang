@@ -7,8 +7,8 @@ license = "Apache-2.0"
 authors = ["{{authors}}"]
 
 [dependencies]
-tupa-core = { version = "0.9", path = "../../crates/tupa-core" }
-tupa-engine = { version = "0.9", path = "../../crates/tupa-engine" }
+tupa-core = "0.9"
+tupa-engine = "0.9"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }

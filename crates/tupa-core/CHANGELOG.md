@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Notes
 
-- This is the first alpha release of the new Rust-first TupaLang architecture.
+- This is the first alpha release of the new Rust-first Tupã architecture.
 - The legacy `.tp` DSL and related crates (`tupa-parser`, `tupa-typecheck`, etc.) are deprecated but still supported until 2027-01-01.
 
 ## [Unreleased]
