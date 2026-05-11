@@ -13,14 +13,14 @@ normalize() {
 
 run_and_save_stdout() {
   local out_file="$1"; shift
-  echo "Running: cargo run -p cargo-tupa -- $*" >&2
+  echo "Running: cargo run -p tupa-cli -- $*" >&2
   CARGO_TERM_QUIET=true cargo run -q -p cargo-tupa -- "$@" | normalize > "$EXPECTED_DIR/$out_file"
   echo "Wrote $EXPECTED_DIR/$out_file" >&2
 }
 
 run_and_save_stderr() {
   local out_file="$1"; shift
-  echo "Running (expect failure): cargo run -p cargo-tupa -- $*" >&2
+  echo "Running (expect failure): cargo run -p tupa-cli -- $*" >&2
   if CARGO_TERM_QUIET=true cargo run -q -p cargo-tupa -- "$@" 1>/dev/null 2>/dev/null; then
     echo "Command unexpectedly succeeded: $*" >&2
     exit 1

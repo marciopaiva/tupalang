@@ -7,8 +7,8 @@ cd "$ROOT_DIR"
 PIPELINE_SRC="examples/pipeline/vipertrade_smoke.tp"
 PLAN_FILE="vipertrade_smoke.plan.json"
 
-cargo run -q -p cargo-tupa -- check "$PIPELINE_SRC" >/dev/null
-cargo run -q -p cargo-tupa -- codegen --plan-only "$PIPELINE_SRC" >/dev/null
+cargo run -q -p tupa-cli -- check "$PIPELINE_SRC" >/dev/null
+cargo run -q -p tupa-cli -- codegen --plan-only "$PIPELINE_SRC" >/dev/null
 
 if [[ ! -f "$PLAN_FILE" ]]; then
   echo "ViperTrade smoke failed: plan file not generated"
