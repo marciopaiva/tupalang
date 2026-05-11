@@ -17,15 +17,15 @@ Gobernanza y determinismo para pipelines de IA en sistemas críticos, con seguri
 
 ### 3) ¿Cómo puedo contribuir?
 
-Consulta [CONTRIBUTING.md](../../CONTRIBUTING.md) y abre una issue con contexto.
+Consulta [CONTRIBUTING.md](../../../CONTRIBUTING.md) y abre una issue con contexto.
 
 ### 4) ¿Dónde puedo encontrar ejemplos?
 
-En [examples](../../examples/README.md).
+En [examples](../../../examples/README.md).
 
 ### 4.1) ¿Hay ejemplos de safe/alineación?
 
-Sí. Mira los ejemplos `safe_*` en [examples](../../examples/README.md).
+Sí. Mira los ejemplos `safe_*` en [examples](../../../examples/README.md).
 
 ### 5) ¿Qué son los tipos `Safe<T, ...>`?
 
@@ -38,7 +38,7 @@ Usa `cargo run -p tupa-cli -- <command>` y revisa [docs/getting_started.md](gett
 ### 7) ¿Hay una hoja de ruta?
 
 Sí, están en desarrollo.
-Ver [Plan MVP](../overview/mvp_plan.md) y [Plan de adopción](../governance/adoption_plan.md).
+Ver [Plan MVP](../archive/overview/mvp_plan.md) y [Plan de adopción](../governance/adoption_plan.md).
 
 ### 8) ¿Puedo proponer cambios a la spec?
 
@@ -62,4 +62,4 @@ Consulta [docs/README.md](../index.md) para enlaces rápidos.
 
 ### 13) ¿Cómo contribuyo con ejemplos o documentación?
 
-Consulta [CONTRIBUTING.md](../../CONTRIBUTING.md) y [docs/docs_contributing.md](docs_contributing.md).
+Consulta [CONTRIBUTING.md](../../../CONTRIBUTING.md) y [docs/docs_contributing.md](docs_contributing.md).

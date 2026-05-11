@@ -15,4 +15,4 @@
 - [Notas Pós-Release: v0.8.1](releases/post_release_v0.8.1.md)
 - [Checklist: v0.8.2](releases/checklist_v0.8.2.md)
 - [Decisão de distribuição híbrida](governance/hybrid_distribution_decision.md)
-- [Guia de contribuição](../../CONTRIBUTING.md)
+- [Guia de contribuição](../../../CONTRIBUTING.md)

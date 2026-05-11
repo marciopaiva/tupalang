@@ -7,7 +7,7 @@ Garantizar consistencia y calidad antes de publicar un release.
 ## Checklist
 
 - [ ] Actualiza [CHANGELOG](changelog.md)
-- [ ] Actualiza [INDEX](index.md)
+- [ ] Actualiza el [Índice de Documentación](../index.md)
 - [ ] Ejecuta `cargo test`
 - [ ] Ejecuta `markdownlint "**/*.md"`
 - [ ] Valida los ejemplos principales en `examples/`

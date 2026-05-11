@@ -2,7 +2,7 @@
 
 > **Last updated:** 2026-05-10
 > **Status:** Phase 0 complete. Phase 1–4 adapted for Rust crate ecosystem.
-> **Architecture:** See [PROPOSAL.md](../en/PROPOSAL.md)
+> **Architecture:** See [PROPOSAL.md](../PROPOSAL.md)
 
 ## Purpose
 

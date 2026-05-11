@@ -1,6 +1,6 @@
 # Examples
 
-⚠️ **These examples use the legacy `.tp` file format.** New development should use the **Rust DSL** (`tupa-core` crate). See [Getting Started](../../docs/en/guides/getting_started.md) for the modern approach.
+⚠️ **These examples use the legacy `.tp` file format.** New development should use the **Rust DSL** (`tupa-core` crate). See [Getting Started](../docs/en/guides/getting_started.md) for the modern approach.
 
 ## Purpose
 

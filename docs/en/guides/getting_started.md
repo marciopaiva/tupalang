@@ -225,7 +225,7 @@ let image: Tensor<f32, { shape: [28, 28], density: 1.0 }> = Tensor::zeros();
 
 ### 4. Check out real example in ViperTrade
 
-[ViperTrade strategies](https://github.com/marciopaiva/vipertrade/tree/main/strategies) — production pipelines using Tupã.
+[ViperTrade strategies](https://github.com/marciopaiva/vipertrade) — production pipelines using Tupã.
 
 ---
 
@@ -322,6 +322,6 @@ But **for Rust projects, you don't need the CLI** — just depend on the crates.
 - Read the [Pipeline Guide](pipeline_guide.md) for advanced patterns (async steps, multi-pipeline)
 - Browse [API Reference](https://docs.rs/tupa-core) for full trait docs
 - See [TRANSITION.md](TRANSITION.md) if coming from `.tp` files
-- Join [GitHub Discussions](https://github.com/marciopaiva/tupalang/discussions)
+- Join [GitHub Issues](https://github.com/marciopaiva/tupalang/issues)
 
 **You're ready to build deterministic, type-safe policy systems in Rust.**

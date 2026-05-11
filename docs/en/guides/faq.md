@@ -71,7 +71,7 @@ See [TRANSITION.md](../TRANSITION.md).
 
 ### 6) Where are the examples?
 
-- **Rust DSL examples:** `examples/` (coming soon) and [ViperTrade strategies](https://github.com/marciopaiva/vipertrade/tree/main/strategies)
+- **Rust DSL examples:** `examples/` (coming soon) and [ViperTrade strategies](https://github.com/marciopaiva/vipertrade)
 - **Legacy `.tp` examples:** `examples/` (still valid but deprecated)
 - **Spec examples:** [SPEC §10](../reference/spec.md#10-validated-examples)
 
@@ -225,7 +225,7 @@ Breaking changes in minor version require 6 months deprecation cycle and migrati
 ### 18) How do I report bugs or request features?
 
 - Bugs: [GitHub Issues](https://github.com/marciopaiva/tupalang/issues) — include minimal reproducer
-- Features: [GitHub Discussions](https://github.com/marciopaiva/tupalang/discussions) — start in "Ideas" category
+- Features: [GitHub Issues](https://github.com/marciopaiva/tupalang/issues) — start in "Ideas" category
 
 ---
 
