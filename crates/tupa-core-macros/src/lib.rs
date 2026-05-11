@@ -1,3 +1,28 @@
+//! Tupã core procedural macro — the `pipeline!` DSL for defining typed policy pipelines.
+//!
+//! This crate implements the `pipeline!` macro that generates pipeline structs
+//! implementing `tupa_core::Pipeline`, `tupa_engine::ExecutorPipeline`, and
+//! `tupa_engine::ParallelPipeline` traits.
+//!
+//! ## Example
+//!
+//! ```rust,ignore
+//! use tupa_core::pipeline;
+//!
+//! pipeline! {
+//!     name: MyPipeline,
+//!     input: MyInput,
+//!     steps: [
+//!         step("process") { process(input) }
+//!     ],
+//!     constraints: [
+//!         metric("score").ge(0.0)
+//!     ]
+//! }
+//! ```
+//!
+//! The macro expands to a struct with associated methods for execution.
+
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::parse::{Parse, ParseStream};
@@ -102,6 +127,7 @@ impl Parse for StepDecl {
     }
 }
 
+#[allow(clippy::collapsible_match)]
 impl Parse for ConstraintDecl {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let call_expr: Expr = input.parse()?;

@@ -2,7 +2,7 @@
 name = "tupa-core"
 version = "0.9.0"
 edition = "2021"
-description = "Core types and pipeline definition macro for TupaLang"
+description = "Core types and pipeline definition macro for Tupã"
 license = "Apache-2.0"
 repository = "https://github.com/marciopaiva/tupalang"
 homepage = "https://github.com/marciopaiva/tupalang"

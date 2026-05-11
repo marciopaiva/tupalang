@@ -83,8 +83,8 @@ impl Executor {
         let mut dependents: HashMap<&str, Vec<&str>> = HashMap::new();
 
         for &id in step_ids {
-            let produces: Vec<&str> = pipeline.produces(id).iter().copied().collect();
-            let requires: Vec<&str> = pipeline.requires(id).iter().copied().collect();
+            let produces: Vec<&str> = pipeline.produces(id).to_vec();
+            let requires: Vec<&str> = pipeline.requires(id).to_vec();
             produces_map.insert(id, produces);
             for &req in &requires {
                 dependents.entry(req).or_default().push(id);
@@ -247,20 +247,26 @@ impl Executor {
 ///
 /// This trait is implemented automatically by the `pipeline!` macro.
 pub trait ExecutorPipeline: tupa_core::Pipeline {
+    /// Execute the pipeline with the given input and return the result.
     fn execute(&self, input: &Self::Input) -> Result<PipelineResult, EngineError>;
 }
 
 /// Trait for parallel-capable pipelines. Automatically implemented
-/// by the `pipeline!` macro when metadata is available.
+/// by the `pipeline!` macro when metadata (produces/requires) is available.
 pub trait ParallelPipeline: ExecutorPipeline {
+    /// Returns the list of step IDs in the pipeline.
     fn step_ids(&self) -> &'static [&'static str];
+    /// Returns the metrics produced by the given step.
     fn produces(&self, step_id: &str) -> &'static [&'static str];
+    /// Returns the metrics required by the given step.
     fn requires(&self, step_id: &str) -> &'static [&'static str];
+    /// Execute a single step independently (used by parallel scheduler).
     fn execute_step(
         &self,
         input: &Self::Input,
         step_id: &str,
     ) -> Result<serde_json::Value, EngineError>;
+    /// Check constraints against collected metric values. Returns `(passed, failures)`.
     fn check_constraints(
         values: &std::collections::HashMap<String, serde_json::Value>,
     ) -> (bool, Vec<ConstraintFailure>);
@@ -268,6 +274,7 @@ pub trait ParallelPipeline: ExecutorPipeline {
 
 /// Result of pipeline execution.
 #[derive(Debug, Clone)]
+#[must_use]
 pub struct PipelineResult {
     /// All collected metric values (keyed by metric or step name)
     pub values: HashMap<String, Value>,
@@ -278,7 +285,14 @@ pub struct PipelineResult {
 }
 
 impl PipelineResult {
+    /// Create a new empty (passing) pipeline result.
     pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl Default for PipelineResult {
+    fn default() -> Self {
         Self {
             values: HashMap::new(),
             passed: true,
@@ -290,29 +304,59 @@ impl PipelineResult {
 /// Information about a single constraint that failed.
 #[derive(Debug, Clone)]
 pub struct ConstraintFailure {
+    /// The metric name that violated the constraint.
     pub metric: String,
+    /// The operator that was used (e.g., "ge", "le").
     pub operator: String,
+    /// The expected value (threshold).
     pub expected: Value,
+    /// The actual value observed.
     pub actual: Value,
+}
+
+impl std::fmt::Display for ConstraintFailure {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "constraint failed: {} {} {} (actual: {})",
+            self.metric, self.operator, self.expected, self.actual
+        )
+    }
 }
 
 /// Execution engine errors.
 #[derive(Error, Debug)]
 pub enum EngineError {
+    /// A step function panicked during execution.
     #[error("Step '{step}' panicked: {reason}")]
-    StepPanic { step: String, reason: String },
+    StepPanic {
+        /// The ID of the step that panicked.
+        step: String,
+        /// The panic reason or backtrace.
+        reason: String,
+    },
 
+    /// A constraint was violated. Contains metric name, operator, expected and actual values.
     #[error("Constraint failed: {metric} {op} {expected} (actual {actual})")]
     ConstraintFailed {
+        /// The metric name that violated the constraint.
         metric: String,
+        /// The comparison operator that was used (e.g., "ge", "le", "eq").
         op: String,
+        /// The expected threshold value.
         expected: serde_json::Value,
+        /// The actual value observed.
         actual: serde_json::Value,
     },
 
+    /// A dependency cycle was detected in the pipeline DAG.
     #[error("Dependency cycle detected: unsatisfied steps: {steps}")]
-    CycleDetected { steps: String },
+    CycleDetected {
+        /// Comma-separated list of steps involved in the cycle.
+        steps: String,
+    },
 
+    /// A generic pipeline execution error (fallback).
     #[error("Pipeline execution error: {0}")]
     Other(String),
 }

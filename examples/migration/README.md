@@ -1,6 +1,6 @@
 # Migration Examples: `.tp` → Rust DSL
 
-This directory contains side-by-side examples showing how to migrate legacy TupaLang (`.tp`) pipelines to the new Rust DSL (`pipeline!` macro).
+This directory contains side-by-side examples showing how to migrate legacy Tupã (`.tp`) pipelines to the new Rust DSL (`pipeline!` macro).
 
 Each example includes:
 

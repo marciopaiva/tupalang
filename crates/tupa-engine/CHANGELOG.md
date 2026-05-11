@@ -32,6 +32,25 @@ All notable changes to `tupa-engine` will be documented in this file.
 - It is the execution engine for both Rust DSL pipelines and future plugin-based steps.
 - Breaking changes are expected before 1.0; current API is alpha.
 
+## [0.9.1] - 2026-05-11
+
+### Added
+
+- `PipelineResult` now annotated with `#[must_use]` to prevent accidental discarding
+- `Display` implementation for `ConstraintFailure` with formatted error messages
+- README documentation for engine examples (`examples/README.md`)
+- Plugin FFI overhead benchmark (`crates/tupa-plugin/benches/plugin_bench.rs`)
+- Performance tuning guide (`docs/guides/performance_tuning.md`) for parallel execution, memory efficiency, and profiling
+
+### Fixed
+
+- Template Cargo.toml dependencies pinned to `=0.9.0` to avoid accidental incompatible versions
+
+### Changed
+
+- Removed `#[must_use]` from `Executor::run` and `Executor::run_parallel` methods (Result already has must_use)
+- Updated cargo-tupa guide with subcommand documentation (`fmt`, `lint`, `test`, `plugin new`)
+
 ## [Unreleased]
 
 - Planned: Plugin step execution integration

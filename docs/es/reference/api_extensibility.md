@@ -33,7 +33,7 @@ let ir = codegen(&typed)?;
 
 ### Built-in Functions
 
-TupaLang proporciona helpers incorporados accesibles vía el namespace `tupa::`:
+Tupã proporciona helpers incorporados accesibles vía el namespace `tupa::`:
 
 - `tupa::weighted(score, weight, reason)` — score ponderado con reason
 - `tupa::warn(reason)` — pase con advertencia

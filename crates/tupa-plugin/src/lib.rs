@@ -6,39 +6,54 @@ use std::sync::Arc;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
+/// Errors that can occur when loading or using plugins.
 pub enum PluginError {
     #[error("Failed to load library: {0}")]
+    /// Failed to load the dynamic library.
     LibraryLoad(String),
 
     #[error("Symbol not found: {0}")]
+    /// Required symbol not found in the plugin library.
     SymbolNotFound(String),
 
     #[error("Registration failed: {0}")]
+    /// Plugin registration callback failed.
     RegistrationFailed(String),
 
     #[error("Invalid plugin entry point")]
+    /// The plugin does not export the required entry points.
     InvalidEntryPoint,
 }
 
+/// A step function type: a thread-safe, sendable closure taking a JSON value and returning a JSON value.
 pub type StepFunction = Arc<dyn Fn(Value) -> Result<Value, String> + Send + Sync>;
 
+/// A dynamically loaded plugin.
 pub struct Plugin {
+    /// Plugin name (from `_tupa_plugin_name`).
     pub name: String,
+    /// Handle to the loaded dynamic library.
     pub library: Library,
+    /// List of function names registered by this plugin.
     pub functions: Vec<String>,
 }
 
+/// Manager for loading and calling plugin functions.
 pub struct PluginManager {
     plugins: Vec<Plugin>,
 }
 
 impl PluginManager {
+    /// Create a new empty plugin manager.
     pub fn new() -> Self {
         Self {
             plugins: Vec::new(),
         }
     }
 
+    /// Load a plugin from a dynamic library file (`.so`/`.dll`/`.dylib`).
+    ///
+    /// The library must export `_tupa_plugin_name` and `_tupa_plugin_register` C symbols.
     pub fn load_plugin<P: AsRef<Path>>(&mut self, path: P) -> Result<&Plugin, PluginError> {
         let path = path.as_ref();
         let lib =
@@ -77,6 +92,9 @@ impl PluginManager {
         Ok(self.plugins.last().unwrap())
     }
 
+    /// List all loaded plugins and their available functions.
+    ///
+    /// Returns iterator of `(plugin_name, [function_names])`.
     pub fn list_functions(&self) -> Vec<(String, Vec<String>)> {
         self.plugins
             .iter()
@@ -84,17 +102,11 @@ impl PluginManager {
             .collect()
     }
 
-    /// Call a plugin function by name.
+    /// Call a plugin function by name with a JSON argument.
     ///
-    /// Looks up the function in loaded plugins and executes it with the provided JSON input.
+    /// Looks up the function in loaded plugins and executes it.
     /// Returns the JSON result or an error if the plugin/function is not found.
-    ///
-    /// # Example
-    /// ```rust,ignore
-    /// let mut pm = PluginManager::new();
-    /// pm.load_plugin("./my_plugin.so")?;
-    /// let result = pm.call("my_step", json!({"x": 42}))?;
-    /// ```
+    #[allow(improper_ctypes_definitions)]
     pub fn call(&self, name: &str, input: Value) -> Result<Value, PluginError> {
         for plugin in &self.plugins {
             if plugin.functions.iter().any(|fn_name| fn_name == name) {
@@ -102,7 +114,6 @@ impl PluginManager {
                 unsafe {
                     type RawStepFn = unsafe extern "C" fn(Value) -> Value;
                     // Use cname.as_bytes() (no trailing null) to look up symbol
-                    #[allow(improper_ctypes_definitions)]
                     let func = plugin
                         .library
                         .get::<RawStepFn>(cname.as_bytes())
@@ -116,17 +127,27 @@ impl PluginManager {
 }
 
 #[repr(C)]
+/// Context passed to plugin registration callback.
+///
+/// The plugin fills `functions` with the names of exported step functions.
 pub struct PluginRegisterContext {
+    /// Optional registration callback (set by plugin manager).
     pub register_step: Option<extern "C" fn(name: *const i8, func: *const u8)>,
+    /// Filled by plugin during registration with available function names.
     pub functions: Vec<String>,
 }
 
+/// Trampoline used to register steps from plugin C callbacks.
 extern "C" fn step_register_trampoline(_name: *const i8, _func: *const u8) {
     let _ = unsafe { CStr::from_ptr(_name).to_string_lossy().into_owned() };
 }
 
+/// Generate a Rust source template for a new Tupã plugin.
+///
+/// The template exports the required C entry points and a sample step function.
+/// Build as a `cdylib` and load via `PluginManager`.
 pub fn create_plugin_template() -> &'static str {
-    r#"// TupaLang Plugin Template
+    r#"// Tupã Plugin Template
 // Build as: cargo build --crate-type=cdylib
 
 use serde_json::Value;

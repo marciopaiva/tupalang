@@ -3,6 +3,7 @@
     since = "0.8.2",
     note = "The Tupã DSL (`.tp` files) is deprecated. Type checking is now handled by Rust's compiler for pipeline definitions."
 )]
+#![allow(deprecated)]
 
 use std::collections::HashMap;
 

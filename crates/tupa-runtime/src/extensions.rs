@@ -1,4 +1,4 @@
-//! Runtime extensions for TupaLang
+//! Runtime extensions for Tupã
 //!
 //! This module provides the `TupaExtension` trait for projects to register
 //! custom step functions with the runtime.
@@ -9,7 +9,7 @@ use std::sync::Arc;
 /// Trait for registering custom step functions with the runtime.
 ///
 /// Projects can implement this trait to provide their own helpers
-/// that can be called from TupaLang pipeline steps.
+/// that can be called from Tupã pipeline steps.
 ///
 /// # Example
 ///

@@ -284,30 +284,44 @@ This document records relevant changes per version.
 - Basic closure support in codegen (without environment capture yet).
 - Golden test fixes for error cases (removed cargo messages).
 
-## 0.9.0 (Upcoming)
+## 0.9.0 (2026-05-11)
 
-### Added
+### Delivered Scope
 
-- New crate-first architecture: `tupa-core` (pipeline! macro), `tupa-engine` (parallel executor)
-- Channel-based parallel step execution with DAG validation and cycle detection
-- Dynamic plugin system (`tupa-plugin`) with FFI-safe C ABI
-- `cargo-tupa` CLI subcommand for pipeline development (check, test, run, plugin new)
-- Deprecation of all legacy `.tp` DSL crates with migration guides
-- Comprehensive example suites and integration tests
+- **New crate-first architecture**: `tupa-core` (pipeline! macro + types), `tupa-engine` (parallel executor), `tupa-plugin` (dynamic loading), `cargo-tupa` (CLI)
+- **Parallel execution**: Channel-based DAG scheduler with cycle detection (`Executor::run_parallel`)
+- **Constraint system**: Compile-time + runtime metric checking with `metric("name").op(value)` DSL
+- **Plugin FFI**: C ABI for step function registration (`libloading` + `extern "C"`)
+- **Migration tooling**: Examples and guides for `.tp` → Rust DSL conversion
+- **Documentation parity**: EN, ES, PT-BR with full cross-linking
 
-### Changed
+### Engineering and CI Completed
 
-- Parallel execution via `Executor::run_parallel` (Tokio required)
-- Constraints evaluated after pipeline completion; `ExecutionResult` with pass/fail and metric values
-- Step-level `produces`/`requires` annotations drive dependency scheduling
+- CI workflows: lint (clippy, rustfmt), test (workspace), docs-lint (markdownlint, parity, lychee), vipertrade-smoke gate
+- Golden tests regenerated with `RUSTFLAGS="-Awarnings"` to suppress deprecation noise
+- All broken relative links fixed across docs (grammar.ebnf, type_semantics, PROPOSAL, TRANSITION, etc.)
+- External URLs updated (ViperTrade paths, GitHub Discussions → Issues)
+- `tupa-cli` preserved for legacy `.tp` workflow; `cargo-tupa` for Rust DSL
+- Version bump: `tupa-core` 0.9.0, `tupa-core-macros` 0.9.0, `tupa-engine` 0.9.0, `tupa-plugin` 0.9.0, `cargo-tupa` 0.9.0, `tupa-template` 0.9.0
 
-### Notes
+### Validation Snapshot (workspace)
 
-- This release marks the transition from standalone `.tp` compilation to Rust DSL pipelines.
-- Legacy crates (`tupa-parser`, `tupa-typecheck`, `tupa-codegen`, `tupa-runtime`, `tupa-effects`) are deprecated but remain available until 2027-01-01.
-- Migration guide and examples provided in `docs/en/TRANSITION.md` and `examples/migration/`.
+- **Release status**: Tag `v0.9.0` created; crates published to crates.io (core, engine, plugin, cargo-tupa)
+- **Validation status**:
+  - docs parity: green (all required files present in EN/ES/PT-BR)
+  - markdownlint: green
+  - link-check (lychee): 0 errors
+  - CI: all jobs passing (lint, test, vipertrade-smoke)
+  - ViperTrade smoke gate validates `tupa-cli` check + codegen for `vipertrade_smoke.tp`
+- **Crates published**: `tupa-core@0.9.0`, `tupa-engine@0.9.0`, `tupa-plugin@0.9.0`, `cargo-tupa@0.9.0`
+- **Legacy crates pinned**: `tupa-parser`, `tupa-typecheck`, `tupa-codegen`, `tupa-runtime`, `tupa-effects`, `tupa-audit`, `tupa-fmt`, `tupa-lint` at 0.8.x
 
-## 0.1.0
+### Technical Debt
 
-- Specification v0.1 published.
-- Basic lexer, parser, typechecker, and CLI.
+- `tupa-conformance` crate not yet published (SPEC validator — Phase 0 artifact, may be kept as dev-dependency only)
+- `tupa-core-macros` missing CHANGELOG.md (should be added)
+- `crates/tupa-template` uses path dependencies in template Cargo.toml — needs patch for generated projects
+- PyFFI (`tupa-pyffi`) still at 0.8.2 — migration to 0.9.0 API pending (Phase 3)
+- LSP (`tupa-lsp`) not implemented (deferred; rust-analyzer covers DSL)
+- Benchmark suite (`criterion`) not yet created (Phase 4)
+- Some public items in `tupa-core`/`tupa-engine` lack `///` docs (need API doc pass before 1.0)
