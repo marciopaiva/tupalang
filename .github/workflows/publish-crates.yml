@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       publish_cli:
-        description: "Also publish tupa-audit, tupa-fmt, tupa-lint and tupa-cli"
+        description: "Also publish tupa-audit, tupa-fmt, tupa-lint and cargo-tupa"
         required: false
         default: false
         type: boolean
@@ -54,7 +54,7 @@ jobs:
             echo "$OUTPUT"
 
             if [[ $CODE -eq 0 ]]; then
-              if [[ "$MODE" != *"--dry-run"* ]]; then
+              if [[ "$MODE" != *"--dry-run"* && "$MODE" != *"--dry-run"* ]]; then
                 sleep 30
               fi
               return 0
@@ -68,6 +68,17 @@ jobs:
             return $CODE
           }
 
+          # New crate-first architecture (0.9.0)
+          # Publish order: dependencies first
+          for crate in \
+            tupa-core-macros \
+            tupa-core \
+            tupa-engine \
+            tupa-plugin; do
+            publish_crate "$crate"
+          done
+
+          # Legacy crates (still supported until 2027)
           for crate in \
             tupa-lexer \
             tupa-effects \
@@ -75,8 +86,7 @@ jobs:
             tupa-typecheck \
             tupa-codegen \
             tupa-pyffi \
-            tupa-runtime \
-            tupa-plugin; do
+            tupa-runtime; do
             publish_crate "$crate"
           done
 
@@ -94,7 +104,7 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Publish CLI dependency crates then tupa-cli
+      - name: Publish CLI tools
         shell: bash
         run: |
           set -euo pipefail
@@ -129,6 +139,6 @@ jobs:
             return $CODE
           }
 
-          for crate in tupa-audit tupa-fmt tupa-lint tupa-cli; do
+          for crate in tupa-audit tupa-fmt tupa-lint cargo-tupa; do
             publish_crate "$crate"
           done

@@ -17,14 +17,14 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            artifact_name: tupa-linux-x86_64
-            binary_path: target/release/tupa
+            artifact_name: cargo-tupa-linux-x86_64
+            binary_path: target/release/cargo-tupa
           - os: macos-latest
-            artifact_name: tupa-macos-aarch64
-            binary_path: target/release/tupa
+            artifact_name: cargo-tupa-macos-aarch64
+            binary_path: target/release/cargo-tupa
           - os: windows-latest
-            artifact_name: tupa-windows-x86_64.exe
-            binary_path: target/release/tupa.exe
+            artifact_name: cargo-tupa-windows-x86_64.exe
+            binary_path: target/release/cargo-tupa.exe
 
     steps:
       - name: Checkout
@@ -37,7 +37,7 @@ jobs:
         uses: Swatinem/rust-cache@v2
 
       - name: Build release binary
-        run: cargo build --release -p tupa-cli
+        run: cargo build --release -p cargo-tupa
 
       - name: Prepare artifact
         shell: bash
@@ -65,13 +65,13 @@ jobs:
       - name: Generate checksums
         run: |
           cd dist
-          sha256sum tupa-linux-x86_64 tupa-macos-aarch64 tupa-windows-x86_64.exe > checksums.txt
+          sha256sum cargo-tupa-linux-x86_64 cargo-tupa-macos-aarch64 cargo-tupa-windows-x86_64.exe > checksums.txt
 
       - name: Publish release assets
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/tupa-linux-x86_64
-            dist/tupa-macos-aarch64
-            dist/tupa-windows-x86_64.exe
+            dist/cargo-tupa-linux-x86_64
+            dist/cargo-tupa-macos-aarch64
+            dist/cargo-tupa-windows-x86_64.exe
             dist/checksums.txt

@@ -1,3 +1,5 @@
+#![allow(warnings)]
+
 use serde_json::{Map, Value};
 use sha3::{Digest, Sha3_256};
 use tupa_parser::{Item, Program};

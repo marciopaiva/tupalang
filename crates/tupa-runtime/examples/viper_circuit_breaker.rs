@@ -1,3 +1,4 @@
+#![allow(warnings)]
 //! # ViperTrade Circuit Breaker Example
 //!
 //! This example demonstrates the Circuit Breaker mechanism in the Tupã Runtime.

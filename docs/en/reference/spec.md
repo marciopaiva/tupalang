@@ -1,4 +1,4 @@
-# Tupã Language Specification v0.1
+# Tupã Language Specification v0.9
 
 > **Ancestral strength, modern code**  
 > Brazilian language for critical systems and evolving AI
@@ -1049,9 +1049,9 @@ error[E2002]: arity mismatch: expected 2, got 1
 
 ## 12. Versioning Policy
 
-- **Major** (v1 → v2): Breaking changes in grammar or type system
-- **Minor** (v0.1 → v0.2): Backward-compatible features (for example, new attributes)
-- **Patch** (v0.1.0 → v0.1.1): Bug fixes without spec changes
+- **Major** (v0.9 → v1.0): Breaking changes in grammar or type system
+- **Minor** (v0.9 → v0.10): Backward-compatible features (for example, new attributes)
+- **Patch** (v0.9.0 → v0.9.1): Bug fixes without spec changes
 
 > **Commitment**: stable API starting from v1.0.
 

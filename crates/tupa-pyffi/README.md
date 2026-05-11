@@ -1,25 +1,21 @@
 # tupa-pyffi
 
-Python FFI bridge for calling external Python functions from Tupa runtime.
+⚠️ **EARLY PHASE — NOT YET COMPATIBLE with `tupa-core`.** This crate currently targets the legacy `.tp` toolchain. It will be migrated to the new crate-first architecture in Phase 3 (FFI).
 
-## Usage
+## Purpose
 
-```rust
-use serde_json::json;
-use tupa_pyffi::call_python_function;
+Python FFI bridge for calling external Python functions from Tupã pipelines (planned). Enables interoperability with Python libraries (NumPy, PyTorch, TensorFlow).
 
-let result = call_python_function("math", "sqrt", json!(16.0))?;
-assert_eq!(result, json!(4.0));
-# Ok::<(), String>(())
-```
+**Current status:** Prototype for legacy `.tp` pipelines only.
 
-## Notes
+## Future (Phase 3)
 
-- Requires Python runtime/toolchain in build or runtime environment.
-- Calls a Python function with a single JSON-like argument and converts the return value back to `serde_json::Value`.
-- The target module must be importable from the active Python environment.
+Will provide:
+- Python bindings to `tupa-core` DSL
+- Ability to embed Python functions as pipeline steps
+- `pip install tupa-pyffi` distribution
 
-## Applied usage
+## Crate
 
-- Applied reference repository: [ViperTrade](https://github.com/marciopaiva/vipertrade)
-- ViperTrade is the main applied integration reference for embedded Tupa pipelines; `tupa-pyffi` is available when those pipelines need Python-backed enrichment or interoperability.
+- Source: [tupalang](https://github.com/marciopaiva/tupalang)
+- License: Apache-2.0

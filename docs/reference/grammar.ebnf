@@ -1,0 +1,124 @@
+(* ===== LEXICAL ===== *)
+letter          = "a".."z" | "A".."Z" | "\u{0080}".."\u{10FFFF}" ;
+digit           = "0".."9" ;
+hex_digit       = digit | "a".."f" | "A".."F" ;
+identifier      = letter { letter | digit | "_" } ;
+integer_literal = digit { digit } ;
+float_literal   = digit { digit } "." digit { digit }
+      [ ("e" | "E") ["+" | "-"] digit { digit } ] ;
+string_literal  = '"' { ( "\u{0000}".."\u{0021}" | "\u{0023}".."\u{005B}" | "\u{005D}".."\u{10FFFF}" )
+       | escape_sequence } '"' ;
+escape_sequence = "\\" ( "n" | "t" | '"' | "\\" | "u{" hex_digit {1,6} "}" ) ;
+
+(* ===== TYPES ===== *)
+type            = primitive_type
+    | tuple_type
+    | enum_type
+    | option_type
+    | result_type
+    | tensor_type
+    | safe_type
+    | identifier ;
+
+primitive_type  = "i64" | "f64" | "f32" | "f16" | "bool" | "string" ;
+tuple_type      = "(" type { "," type } [","] ")" ;
+enum_type       = identifier [ "<" type { "," type } ">" ] ;
+option_type     = "Option" "<" type ">" ;
+result_type     = "Result" "<" type "," type ">" ;
+tensor_type     = "Tensor" "<"
+     type "," 
+     "shape" "=" "[" dimension { "," dimension } "]"
+     [ "," "density" "=" float_literal ]
+      ">" ;
+dimension       = integer_literal | "..." ;
+safe_type       = "Safe" "<" type "," constraint_list ">" ;
+constraint_list = "!" identifier { "," "!" identifier } ;
+
+(* ===== EXPRESSIONS ===== *)
+expression      = assignment
+    | conditional
+    | match_expr
+    | binary_expr
+    | unary_expr
+    | primary_expr ;
+
+assignment      = identifier "=" expression ;
+
+conditional     = "if" expression block [ "else" ( block | conditional ) ] ;
+
+match_expr      = "match" expression "{" { match_arm } "}" ;
+match_arm       = pattern [ "if" expression ] "=>" expression [ "," ] ;
+pattern         = "_"
+    | literal
+    | identifier
+    | tuple_pattern
+    | constructor_pattern ;
+tuple_pattern   = "(" pattern { "," pattern } [ "," ] ")" ;
+constructor_pattern = identifier "(" pattern { "," pattern } [ "," ] ")" ;
+
+binary_expr     = unary_expr { binary_op unary_expr } ;
+binary_op       = "||" | "&&" | "==" | "!=" | "<" | "<=" | ">" | ">="
+    | "+" | "-" | "*" | "/" | "**" ;
+
+unary_expr      = [ unary_op ] primary_expr ;
+unary_op        = "!" | "-" | "∇" ;
+
+primary_expr    = literal
+    | identifier
+    | "(" expression ")"
+    | identifier "(" [ argument_list ] ")"
+    | identifier "." ( identifier | integer_literal )
+    | "await" expression ;
+
+literal         = integer_literal | float_literal | string_literal | "true" | "false" | "null" ;
+tensor_literal  = "[" expression { "," expression } "]" ;
+argument_list   = expression { "," expression } ;
+
+(* ===== STATEMENTS ===== *)
+statement       = declaration
+    | expression ";"
+    | block
+    | control_flow ;
+
+declaration     = "let" [ "mut" ] identifier [ ":" type ] "=" expression ";"
+    | function_decl
+    | enum_decl
+                | pipeline_decl ;
+
+function_decl   = [ attribute_list ] "fn" identifier
+      "(" [ parameter_list ] ")"
+      [ ":" type ]
+      block ;
+
+enum_decl       = "enum" identifier [ "<" identifier { "," identifier } ">" ]
+      "{" enum_variant { "," enum_variant } [ "," ] "}" ;
+enum_variant    = identifier [ "(" type { "," type } [ "," ] ")" ] ;
+
+attribute_list  = "@" identifier [ "(" attribute_args ")" ]
+      { "@" identifier [ "(" attribute_args ")" ] } ;
+attribute_args  = identifier "=" literal { "," identifier "=" literal } ;
+
+parameter_list  = parameter { "," parameter } ;
+parameter       = identifier ":" type ;
+
+block           = "{" { statement } "}" ;
+
+control_flow    = "return" [ expression ] ";"
+    | "while" expression block
+    | "for" identifier "in" range_expr block ;
+
+range_expr      = expression ".." expression ;
+
+(* ===== TOP LEVEL ===== *)
+program         = { import_decl | export_decl | declaration } ;
+import_decl     = "import" string_literal [ "as" identifier ] ";" ;
+export_decl     = "export" ( function_decl | "let" identifier ) ;
+
+(* ===== PIPELINES ===== *)
+pipeline_decl   = "pipeline" identifier [ "@" attribute_list ] "{" pipeline_body "}" ;
+pipeline_body   = "input" ":" type ","
+                [ "constraints" ":" "[" identifier { "," identifier } "]" "," ]
+                "steps" ":" "[" step_list "]" [ "," ]
+                [ "validation" ":" block ] ;
+step_list       = step_decl { "," step_decl } ;
+step_decl       = "step" "(" string_literal ")" "{" expression "}" ;

@@ -23,7 +23,7 @@ Release candidates usam o formato `vX.Y.Z-rc.N` e devem ser tratados como builds
 - Tags RC publicam artefatos de release para validação.
 - Garantias de API ficam limitadas às superfícies estáveis documentadas.
 
-## Modelo de distribuição (v0.8.2)
+## Modelo de distribuição (v0.9.0)
 
 Tupa usa um modelo híbrido:
 

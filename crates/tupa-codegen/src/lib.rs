@@ -1,3 +1,9 @@
+#![doc = "\n**LEGACY — DO NOT USE.**\n\nThis crate is deprecated. Pipelines should be defined with the `pipeline!` macro from `tupa-core-macros`\nand executed via `tupa-engine::Executor`. See the migration guide in the workspace README.\n"]
+#![deprecated(
+    since = "0.8.2",
+    note = "The Tupã DSL codegen and execution model have been replaced. Use `tupa-core-macros` and `tupa-engine` instead."
+)]
+
 use std::collections::HashMap;
 
 use tupa_parser::{Expr, ExprKind, Function, Item, Program, Stmt, Type};

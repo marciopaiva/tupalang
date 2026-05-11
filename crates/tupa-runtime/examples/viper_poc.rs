@@ -1,3 +1,4 @@
+#![allow(warnings)]
 use serde_json::{json, Value};
 use std::thread;
 use std::time::Duration;

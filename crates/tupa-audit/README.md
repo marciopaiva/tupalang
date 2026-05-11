@@ -1,8 +1,14 @@
 # tupa-audit
 
-Audit helpers for compiler/runtime versioning and deterministic hashing.
+Audit helpers for deterministic hashing and reproducibility.
 
-## Usage
+## Purpose
+
+Generates reproducible hashes of pipeline ASTs and execution inputs for audit trails and compliance verification.
+
+**Compatibility:** Works with legacy `.tp` AST. Migration to `tupa-core` DSL planned.
+
+## Usage (Legacy)
 
 ```rust
 use serde_json::json;
@@ -15,7 +21,11 @@ println!("{} {}", compiler_version(), hash);
 # Ok::<(), Box<dyn std::error::Error>>(())
 ```
 
-## Applied usage
+## Future (crate-first)
 
-- Applied reference repository: [ViperTrade](https://github.com/marciopaiva/vipertrade)
-- ViperTrade uses `tupa-audit` together with the embedded Tupa runtime to hash and persist strategy execution diagnostics for recent trade and pipeline analysis.
+Will provide `AuditLogger` integration with `tupa-engine` executor.
+
+## Crate
+
+- Source: [tupalang](https://github.com/marciopaiva/tupalang)
+- License: Apache-2.0

@@ -1,3 +1,9 @@
+#![doc = "\n**LEGACY — DO NOT USE.**\n\nThe Tupã typechecker for `.tp` files is deprecated. New pipelines use Rust's type system directly via the `pipeline!` macro.\n"]
+#![deprecated(
+    since = "0.8.2",
+    note = "The Tupã DSL (`.tp` files) is deprecated. Type checking is now handled by Rust's compiler for pipeline definitions."
+)]
+
 use std::collections::HashMap;
 
 use thiserror::Error;

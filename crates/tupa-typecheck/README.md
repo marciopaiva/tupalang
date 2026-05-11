@@ -1,24 +1,22 @@
 # tupa-typecheck
 
-Static checks for TupaLang programs (types, determinism and constraints).
+⚠️ **DEPRECATED.** This crate is maintained for backward compatibility only and will be removed after **2027-01-01**.
 
-## Usage
+## Purpose
 
-```rust
-use tupa_parser::parse_program;
-use tupa_typecheck::typecheck_program;
+Static checks for legacy `.tp` programs (types, determinism, constraints). For new Rust DSL projects, type checking is performed by the Rust compiler via `tupa-core` macro expansion — no separate typechecker needed.
 
-let program = parse_program("fn main() {}")?;
-typecheck_program(&program)?;
-# Ok::<(), Box<dyn std::error::Error>>(())
-```
+## Migration
+
+New pipelines written with `pipeline!` macro are type-checked at compile time by rustc. See [TRANSITION.md](../../docs/en/TRANSITION.md).
+
+## Status
+
+- Last release: `0.8.x` (security fixes only)
+- No new features
 
 ## Crate
 
-- Works with `tupa-parser` AST
+- Works with `tupa-parser` AST (legacy)
 - Source: [tupalang](https://github.com/marciopaiva/tupalang)
-
-## Applied usage
-
-- Applied reference repository: [ViperTrade](https://github.com/marciopaiva/vipertrade)
-- ViperTrade uses `tupa-typecheck` to validate strategy and diagnostics pipelines before code generation and embedded runtime execution.
+- License: Apache-2.0
