@@ -1,10 +1,9 @@
 use libloading::{Library, Symbol};
 use serde_json::Value;
-use std::ffi::CStr;
+use std::ffi::{CStr, CString};
 use std::path::Path;
 use std::sync::Arc;
 use thiserror::Error;
-use tupa_runtime::Runtime;
 
 #[derive(Debug, Error)]
 pub enum PluginError {
@@ -14,7 +13,7 @@ pub enum PluginError {
     #[error("Symbol not found: {0}")]
     SymbolNotFound(String),
 
-    #[error("Plugin registration failed: {0}")]
+    #[error("Registration failed: {0}")]
     RegistrationFailed(String),
 
     #[error("Invalid plugin entry point")]
@@ -78,23 +77,41 @@ impl PluginManager {
         Ok(self.plugins.last().unwrap())
     }
 
-    pub fn register_all(&self, runtime: &Runtime) {
-        for plugin in &self.plugins {
-            for func_name in &plugin.functions {
-                let closure_name = func_name.clone();
-                runtime.register_step(func_name.as_str(), move |input| {
-                    let _ = input;
-                    Err(format!("Plugin function {} not loaded", closure_name))
-                });
-            }
-        }
-    }
-
     pub fn list_functions(&self) -> Vec<(String, Vec<String>)> {
         self.plugins
             .iter()
             .map(|p| (p.name.clone(), p.functions.clone()))
             .collect()
+    }
+
+    /// Call a plugin function by name.
+    ///
+    /// Looks up the function in loaded plugins and executes it with the provided JSON input.
+    /// Returns the JSON result or an error if the plugin/function is not found.
+    ///
+    /// # Example
+    /// ```rust,ignore
+    /// let mut pm = PluginManager::new();
+    /// pm.load_plugin("./my_plugin.so")?;
+    /// let result = pm.call("my_step", json!({"x": 42}))?;
+    /// ```
+    pub fn call(&self, name: &str, input: Value) -> Result<Value, PluginError> {
+        for plugin in &self.plugins {
+            if plugin.functions.iter().any(|fn_name| fn_name == name) {
+                let cname = CString::new(name).map_err(|_| PluginError::InvalidEntryPoint)?;
+                unsafe {
+                    type RawStepFn = unsafe extern "C" fn(Value) -> Value;
+                    // Use cname.as_bytes() (no trailing null) to look up symbol
+                    #[allow(improper_ctypes_definitions)]
+                    let func = plugin
+                        .library
+                        .get::<RawStepFn>(cname.as_bytes())
+                        .map_err(|_| PluginError::SymbolNotFound(name.to_string()))?;
+                    return Ok(func(input));
+                }
+            }
+        }
+        Err(PluginError::SymbolNotFound(name.to_string()))
     }
 }
 
@@ -113,6 +130,7 @@ pub fn create_plugin_template() -> &'static str {
 // Build as: cargo build --crate-type=cdylib
 
 use serde_json::Value;
+use tupa_plugin::PluginRegisterContext;
 
 #[no_mangle]
 pub extern "C" fn _tupa_plugin_name() -> *const i8 {
@@ -124,13 +142,17 @@ pub extern "C" fn _tupa_plugin_name() -> *const i8 {
 pub extern "C" fn _tupa_plugin_register(ctx: *mut PluginRegisterContext) {
     unsafe {
         let name = b"my_step\0".as_ptr() as *const i8;
-        (*ctx).register_step.unwrap()(name, std::ptr::null());
+        // Cast function pointer to raw bytes
+        let func: extern "C" fn(Value) -> Value = my_step;
+        let func_ptr = func as *const ();
+        (*ctx).register_step.unwrap()(name, func_ptr as *const u8);
         (*ctx).functions.push("my_step".to_string());
     }
 }
 
 #[no_mangle]
 pub extern "C" fn my_step(input: Value) -> Value {
+    // Transform input or return a computed value
     input
 }
 "#

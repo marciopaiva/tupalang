@@ -1,63 +1,243 @@
-# FAQ
+# Frequently Asked Questions (Crate-First)
 
-## Purpose
+Updated for the **Rust crates** approach (May 2026).
 
-This document answers common questions about the project and the language.
+---
 
-## Frequently Asked Questions
+## General
 
-### 1) Is the project production ready?
+### 1) Is Tupã production-ready?
 
-Not yet. The v0.1 specification is complete, but the compiler is still being implemented.
+**Not yet.** We are targeting v1.0.0 release in late 2026. Current crates (`tupa-core`, `tupa-engine`) are beta quality but usable for prototyping and early adopters. ViperTrade runs production workloads using the newer Rust DSL.
 
-### 2) What is the main focus of the language?
+If you need stability now, pin to a specific version and expect occasional breaking changes until 1.0.
 
-Governance and determinism for AI pipelines in critical systems, with formal safety and predictable performance.
+---
 
-### 3) How do I contribute?
+### 2) What is Tupã's main focus?
 
-See [CONTRIBUTING.md](../../../CONTRIBUTING.md) and open an issue with context.
+Tupã provides **deterministic, type-safe policy pipelines** for domains where correctness matters:
 
-### 4) Where can I find examples?
+- Trading & risk systems (position limits, drawdown controls)
+- AI inference orchestration (model selection, safety guards)
+- Compliance & fraud detection (explainable decisions)
 
-In [examples](../../../examples/README.md) and in [SPEC](../reference/spec.md#10-validated-examples).
+It is **not** a general-purpose language. Think of it as a **DSL for policy/strategy** embedded in Rust.
 
-### 4.1) Are there safe/alignment examples?
+---
 
-Yes. See the `safe_*` examples in [examples](../../../examples/README.md) and the `Safe<string, ...>` section in [SPEC](../reference/spec.md#alignment-types-ethical-constraints).
+### 3) How do I start using Tupã?
 
-### 5) What are `Safe<T, ...>` types?
+**For Rust projects:**
 
-Types with constraints proven at compile time, for example `Safe<f64, !nan>` or `Safe<string, !misinformation>`. See details in [SPEC](../reference/spec.md#alignment-types-ethical-constraints).
+```bash
+cargo add tupa-core tupa-engine
+```
 
-### 6) How do I run the CLI?
+Then write a `pipeline! { ... }` block. See [Getting Started](../guides/getting_started.md).
 
-Use `cargo run -p tupa-cli -- <command>` and check [Getting Started](getting_started.md).
+**For non-Rust projects:**
 
-### 7) Is there a roadmap?
+- Waiting for FFI (Phase 3, late 2026)
+- Or embed a Rust microservice exposing Tupã policies via RPC
 
-Yes: [Changelog](../releases/changelog.md).
+---
 
-### 8) Can I propose SPEC changes?
+### 4) Why Rust crates instead of a standalone language?
 
-Yes. Open an issue with the `[RFC]` prefix.
+See [PROPOSAL.md](../en/PROPOSAL.md). Short version:
 
-### 9) How does interoperability with other languages work?
+- Faster adoption (`cargo add` vs new toolchain)
+- Immediate IDE support (rust-analyzer)
+- Leverage Rust's type system instead of reinventing one
+- Reach v1.0 in 4–6 months instead of years
 
-The design includes FFI (Foreign Function Interface) for integration with Rust, C, and Python. See [SPEC](../reference/spec.md#7-modules--ffi).
+The SPEC remains normative; the implementation just happens to be a Rust library now.
 
-### 10) How is performance compared to other languages?
+---
 
-The goal is predictable performance, close to Rust/C for critical code. Benchmarks and examples will be published in future releases.
+### 5) Can I still use `.tp` files?
 
-### 11) How do I debug or get detailed diagnostics?
+Yes, **legacy support** remains:
 
-See [Diagnostics Checklist](../reference/diagnostics_checklist.md) and the [SPEC diagnostics section](../reference/spec.md#11-diagnostics) for message examples and tips.
+- `tupa-cli` can parse/typecheck/run `.tp` files
+- `tupa-parser` and `tupa-typecheck` crates still exist for parsing
 
-### 12) Are there usage tips or best practices?
+**But:** No new features target `.tp`. New code should use Rust DSL. Legacy support will be deprecated on **2027-01-01**.
 
-See [SPEC](../reference/spec.md#comparison) for examples and comparisons, and [Index](../index.md) for quick links.
+See [TRANSITION.md](../TRANSITION.md).
 
-### 13) How do I contribute examples or documentation?
+---
 
-See [CONTRIBUTING.md](../../../CONTRIBUTING.md) and [Docs Contributing](docs_contributing.md).
+### 6) Where are the examples?
+
+- **Rust DSL examples:** `examples/` (coming soon) and [ViperTrade strategies](https://github.com/marciopaiva/vipertrade/tree/main/strategies)
+- **Legacy `.tp` examples:** `examples/` (still valid but deprecated)
+- **Spec examples:** [SPEC §10](../reference/spec.md#10-validated-examples)
+
+---
+
+## Technical
+
+### 7) What are `Safe<T, !constraint>` types?
+
+Types that prove at compile time a constraint holds:
+
+```rust
+let x: Safe<f64, !nan> = Safe::new(3.14);  // OK
+// let y: Safe<f64, !nan> = Safe::new(f64::NAN); // ❌ Compile error
+```
+
+The constraint `!nan` is verified via constant folding or static analysis. If the compiler cannot prove it, you get an error.
+
+See SPEC §3.2.6 and [Type Semantics](../reference/type_semantics.md).
+
+---
+
+### 8) How does the gradient operator (`∇`) work?
+
+In Rust DSL: use `grad!` macro:
+
+```rust
+use tupa_core::grad;
+
+let f = |x: f64| x * x;
+let df = grad!(f);
+let derivative = df(3.0);  // (6.0,)
+```
+
+Only works on **pure** functions (no I/O, no randomness). The macro generates a backward-pass function at compile time via symbolic differentiation.
+
+---
+
+### 9) Are there plans for a language server (LSP)?
+
+**Not needed for Rust DSL** — rust-analyzer already provides:
+- Completion inside `pipeline!{}`
+- Go to definition for step functions
+- Type hints and errors
+
+A minimal LSP may be built for legacy `.tp` files only (deprecated path).
+
+---
+
+### 10) How do I debug pipelines?
+
+**Compile-time errors:** Rust compiler messages (with Tupã-specific codes `E2001`, `E3002`, etc.)
+
+**Runtime errors:** `Executor::run()` returns `PipelineResult` with details:
+
+```rust
+match result {
+    Ok(out) => ...,
+    Err(Error::ConstraintFailed { metric, expected, actual }) => ...,
+    Err(Error::StepPanic { step, reason }) => ...,
+}
+```
+
+**Tracing:** enable `RUST_LOG=tupa_engine=debug` for step-by-step logs.
+
+**Audit trail:** call `tupa_audit::enable()` — hashes each step's AST and output.
+
+---
+
+### 11) How is purity enforced?
+
+Default: steps must be pure (no side effects). The compiler checks:
+
+- No `print!`, `std::fs::read`, network calls
+- No `rand()`, `time::now()`
+- No mutation of non-local `static mut`
+
+Jit impure: use `#[tupa::side_effects(io)]` attribute — but then that step cannot participate in gradient calculations.
+
+---
+
+### 12) What about performance? Isn't interpreted slower than LLVM?
+
+Currently, `tupa-engine` is interpreted (dispatch via match on step name). Overhead ~100–200ns per step — fine for strategy policy (not HFT).
+
+Future optimizations (Phase 4):
+
+- Cranelift JIT for hot pipelines
+- SIMD tensor kernels
+- Inline pure step bodies (specialization)
+
+Benchmarks will be published in Q3 2026.
+
+---
+
+## Ecosystem
+
+### 13) Will there be a package registry?
+
+No separate registry — use **crates.io**. All Tupã crates publish there.
+
+ViperTrade strategies remain as source code in your repo (no packaging needed).
+
+---
+
+### 14) How does FFI work?
+
+Phase 3 (Q4 2026) will deliver:
+
+- `tupa-sys` — C-compatible ABI (call pipelines from C, Python, etc.)
+- `tupa-pyffi` — Python extension module (pip installable)
+
+Until then, Rust is the only supported host.
+
+---
+
+### 15) What about Python integration?
+
+Python users can call Rust pipelines via `tupa-pyffi` (coming) or via a small Rust wrapper binary that exposes a REST/gRPC endpoint. We are not re-implementing a Python compiler.
+
+---
+
+## Process
+
+### 16) How are SPEC changes proposed?
+
+Open a GitHub Issue with `[RFC]` prefix. Discuss in Discussions. Approved changes require:
+
+- Update `docs/reference/spec.md` (normative)
+- Update `docs/reference/grammar.ebnf` if syntax changes
+- Add conformance tests covering new/changed behavior
+- Update `type_semantics.md` if type rules change
+
+No breaking changes to SPEC without a new major version (v1 → v2).
+
+---
+
+### 17) How are breaking changes communicated?
+
+SemVer policy:
+
+- **Major:** breaking grammar or type system change → new major version (`1.0` → `2.0`)
+- **Minor:** backward-compatible feature (new attribute, new constraint operator) → new minor (`0.2` → `0.3`)
+- **Patch:** bug fixes, doc updates → new patch (`0.2.1` → `0.2.2`)
+
+Breaking changes in minor version require 6 months deprecation cycle and migration guide.
+
+---
+
+### 18) How do I report bugs or request features?
+
+- Bugs: [GitHub Issues](https://github.com/marciopaiva/tupalang/issues) — include minimal reproducer
+- Features: [GitHub Discussions](https://github.com/marciopaiva/tupalang/discussions) — start in "Ideas" category
+
+---
+
+### 19) Is ViperTrade the only user?
+
+ViperTrade is the primary applied reference, but Tupã is designed for any system needing type-safe policy pipelines (risk engines, ML orchestrators, compliance). We welcome other adopters.
+
+---
+
+### 20) What's the license?
+
+MIT. See [LICENSE](../../LICENSE). You can use Tupã crates in proprietary software.
+
+---
+
+*Last updated 2026-05-10. For architecture details, see [ARCHITECTURE.md](./ARCHITECTURE.md).*

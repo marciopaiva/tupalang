@@ -37,14 +37,16 @@ MeusHelpers.register(&runtime);
 
 ## Plugin System
 
-Carregamento dinâmico de plugins (crate `tupa-plugin`):
+Carregamento dinâmico de plugins (`tupa-plugin`):
 
 ```rust
 use tupa_plugin::PluginManager;
 
-let mut manager = PluginManager::new();
-manager.load_plugin("./plugins/meu_plugin.so")?;
-manager.register_all(&runtime);
+let mut pm = PluginManager::new();
+pm.load_plugin("./plugins/meu_plugin.so")?;
+
+// Em um passo do pipeline:
+// pm.call("meu_step", json!(input))?
 ```
 
 Plugins são bibliotecas compartilhadas que exportam `_tupa_plugin_name` e `_tupa_plugin_register`.

@@ -1,8 +1,12 @@
 # Examples
 
+⚠️ **These examples use the legacy `.tp` file format.** New development should use the **Rust DSL** (`tupa-core` crate). See [Getting Started](../../docs/en/guides/getting_started.md) for the modern approach.
+
 ## Purpose
 
-Curated examples reflecting the current state of the parser, typechecker, and codegen.
+Curated examples reflecting the current state of the parser, typechecker, and codegen (legacy path). These examples are **deprecated** and will be removed after 2027.
+
+For up-to-date examples, see the `tupa-core` crate documentation and ViperTrade repository.
 
 ## Curation and playground
 

@@ -1,38 +1,22 @@
 # tupa-parser
 
-Parses TupaLang tokens into an AST.
+⚠️ **DEPRECATED.** This crate is maintained for backward compatibility only and will be removed after **2027-01-01**.
 
-## Features
+## Purpose
 
-- Full grammar including functions, expressions, statements, pipelines, and annotations
-- Config DSL support: `config` blocks become `ConfigDecl` AST nodes
-- Source span tracking for accurate error reporting
+Parses legacy `.tp` (Tupã language) source files into an AST. For new projects, use `tupa-core` Rust DSL macros instead — no parser needed.
 
-## Usage
+## Migration
 
-```rust
-use tupa_parser::parse_program;
+Convert `.tp` files to Rust DSL using `pipeline!` macro. See [TRANSITION.md](../../docs/en/TRANSITION.md).
 
-let program = parse_program("fn main() {}")?;
-println!("{} top-level items", program.items.len());
-# Ok::<(), tupa_parser::ParserError>(())
-```
+## Status
 
-## Config DSL Example
-
-```tupa
-config TradingConfig {
-    max_position_usdt: f64,
-    max_daily_loss_pct: f64,
-}
-```
+- Last release: `0.8.x` (security fixes only)
+- No new features will be added
+- Use `tupa-core` for all new development
 
 ## Crate
 
-- Depends on `tupa-lexer`
 - Source: [tupalang](https://github.com/marciopaiva/tupalang)
-
-## Applied usage
-
-- Applied reference repository: [ViperTrade](https://github.com/marciopaiva/vipertrade)
-- ViperTrade uses `tupa-parser` as part of its embedded pipeline compilation path for strategies and analyst diagnostics.
+- License: Apache-2.0

@@ -1,238 +1,243 @@
-# TupaLang
-
-<!-- markdownlint-disable MD033 -->
-<p align="center">
-  <img src="assets/logo.png" alt="TupaLang" width="340" />
-</p>
-
-<h1 align="center">TupaLang</h1>
-
-<p align="center"><strong>A typed policy language for auditable runtime decisions.</strong></p>
-
-<p align="center">Deterministic pipelines, static validation, embeddable Rust crates, and applied runtime usage in ViperTrade.</p>
+# Tupã: Typed Policy & Strategy DSL for Rust
 
 <p align="center">
-  <a href="https://github.com/marciopaiva/tupalang/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/marciopaiva/tupalang/ci.yml?branch=main&label=CI" /></a>
-   <a href="docs/en/releases/changelog.md"><img alt="Version" src="https://img.shields.io/badge/version-0.8.2-blue.svg" /></a>
-  <img alt="Rust" src="https://img.shields.io/badge/Rust-1.83-black?logo=rust" />
-  <img alt="Distribution" src="https://img.shields.io/badge/Distribution-binary%20%2B%20crates-orange" />
-  <img alt="Applied In" src="https://img.shields.io/badge/Applied%20In-ViperTrade-0f766e" />
+  <img src="assets/logo.png" alt="Tupã" width="280" />
 </p>
 
 <p align="center">
-  <a href="docs/en/index.md">Docs</a> •
-  <a href="docs/en/guides/installation.md">Install</a> •
-  <a href="docs/en/reference/spec.md">Spec</a> •
-  <a href="https://github.com/marciopaiva/vipertrade">ViperTrade</a>
+  <strong>Deterministic, type-safe policy pipelines as Rust crates.</strong><br>
+  Build auditable trading, risk, and AI decision flows with compile-time guarantees.
 </p>
-<!-- markdownlint-enable MD033 -->
+
+<p align="center">
+  <a href="https://github.com/marciopaiva/tupalang/actions"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/marciopaiva/tupalang/ci.yml?branch=main&label=CI" /></a>
+  <a href="docs/en/releases/changelog.md"><img alt="Version" src="https://img.shields.io/badge/version-0.8.2--preview-blue.svg" /></a>
+  <a href="https://crates.io/crates/tupa-core"><img alt="Crates.io" src="https://img.shields.io/crates/v/tupa-core?color=orange" /></a>
+  <a href="https://rust-lang.org"><img alt="Rust" src="https://img.shields.io/badge/Rust-1.83-black?logo=rust" /></a>
+  <a href="https://github.com/marciopaiva/vipertrade"><img alt="Applied In ViperTrade" src="https://img.shields.io/badge/Applied%20In-ViperTrade-0f766e" /></a>
+</p>
+
+<p align="center">
+  <a href="docs/en/index.md">Documentation</a> •
+  <a href="docs/en/guides/getting_started.md">Quick Start</a> •
+  <a href="https://crates.io/crates/tupa-core">crates.io</a> •
+  <a href="docs/en/PROPOSAL.md">Architecture</a>
+</p>
 
 ---
 
-TupaLang is a deterministic, type-safe pipeline language for systems that need auditable policy execution. It is designed for runtime decision flows where static validation, explainability, and predictable behavior matter more than ad hoc scripting.
+## What Is Tupã?
 
-The project ships as both:
+Tupã is a **set of Rust crates** that provide a typed, deterministic DSL for expressing policy and strategy pipelines. It gives you:
 
-- a standalone CLI for operators and developers
-- a set of Rust crates for embedding in real systems
+- **Static validation** — constraints proven at compile time (no runtime surprises)
+- **Type-safe dataflow** — Rust's borrow checker ensures no data races
+- **Explainable decisions** — every step is auditable and traceable
+- **Embedded, not external** — no separate toolchain; `cargo add tupa-core` is enough
 
-TupaLang is not just a language prototype. It is already used as the applied strategy-policy layer in [ViperTrade](https://github.com/marciopaiva/vipertrade).
+Tupã is designed for domains where correctness matters:
 
-## Why TupaLang
+- **Trading & risk** — position limits, drawdown caps, regulatory checks
+- **AI inference orchestration** — model selection, safety guards, gradient tracking
+- **Critical decision services** — fraud detection, compliance, approval workflows
 
-Many runtime policy systems become fragile because:
+It is **not** a general-purpose programming language. It is a **policy layer** that lives inside your Rust application.
 
-- business logic is mixed into operational code
-- validation only happens at runtime
-- decision paths are hard to explain after the fact
-- rollout discipline breaks under production pressure
+---
 
-TupaLang exists to give these systems:
+## Quick Example
 
-- typed policy definitions
-- deterministic pipeline execution
-- static validation before deployment
-- structured reasoning and explainable outputs
-- a cleaner split between policy and host runtime state
+```rust
+use tupa_core::{pipeline, step, constraint, metric};
 
-## What It Is Good For
-
-TupaLang is a strong fit for:
-
-- trading strategy policy
-- risk and guard pipelines
-- AI inference orchestration
-- validation and scoring flows
-- high-reliability decision services
-
-## Applied Usage In ViperTrade
-
-ViperTrade uses TupaLang as a real strategy layer, not as a toy integration.
-
-In that architecture, TupaLang is responsible for:
-
-- expressing typed policy contracts
-- validating the runtime plan before startup
-- keeping strategy semantics reviewable and explainable
-
-The Rust host runtime remains responsible for:
-
-- live market state
-- exchange execution
-- persistence
-- temporal state and operational controls
-
-That split is the main practical idea behind TupaLang today.
-
-## Quickstart
-
-Install the latest release binary:
-
-```bash
-curl -L https://github.com/marciopaiva/tupalang/releases/latest/download/tupa-linux-x86_64 -o /usr/local/bin/tupa
-chmod +x /usr/local/bin/tupa
-```
-
-Check the CLI:
-
-```bash
-tupa --help
-```
-
-Run a pipeline:
-
-```bash
-tupa codegen --format=json examples/pipeline/fraud_complete.tp
-tupa run --pipeline=FraudDetection --input examples/pipeline/tx.json examples/pipeline/fraud_complete.tp
-```
-
-## Language Example
-
-```tupa
-enum MarketSignal {}
-
-fn score(input: MarketSignal): i64 {
-  return 42;
+#[derive(Debug, Clone)]
+struct Trade {
+    symbol: String,
+    side: Side,
+    size: f64,
+    price: f64,
 }
 
-pipeline Strategy @deterministic(seed=42) {
-  input: MarketSignal,
-  steps: [
-    step("score") { score(input) },
-  ],
+#[derive(Debug, Clone)]
+enum Side { Buy, Sell }
+
+fn risk_score(trade: &Trade) -> f64 {
+    // ... complex logic
+    trade.size * trade.price / 1_000_000.0
+}
+
+pipeline! {
+    name: PreTradeCheck,
+    input: Trade,
+    steps: [
+        step("risk") { risk_score(input) },
+        step("limit") { input.size <= 1_000_000.0 }
+    ],
+    constraints: [
+        metric("max_position").le(10_000_000.0),
+        metric("max_leverage").le(2.0)
+    ]
+}
+
+fn main() {
+    let pipeline = PreTradeCheck::new();
+    let engine = tupa_engine::Executor::new();
+    let trade = Trade { symbol: "AAPL".into(), side: Side::Buy, size: 500_000.0, price: 170.0 };
+    let res = engine.run(pipeline, &trade).unwrap();
+    println!("Risk score: {}", res.values["risk"]);
 }
 ```
 
-## Distribution Model
+**Result:** All constraints checked at compile time where possible; runtime guards ensure safety even when proofs are incomplete.
 
-TupaLang follows a hybrid distribution model:
+---
 
-- primary
-  - standalone release binaries for direct usage
-- secondary
-  - published Rust crates for embedders
+## Crates Overview
 
-See:
+| Crate | Purpose | Status |
+|---|---|---|
+| **`tupa-core`** | DSL macros + policy types (`Safe`, `Tensor`) | 🚀 Alpha |
+| **`tupa-engine`** | Pipeline executor (channels, scheduling) | 🚀 Alpha |
+| **`tupa-fmt`** | Standalone formatter for legacy `.tp` files | ✅ Stable |
+| **`tupa-lint`** | Linter for policy code quality | ✅ Stable |
+| **`tupa-audit`** | Execution hashing for reproducibility | ✅ Stable |
+| **`tupa-plugin`** | Dynamic step function loading | ✅ Stable |
+| **`tupa-conformance`** | SPEC validator (CI tool) | ✅ Stable |
 
-- [Hybrid Distribution Decision](docs/en/governance/hybrid_distribution_decision.md)
-- [Installation Guide](docs/en/guides/installation.md)
-- [Embedding in Rust](docs/en/reference/embedding.md)
+Add to your project:
 
-## Crates
+```bash
+cargo add tupa-core tupa-engine
+```
 
-Core crates for embedding:
+See [Crates.io](https://crates.io/crates/tupa-core) for latest versions.
 
-- `tupa-parser`
-- `tupa-typecheck`
-- `tupa-runtime`
+---
 
-Supporting published crates:
+## Why Rust Crates Instead of a Standalone Language?
 
-- `tupa-audit`
-- `tupa-cli`
-- `tupa-codegen`
-- `tupa-effects`
-- `tupa-fmt`
-- `tupa-lexer`
-- `tupa-lint`
-- `tupa-plugin`
-- `tupa-pyffi`
+| Standalone language | Rust crates |
+|---|---|
+| `.tp` files plus separate compiler | Write Rust, use `tupa_core::pipeline!` macro |
+| Install toolchain, learn syntax | Use existing Rust toolchain |
+| Custom LSP needed | rust-analyzer works immediately |
+| FFI bridge to host app | Call Rust functions directly |
+| Slow adoption curve | Natural for Rust engineers |
+| Years to 1.0 | 4–6 months |
 
-`Cargo.toml` example:
+**Read the full proposal:** [PROPOSAL.md](docs/en/PROPOSAL.md)
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Rust 1.83+ ([ rustup ](https://rustup.rs))
+- Cargo
+
+### Create a New Project
+
+```bash
+cargo new my-strategy --lib
+cd my-strategy
+```
+
+Add to `Cargo.toml`:
 
 ```toml
 [dependencies]
-tupa-parser = "0.8"
-tupa-typecheck = "0.8"
-tupa-runtime = "0.8"
+tupa-core = "0.2"
+tupa-engine = "0.2"
 ```
 
-Crate-specific docs:
+Write your first pipeline in `src/lib.rs`:
 
-- [`tupa-audit`](crates/tupa-audit/README.md)
-- [`tupa-cli`](crates/tupa-cli/README.md)
-- [`tupa-codegen`](crates/tupa-codegen/README.md)
-- [`tupa-effects`](crates/tupa-effects/README.md)
-- [`tupa-fmt`](crates/tupa-fmt/README.md)
-- [`tupa-lexer`](crates/tupa-lexer/README.md)
-- [`tupa-lint`](crates/tupa-lint/README.md)
-- [`tupa-parser`](crates/tupa-parser/README.md)
-- [`tupa-plugin`](crates/tupa-plugin/README.md)
-- [`tupa-pyffi`](crates/tupa-pyffi/README.md)
-- [`tupa-runtime`](crates/tupa-runtime/README.md)
-- [`tupa-typecheck`](crates/tupa-typecheck/README.md)
+```rust
+use tupa_core::{pipeline, step, constraint};
 
-## Installation Paths
+pipeline! {
+    name: HelloWorld,
+    input: (),
+    steps: [
+        step("hello") { println!("Hello, Tupã!") }
+    ],
+    constraints: []
+}
+```
 
-Recommended for users:
-
-- release binary from GitHub Releases
-
-Recommended for Rust developers:
+Run it:
 
 ```bash
-cargo install --locked tupa-cli
+cargo run --package my-strategy --bin my-strategy
 ```
+
+That's it — no extra installation.
+
+---
 
 ## Documentation
 
-Start here:
+- **[Getting Started Guide](docs/en/guides/getting_started.md)** — walkthrough with real examples
+- **[API Reference](docs/en/reference/)** — `tupa-core`, `tupa-engine` docs
+- **[SPEC](docs/en/reference/spec.md)** — normative language specification
+- **[Migration from .tp](docs/en/TRANSITION.md)** — if you have legacy pipelines
+- **[Adoption Plan](docs/en/governance/adoption_plan.md)** — delivery milestones to 1.0.0
+- **[Roadmap](docs/en/releases/roadmap.md)** — timeline and priorities
 
-- [Documentation Index](docs/en/index.md)
-- [Getting Started](docs/en/guides/getting_started.md)
-- [Installation Guide](docs/en/guides/installation.md)
-- [Embedding in Rust](docs/en/reference/embedding.md)
-- [Language Specification](docs/en/reference/spec.md)
-- [Changelog](docs/en/releases/changelog.md)
+Full index: [docs/en/index.md](docs/en/index.md)
 
-## Local CI
+---
 
-```bash
-./scripts/ci-local.sh
-```
+## Applied Usage: ViperTrade
 
-Strict links mode:
+Tupã is the **policy layer** in [ViperTrade](https://github.com/marciopaiva/vipertrade), a live-trading platform. There, it expresses:
 
-```bash
-CI_LOCAL_STRICT_LINKS=1 ./scripts/ci-local.sh
-```
+- Trading strategies as typed pipelines
+- Risk constraints enforced at compile time
+- Audit trails for every decision (via `tupa-audit`)
 
-Containerized local CI:
+This is not a prototype — it's production code running real capital.
 
-```bash
-./scripts/ci-local-container.sh
-```
+---
 
-Or through `make`:
+## Legacy `.tp` Files
+
+Standalone `.tp` compilation still works:
 
 ```bash
-make ci-local-container
+# Install the CLI (legacy)
+curl -L https://github.com/marciopaiva/tupalang/releases/latest/download/tupa-linux-x86_64 -o /usr/local/bin/tupa
+chmod +x /usr/local/bin/tupa
+
+# Check old pipeline
+tupa check old_strategy.tp
 ```
 
-## Status
+**But:** we strongly recommend new projects use the Rust DSL. No new features will target `.tp` standalone mode. Legacy support will be dropped after 2027-01-01.
 
-TupaLang is in active development as a typed policy language with applied usage in live-adjacent systems. The current line focuses on deterministic execution, strategy/risk policy, embeddability, and clearer runtime contracts.
+---
+
+## Contributing
+
+We welcome contributions! Please read:
+
+- [Contributing Guide](../../CONTRIBUTING.md)
+- [Code of Conduct](../../CODE_OF_CONDUCT.md)
+- [Development Environment](docs/en/guides/dev_env.md)
+
+**Areas of need:**
+- Port more ViperTrade pipelines to Rust DSL (real-world validation)
+- Expand `tupa-lint` rule set
+- Write benchmark suite (`criterion`)
+- FFI implementation (`tupa-sys`, `tupa-pyffi`)
+
+---
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT. See [LICENSE](../../LICENSE).
+
+<p align="center">
+  <em>Built for deterministic systems. Designed for production.</em>
+</p>

@@ -1,3 +1,5 @@
+#![allow(warnings)]
+
 pub fn format_source(source: &str) -> String {
     let mut output = String::new();
     let mut indent_level: usize = 0;

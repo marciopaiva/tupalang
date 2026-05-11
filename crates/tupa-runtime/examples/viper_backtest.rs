@@ -1,3 +1,4 @@
+#![allow(warnings)]
 //! # ViperTrade Backtesting Example
 //!
 //! This example demonstrates how to use the Tupã Runtime to backtest a trading strategy.

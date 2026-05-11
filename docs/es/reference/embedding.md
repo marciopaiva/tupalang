@@ -37,14 +37,16 @@ MisExtensiones.register(&runtime);
 
 ## Sistema de Plugins
 
-Carga dinámica de plugins (crate `tupa-plugin`):
+Carga dinámica de plugins (`tupa-plugin`):
 
 ```rust
 use tupa_plugin::PluginManager;
 
-let mut manager = PluginManager::new();
-manager.load_plugin("./plugins/mi_plugin.so")?;
-manager.register_all(&runtime);
+let mut pm = PluginManager::new();
+pm.load_plugin("./plugins/mi_plugin.so")?;
+
+// En un paso del pipeline, llamar a una función del plugin:
+// pm.call("mi_step", json!(input))?
 ```
 
 Los plugins son bibliotecas compartidas que exportan `_tupa_plugin_name` y `_tupa_plugin_register`.

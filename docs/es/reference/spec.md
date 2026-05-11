@@ -1,4 +1,4 @@
-# Especificación del Lenguaje Tupã v0.1
+# Especificación del Lenguaje Tupã v0.9
 
 > **Fuerza ancestral, código moderno**  
 > Lenguaje brasileño para sistemas críticos e IA en evolución
@@ -1050,8 +1050,8 @@ errorr[E2002]: aridade incompatible: esperado 2, obtido 1
 ## 12. Política de versionado
 
 - **Major** (v1 → v2): mudanças incompatíveis na gramática ou no sistema de tipos
-- **Minor** (v0.1 → v0.2): recursos compatíveis com versões anteriores (por exemplo, novos atributos)
-- **Patch** (v0.1.0 → v0.1.1): correções de bugs sem mudanças na spec
+- **Minor** (v0.9 → v0.10): recursos compatíveis com versões anteriores (por exemplo, novos atributos)
+- **Patch** (v0.9.0 → v0.9.1): correções de bugs sem mudanças na spec
 
 > **Compromisso**: API estável a partir da v1.0.
 

@@ -1,3 +1,9 @@
+#![doc = "\n**LEGACY — DO NOT USE.**\n\nThe Tupã parser for `.tp` files is deprecated. New pipelines are defined in Rust via the `pipeline!` macro.\n"]
+#![deprecated(
+    since = "0.8.2",
+    note = "The Tupã DSL (`.tp` files) is deprecated. Use `tupa-core-macros` and `tupa-engine` for new code."
+)]
+
 use serde::Serialize;
 use thiserror::Error;
 pub use tupa_lexer::{lex_with_spans, LexerError, Span, Token, TokenSpan};

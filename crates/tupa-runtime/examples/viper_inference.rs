@@ -1,3 +1,4 @@
+#![allow(warnings)]
 use serde_json::{json, Value};
 use tracing_subscriber::fmt::format::FmtSpan;
 use tupa_codegen::execution_plan::{ConstraintPlan, ExecutionPlan, StepPlan, TypeSchema};

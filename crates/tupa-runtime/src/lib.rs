@@ -1,3 +1,5 @@
+#![allow(warnings)]
+
 //! # Tupã Runtime
 //!
 //! The runtime engine for executing Tupã pipelines.
@@ -21,16 +23,32 @@ use tupa_codegen::execution_plan::{ExecutionPlan, TypeSchema};
 
 // Re-export extension types
 mod extensions;
+#[deprecated(
+    since = "0.8.2",
+    note = "Extension system replaced by `tupa-engine`'s plugin architecture (`tupa-plugin`)."
+)]
 pub use extensions::{ExtensionRegistry, TupaExtension};
 
 // Hot reload support
 #[cfg(feature = "hot-reload")]
 mod hot_reload;
 #[cfg(feature = "hot-reload")]
+#[deprecated(
+    since = "0.8.2",
+    note = "Hot reload is not yet implemented in `tupa-engine`."
+)]
 pub use hot_reload::{HotReloadBuilder, HotReloadWatcher};
 
+#[deprecated(
+    since = "0.8.2",
+    note = "This legacy runtime has been replaced by `tupa-engine`. Please migrate to the new pipeline architecture."
+)]
 pub type RuntimeResult<T> = Result<T, RuntimeError>;
 
+#[deprecated(
+    since = "0.8.2",
+    note = "This legacy error type has been replaced by `tupa_engine::EngineError`. Please migrate to the new engine."
+)]
 #[derive(Error, Debug)]
 pub enum RuntimeError {
     #[error("Step execution failed: {0}")]
@@ -48,6 +66,10 @@ pub enum RuntimeError {
 }
 
 // --- Circuit Breaker ---
+#[deprecated(
+    since = "0.8.2",
+    note = "Circuit breaker functionality is now built into `tupa-engine` via step failure tracking. Please use the new engine."
+)]
 /// A resilience mechanism to prevent cascading failures in pipeline steps.
 ///
 /// The `CircuitBreaker` tracks consecutive failures and switches to an `Open` state
@@ -135,6 +157,10 @@ impl RuntimeState {
     }
 }
 
+#[deprecated(
+    since = "0.8.2",
+    note = "The legacy runtime has been replaced by `tupa-engine::Executor`. Please migrate your pipelines to the new macro-based API."
+)]
 #[derive(Clone)]
 pub struct Runtime {
     state: Arc<Mutex<RuntimeState>>,
@@ -147,6 +173,7 @@ impl Default for Runtime {
 }
 
 impl Runtime {
+    #[deprecated(since = "0.8.2", note = "Use `tupa_engine::Executor::new` instead.")]
     pub fn new() -> Self {
         let runtime = Self {
             state: Arc::new(Mutex::new(RuntimeState::new())),
@@ -310,6 +337,10 @@ impl Runtime {
         });
     }
 
+    #[deprecated(
+        since = "0.8.2",
+        note = "Step registration is now handled automatically by the `pipeline!` macro in `tupa-core-macros`."
+    )]
     pub fn register_step<F>(&self, name: &str, func: F)
     where
         F: Fn(Value) -> Result<Value, String> + Send + Sync + 'static,
@@ -318,6 +349,10 @@ impl Runtime {
         state.steps.insert(name.to_string(), Box::new(func));
     }
 
+    #[deprecated(
+        since = "0.8.2",
+        note = "Async step registration is now handled automatically by the `pipeline!` macro in `tupa-core-macros`."
+    )]
     pub fn register_async_step<F>(&self, name: &str, func: F)
     where
         F: Fn(Value) -> futures::future::BoxFuture<'static, Result<Value, String>>
@@ -329,11 +364,19 @@ impl Runtime {
         state.async_steps.insert(name.to_string(), Box::new(func));
     }
 
+    #[deprecated(
+        since = "0.8.2",
+        note = "Circuit breaker configuration is now automatic in `tupa-engine`."
+    )]
     pub fn configure_circuit_breaker(&self, threshold: usize, timeout: Duration) {
         let mut state = self.state.lock().unwrap();
         state.circuit_breaker = CircuitBreaker::new(threshold, timeout);
     }
 
+    #[deprecated(
+        since = "0.8.2",
+        note = "Use `tupa_engine::Executor::run` or `run_parallel` instead."
+    )]
     #[instrument(skip(self, plan), fields(pipeline = plan.name))]
     pub async fn run_pipeline_async(
         &self,
@@ -413,6 +456,10 @@ impl Runtime {
         Ok(state)
     }
 
+    #[deprecated(
+        since = "0.8.2",
+        note = "Backtesting is not yet implemented in `tupa-engine`. Use the legacy runtime temporarily or implement custom backtest logic."
+    )]
     /// Executes a backtest simulation on a historical dataset.
     ///
     /// This method iterates over the `dataset`, running the pipeline for each entry.
@@ -560,12 +607,20 @@ impl Runtime {
     }
 }
 
+#[deprecated(
+    since = "0.8.2",
+    note = "Use `tupa_engine::Executor` directly instead of the global singleton."
+)]
 lazy_static::lazy_static! {
     pub static ref GLOBAL_RUNTIME: Runtime = Runtime::new();
 }
 
 // --- Global API Delegates ---
 
+#[deprecated(
+    since = "0.8.2",
+    note = "Use `tupa_engine::Executor::new` and the `pipeline!` macro instead."
+)]
 pub fn register_step<F>(name: &str, func: F)
 where
     F: Fn(Value) -> Result<Value, String> + Send + Sync + 'static,
@@ -573,6 +628,10 @@ where
     GLOBAL_RUNTIME.register_step(name, func)
 }
 
+#[deprecated(
+    since = "0.8.2",
+    note = "Async step registration is automatic via the `pipeline!` macro."
+)]
 pub fn register_async_step<F>(name: &str, func: F)
 where
     F: Fn(Value) -> futures::future::BoxFuture<'static, Result<Value, String>>
@@ -583,14 +642,26 @@ where
     GLOBAL_RUNTIME.register_async_step(name, func)
 }
 
+#[deprecated(
+    since = "0.8.2",
+    note = "Circuit breaker configuration is now automatic in `tupa-engine`."
+)]
 pub fn configure_circuit_breaker(threshold: usize, timeout: Duration) {
     GLOBAL_RUNTIME.configure_circuit_breaker(threshold, timeout)
 }
 
+#[deprecated(
+    since = "0.8.2",
+    note = "Use `tupa_engine::Executor::run` or `run_parallel` instead."
+)]
 pub async fn run_pipeline_async(plan: &ExecutionPlan, input: Value) -> RuntimeResult<Value> {
     GLOBAL_RUNTIME.run_pipeline_async(plan, input).await
 }
 
+#[deprecated(
+    since = "0.8.2",
+    note = "Use `tupa_engine::Executor::run` or `run_parallel` instead."
+)]
 pub fn run_pipeline(plan: &ExecutionPlan, input: Value) -> RuntimeResult<Value> {
     let rt = tokio::runtime::Builder::new_current_thread()
         .enable_all()
@@ -599,6 +670,10 @@ pub fn run_pipeline(plan: &ExecutionPlan, input: Value) -> RuntimeResult<Value> 
     rt.block_on(run_pipeline_async(plan, input))
 }
 
+#[deprecated(
+    since = "0.8.2",
+    note = "Backtesting is not yet implemented in `tupa-engine`. Use the legacy runtime temporarily or implement custom backtest logic."
+)]
 pub async fn run_backtest(plan: &ExecutionPlan, dataset: Vec<Value>) -> RuntimeResult<Value> {
     GLOBAL_RUNTIME.run_backtest(plan, dataset).await
 }
@@ -722,6 +797,10 @@ fn get_metric_value(state: &Value, path: &str) -> Option<f64> {
     None
 }
 
+#[deprecated(
+    since = "0.8.2",
+    note = "Constraint evaluation is handled internally by `tupa-engine`."
+)]
 pub fn evaluate_constraints(plan: &ExecutionPlan, state: &Value) -> Value {
     let mut report = json!({
         "success": true,

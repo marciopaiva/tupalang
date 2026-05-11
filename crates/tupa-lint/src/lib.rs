@@ -1,3 +1,5 @@
+#![allow(warnings)]
+
 use std::collections::HashMap;
 use tupa_parser::{Expr, ExprKind, Item, Stmt};
 

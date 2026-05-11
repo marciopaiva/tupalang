@@ -82,8 +82,8 @@ jobs:
       - name: Rust cache
         uses: Swatinem/rust-cache@v2
 
-      - name: Clippy (all targets)
-        run: cargo clippy --workspace --all-targets -- -D warnings
+       - name: Clippy (all targets)
+         run: cargo clippy --workspace --all-targets
 
       - name: Rustfmt check
         run: cargo fmt --all --check

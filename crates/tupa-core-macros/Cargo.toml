@@ -1,0 +1,28 @@
+[package]
+name = "tupa-core-macros"
+version = "0.9.0"
+edition = "2021"
+description = "Tupã DSL procedural macro (pipeline!)"
+license = "Apache-2.0"
+repository = "https://github.com/marciopaiva/tupalang"
+homepage = "https://github.com/marciopaiva/tupalang"
+documentation = "https://docs.rs/tupa-core-macros"
+readme = "README.md"
+
+[lib]
+name = "tupa_core_macros"
+proc-macro = true
+
+[dependencies]
+syn = { version = "2.0", features = ["full", "extra-traits"] }
+quote = "1.0"
+proc-macro2 = "1.0"
+thiserror = "1.0"
+
+[dev-dependencies]
+tupa-core = { path = "../tupa-core" }
+tupa-engine = { path = "../tupa-engine" }
+tokio = { version = "1.0", features = ["full"] }
+
+[features]
+default = []

@@ -1,15 +1,17 @@
 # tupa-effects
 
-Effect model and policy primitives used by typecheck/runtime.
+⚠️ **LEGACY — INTERNAL ONLY.** This crate is deprecated and will be removed immediately. Effect analysis is now in `tupa-core`.
 
-This crate exposes shared effect definitions used across the TupaLang toolchain.
+## Purpose
+
+Old effect taxonomy used by typechecker (legacy). Not needed for new Rust DSL projects.
+
+## Status
+
+- ❌ Deprecated
+- ❌ No longer maintained
 
 ## Crate
 
 - Source: [tupalang](https://github.com/marciopaiva/tupalang)
 - License: Apache-2.0
-
-## Applied usage
-
-- Applied reference repository: [ViperTrade](https://github.com/marciopaiva/vipertrade)
-- ViperTrade uses the shared Tupa effect model as part of its embedded runtime/tooling stack for strategy execution and diagnostics.

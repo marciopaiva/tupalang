@@ -1,3 +1,9 @@
+#![doc = "\n**LEGACY — DO NOT USE.**\n\nEffect analysis has been integrated into `tupa-engine`. This crate is deprecated.\n"]
+#![deprecated(
+    since = "0.8.2",
+    note = "Effect tracking is now built into `tupa-engine`. This crate will be removed in a future release."
+)]
+
 use std::collections::BTreeSet;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash)]

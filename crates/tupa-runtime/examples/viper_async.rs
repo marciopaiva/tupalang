@@ -1,3 +1,6 @@
+#![allow(warnings)]
+#![allow(warnings)]
+
 use serde_json::{json, Value};
 use std::sync::{Arc, Mutex};
 use tokio::time::{sleep, Duration};

@@ -1,48 +1,89 @@
 # Tupã Documentation
 
-## Overview
+> **New:** Tupã is now a set of **Rust crates** (`tupa-core`, `tupa-engine`). Learn more in the [Proposal](PROPOSAL.md).
 
-Everything needed to learn, build, and ship with Tupã — from the quick start to the language specification and compiler internals.
+## Quick Links
 
-## Language Policy
+- [📦 Getting Started](guides/getting_started.md) — install and write your first pipeline in Rust
+- [📘 SPEC (normative)](reference/spec.md) — formal definition of the language/DSL
+- [🚀 Crate Documentation](https://crates.io/crates/tupa-core) — API reference on crates.io
+- [🔗 Transition Guide](TRANSITION.md) — migrating from legacy `.tp` files
+- [📋 Adoption Plan](governance/adoption_plan.md) — delivery milestones to v1.0.0
+- [🗺️ Roadmap](releases/roadmap.md) — timeline and priorities
+- [💡 Why Rust Crates?](PROPOSAL.md) — strategic rationale
 
-English is the canonical source. Translations:
+---
 
-- PT-BR: [docs/pt-br](../pt-br/index.md)
-- ES: [docs/es](../es/index.md)
+## For Rust Developers
 
-## Single Source of Truth
+Start here:
 
-Wiki pages mirror this directory (`docs/`). Avoid manual edits in the wiki.
+1. `cargo add tupa-core tupa-engine`
+2. Write a `pipeline! { ... }` block in your Rust code
+3. `cargo build` — type-checked and ready
 
-## For Users
+Detailed:
 
-- [Quick Start](guides/getting_started.md)
-- [Installation](guides/installation.md)
-- [Examples](../../examples/README.md) • [Safe examples](../../examples/README.md#files)
-- [SPEC](reference/spec.md) • [Glossary](reference/glossary.md)
-- [Examples Guide](guides/examples_guide.md) • [Tutorials](guides/tutorials.md)
-- [Environment Setup](guides/env_setup.md) • [Compatibility](reference/compatibility.md)
-- [FAQ](guides/faq.md) • [Pipeline Guide](guides/pipeline_guide.md)
+- [Installation & Setup](guides/installation.md) — `cargo add` and minimal example
+- [Pipeline Guide](guides/pipeline_guide.md) — building complete pipelines
+- [Safe Types](reference/type_semantics.md) — `Safe<T, !constraint>` semantics
+- [Constraints](reference/effect_system.md) — compile-time proofs
+- [Error Diagnostics](reference/diagnostics_checklist.md) — understanding error codes
 
-## New Contributors
+---
 
-- [Style Guide](guides/style_guide.md)
-- [Docs Contribution Guide](guides/docs_contributing.md)
-- [CI Guide](guides/ci_guide.md)
-- [Contributions FAQ](guides/contributing_faq.md)
+## For ViperTrade Users
 
-## Contributors
+- [ViperTrade Integration Guide](guides/pipeline_guide.md) — using Tupã inside ViperTrade
+- [Audit & Hashing](guides/testing.md) — reproducibility with `tupa-audit`
+- [Examples](https://github.com/marciopaiva/vipertrade/tree/main/strategies) — real-world pipelines
 
-- [How to Contribute](../../CONTRIBUTING.md) • [Code of Conduct](../../CODE_OF_CONDUCT.md)
-- [Dev Environment](guides/dev_env.md) • [Testing](guides/testing.md)
-- [Diagnostics: Checklist](reference/diagnostics_checklist.md) • [Glossary](reference/diagnostics_glossary.md)
-- [Embedding API](reference/embedding.md)
+ViperTrade uses Tupã as its strategy policy layer. New strategies should use Rust DSL; legacy `.tp` strategies are supported until 2027.
 
-## Internals & Planning
+---
 
-- Releases: [Changelog](releases/changelog.md) • [Guide](releases/release_guide.md)
-- Retrospective: [Post-Release Notes: v0.8.1](releases/post_release_v0.8.1.md)
-- Planning: [RFC v0.8.1 Trading Strategy Support](releases/rfc_v0.8.1_trading_strategy_support.md)
-- Next Release: [Checklist: v0.8.2](releases/checklist_v0.8.2.md)
-- Governance: [Hybrid Distribution Decision](governance/hybrid_distribution_decision.md)
+## Reference Materials
+
+### Normative Specifications (must-read for implementers)
+
+- [Language SPEC (v0.1)](reference/spec.md) — full normative spec
+- [EBNF Grammar](reference/grammar.ebnf) — machine-readable syntax (legacy `.tp` format)
+- [Type Semantics](reference/type_semantics.md) — formal type rules, inference, subtyping
+- [Conformance Suite](https://github.com/marciopaiva/tupalang/tree/main/crates/tupa-conformance) — test oracle
+
+### Crate API Reference
+
+- [`tupa-core`](https://crates.io/crates/tupa-core) — DSL macros, types, constraints
+- [`tupa-engine`](https://crates.io/crates/tupa-engine) — executor runtime
+- [`tupa-fmt`](https://crates.io/crates/tupa-fmt) — formatter for legacy `.tp`
+- [`tupa-lint`](https://crates.io/crates/tupa-lint) — linter for policy code
+- [`tupa-audit`](https://crates.io/crates/tupa-audit) — audit hashing
+- [`tupa-plugin`](https://crates.io/crates/tupa-plugin) — dynamic plugin loading
+
+---
+
+## Legacy `.tp` Documentation (Deprecated)
+
+During the transition period, some legacy docs are still accessible:
+
+- [Installation (legacy CLI)](guides/installation.md#legacy-cli) — standalone binary for existing `.tp` pipelines
+
+All other `.tp`--centric guides have been removed. New code should use Rust DSL.
+
+---
+
+## Community & Support
+
+- GitHub Issues: [marciopaiva/tupalang/issues](https://github.com/marciopaiva/tupalang/issues)
+- Discussions: [GitHub Discussions](https://github.com/marciopaiva/tupalang/discussions)
+- Applied reference: [ViperTrade](https://github.com/marciopaiva/vipertrade)
+
+---
+
+## Status
+
+**Active development.** Targeting v1.0.0 release in 2026-Q4 (crate-first architecture). See [roadmap](releases/roadmap.md) for details.
+
+---
+
+*"Força ancestral, código moderno" — Brazilian craft meeting Rust safety.*

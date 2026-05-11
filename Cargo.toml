@@ -1,5 +1,26 @@
 [workspace]
-members = ["crates/tupa-lexer", "crates/tupa-parser", "crates/tupa-typecheck", "crates/tupa-cli", "crates/tupa-codegen", "crates/tupa-audit", "crates/tupa-effects", "crates/tupa-runtime", "crates/tupa-pyffi", "crates/tupa-fmt", "crates/tupa-lint", "crates/tupa-plugin"]
+members = [
+    # Legacy crates (deprecated, frozen at 0.8.x)
+    "crates/tupa-lexer",
+    "crates/tupa-parser",
+    "crates/tupa-typecheck",
+    "crates/tupa-codegen",   # kept for tupa-plugin dependency
+    "crates/tupa-runtime",  # kept for tupa-plugin dependency
+    "crates/tupa-effects",  # kept for typecheck deps
+    # Active crates (maintained)
+    "crates/tupa-audit",
+    "crates/tupa-conformance",
+    "crates/tupa-fmt",
+    "crates/tupa-lint",
+    "crates/tupa-plugin",   # needs migration to tupa-engine
+    "crates/tupa-pyffi",    # Phase 3 (prototype)
+    # NEW: crate-first core (alpha)
+    "crates/tupa-core-macros",  # proc-macro for pipeline!
+    "crates/tupa-core",
+    "crates/tupa-engine",
+    # CLI tools
+    "crates/cargo-tupa",
+]
 resolver = "2"
 
 [profile.dev]

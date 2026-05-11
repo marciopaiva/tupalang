@@ -1,3 +1,9 @@
+#![doc = "\n**LEGACY — DO NOT USE.**\n\nThe Tupã lexer for `.tp` files is deprecated. New code should use the `pipeline!` macro in Rust directly.\n"]
+#![deprecated(
+    since = "0.8.2",
+    note = "The Tupã DSL (`.tp` files) is deprecated. Define pipelines using the `pipeline!` macro from `tupa-core-macros`."
+)]
+
 use nom::{
     branch::alt,
     bytes::complete::{escaped_transform, is_not, tag, take_while, take_while1},

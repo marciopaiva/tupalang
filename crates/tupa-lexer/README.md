@@ -1,23 +1,18 @@
 # tupa-lexer
 
-Tokenizes TupaLang source code.
+⚠️ **LEGACY — DO NOT USE IN NEW PROJECTS.**
 
-## Usage
+This crate is part of the deprecated standalone `.tp` compilation pipeline. It will be removed after **2027-01-01**.
 
-```rust
-use tupa_lexer::lex_with_spans;
+## Purpose
 
-let tokens = lex_with_spans("fn main() {}")?;
-println!("{} tokens", tokens.len());
-# Ok::<(), tupa_lexer::LexerError>(())
-```
+Tokenizes legacy `.tp` source code. For new Rust DSL projects, no lexer is needed — use `tupa-core` macros.
+
+## Migration
+
+New pipelines are written directly in Rust using `pipeline!` macro. See [TRANSITION.md](../../docs/en/TRANSITION.md).
 
 ## Crate
 
 - Source: [tupalang](https://github.com/marciopaiva/tupalang)
 - License: Apache-2.0
-
-## Applied usage
-
-- Applied reference repository: [ViperTrade](https://github.com/marciopaiva/vipertrade)
-- ViperTrade depends on the parser/typecheck/runtime stack built on top of `tupa-lexer` for embedded strategy and diagnostics pipelines.

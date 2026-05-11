@@ -4,7 +4,7 @@
 
 Explicar como usar a API do compilador do Tupã, estender funcionalidades e fazer embedding de Tupã em sistemas Rust.
 
-## Superfície estável de embedding (`v0.8.2`)
+## Superfície estável de embedding (`v0.9.0`)
 
 A superfície estável de embedding para esta release é:
 
@@ -71,9 +71,11 @@ Carregamento dinâmico de plugins (`tupa-plugin` crate):
 ```rust
 use tupa_plugin::PluginManager;
 
-let mut manager = PluginManager::new();
-manager.load_plugin("./plugins/meu_plugin.so")?;
-manager.register_all(&runtime);
+let mut pm = PluginManager::new();
+pm.load_plugin("./plugins/meu_plugin.so")?;
+
+// Em um passo do pipeline, chame:
+// pm.call("nome_step", json!(input))?
 ```
 
 Plugins são bibliotecas compartilhadas que exportam `_tupa_plugin_name` e `_tupa_plugin_register`.
