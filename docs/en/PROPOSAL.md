@@ -10,7 +10,7 @@
 
 ## Current State (Standalone Language)
 
-```
+```text
 ┌─────────────────────────────────────────┐
 │  Tupã Standalone Compiler                │
 │  (.tp → LLVM IR → binary)                │
@@ -22,9 +22,10 @@
 │  tupa-runtime → execution engine        │
 │  tupa-conformance → test suite          │
 └─────────────────────────────────────────┘
-```
+```text
 
 **Pain points:**
+
 - Users must install separate binary/toolchain
 - IDE support requires custom LSP (not built yet)
 - Cargo integration is indirect (embedding crates only)
@@ -35,7 +36,7 @@
 
 ## Proposed State (Rust Crate Ecosystem)
 
-```
+```text
 ┌──────────────────────────────────────────────────────────┐
 │  Rust developer workflow (cargo build / rust-analyzer)  │
 ├──────────────────────────────────────────────────────────┤
@@ -49,7 +50,7 @@
 │  tupa-audit     ← audit/hash (already exists)          │
 │  tupa-conformance ← SPEC validation (standalone bin)   │
 └──────────────────────────────────────────────────────────┘
-```
+```text
 
 **Key insight:** The compiler *is* the Rust compiler. The Tupã DSL expands to Rust types and functions that the Rust compiler checks.
 
@@ -91,9 +92,10 @@ pipeline! {
         metric("sharpe").ge(1.5)
     ]
 }
-```
+```text
 
 **What it provides:**
+
 - `pipeline!` macro: parses DSL at compile time, expands to Rust structs impls
 - Types: `Safe<T, !nan>`, `Tensor<T, shape=[...], density=d>` (zero-cost wrappers)
 - Traits: `Pipeline`, `Step`, `Constraint`
@@ -110,9 +112,10 @@ use tupa_engine::{Engine, Executor};
 let engine = Engine::new();
 let plan = compile_pipeline!(...);  // from tupa-core macro
 let result = engine.run(plan, input).await?;
-```
+```text
 
 Features:
+
 - Channel-based concurrency (ownership-based, no data races)
 - Deterministic step ordering (unless `@async` used)
 - Constraint guards: runtime fallback when compile-time proof impossible
@@ -128,7 +131,7 @@ pub mod types {
     pub struct Tensor<T, const SHAPE: [usize], const DENSITY: f32>(...);
     pub struct Channel<T>(...);
 }
-```
+```text
 
 ### 4. `tupa-audit`, `tupa-fmt`, `tupa-lint` — Already exist, integrate
 
@@ -149,6 +152,7 @@ Alternative: Since Rust macros are expanded, rust-analyzer already understands t
 ## Deliverables by Phase (Adapted)
 
 ### Phase 0 — Minimal Core ✅ COMPLETE
+
 **Status:** Already delivered.
 
 - ✅ Core subset defined (spec + grammar + type semantics)
@@ -169,6 +173,7 @@ Alternative: Since Rust macros are expanded, rust-analyzer already understands t
 | Language server | ❌ | Optional — build `tupa-lsp` for `.tp` files only |
 
 **Work:**
+
 - Add `cargo-tupa` wrapper command (or subcommands via `tupa-cli` still)
 - Publish crates to crates.io
 - Basic LSP: completion + diagnostics for `.tp` (not for DSL)
@@ -262,6 +267,7 @@ Alternative: Since Rust macros are expanded, rust-analyzer already understands t
 **Adopt crate-first architecture.**
 
 **Why:**
+
 1. **Market fit:** Target audience (Rust engineers in trading/risk/AI) already knows Rust
 2. **Velocity:** Reuse Rust compiler frontend; focus on policy DSL innovations
 3. **Quality:** Leverage Rust's borrow checker, traits, generics instead of reinventing type system
@@ -269,11 +275,13 @@ Alternative: Since Rust macros are expanded, rust-analyzer already understands t
 5. **1.0 feasible:** Core innovation (Safe types, constraint checking, deterministic pipelines) delivered via crates within 6 months
 
 **What we keep:**
+
 - SPEC v1 (normative reference) — still useful even if implementation changes
 - `tupa-conformance` — validates SPEC compliance
 - Type semantics (`Safe`, `Tensor`) — now as Rust types with compile-time checks
 
 **What we deprecate:**
+
 - `.tp` as primary source format (becomes legacy import format)
 - `tupa-codegen` / LLVM backend (engine interprets IR or uses Cranelift)
 - Standalone binary as primary delivery (still available as `cargo tupa` wrapper)

@@ -33,7 +33,7 @@ impl TupaExtension for MeusHelpers {
 
 // Durante a inicialização
 MeusHelpers.register(&runtime);
-```
+```text
 
 ## Plugin System
 
@@ -47,7 +47,7 @@ pm.load_plugin("./plugins/meu_plugin.so")?;
 
 // Em um passo do pipeline:
 // pm.call("meu_step", json!(input))?
-```
+```text
 
 Plugins são bibliotecas compartilhadas que exportam `_tupa_plugin_name` e `_tupa_plugin_register`.
 
@@ -58,7 +58,7 @@ Habilite o feature `hot-reload` para observar mudanças em arquivos:
 ```rust
 let (tx, rx) = runtime.watch_and_reload("./strategies")?;
 // Notifica mudanças automaticamente
-```
+```text
 
 ## Exemplo mínimo
 
@@ -72,7 +72,7 @@ fn main() -> anyhow::Result<()> {
     let _typed = typecheck(&ast)?;
     Ok(())
 }
-```
+```text
 
 ## Notas de compatibilidade
 

@@ -28,6 +28,7 @@ This document outlines the delivery sequence for Tupã as a set of Rust crates (
 | Design `pipeline!` macro AST | core team | Week 2 |
 | Implement constraint solver at compile time | typecheck team | Week 4 |
 | Build executor with channel-based steps | runtime team | Week 6 |
+
 - Integration tests: 5 ViperTrade pipelines ported| QA | Week 8 |
 
 **Deliverable:** `tupa-core = "0.1"`可用
@@ -56,6 +57,7 @@ This document outlines the delivery sequence for Tupã as a set of Rust crates (
 |---|---|
 | Implement C ABI in `tupa-runtime` | planned |
 | Generate `tupa-sys` (C bindings crate) | planned |
+
 - Python bindings (`tupa-pyffi`) | planned |
 | Document ABI stability guarantees | planned |
 
@@ -144,6 +146,7 @@ After 1.0:
 ## Decision Gates
 
 Each milestone has a go/no-go decision based on:
+
 - Test coverage ≥90%
 - Benchmarks stable (<3% variance)
 - Zero P0 bugs open
@@ -157,6 +160,7 @@ Each milestone has a go/no-go decision based on:
 |---|---|
 | Macros become too magical | Keep expansion readable; provide `tupa-expand --pretty` |
 | Performance lags vs LLVM codegen | Profile early; add optional JIT later |
+
 - Rust experts may find DSL limiting | Favor expressiveness; allow raw Rust closure fallback |
 | Community adoption slow | Publish early, engage ViperTrade, write tutorials |
 

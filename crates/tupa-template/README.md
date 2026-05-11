@@ -19,7 +19,7 @@ TUPA_INPUT='{"amount":5000.0,"risk_score":0.3}' cargo tupa run
 
 # Enable parallel execution
 TUPA_INPUT='{"amount":1000.0,"risk_score":0.1}' TUPA_PARALLEL=1 cargo tupa run
-```
+```text
 
 ## Development
 
@@ -34,24 +34,24 @@ The pipeline expects a JSON object matching the `Input` struct in `src/lib.rs`. 
   "amount": 1500.0,
   "risk_score": 0.45
 }
-```
+```text
 
 ## Output
 
 On success:
 
-```
+```text
 ✅ Pipeline passed all constraints
 score_val = 45.0
 enriched = {"amount":1500.0,"risk_score":0.45}
-```
+```text
 
 On constraint failure:
 
-```
+```text
 ❌ Pipeline failed constraints:
   - score_val: expected >= 10.0, got 5.0
-```
+```text
 
 ## License
 

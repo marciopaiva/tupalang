@@ -60,13 +60,13 @@ Before opening a PR, run:
 
 ```bash
 ./scripts/ci-local.sh
-```
+```text
 
 Optional strict link check:
 
 ```bash
 CI_LOCAL_STRICT_LINKS=1 ./scripts/ci-local.sh
-```
+```text
 
 ## Backport labels
 

@@ -32,7 +32,7 @@ Activate the virtual environment and run the pipeline using `tupa-cli`:
 source .venv/bin/activate
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 cargo run -p tupa-cli -- run --pipeline MNISTAudit --input mnist_sample.json mnist_pipeline.tp
-```
+```text
 
 ## Expected Output
 

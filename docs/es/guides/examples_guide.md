@@ -41,6 +41,6 @@ bash scripts/update-goldens.sh
 
 # Luego verifica los cambios y haz commit
 git add examples/expected && git commit -m "test: update examples goldens" && git push
-```
+```text
 
 En CI, las pruebas goldens fallarán si la salida real difiere de los archivos en `examples/expected/`.

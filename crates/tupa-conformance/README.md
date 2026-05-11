@@ -10,7 +10,7 @@ Runs the SPEC-mandated test suite. All Tupã implementations (legacy compiler an
 
 ```bash
 cargo run -p tupa-conformance
-```
+```text
 
 JSON report is printed to stdout. Exit code: 0 if all pass, 1 otherwise.
 

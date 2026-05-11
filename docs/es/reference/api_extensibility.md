@@ -27,7 +27,7 @@ use tupa_codegen::codegen;
 let ast = parse("fn main() { print(42) }")?;
 let typed = typecheck(&ast)?;
 let ir = codegen(&typed)?;
-```
+```text
 
 ## Puntos de extensión
 
@@ -60,7 +60,7 @@ impl TupaExtension for MisExtensiones {
         });
     }
 }
-```
+```text
 
 Llamar `MisExtensiones.register(&runtime)` durante la inicialización.
 
@@ -75,7 +75,7 @@ let mut pm = PluginManager::new();
 pm.load_plugin("./plugins/mi_plugin.so")?;
 
 // Funciones del plugin se invocan con `pm.call("nombre", json!(input))` dentro de los pasos.
-```
+```text
 
 Los plugins son bibliotecas compartidas que exportan `_tupa_plugin_name` y `_tupa_plugin_register`.
 
@@ -93,7 +93,7 @@ registry.register_schema(
     schema,
     migrations,
 )?;
-```
+```text
 
 Los schemas evolucionan entre versiones de pipeline con advertencias de deprecación.
 
@@ -104,13 +104,13 @@ Observación de archivos para hot reload (`tupa-runtime/src/hot_reload.rs`):
 ```rust
 let (tx, rx) = runtime.watch_and_reload("./strategies")?;
 // El receptor notifica cambios; llamar a reload_pipeline() para aplicar
-```
+```text
 
 Habilitado con feature flag:
 
 ```bash
 cargo add tupa-runtime --features hot-reload
-```
+```text
 
 ## Ejemplo: Agregar un Backend WASM
 

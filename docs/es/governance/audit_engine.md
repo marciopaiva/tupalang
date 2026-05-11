@@ -29,7 +29,7 @@ fn main() {
   let x = 1;
   print(x);
 }
-```
+```text
 
 Entradas:
 
@@ -42,20 +42,20 @@ Entradas:
     "a": 1
   }
 ]
-```
+```text
 
 CLI:
 
 ```bash
 cargo run -p tupa-cli -- audit examples/audit_hello.tp --input examples/audit_inputs.json
 cargo run -p tupa-cli -- audit --format json examples/audit_hello.tp --input examples/audit_inputs.json
-```
+```text
 
 Criterios de aceptación:
 
 ```bash
 tupa audit examples/pipeline.tp --input=data.json
-```
+```text
 
 ## API de biblioteca
 
@@ -68,7 +68,7 @@ let program = parse_program("fn main() { let x = 1; }").unwrap();
 let inputs = vec![Value::from(1)];
 let hash = hash_execution(&program, &inputs);
 println!("{hash}");
-```
+```text
 
 ## Determinismo
 

@@ -20,7 +20,7 @@ No other dependencies.
 ```bash
 cargo new my-policy --lib
 cd my-policy
-```
+```text
 
 **Why `--lib`?** Tupã pipelines are libraries that can be embedded in any Rust application (CLI, server, trading system, etc.).
 
@@ -34,7 +34,7 @@ Edit `Cargo.toml`:
 [dependencies]
 tupa-core = "0.9"      # DSL macros and types
 tupa-engine = "0.9"    # Pipeline executor
-```
+```text
 
 Check crates.io for latest version: [crates.io/crates/tupa-core](https://crates.io/crates/tupa-core)
 
@@ -86,9 +86,10 @@ pipeline! {
         metric("exposure").gt(0.0)
     ]
 }
-```
+```text
 
 **What happened?** The `pipeline!` macro parsed the DSL at **compile time** and generated:
+
 - A struct `MyRiskPolicy`
 - Implementation of `Pipeline` trait
 - Type-safe step wiring (checked by rustc)
@@ -129,7 +130,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     Ok(())
 }
-```
+```text
 
 Note: `src/main.rs` depends on the lib (`my-policy`). That's standard Rust layout.
 
@@ -139,31 +140,31 @@ Note: `src/main.rs` depends on the lib (`my-policy`). That's standard Rust layou
 
 ```bash
 cargo run --release
-```
+```text
 
 Expected output:
 
-```
+```text
 Pipeline result:
   position_size = 1.00M USD
   exposure = $170000000.00
   all constraints passed: true
-```
+```text
 
 If you change the trade size to exceed $10M:
 
 ```rust
 size_usd: 20_000_000.0,  # $20M
-```
+```text
 
 You'll get a constraint violation at **runtime** (because size is dynamic):
 
-```
+```text
 Pipeline result:
   position_size = 20.00M USD
   exposure = $3400000000.00
   constraint failed: max_position ≤ 10.0 (actual 20.0)
-```
+```text
 
 But if you try to pass a string where a number is expected, **the code won't compile**:
 
@@ -171,7 +172,7 @@ But if you try to pass a string where a number is expected, **the code won't com
 // This fails at compile time — type error
 let trade = Trade { size_usd: "big", ... };
 //               ^^^^^^^^^^^^^ expected f64, found &str
-```
+```text
 
 That's the core value: **type safety from Rust**.
 
@@ -192,13 +193,13 @@ pipeline! {
         metric("result").eq(42)   // ✅ proven at compile time
     ]
 }
-```
+```text
 
 **Result:** If you change `42` to `43`, compilation fails with:
 
-```
+```text
 error[E3002]: cannot prove constraint at compile time: result == 43
-```
+```text
 
 That's the `!nan`/`!inf` style constraint checking, but for any constant expression.
 
@@ -211,7 +212,7 @@ use tupa_core::Safe;
 let x: Safe<f64, !nan> = Safe::new(3.14);  // OK
 
 // let y: Safe<f64, !nan> = Safe::new(f64::NAN);  // ❌ Compile error
-```
+```text
 
 ### 3. Add Tensor support (requires `tupa-ml` feature, coming soon)
 
@@ -220,7 +221,7 @@ let x: Safe<f64, !nan> = Safe::new(3.14);  // OK
 use tupa_core::Tensor;
 
 let image: Tensor<f32, { shape: [28, 28], density: 1.0 }> = Tensor::zeros();
-```
+```text
 
 ### 4. Check out real example in ViperTrade
 
@@ -271,13 +272,13 @@ mod tests {
         assert!(!res.all_constraints_passed);
     }
 }
-```
+```text
 
 Run:
 
 ```bash
 cargo test
-```
+```text
 
 ---
 
@@ -289,7 +290,7 @@ cargo fmt
 
 # Lint for common mistakes
 cargo tupa lint  # coming in Phase 1; meanwhile use tupa-lint crate directly
-```
+```text
 
 ---
 
@@ -300,7 +301,7 @@ If you prefer a standalone command (like the old `.tp` workflow), you can still 
 ```bash
 cargo install tupa-cli
 tupa --help
-```
+```text
 
 But **for Rust projects, you don't need the CLI** — just depend on the crates.
 

@@ -5,6 +5,7 @@ All notable changes to `tupa-plugin` will be documented in this file.
 ## [0.9.0] - 2026-05-11
 
 ### Added
+
 - Dynamic plugin loading system for extending pipelines with custom step functions
 - `PluginManager` struct for loading and managing plugin libraries
 - `PluginRegisterContext` ABI for plugin registration
@@ -14,16 +15,19 @@ All notable changes to `tupa-plugin` will be documented in this file.
 - Integration test suite compiling and loading test plugins (Linux/macOS/Windows)
 
 ### Notes
+
 - Plugins must be compiled as `cdylib` (e.g., `cargo build --crate-type=cdylib`)
 - Plugin functions receive and return `serde_json::Value` via the C ABI
 - This crate is alpha; API may change before 1.0
 - See `README.md` for complete plugin development guide
 
 ### Migration Path
+
 - Legacy `.tp` FFI extensions are handled by `tupa-effects` (deprecated)
 - New plugin system is the recommended way to add custom behavior
 
 ## [Unreleased]
+
 - Planned: Plugin hot-reload support
 - Planned: Versioned plugin ABI for compatibility
 - Planned: Sandboxing/isolation options

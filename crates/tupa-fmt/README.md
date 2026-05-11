@@ -17,7 +17,7 @@ Canonicalizes layout, indentation, and line breaks for **legacy `.tp` files**. N
 cargo run -p tupa-fmt -- input.tp > formatted.tp
 # or
 tupa fmt input.tp  # if installed via tupa-cli (deprecated)
-```
+```text
 
 ## Crate
 

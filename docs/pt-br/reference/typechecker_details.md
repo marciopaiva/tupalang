@@ -25,7 +25,7 @@ O verificador de tipos percorre a AST validando tipos, aridade, restrições e i
 let f: fn(int) -> int = |x| x + 1
 let y = f(10) // y: int
 print("Resultado: " + y)
-```
+```text
 
 - O verificador de tipos valida o tipo de `f`, infere o tipo de `y` e garante que `print` recebe uma string.
 
@@ -47,7 +47,7 @@ graph TD;
     C -- Não --> E[Erro com span]
     D --> F[Geração de código]
     E --> F
-```
+```text
 
 ## Links úteis
 

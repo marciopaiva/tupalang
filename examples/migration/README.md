@@ -3,6 +3,7 @@
 This directory contains side-by-side examples showing how to migrate legacy TupaLang (`.tp`) pipelines to the new Rust DSL (`pipeline!` macro).
 
 Each example includes:
+
 - `*_before.tp` — the original `.tp` source
 - `*_after.rs` — equivalent Rust DSL program
 
@@ -16,13 +17,13 @@ cargo run --example minimal_after
 
 # Or execute via tupa-engine directly
 cargo tupa run examples/migration/minimal_after.rs
-```
+```text
 
 The `.tp` versions can be run with the legacy toolchain:
 
 ```bash
 cargo tupa run examples/pipeline/minimal.tp
-```
+```text
 
 ## Included Examples
 

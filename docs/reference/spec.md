@@ -80,7 +80,7 @@ This document defines the formal specification of the Tupã language, including 
 
 /* Multi-line
    comment */
-```
+```text
 
 ### 2.3 Identifiers
 
@@ -88,7 +88,7 @@ This document defines the formal specification of the Tupã language, including 
 identifier = letter { letter | digit | "_" } ;
 letter     = "a".."z" | "A".."Z" | "\u{0080}".."\u{10FFFF}" ;
 digit      = "0".."9" ;
-```
+```text
 
 **Unicode Normalization (Normative)**:
 
@@ -105,7 +105,7 @@ fn let if else match while for in return async spawn await
 pipeline step
 true false null i64 f64 f32 f16 bool string tensor option result
 safe unsafe extern import export
-```
+```text
 
 ### 2.5 Literals
 
@@ -116,7 +116,7 @@ string_literal  = '"' { unicode_char | escape_sequence } '"' ;
 escape_sequence = "\\" ("n" | "t" | '"' | "\\" | "u{" hex_digit {1,6} "}") ;
 hex_digit       = digit | "a".."f" | "A".."F" ;
 tensor_literal  = "[" expression { "," expression } "]" ;
-```
+```text
 
 **Examples**:
 
@@ -127,7 +127,7 @@ tensor_literal  = "[" expression { "," expression } "]" ;
 "Olá 🌩️"   // string with Unicode
 "newline\n" // escape sequence
 [1, 2, 3]   // tensor_literal
-```
+```text
 
 ---
 
@@ -150,18 +150,18 @@ tensor_literal  = "[" expression { "," expression } "]" ;
 
 ```ebnf
 tuple_type = "(" type { "," type } [","] ")" ;
-```
+```text
 
 ```tupa
 let pair: (i64, string) = (42, "answer")
 let first = pair.0  // 42
-```
+```text
 
 #### 3.2.2 Function Types (Normative)
 
 ```ebnf
 func_type = "fn" "(" [ type { "," type } ] ")" "->" type ;
-```
+```text
 
 ```tupa
 let f: fn(i64, i64) -> i64 = add
@@ -176,7 +176,7 @@ fn hello(name: string) {
  print("Hello, " + name)
 }
 hello("Tupã")
-```
+```text
 
 **Comparison:**
 
@@ -193,7 +193,7 @@ See more examples in [Examples Guide](../guides/examples_guide.md) and [examples
 enum_decl = "enum" identifier [ "<" identifier { "," identifier } ">" ] "{" enum_variant { "," enum_variant } [ "," ] "}" ;
 enum_variant = identifier [ "(" type { "," type } [ "," ] ")" ] ;
 enum_type = identifier [ "<" type { "," type } ">" ] ;
-```
+```text
 
 ```tupa
 enum Result<T, E> {
@@ -204,14 +204,14 @@ enum Result<T, E> {
 fn use_result(r: Result<Safe<f64, !nan>, string>) {
  print("ok")
 }
-```
+```text
 
 #### 3.2.4 Option / Result (error handling)
 
 ```ebnf
 option_type = "Option" "<" type ">" ;
 result_type = "Result" "<" type "," type ">" ;
-```
+```text
 
 ```tupa
 fn divide(a: f64, b: f64): Result<f64, string> {
@@ -220,7 +220,7 @@ fn divide(a: f64, b: f64): Result<f64, string> {
  }
  return Ok(a / b)
 }
-```
+```text
 
 #### 3.2.5 Tensors (AI first-class)
 
@@ -231,7 +231,7 @@ tensor_type = "Tensor" "<"
     [ "," "density" "=" float_literal ] 
      ">" ;
 dimension   = integer_literal | "..." ;  // "..." = dynamic dimension
-```
+```text
 
 ```tupa
 // Dense 28x28 tensor (MNIST)
@@ -239,14 +239,14 @@ let image: Tensor<f32, shape=[28, 28]> = load("digit.tp")
 
 // 90% sparse tensor (recommended for LLMs)
 let weights: Tensor<f16, shape=[4096, 4096], density=0.1> = load("llama3.tp")
-```
+```text
 
 #### 3.2.6 Alignment Types (ethical constraints)
 
 ```ebnf
 safe_type = "Safe" "<" type "," constraint_list ">" ;
 constraint_list = "!" identifier { "," "!" identifier } ;
-```
+```text
 
 ```tupa
 // Text that cannot contain hate speech
@@ -254,7 +254,7 @@ let summary: Safe<string, !hate_speech> = summarize(article)
 
 // Number that cannot be NaN/Inf (critical for stable training)
 let loss: Safe<f64, !nan, !inf> = compute_loss(predictions, targets)
-```
+```text
 
 Example with enum propagation:
 
@@ -275,7 +275,7 @@ fn classify(text: string): LLMResponse<Safe<string, !misinformation>> {
  }
  return Safe(text)
 }
-```
+```text
 
 Example with pattern matching:
 
@@ -287,7 +287,7 @@ fn handle(response: LLMResponse<Safe<string, !misinformation>>) {
   Blocked(reason) => reject(reason),
  }
 }
-```
+```text
 
 > **Note**: Constraints are verified via:
 >
@@ -327,12 +327,12 @@ For each constraint `!c` in `Safe<T, !c>`:
 ```ebnf
 array_type = "[" type ";" integer_literal "]" ;  // fixed size
 slice_type = "[" type "]" ;                      // dynamic size
-```
+```text
 
 ```tupa
 let fixed: [i64; 5] = [1, 2, 3, 4, 5]
 let dynamic: [i64] = vec![1, 2, 3]
-```
+```text
 
 **Semantics (Normative)**:
 
@@ -408,7 +408,7 @@ primary_expr      = literal
 argument_list     = expression { "," expression } ;
 field_access      = identifier | integer_literal ;
 literal           = integer_literal | float_literal | string_literal | "true" | "false" | "null" ;
-```
+```text
 
 ### 4.2 Key Expressions
 
@@ -427,7 +427,7 @@ fn mse(pred: f64, target: f64): f64 {
 }
 
 let (d_pred, d_target) = ∇mse(0.8, 1.0)  // → (-0.4, 0.4)
-```
+```text
 
 **Return type**:
 
@@ -464,14 +464,14 @@ match http_status {
  code if code >= 500 => f"Server Error {code}",
  _ => "Unknown"
 }
-```
+```text
 
 #### 4.2.3 String Interpolation
 
 ```tupa
 let name = "Tupã"
 print(f"Hello, {name}!")  // → "Hello, Tupã!"
-```
+```text
 
 ---
 
@@ -512,7 +512,7 @@ control_flow      = "return" [ expression ] ";"
       | "for" identifier "in" range_expr block ;
 
 range_expr        = expression ".." expression ;  // exclusive end
-```
+```text
 
 ### 5.2 Variable Binding
 
@@ -527,7 +527,7 @@ let name: string = "Tupã"
 // Explicit mutability (default is immutable)
 let mut counter = 0
 counter = counter + 1  // allowed
-```
+```text
 
 ### 5.3 Functions
 
@@ -548,7 +548,7 @@ async fn fetch_user(id: i64): Result<User, string> {
  let resp = await http.get(f"/api/users/{id}")
  return parse_user(resp)
 }
-```
+```text
 
 ### 5.4 Control Flow
 
@@ -567,7 +567,7 @@ while i < 10 {
 for i in 0..10 {
 print(i)  // 0, 1, 2, ..., 9 (exclusive end)
 }
-```
+```text
 
 ### 5.5 Scope and Shadowing (Normative)
 
@@ -583,7 +583,7 @@ fn foo() {
  let x = 20
  print(x)  // 20
 }
-```
+```text
 
 ---
 
@@ -599,7 +599,7 @@ Example:
 ```tupa
 let x: i64 = 9223372036854775807
 let y = x.wrap_add(1)
-```
+```text
 
 ---
 
@@ -609,7 +609,7 @@ let y = x.wrap_add(1)
 
 ```ebnf
 spawn_stmt = "spawn" expression ";" ;
-```
+```text
 
 ```tupa
 spawn async fn worker(id: i64) {
@@ -622,7 +622,7 @@ spawn async {
  let result = await heavy_computation()
  send_to_main(result)
 }
-```
+```text
 
 ### 6.2 Channels
 
@@ -641,7 +641,7 @@ match await rx.recv_timeout(1000) {  // 1000ms
  Some(v) => print(f"Received: {v}"),
  None => print("Timeout!")
 }
-```
+```text
 
 > **Guarantee**: Channels are *ownership-based*, making data races impossible through the type system.
 
@@ -659,7 +659,7 @@ export fn square(x: f64): f64 { x * x }
 import "math" as math
 
 let result = math.square(5.0)
-```
+```text
 
 ### 7.2 Foreign Function Interface (C)
 
@@ -674,7 +674,7 @@ fn main() {
  // ... uso ...
  unsafe { free(ptr) }
 }
-```
+```text
 
 **Minimal ABI (Normative)**:
 
@@ -815,7 +815,7 @@ pipeline_body   = "input" ":" type ","
                 [ "validation" ":" block ] ;
 step_list       = step_decl { "," step_decl } ;
 step_decl       = "step" "(" string_literal ")" "{" expression "}" ;
-```
+```text
 
 ---
 
@@ -835,7 +835,7 @@ Typed AST
 LLVM IR 
   ↓ [LLVM Optimizer (-O3)]
 Native Binary (ELF/Mach-O/PE)
-```
+```text
 
 ### 9.2 Gradient Compilation Strategy
 
@@ -867,7 +867,7 @@ define { double, double } @square_grad(double %x) {
   %ret2 = insertvalue { double, double } %ret, double %grad, 1
   ret { double, double } %ret2
 }
-```
+```text
 
 ### 9.3 Alignment Type Verification
 
@@ -911,7 +911,7 @@ error[E2001]: incompatible types
      |
 8 | let x: i64 = "text"
      |            ^^^^^^^^
-```
+```text
 
 ---
 
@@ -931,7 +931,7 @@ error[E2001]: incompatible types
 fn main() {
 print("🌩️ Hello, Tupã!")
 }
-```
+```text
 
 ### 10.2 MNIST Inference (Sparse Tensor)
 
@@ -949,7 +949,7 @@ fn predict(image: Tensor<f32, shape=[28, 28]>): i64 {
     let probs = softmax(logits)
     return probs.argmax()
 }
-```
+```text
 
 ### 10.3 Alignment-Guaranteed Summarization
 
@@ -966,7 +966,7 @@ fn main() {
     let summary = summarize(article)  // ✅ Compiles only if safety is proven
     publish(summary)  // Never publishes dangerous content
 }
-```
+```text
 
 ### 10.4 Differentiable Fraud Detection (Neurosymbolic)
 
@@ -987,7 +987,7 @@ fn train_step(batch: [Transaction], targets: [f64], lr: f64) {
     let (loss, grad) = ∇compute_loss(batch, targets)
     update_weights(grad, lr)
 }
-```
+```text
 
 ---
 
@@ -1010,7 +1010,7 @@ error[E0003]: expected ';' after expression
      |
  3 |    let age = 28
      |                 ^
-```
+```text
 
 ### 11.2 Warning Format
 
@@ -1033,7 +1033,7 @@ error[E2001]: type mismatch: expected I64, got Bool
      |
  2 |    let x: i64 = true;
      |               ^^^^
-```
+```text
 
 For incorrect arity:
 
@@ -1043,7 +1043,7 @@ error[E2002]: arity mismatch: expected 2, got 1
      |
  6 |    let y = add(1);
      |          ^^^^^^
-```
+```text
 
 ---
 

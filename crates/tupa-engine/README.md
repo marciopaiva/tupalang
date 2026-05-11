@@ -50,7 +50,7 @@ fn main() {
     let result = executor.run(&plan, &input).expect("execution failed");
     println!("Passed: {}", result.passed);
 }
-```
+```text
 
 ### Parallel execution (Sprint 4)
 
@@ -74,7 +74,7 @@ pipeline! {
         metric("audit_ok").eq(1.0)
     ]
 }
-```
+```text
 
 Use `Executor::run_parallel` (requires Tokio runtime):
 
@@ -85,7 +85,7 @@ async fn main() {
     let executor = Executor::new();
     let result = executor.run_parallel(&plan, &input).await?;
 }
-```
+```text
 
 The engine automatically schedules steps based on their declared `produces`/`requires` metric dependencies, executing independent steps concurrently.
 
@@ -115,7 +115,7 @@ cargo tupa run --example minimal
 
 # Run with parallel execution
 TUPA_PARALLEL=1 cargo tupa run --example fraud_complete
-```
+```text
 
 Your binary should read `TUPA_INPUT` from the environment:
 
@@ -126,7 +126,7 @@ let input: Input = if let Ok(json) = env::var("TUPA_INPUT") {
 } else {
     Input::default()
 };
-```
+```text
 
 ## Crates
 

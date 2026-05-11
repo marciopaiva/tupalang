@@ -10,14 +10,14 @@ Apresentar exemplos mínimos de construções básicas da linguagem.
 fn sum(a: i64, b: i64) -> i64 {
   return a + b
 }
-```
+```text
 
 ## Variáveis
 
 ```tupa
 let x: i64 = 10
 let y = 20
-```
+```text
 
 ## Condicionais
 
@@ -27,7 +27,7 @@ if x > 0 {
 } else {
   print("não positivo")
 }
-```
+```text
 
 ## Match
 
@@ -37,13 +37,13 @@ match status {
   404 => print("Não encontrado"),
   _ => print("Outro")
 }
-```
+```text
 
 ## Arrays
 
 ```tupa
 let xs = [1, 2, 3]
-```
+```text
 
 ## Loops
 
@@ -55,11 +55,11 @@ while i < 10 {
 for i in 0..10 {
   print(i)
 }
-```
+```text
 
 ## Tipos Safe
 
 ```tupa
 let summary: Safe<string, !misinformation> = reviewed_summary
 let score: Safe<f64, !nan> = 0.9
-```
+```text

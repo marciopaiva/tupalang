@@ -18,7 +18,7 @@ The suite tests:
 ```bash
 cd tupalang
 cargo run -p tupa-conformance
-```
+```text
 
 The runner produces a JSON report on stdout:
 
@@ -36,7 +36,7 @@ The runner produces a JSON report on stdout:
     ...
   ]
 }
-```
+```text
 
 Exit code is `0` if all tests pass, `1` otherwise.
 
@@ -57,6 +57,7 @@ Tests are defined in `crates/tupa-conformance/data/manifest.json`. Each entry co
 | `description` | Human-readable summary |
 
 Adding a new test:
+
 1. Place the `.tp` file under `examples/` (or another location within the workspace).
 2. Add an entry to the manifest.
 3. Run `cargo run -p tupa-conformance` to verify.
@@ -79,4 +80,4 @@ The conformance suite runs as part of CI validation. Add to your CI pipeline:
 ```yaml
 - name: Conformance tests
   run: cargo run -p tupa-conformance
-```
+```text

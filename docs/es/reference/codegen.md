@@ -22,7 +22,7 @@ cargo run -p tupa-cli -- codegen --format llvm examples/pipeline/fraud_complete.
 
 # Solo plan
 cargo run -p tupa-cli -- codegen --plan-only examples/pipeline/fraud_complete.tp
-```
+```text
 
 ## Salida actual
 
@@ -38,7 +38,7 @@ entry:
   store i64 42, i64* %t0
   ret void
 }
-```
+```text
 
 En JSON, la salida viene envuelta en un objeto:
 
@@ -46,7 +46,7 @@ En JSON, la salida viene envuelta en un objeto:
 {
   "codegen": "declare i32 @printf(i8*, ...)\n..."
 }
-```
+```text
 
 ## Features soportadas
 

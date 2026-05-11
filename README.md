@@ -86,7 +86,7 @@ fn main() {
     let res = engine.run(pipeline, &trade).unwrap();
     println!("Risk score: {}", res.values["risk"]);
 }
-```
+```text
 
 **Result:** All constraints checked at compile time where possible; runtime guards ensure safety even when proofs are incomplete.
 
@@ -108,7 +108,7 @@ Add to your project:
 
 ```bash
 cargo add tupa-core tupa-engine
-```
+```text
 
 See [Crates.io](https://crates.io/crates/tupa-core) for latest versions.
 
@@ -133,7 +133,7 @@ See [Crates.io](https://crates.io/crates/tupa-core) for latest versions.
 
 ### Prerequisites
 
-- Rust 1.83+ ([ rustup ](https://rustup.rs))
+- Rust 1.83+ ([rustup](https://rustup.rs))
 - Cargo
 
 ### Create a New Project
@@ -141,7 +141,7 @@ See [Crates.io](https://crates.io/crates/tupa-core) for latest versions.
 ```bash
 cargo new my-strategy --lib
 cd my-strategy
-```
+```text
 
 Add to `Cargo.toml`:
 
@@ -149,7 +149,7 @@ Add to `Cargo.toml`:
 [dependencies]
 tupa-core = "0.2"
 tupa-engine = "0.2"
-```
+```text
 
 Write your first pipeline in `src/lib.rs`:
 
@@ -164,13 +164,13 @@ pipeline! {
     ],
     constraints: []
 }
-```
+```text
 
 Run it:
 
 ```bash
 cargo run --package my-strategy --bin my-strategy
-```
+```text
 
 That's it — no extra installation.
 
@@ -212,7 +212,7 @@ chmod +x /usr/local/bin/tupa
 
 # Check old pipeline
 tupa check old_strategy.tp
-```
+```text
 
 **But:** we strongly recommend new projects use the Rust DSL. No new features will target `.tp` standalone mode. Legacy support will be dropped after 2027-01-01.
 
@@ -227,6 +227,7 @@ We welcome contributions! Please read:
 - [Development Environment](docs/en/guides/dev_env.md)
 
 **Areas of need:**
+
 - Port more ViperTrade pipelines to Rust DSL (real-world validation)
 - Expand `tupa-lint` rule set
 - Write benchmark suite (`criterion`)

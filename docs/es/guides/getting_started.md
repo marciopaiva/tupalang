@@ -16,33 +16,33 @@ Proporcionar el camino mínimo para compilar el proyecto y ejecutar el primer ej
 ```bash
 git clone https://github.com/marciopaiva/tupalang.git
 cd tupalang
-```
+```text
 
 1) Ejecuta el ejemplo básico:
 
 ```bash
 cargo run -p tupa-cli -- parse examples/hello.tp
 cargo run -p tupa-cli -- parse examples/lambda_basic.tp
-```
+```text
 
 1) Ejecuta el verificador de tipos:
 
 ```bash
 cargo run -p tupa-cli -- check examples/hello.tp
 cargo run -p tupa-cli -- check examples/lambda_basic.tp
-```
+```text
 
 1) Salida JSON (opcional):
 
 ```bash
 cargo run -p tupa-cli -- parse --format json examples/hello.tp
-```
+```text
 
 1) Ejecuta las pruebas golden (recomendado para validar el pipeline completo):
 
 ```bash
 cargo test -p tupa-cli --test cli_golden
-```
+```text
 
 ## Próximos pasos
 

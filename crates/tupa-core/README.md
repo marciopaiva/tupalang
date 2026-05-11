@@ -33,7 +33,7 @@ pipeline! {
         metric("risk").le(10.0)
     ]
 }
-```
+```text
 
 ## Crates
 

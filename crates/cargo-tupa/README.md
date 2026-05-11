@@ -6,7 +6,7 @@
 
 ```bash
 cargo install cargo-tupa
-```
+```text
 
 After installation, `cargo tupa` will be available as a Cargo subcommand.
 
@@ -18,7 +18,7 @@ After installation, `cargo tupa` will be available as a Cargo subcommand.
 cargo generate --git https://github.com/marciopaiva/tupalang --alias tupa-template
 # or locally:
 cargo generate --path crates/tupa-template
-```
+```text
 
 ### 2. Develop your pipeline
 
@@ -39,7 +39,7 @@ pipeline! {
         metric("score").ge(0.0)
     ]
 }
-```
+```text
 
 ### 3. Build & Check
 
@@ -47,7 +47,7 @@ pipeline! {
 cargo tupa check        # typecheck pipeline macro
 cargo tupa lint         # lint for issues
 cargo tupa test         # run example tests (includes pipeline assertions)
-```
+```text
 
 ### 4. Run
 
@@ -72,7 +72,7 @@ echo '{"x":42}' | cargo tupa run --example minimal
 
 # Parallel execution ( Tokio runtime required in your binary )
 TUPA_PARALLEL=1 cargo tupa run --example fraud_complete
-```
+```text
 
 Your `src/main.rs` (or example binary) should read the `TUPA_INPUT` environment variable:
 
@@ -83,7 +83,7 @@ let input: Input = if let Ok(json) = env::var("TUPA_INPUT") {
 } else {
     Input::default()
 };
-```
+```text
 
 **Or** read from stdin if `TUPA_INPUT` not set:
 
@@ -95,7 +95,7 @@ let input: Input = if buffer.is_empty() {
 } else {
     serde_json::from_str(&buffer).unwrap()
 };
-```
+```text
 
 ## Subcommands
 
@@ -122,7 +122,7 @@ cargo tupa test -m crates/tupa-engine/Cargo.toml
 
 # Check the engine examples (Rust DSL)
 cargo tupa check -m crates/tupa-engine/Cargo.toml
-```
+```text
 
 ## How It Works
 
@@ -138,9 +138,10 @@ The `tupa-template` crate provides a complete scaffold:
 
 ```bash
 cargo generate --path crates/tupa-template
-```
+```text
 
 Includes:
+
 - `src/lib.rs` with a sample pipeline
 - `src/main.rs` integrating with `cargo-tupa run` and `TUPA_INPUT`
 - `Cargo.toml` with dependencies: `tupa-core`, `tupa-engine`, `serde`, `tokio`
@@ -165,7 +166,7 @@ cargo tupa run --example fraud_complete -m crates/tupa-engine/Cargo.toml --paral
 
 # Lint all .tp files in workspace
 cargo tupa lint -m crates/tupa-engine/Cargo.toml
-```
+```text
 
 ## Plugin Development
 
@@ -173,14 +174,14 @@ Create a new dynamic plugin scaffold:
 
 ```bash
 cargo tupa plugin new my_plugin.rs
-```
+```text
 
 This generates a template `my_plugin.rs` that exports two C symbols (`_tupa_plugin_name`, `_tupa_plugin_register`) and a step function `my_step`. Build it as a cdylib:
 
 ```bash
 cargo build --crate-type=cdylib --release
 # produces target/release/libmy_plugin.so (or .dll/.dylib)
-```
+```text
 
 Load the plugin in your pipeline using `tupa_plugin::PluginManager`:
 
@@ -205,7 +206,7 @@ pipeline! {
     ],
     constraints: []
 }
-```
+```text
 
 For more details, see the `tupa-plugin` crate documentation.
 

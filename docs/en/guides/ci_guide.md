@@ -46,7 +46,7 @@ Use the host environment when Rust, `markdownlint`, and `lychee` are already ins
 
 ```bash
 ./scripts/ci-local.sh
-```
+```text
 
 ### Containerized
 
@@ -54,7 +54,7 @@ Use the containerized path when you want a reproducible environment closer to Gi
 
 ```bash
 ./scripts/ci-local-container.sh
-```
+```text
 
 This flow builds `docker/ci-local.Dockerfile` and then runs `./scripts/ci-local.sh`
 inside the container.

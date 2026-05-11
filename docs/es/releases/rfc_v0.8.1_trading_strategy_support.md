@@ -83,7 +83,7 @@ step("entry_policy") {
     reason: "entry_confirmed_consensus_and_momentum"
   }
 }
-```
+```text
 
 ### 2. `reason` de primera clase
 
@@ -96,7 +96,7 @@ Forma ilustrativa:
   passed: false,
   reason: "entry_blocked_low_volume"
 }
-```
+```text
 
 Esto evita duplicacion de logica en el host solo para explicar por que una regla fallo.
 

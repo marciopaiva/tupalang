@@ -47,7 +47,7 @@ step compute_signal {
     input: StrategyConfig
     // use config fields: threshold, window
 }
-```
+```text
 
 This provides strongly-typed pre-conditions for pipelines, improving safety and documentation.
 
