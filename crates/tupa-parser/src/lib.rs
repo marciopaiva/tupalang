@@ -3,11 +3,14 @@
     since = "0.8.2",
     note = "The Tupã DSL (`.tp` files) is deprecated. Use `tupa-core-macros` and `tupa-engine` for new code."
 )]
+#![allow(deprecated)]
+#![allow(improper_ctypes_definitions)]
 
 use serde::Serialize;
 use thiserror::Error;
 pub use tupa_lexer::{lex_with_spans, LexerError, Span, Token, TokenSpan};
 
+#[allow(deprecated)]
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct Program {
     pub items: Vec<Item>,

@@ -106,6 +106,7 @@ impl PluginManager {
     ///
     /// Looks up the function in loaded plugins and executes it.
     /// Returns the JSON result or an error if the plugin/function is not found.
+    #[allow(improper_ctypes_definitions)]
     pub fn call(&self, name: &str, input: Value) -> Result<Value, PluginError> {
         for plugin in &self.plugins {
             if plugin.functions.iter().any(|fn_name| fn_name == name) {
@@ -113,7 +114,6 @@ impl PluginManager {
                 unsafe {
                     type RawStepFn = unsafe extern "C" fn(Value) -> Value;
                     // Use cname.as_bytes() (no trailing null) to look up symbol
-                    #[allow(improper_ctypes_definitions)]
                     let func = plugin
                         .library
                         .get::<RawStepFn>(cname.as_bytes())

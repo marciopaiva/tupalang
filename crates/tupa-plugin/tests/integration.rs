@@ -1,7 +1,4 @@
 use serde_json::json;
-use std::ffi::CString;
-use std::path::Path;
-use tempfile::TempDir;
 use tupa_plugin::{PluginError, PluginManager};
 
 // Compila o plugin de teste usando cargo e retorna o caminho para o .so/.dll
@@ -13,7 +10,7 @@ fn compile_test_plugin() -> Result<std::path::PathBuf, String> {
     let target_dir = tempfile::tempdir().unwrap();
     let output = std::process::Command::new("cargo")
         .current_dir(&plugin_src_dir)
-        .args(&["build", "--release", "--target-dir"])
+        .args(["build", "--release", "--target-dir"])
         .arg(target_dir.path())
         .output()
         .map_err(|e| e.to_string())?;

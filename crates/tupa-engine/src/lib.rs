@@ -83,8 +83,8 @@ impl Executor {
         let mut dependents: HashMap<&str, Vec<&str>> = HashMap::new();
 
         for &id in step_ids {
-            let produces: Vec<&str> = pipeline.produces(id).iter().copied().collect();
-            let requires: Vec<&str> = pipeline.requires(id).iter().copied().collect();
+            let produces: Vec<&str> = pipeline.produces(id).to_vec();
+            let requires: Vec<&str> = pipeline.requires(id).to_vec();
             produces_map.insert(id, produces);
             for &req in &requires {
                 dependents.entry(req).or_default().push(id);
@@ -286,6 +286,12 @@ pub struct PipelineResult {
 impl PipelineResult {
     /// Create a new empty (passing) pipeline result.
     pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl Default for PipelineResult {
+    fn default() -> Self {
         Self {
             values: HashMap::new(),
             passed: true,
@@ -312,20 +318,32 @@ pub struct ConstraintFailure {
 pub enum EngineError {
     /// A step function panicked during execution.
     #[error("Step '{step}' panicked: {reason}")]
-    StepPanic { step: String, reason: String },
+    StepPanic {
+        /// The ID of the step that panicked.
+        step: String,
+        /// The panic reason or backtrace.
+        reason: String,
+    },
 
     /// A constraint was violated. Contains metric name, operator, expected and actual values.
     #[error("Constraint failed: {metric} {op} {expected} (actual {actual})")]
     ConstraintFailed {
+        /// The metric name that violated the constraint.
         metric: String,
+        /// The comparison operator that was used (e.g., "ge", "le", "eq").
         op: String,
+        /// The expected threshold value.
         expected: serde_json::Value,
+        /// The actual value observed.
         actual: serde_json::Value,
     },
 
     /// A dependency cycle was detected in the pipeline DAG.
     #[error("Dependency cycle detected: unsatisfied steps: {steps}")]
-    CycleDetected { steps: String },
+    CycleDetected {
+        /// Comma-separated list of steps involved in the cycle.
+        steps: String,
+    },
 
     /// A generic pipeline execution error (fallback).
     #[error("Pipeline execution error: {0}")]

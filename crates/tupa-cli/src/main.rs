@@ -1,3 +1,5 @@
+#![allow(deprecated)]
+
 use clap::{Parser, Subcommand};
 use std::process;
 

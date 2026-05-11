@@ -43,9 +43,9 @@ pipeline! {
         step("enrich")        { enrich(input) } produces ["enriched"],
         step("score")         { score(input) }  requires ["enriched"] produces ["score_val"],
         step("decide")        { decide(input) } requires ["score_val"] produces ["decision"],
-        step("approval_rate") { approval_rate(&input) },
-        step("avg_score")     { avg_score(&input) },
-        step("risk_rate")     { risk_rate(&input) }
+        step("approval_rate") { approval_rate(input) },
+        step("avg_score")     { avg_score(input) },
+        step("risk_rate")     { risk_rate(input) }
     ],
     constraints: [
         metric("approval_rate").ge(0.80),
@@ -164,9 +164,9 @@ mod tests {
                 step("enrich")        { enrich(input) } produces ["enriched"],
                 step("score")         { score(input) }  requires ["enriched"] produces ["score_val"],
                 step("decide")        { decide(input) } requires ["score_val"] produces ["decision"],
-                step("approval_rate") { failing_approval_rate(&input) },
-                step("avg_score")     { avg_score(&input) },
-                step("risk_rate")     { risk_rate(&input) }
+                step("approval_rate") { failing_approval_rate(input) },
+                step("avg_score")     { avg_score(input) },
+                step("risk_rate")     { risk_rate(input) }
             ],
             constraints: [
                 metric("approval_rate").ge(0.80),

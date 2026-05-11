@@ -3,6 +3,7 @@
     since = "0.8.2",
     note = "The Tupã DSL codegen and execution model have been replaced. Use `tupa-core-macros` and `tupa-engine` instead."
 )]
+#![allow(deprecated)]
 
 use std::collections::HashMap;
 
