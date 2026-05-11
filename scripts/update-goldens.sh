@@ -5,6 +5,9 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 EXPECTED_DIR="${EXPECTED_DIR:-$REPO_ROOT/examples/expected}"
 mkdir -p "$EXPECTED_DIR"
 
+# Suppress deprecation warnings from legacy tupa-cli code during build
+export RUSTFLAGS="-Awarnings"
+
 # Normalize output similar to tests (remove workspace root)
 normalize() {
   local root="$REPO_ROOT"

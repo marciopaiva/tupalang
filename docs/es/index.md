@@ -27,7 +27,7 @@ Las páginas del wiki se replican automáticamente desde `docs/`. Evita editar e
 - [Glosario de tipos](reference/types_glossary.md)
 - [Guía de entorno de sistema operativo](guides/env_setup.md)
 - [Guía de compatibilidad](reference/compatibility.md)
-- [Resumen del proyecto](overview/project_overview.md)
+- [Resumen del proyecto](archive/overview/project_overview.md)
 
 ## Para nuevos colaboradores
 
@@ -54,12 +54,12 @@ Las páginas del wiki se replican automáticamente desde `docs/`. Evita editar e
 
 - [Codegen](reference/codegen.md)
 - [Motor de auditoría](governance/audit_engine.md)
-- [Notas de diseño (IA)](overview/design_notes.md)
+- [Notas de diseño (IA)](archive/overview/design_notes.md)
 - [Changelog](releases/changelog.md)
 - [Notas Post-Release: v0.8.1](releases/post_release_v0.8.1.md)
 - [RFC v0.8.1 Soporte para Estrategias de Trading](releases/rfc_v0.8.1_trading_strategy_support.md)
 - [Checklist: v0.8.2](releases/checklist_v0.8.2.md)
-- [Plan MVP](overview/mvp_plan.md)
+- [Plan MVP](archive/overview/mvp_plan.md)
 - [Plan de adopción](governance/adoption_plan.md)
 - [Checklist de release](releases/release_checklist.md)
 - [Guía de release](releases/release_guide.md)

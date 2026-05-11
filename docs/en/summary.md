@@ -13,7 +13,7 @@
 - [Transition from .tp](TRANSITION.md) — migration guide
 - [FAQ](guides/faq.md) — common questions
 - [SPEC](reference/spec.md) — normative specification
-- [Type Semantics](reference/type_semantics.md) — formal type rules
+- [Type Semantics](../reference/type_semantics.md) — formal type rules
 - [Embedding in Rust](reference/embedding.md) — library usage
 - [Adoption Plan](governance/adoption_plan.md) — delivery milestones to v1.0
 - [Roadmap](releases/roadmap.md) — timeline and priorities

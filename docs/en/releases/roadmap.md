@@ -1,7 +1,7 @@
 # Roadmap (Crate-First Architecture)
 
 > **Updated:** 2026-05-10 — reflecting the transition to Rust crates.
-> See [PROPOSAL.md](./PROPOSAL.md) for strategic rationale.
+> See [PROPOSAL.md](../PROPOSAL.md) for strategic rationale.
 
 ## Purpose
 
@@ -168,6 +168,6 @@ Each milestone has a go/no-go decision based on:
 
 ## See Also
 
-- [PROPOSAL.md](./PROPOSAL.md) — strategic rationale and architecture
-- [TRANSITION.md](./TRANSITION.md) — migration from `.tp` to Rust DSL
-- [ADOPTION_PLAN_OLD](../en/governance/adoption_plan.md.old) — previous plan (archived)
+- [PROPOSAL.md](../PROPOSAL.md) — strategic rationale and architecture
+- [TRANSITION.md](../TRANSITION.md) — migration from `.tp` to Rust DSL
+- [Adoption Plan](../governance/adoption_plan.md) — delivery milestones to v1.0

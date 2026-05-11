@@ -26,7 +26,7 @@ Detailed:
 
 - [Installation & Setup](guides/installation.md) — `cargo add` and minimal example
 - [Pipeline Guide](guides/pipeline_guide.md) — building complete pipelines
-- [Safe Types](reference/type_semantics.md) — `Safe<T, !constraint>` semantics
+- [Safe Types](../reference/type_semantics.md) — `Safe<T, !constraint>` semantics
 - [Constraints](reference/effect_system.md) — compile-time proofs
 - [Error Diagnostics](reference/diagnostics_checklist.md) — understanding error codes
 
@@ -36,7 +36,7 @@ Detailed:
 
 - [ViperTrade Integration Guide](guides/pipeline_guide.md) — using Tupã inside ViperTrade
 - [Audit & Hashing](guides/testing.md) — reproducibility with `tupa-audit`
-- [Examples](https://github.com/marciopaiva/vipertrade/tree/main/strategies) — real-world pipelines
+- [Examples](https://github.com/marciopaiva/vipertrade) — real-world pipelines
 
 ViperTrade uses Tupã as its strategy policy layer. New strategies should use Rust DSL; legacy `.tp` strategies are supported until 2027.
 
@@ -47,8 +47,8 @@ ViperTrade uses Tupã as its strategy policy layer. New strategies should use Ru
 ### Normative Specifications (must-read for implementers)
 
 - [Language SPEC (v0.1)](reference/spec.md) — full normative spec
-- [EBNF Grammar](reference/grammar.ebnf) — machine-readable syntax (legacy `.tp` format)
-- [Type Semantics](reference/type_semantics.md) — formal type rules, inference, subtyping
+- [EBNF Grammar](../reference/grammar.ebnf) — machine-readable syntax (legacy `.tp` format)
+- [Type Semantics](../reference/type_semantics.md) — formal type rules, inference, subtyping
 - [Conformance Suite](https://github.com/marciopaiva/tupalang/tree/main/crates/tupa-conformance) — test oracle
 
 ### Crate API Reference
@@ -75,7 +75,7 @@ All other `.tp`--centric guides have been removed. New code should use Rust DSL.
 ## Community & Support
 
 - GitHub Issues: [marciopaiva/tupalang/issues](https://github.com/marciopaiva/tupalang/issues)
-- Discussions: [GitHub Discussions](https://github.com/marciopaiva/tupalang/discussions)
+- Discussions: [GitHub Issues](https://github.com/marciopaiva/tupalang/issues)
 - Applied reference: [ViperTrade](https://github.com/marciopaiva/vipertrade)
 
 ---
