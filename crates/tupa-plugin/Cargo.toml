@@ -1,6 +1,6 @@
 [package]
 name = "tupa-plugin"
-version = "0.9.1"
+version = "0.9.2"
 edition = "2021"
 description = "Dynamic plugin loading for Tupã step functions (tupa-engine compatible)"
 license = "Apache-2.0"

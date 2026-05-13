@@ -19,19 +19,6 @@ All notable changes to `tupa-engine` will be documented in this file.
 - `run` method remains synchronous for backward compatibility
 - `run_parallel` requires async context and returns `Result<ExecutionResult, EngineError>`
 
-### Examples
-
-- `minimal` — simple two-step pipeline
-- `simple` — comprehensive test suite (metadata, pass, fail, cycle detection, unsatisfiable dependency)
-- `fraud_complete` — full fraud detection with stateful metrics
-- `credit_decision` — constraint-driven decision pipeline
-
-### Notes
-
-- This crate replaces the legacy `tupa-runtime` and `tupa-codegen`.
-- It is the execution engine for both Rust DSL pipelines and future plugin-based steps.
-- Breaking changes are expected before 1.0; current API is alpha.
-
 ## [0.9.1] - 2026-05-11
 
 ### Added
@@ -51,8 +38,15 @@ All notable changes to `tupa-engine` will be documented in this file.
 - Removed `#[must_use]` from `Executor::run` and `Executor::run_parallel` methods (Result already has must_use)
 - Updated cargo-tupa guide with subcommand documentation (`fmt`, `lint`, `test`, `plugin new`)
 
-## [Unreleased]
+## [0.9.2] - Unreleased
 
-- Planned: Plugin step execution integration
-- Planned: Bounded channel for large DAGs (backpressure)
-- Planned: Per-step timeout configuration
+### Added
+
+- **Executor configuration**: `ExecutorConfig` and `Executor::with_config` for timeouts and channel capacity
+- **Bounded channel** for step completion notifications (configurable capacity, default 1000) — applies backpressure
+- **Per-step timeout**: `ExecutorConfig::with_step_timeout(Duration)` — steps exceeding the limit return `EngineError::StepTimeout`
+- **`EngineError::StepTimeout`** variant for step timeout errors
+
+### Changed
+
+- Parallel scheduler now uses bounded `mpsc::channel` instead of unbounded

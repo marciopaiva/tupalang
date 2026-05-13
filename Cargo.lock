@@ -151,7 +151,7 @@ checksum = "1e748733b7cbc798e1434b6ac524f0c1ff2ab456fe201501e6497c8417a4fc33"
 
 [[package]]
 name = "cargo-tupa"
-version = "0.9.1"
+version = "0.9.2"
 dependencies = [
  "anyhow",
  "clap",
@@ -412,9 +412,9 @@ checksum = "9f1f227452a390804cdb637b74a86990f2a7d7ba4b7d5693aac9b4dd6defd8d6"
 
 [[package]]
 name = "filetime"
-version = "0.2.28"
+version = "0.2.29"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2d5b2eef6fafbf69f877e55509ce5b11a760690ac9700a2921be067aa6afaef6"
+checksum = "5c287a33c7f0a620c38e641e7f60827713987b3c0f26e8ddc9462cc69cf75759"
 dependencies = [
  "cfg-if",
  "libc",
@@ -1575,7 +1575,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-core"
-version = "0.9.1"
+version = "0.9.2"
 dependencies = [
  "serde_json",
  "tokio",
@@ -1585,7 +1585,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-core-macros"
-version = "0.9.1"
+version = "0.9.2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1602,7 +1602,7 @@ version = "0.8.2"
 
 [[package]]
 name = "tupa-engine"
-version = "0.9.1"
+version = "0.9.2"
 dependencies = [
  "criterion",
  "serde",
@@ -1648,7 +1648,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-plugin"
-version = "0.9.1"
+version = "0.9.2"
 dependencies = [
  "criterion",
  "libloading",
@@ -1662,7 +1662,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-pyffi"
-version = "0.9.1"
+version = "0.9.2"
 dependencies = [
  "once_cell",
  "pyo3",

@@ -21,9 +21,69 @@ use thiserror::Error;
 use tokio::sync::{mpsc, Mutex};
 
 /// Main executor for Tupã pipelines.
+///
+/// The executor is responsible for scheduling step execution, managing
+/// shared metric values, and evaluating constraints. It supports both
+/// sequential (`run`) and parallel (`run_parallel`) execution modes.
+///
+/// # Examples
+///
+/// ```rust
+/// use tupa_engine::{Executor, ExecutorConfig};
+/// use std::time::Duration;
+///
+/// // Default executor (no timeout, large channel)
+/// let engine = Executor::new();
+///
+/// // Configured executor with 30s step timeout and custom channel capacity
+/// let config = ExecutorConfig::new()
+///     .with_step_timeout(Duration::from_secs(30))
+///     .with_channel_capacity(5000);
+/// let engine = Executor::with_config(config);
+/// ```
 #[derive(Debug, Clone)]
 pub struct Executor {
-    // Future: config like max parallelism, timeouts
+    step_timeout: Option<std::time::Duration>,
+    channel_capacity: usize,
+}
+
+/// Configuration for an [`Executor`].
+///
+/// Set options like step timeouts and channel capacity.
+#[derive(Debug, Clone)]
+pub struct ExecutorConfig {
+    step_timeout: Option<std::time::Duration>,
+    channel_capacity: usize,
+}
+
+impl Default for ExecutorConfig {
+    fn default() -> Self {
+        Self {
+            step_timeout: None,
+            channel_capacity: 10000, // generous default
+        }
+    }
+}
+
+impl ExecutorConfig {
+    /// Create a new default configuration.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Set a timeout for each step execution.
+    /// If a step does not complete within this duration, `EngineError::StepTimeout` is returned.
+    pub fn with_step_timeout(mut self, timeout: std::time::Duration) -> Self {
+        self.step_timeout = Some(timeout);
+        self
+    }
+
+    /// Set the channel capacity for step completion notifications.
+    /// A bounded channel applies backpressure when full. Default is 10000.
+    pub fn with_channel_capacity(mut self, capacity: usize) -> Self {
+        self.channel_capacity = capacity;
+        self
+    }
 }
 
 impl Default for Executor {
@@ -34,8 +94,20 @@ impl Default for Executor {
 
 impl Executor {
     /// Create a new executor with default configuration.
+    ///
+    /// Defaults:
+    /// - No step timeout (steps may run indefinitely)
+    /// - Channel capacity: 10000
     pub fn new() -> Self {
-        Executor {}
+        Self::with_config(ExecutorConfig::default())
+    }
+
+    /// Create an executor with the given configuration.
+    pub fn with_config(config: ExecutorConfig) -> Self {
+        Self {
+            step_timeout: config.step_timeout,
+            channel_capacity: config.channel_capacity,
+        }
     }
 
     /// Execute a pipeline synchronously (sequential step execution).
@@ -138,8 +210,11 @@ impl Executor {
         let values = Arc::new(Mutex::new(HashMap::new()));
 
         // Channel for step completion notifications: (step_id, result)
-        let (complete_tx, mut complete_rx) =
-            mpsc::unbounded_channel::<(String, Result<serde_json::Value, EngineError>)>();
+        // Use bounded channel to apply backpressure; capacity configurable.
+        let (complete_tx, mut complete_rx) = mpsc::channel::<(
+            String,
+            Result<serde_json::Value, EngineError>,
+        )>(self.channel_capacity);
 
         // Prepare owned pipeline and input for workers
         let pipeline_owned = <P as Clone>::clone(pipeline);
@@ -148,6 +223,7 @@ impl Executor {
         // Manager gets its own Arc for values and a clone of complete_tx to pass to workers
         let manager_values = values.clone();
         let manager_complete_tx = complete_tx.clone();
+        let step_timeout = self.step_timeout;
 
         // Spawn manager task
         let manager_handle = tokio::spawn(async move {
@@ -155,14 +231,31 @@ impl Executor {
             let spawn_worker = |step_id: String,
                                 pipeline: P,
                                 input: I,
-                                complete_tx: mpsc::UnboundedSender<(
+                                complete_tx: mpsc::Sender<(
                 String,
                 Result<serde_json::Value, EngineError>,
             )>| {
                 tokio::spawn(async move {
-                    let result = pipeline.execute_step(&input, &step_id);
+                    // Execute step with optional timeout
+                    let result = if let Some(timeout) = step_timeout {
+                        // Clone step_id for the error message and async block
+                        let step_id_for_timeout = step_id.clone();
+                        match tokio::time::timeout(timeout, async move {
+                            pipeline.execute_step(&input, &step_id_for_timeout)
+                        })
+                        .await
+                        {
+                            Ok(inner_result) => inner_result,
+                            Err(_) => Err(EngineError::StepTimeout {
+                                step: step_id.clone(),
+                                duration: timeout,
+                            }),
+                        }
+                    } else {
+                        pipeline.execute_step(&input, &step_id)
+                    };
                     // Do NOT insert values here; manager does it after collecting produces metadata
-                    let _ = complete_tx.send((step_id, result));
+                    let _ = complete_tx.send((step_id, result)).await;
                 });
             };
 
@@ -354,6 +447,15 @@ pub enum EngineError {
     CycleDetected {
         /// Comma-separated list of steps involved in the cycle.
         steps: String,
+    },
+
+    /// A step execution exceeded its configured timeout.
+    #[error("Step '{step}' timed out after {duration:?}")]
+    StepTimeout {
+        /// The step ID that timed out.
+        step: String,
+        /// The timeout duration that was exceeded.
+        duration: std::time::Duration,
     },
 
     /// A generic pipeline execution error (fallback).

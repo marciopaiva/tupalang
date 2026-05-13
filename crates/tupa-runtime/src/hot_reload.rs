@@ -132,9 +132,8 @@ mod tests {
     #[test]
     fn test_hot_reload_builder_default() {
         let builder = HotReloadBuilder::default();
-        assert!(
-            builder.path.to_str().unwrap().is_empty() || std::path::Path::new("").exists() || true
-        ); // Default path is empty
+        assert!(builder.path.to_str().unwrap().is_empty() || std::path::Path::new("").exists());
+        // Default path is empty
     }
 
     #[test]
