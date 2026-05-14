@@ -3,11 +3,6 @@ name: Publish Crates
 on:
   workflow_dispatch:
     inputs:
-      publish_cli:
-        description: "Also publish tupa-audit, tupa-fmt, tupa-lint and cargo-tupa"
-        required: false
-        default: false
-        type: boolean
       dry_run:
         description: "Run cargo publish --dry-run"
         required: false
@@ -54,7 +49,7 @@ jobs:
             echo "$OUTPUT"
 
             if [[ $CODE -eq 0 ]]; then
-              if [[ "$MODE" != *"--dry-run"* && "$MODE" != *"--dry-run"* ]]; then
+              if [[ "$MODE" != *"--dry-run"* ]]; then
                 sleep 30
               fi
               return 0
@@ -68,20 +63,15 @@ jobs:
             return $CODE
           }
 
-           # New crate-first architecture (0.9.2)
-           # Publish order: dependencies first (core-macros -> core -> engine -> plugin -> pyffi)
-           for crate in \
-             tupa-core-macros \
-             tupa-core \
-             tupa-engine \
-             tupa-plugin \
-             tupa-pyffi; do
-             publish_crate "$crate"
-           done
+          # 0.9.3 — Rust-DSL era: core -> engine -> plugin -> pyffi -> cargo-tupa
+          for crate in \
+            tupa-core-macros \
+            tupa-core \
+            tupa-engine \
+            tupa-plugin \
+            tupa-pyffi \
+            cargo-tupa; do
+            publish_crate "$crate"
+          done
 
-           # Legacy crates (0.8.x) are frozen with publish=false.
-           # They remain in the workspace for local .tp tooling but are not published.
-
-  # Legacy CLI tools (tupa-audit, tupa-fmt, tupa-lint, cargo-tupa, tupa-cli)
-  # are frozen at 0.8.x with publish=false — not published in 0.9.2.
-
+          # All legacy crates removed from workspace (0.8.x frozen, publish=false)

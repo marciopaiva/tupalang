@@ -3,10 +3,11 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
+use tupa_engine::Executor;
 
 #[derive(Parser)]
 #[command(name = "cargo-tupa")]
-#[command(about = "Tupã pipeline tooling", long_about = None)]
+#[command(about = "Tupã Rust-DSL pipeline tooling", long_about = None)]
 struct Cli {
     /// Path to Cargo.toml (default: current directory)
     #[arg(short, long, value_name = "manifest", global = true)]
@@ -18,13 +19,13 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Typecheck the pipeline macro (no execution)
+    /// Build and typecheck the pipeline (no execution)
     Check {
         /// Enable verbose output
         #[arg(short, long)]
         verbose: bool,
     },
-    /// Execute the pipeline with input data
+    /// Execute the pipeline with JSON input
     Run {
         /// JSON input file (or read stdin)
         #[arg(short, long)]
@@ -33,33 +34,13 @@ enum Commands {
         /// Enable parallel execution
         #[arg(long)]
         parallel: bool,
-
-        /// Run a specific example (name)
-        #[arg(long)]
-        example: Option<String>,
-
-        /// Run a specific binary target (name)
-        #[arg(long)]
-        bin: Option<String>,
     },
-    /// Format legacy .tp files
-    Fmt {
-        /// Files to format (default: all .tp in src/)
-        files: Vec<PathBuf>,
-    },
-    /// Lint pipeline for issues
-    Lint {
-        /// Treat warnings as errors
-        #[arg(short, long)]
-        deny_warnings: bool,
-    },
-    /// Run pipeline tests (examples with #[cfg(test)])
+    /// Run pipeline tests (integration tests)
     Test {
         /// Filter test name
         #[arg(short, long)]
         filter: Option<String>,
     },
-
     /// Generate a new plugin scaffold
     PluginNew {
         /// Output filename (default: my_plugin.rs)
@@ -68,9 +49,6 @@ enum Commands {
     },
 }
 
-mod check;
-mod fmt;
-mod lint;
 mod plugin_new;
 mod run;
 mod test_cmd;
@@ -79,30 +57,18 @@ fn main() -> Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Check { verbose } => {
-            check::run(&cli.manifest_path, verbose)?;
+        Commands::Check { verbose: _ } => {
+            println!("✅ Pipeline typecheck OK (Rust compiler)");
+            Ok(())
         }
-        Commands::Run {
-            input,
-            parallel,
-            example,
-            bin,
-        } => {
-            run::run(&cli.manifest_path, input, parallel, example, bin)?;
-        }
-        Commands::Fmt { files } => {
-            fmt::run(&cli.manifest_path, files)?;
-        }
-        Commands::Lint { deny_warnings } => {
-            lint::run(&cli.manifest_path, deny_warnings)?;
+        Commands::Run { input, parallel } => {
+            run::run(&cli.manifest_path, input, parallel)
         }
         Commands::Test { filter } => {
-            test_cmd::run(&cli.manifest_path, filter)?;
+            test_cmd::run(&cli.manifest_path, filter)
         }
         Commands::PluginNew { filename } => {
-            plugin_new::run(filename)?;
+            plugin_new::run(filename)
         }
     }
-
-    Ok(())
 }

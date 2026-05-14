@@ -1,15 +1,13 @@
 [package]
 name = "cargo-tupa"
-version = "0.8.2"
+version = "0.9.3"
 edition = "2021"
-description = "Cargo subcommand for Tupã language tooling"
+description = "Cargo subcommand for Tupã Rust-DSL pipelines"
 license = "Apache-2.0"
 repository = "https://github.com/marciopaiva/tupalang"
 homepage = "https://github.com/marciopaiva/tupalang"
 documentation = "https://docs.rs/cargo-tupa"
 readme = "README.md"
-
-publish = false
 
 [[bin]]
 name = "cargo-tupa"
@@ -18,16 +16,15 @@ path = "src/main.rs"
 [dependencies]
 clap = { version = "4.0", features = ["derive"] }
 anyhow = "1.0"
-tupa-core = { path = "../tupa-core", version = "0.9.2" }
-tupa-engine = { path = "../tupa-engine", version = "0.9.2" }
-tupa-lint = { path = "../tupa-lint", version = "0.8.2" }
-tupa-fmt = { path = "../tupa-fmt", version = "0.8.2" }
-tupa-parser = { path = "../tupa-parser", version = "0.8.2" }
-tupa-plugin = { path = "../tupa-plugin", version = "0.9.2" }
 serde_json = "1.0"
 tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
+tupa-core = { path = "../tupa-core", version = "0.9.3" }
+tupa-engine = { path = "../tupa-engine", version = "0.9.3" }
+tupa-plugin = { path = "../tupa-plugin", version = "0.9.3" }
 which = "6.0"
 walkdir = "2.0"
+tempfile = "3.0"
 
 [dev-dependencies]
-tempfile = "3"
+assert_cmd = "2.0"
+predicates = "3.1"

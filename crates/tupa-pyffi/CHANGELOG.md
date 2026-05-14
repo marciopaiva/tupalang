@@ -36,4 +36,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Workspace version alignment to 0.9.2. No functional changes in this crate.
 
+## [0.9.3] - 2026-05-14
+
+### Changed
+
+- Bump to 0.9.3 with clean workspace (no legacy deps)
+- Fixed Cargo.toml format (ensured [dependencies] section present)
+
 ## [Unreleased]

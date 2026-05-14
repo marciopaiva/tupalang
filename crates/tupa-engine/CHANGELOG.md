@@ -50,3 +50,12 @@ All notable changes to `tupa-engine` will be documented in this file.
 ### Changed
 
 - Parallel scheduler now uses bounded `mpsc::channel` instead of unbounded
+
+## [0.9.3] - 2026-05-14
+
+### Changed
+
+- Workspace cleanup: removed legacy `.tp` compiler crates and tooling from workspace
+- Removed dev-dependencies on workspace crates to enable `--locked` publishing
+- Bump all active crate versions to 0.9.3
+

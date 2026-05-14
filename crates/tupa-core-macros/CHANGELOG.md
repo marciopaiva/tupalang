@@ -39,6 +39,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Workspace version alignment to 0.9.2. No functional changes in this crate.
 
+## [0.9.3] - 2026-05-14
+
+### Changed
+
+- Removed dev-dependencies on workspace crates to support locked publishing
+- Workspace simplification: legacy `.tp` crates removed from members
+
 ## [Unreleased]
 
 - Planned: Improved error messages with span information and hints
