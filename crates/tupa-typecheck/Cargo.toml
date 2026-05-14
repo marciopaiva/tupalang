@@ -9,6 +9,8 @@ homepage = "https://github.com/marciopaiva/tupalang"
 documentation = "https://github.com/marciopaiva/tupalang/wiki"
 readme = "README.md"
 
+publish = false
+
 [dependencies]
 thiserror = "1.0"
 tupa-parser = { path = "../tupa-parser", version = "0.8.2" }

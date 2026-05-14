@@ -9,6 +9,8 @@ homepage = "https://github.com/marciopaiva/tupalang"
 documentation = "https://github.com/marciopaiva/tupalang/wiki"
 readme = "README.md"
 
+publish = false
+
 [[bin]]
 name = "tupa"
 path = "src/main.rs"
@@ -24,7 +26,7 @@ tupa-typecheck = { path = "../tupa-typecheck", version = "0.8.2" }
 tupa-codegen = { path = "../tupa-codegen", version = "0.8.2" }
 tupa-effects = { path = "../tupa-effects", version = "0.8.2" }
 tupa-runtime = { path = "../tupa-runtime", version = "0.8.2" }
-tupa-pyffi = { path = "../tupa-pyffi", version = "0.9.0" }
+tupa-pyffi = { path = "../tupa-pyffi", version = "0.9.2" }
 tupa-fmt = { path = "../tupa-fmt", version = "0.8.2" }
 tupa-lint = { path = "../tupa-lint", version = "0.8.2" }
 
