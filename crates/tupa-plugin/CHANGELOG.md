@@ -54,6 +54,12 @@ All notable changes to `tupa-plugin` will be documented in this file.
 - Version bump to 0.9.3 with legacy-free workspace
 - Ready for publish with `tupa-core` 0.9.3 and `tupa-engine` 0.9.3
 
+## [0.9.4] - 2026-05-14
+
+### Changed
+
+- Version bump to 0.9.4. No functional changes.
+
 ## [Unreleased]
 
 - Planned: Plugin hot-reload support

@@ -125,13 +125,16 @@ checksum = "1e748733b7cbc798e1434b6ac524f0c1ff2ab456fe201501e6497c8417a4fc33"
 
 [[package]]
 name = "cargo-tupa"
-version = "0.9.3"
+version = "0.9.4"
 dependencies = [
  "anyhow",
  "assert_cmd",
  "clap",
  "predicates",
+ "proc-macro2",
+ "quote",
  "serde_json",
+ "syn",
  "tempfile",
  "tokio",
  "tupa-core",
@@ -1127,7 +1130,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-core"
-version = "0.9.3"
+version = "0.9.4"
 dependencies = [
  "serde_json",
  "tokio",
@@ -1136,7 +1139,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-core-macros"
-version = "0.9.3"
+version = "0.9.4"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1147,7 +1150,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-engine"
-version = "0.9.3"
+version = "0.9.4"
 dependencies = [
  "criterion",
  "serde",
@@ -1159,7 +1162,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-plugin"
-version = "0.9.3"
+version = "0.9.4"
 dependencies = [
  "criterion",
  "libloading",
@@ -1173,7 +1176,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-pyffi"
-version = "0.9.3"
+version = "0.9.4"
 dependencies = [
  "once_cell",
  "pyo3",

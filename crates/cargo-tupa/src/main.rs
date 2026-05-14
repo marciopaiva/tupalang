@@ -3,7 +3,13 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
-use tupa_engine::Executor;
+
+mod discover;
+mod fmt;
+mod lint;
+mod plugin_new;
+mod run;
+mod test_cmd;
 
 #[derive(Parser)]
 #[command(name = "cargo-tupa")]
@@ -35,11 +41,23 @@ enum Commands {
         #[arg(long)]
         parallel: bool,
     },
-    /// Run pipeline tests (integration tests)
+    /// Run pipeline integration tests
     Test {
         /// Filter test name
         #[arg(short, long)]
         filter: Option<String>,
+    },
+    /// Format Rust-DSL pipeline code
+    Fmt {
+        /// Format specific file (default: all src/**/*.rs)
+        #[arg(short, long)]
+        file: Option<PathBuf>,
+    },
+    /// Lint Rust-DSL pipeline for issues
+    Lint {
+        /// Lint specific file (default: all pipeline files)
+        #[arg(short, long)]
+        file: Option<PathBuf>,
     },
     /// Generate a new plugin scaffold
     PluginNew {
@@ -48,10 +66,6 @@ enum Commands {
         filename: Option<String>,
     },
 }
-
-mod plugin_new;
-mod run;
-mod test_cmd;
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
@@ -66,6 +80,12 @@ fn main() -> Result<()> {
         }
         Commands::Test { filter } => {
             test_cmd::run(&cli.manifest_path, filter)
+        }
+        Commands::Fmt { file } => {
+            fmt::format_pipeline(file)
+        }
+        Commands::Lint { file } => {
+            lint::lint(file)
         }
         Commands::PluginNew { filename } => {
             plugin_new::run(filename)

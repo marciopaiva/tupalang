@@ -46,6 +46,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed dev-dependencies on workspace crates to support locked publishing
 - Workspace simplification: legacy `.tp` crates removed from members
 
+## [0.9.4] - 2026-05-14
+
+### Changed
+
+- Update generated `PipelineResult` to include `metrics: Vec::new>` field for step timing data
+- No breaking changes for pipeline authors (macro handles automatically)
+
 ## [Unreleased]
 
 - Planned: Improved error messages with span information and hints

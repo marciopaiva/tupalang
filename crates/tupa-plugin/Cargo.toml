@@ -1,6 +1,6 @@
 [package]
 name = "tupa-plugin"
-version = "0.9.3"
+version = "0.9.4"
 edition = "2021"
 description = "Dynamic plugin loading for Tupã step functions (tupa-engine compatible)"
 license = "Apache-2.0"
@@ -14,8 +14,8 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 thiserror = "1.0"
 libloading = "0.8"
-tupa-core = { path = "../tupa-core", version = "0.9.3" }
-tupa-engine = { path = "../tupa-engine", version = "0.9.3" }
+tupa-core = { path = "../tupa-core", version = "0.9.4" }
+tupa-engine = { path = "../tupa-engine", version = "0.9.4" }
 
 [dev-dependencies]
 tempfile = "3"

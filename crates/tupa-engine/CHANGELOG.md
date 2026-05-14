@@ -59,3 +59,25 @@ All notable changes to `tupa-engine` will be documented in this file.
 - Removed dev-dependencies on workspace crates to enable `--locked` publishing
 - Bump all active crate versions to 0.9.3
 
+## [0.9.4] - 2026-05-14
+
+### Added
+
+- **Executor configuration from environment**: `Executor::from_env()` reads `TUPA_STEP_TIMEOUT` and `TUPA_CHANNEL_CAPACITY`
+- **Step metrics collection**: `PipelineResult::metrics` — per-step `StepMetrics` with start/end times, duration, and state
+- **Cancellation support**: `Executor::cancel()` sets a flag; parallel execution returns `EngineError::Cancelled` at next step boundary
+- **`EngineError::Cancelled`** variant for user-initiated cancellation
+
+### Changed
+
+- `run_parallel` now records timestamps via shared `Arc<Mutex<HashMap>>`
+- `Executor` always has a `cancel_token` (no optional)
+
+## [0.9.3] - 2026-05-14
+
+### Changed
+
+- Workspace cleanup: removed legacy `.tp` compiler crates and tooling from workspace
+- Removed dev-dependencies on workspace crates to enable `--locked` publishing
+- Bump all active crate versions to 0.9.3
+

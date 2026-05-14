@@ -535,7 +535,7 @@ pub fn pipeline(input: TokenStream) -> TokenStream {
                 let mut values = std::collections::HashMap::new();
                 #step_calls
                 let (passed, failures) = Self::check_constraints(&values);
-                Ok(PipelineResult { values, passed, failures })
+                Ok(PipelineResult { values, passed, failures, metrics: Vec::new() })
             }
         }
 
