@@ -1,4 +1,4 @@
-use anyhow::{Result, Context};
+use anyhow::{Context, Result};
 use std::path::{Path, PathBuf};
 
 /// Discover the main binary target in a Cargo package.
@@ -8,19 +8,22 @@ pub fn discover_binary_target(manifest_path: &PathBuf) -> Result<String> {
     let manifest_dir = manifest_path.parent().unwrap_or_else(|| Path::new("."));
     let src_dir = manifest_dir.join("src");
 
-    let toml_content = std::fs::read_to_string(manifest_path)
-        .context("Failed to read Cargo.toml")?;
+    let toml_content =
+        std::fs::read_to_string(manifest_path).context("Failed to read Cargo.toml")?;
 
     if let Some(bin_name) = parse_bin_names(&toml_content) {
         return Ok(bin_name);
     }
 
     if src_dir.join("main.rs").exists() {
-        return extract_package_name(&toml_content)
-            .ok_or_else(|| anyhow::anyhow!("Cannot infer binary name: missing package.name in Cargo.toml"));
+        return extract_package_name(&toml_content).ok_or_else(|| {
+            anyhow::anyhow!("Cannot infer binary name: missing package.name in Cargo.toml")
+        });
     }
 
-    anyhow::bail!("No suitable binary target found. Create [[bin]] in Cargo.toml or use src/main.rs")
+    anyhow::bail!(
+        "No suitable binary target found. Create [[bin]] in Cargo.toml or use src/main.rs"
+    )
 }
 
 fn parse_bin_names(toml: &str) -> Option<String> {
@@ -74,7 +77,11 @@ pub fn build_binary(manifest_path: &PathBuf, bin_name: &str) -> Result<PathBuf> 
         anyhow::bail!("cargo build failed");
     }
 
-    let target_dir = manifest_path.parent().unwrap().join("target").join("release");
+    let target_dir = manifest_path
+        .parent()
+        .unwrap()
+        .join("target")
+        .join("release");
     #[cfg(windows)]
     let binary_path = target_dir.join(format!("{}.exe", bin_name));
     #[cfg(not(windows))]
@@ -88,10 +95,14 @@ pub fn build_binary(manifest_path: &PathBuf, bin_name: &str) -> Result<PathBuf> 
 }
 
 /// Execute the built binary with the given arguments.
+///
+/// If `metrics_output` is provided, sets `TUPA_METRICS_OUTPUT` environment variable
+/// so the pipeline can write metrics JSON to that path.
 pub fn execute_binary(
     binary_path: &PathBuf,
     input: Option<&PathBuf>,
     parallel: bool,
+    metrics_output: Option<&PathBuf>,
 ) -> Result<()> {
     let mut cmd = std::process::Command::new(binary_path);
     cmd.arg("run");
@@ -104,9 +115,12 @@ pub fn execute_binary(
         cmd.arg("--parallel");
     }
 
-    let output = cmd
-        .output()
-        .context("Failed to execute pipeline binary")?;
+    // Pass metrics output path via environment variable
+    if let Some(ref path) = metrics_output {
+        cmd.env("TUPA_METRICS_OUTPUT", path);
+    }
+
+    let output = cmd.output().context("Failed to execute pipeline binary")?;
 
     if !output.status.success() {
         let stderr = String::from_utf8_lossy(&output.stderr);

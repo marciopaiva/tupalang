@@ -10,7 +10,9 @@ All notable changes to `cargo-tupa` will be documented in this file.
 - `cargo tupa fmt` — formats Rust-DSL pipeline code in-place (basic indentation for `pipeline!` blocks)
 - `cargo tupa lint` — static analysis: duplicate steps, undefined requires/produces, missing name/input
 - `--parallel` flag support (forwards to engine)
+- `--metrics-output <file>` flag — write step metrics JSON after execution
 - Unit tests for discovery, fmt, and lint modules
+- Integration test for `cargo tupa run` with metrics export
 
 ### Changed
 

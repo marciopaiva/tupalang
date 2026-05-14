@@ -62,6 +62,6 @@ All notable changes to `tupa-plugin` will be documented in this file.
 
 ## [Unreleased]
 
-- Planned: Plugin hot-reload support
-- Planned: Versioned plugin ABI for compatibility
-- Planned: Sandboxing/isolation options
+Planned: Plugin hot-reload support.
+Planned: Versioned plugin ABI for compatibility.
+Planned: Sandboxing/isolation options.

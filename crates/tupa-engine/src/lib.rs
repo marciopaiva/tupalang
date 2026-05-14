@@ -17,10 +17,9 @@ use serde::Serialize;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::{
-    Arc,
     atomic::{AtomicBool, Ordering},
+    Arc,
 };
-use std::time::{Duration, Instant};
 use thiserror::Error;
 use tokio::sync::{mpsc, Mutex};
 
@@ -49,16 +48,18 @@ use tokio::sync::{mpsc, Mutex};
 pub struct Executor {
     step_timeout: Option<std::time::Duration>,
     channel_capacity: usize,
+    metrics_output: Option<std::path::PathBuf>,
     cancel_token: Arc<AtomicBool>,
 }
 
 /// Configuration for an [`Executor`].
 ///
-/// Set options like step timeouts and channel capacity.
+/// Set options like step timeouts, channel capacity, and metrics output.
 #[derive(Debug, Clone)]
 pub struct ExecutorConfig {
     step_timeout: Option<std::time::Duration>,
     channel_capacity: usize,
+    metrics_output: Option<std::path::PathBuf>,
 }
 
 impl Default for ExecutorConfig {
@@ -66,6 +67,7 @@ impl Default for ExecutorConfig {
         Self {
             step_timeout: None,
             channel_capacity: 10000, // generous default
+            metrics_output: None,
         }
     }
 }
@@ -81,6 +83,7 @@ impl ExecutorConfig {
     /// Environment variables:
     /// - `TUPA_STEP_TIMEOUT`: duration string (e.g., "30s", "1m", "500ms")
     /// - `TUPA_CHANNEL_CAPACITY`: usize (default: 10000)
+    /// - `TUPA_METRICS_OUTPUT`: path to write metrics JSON (optional)
     ///
     /// If variables are unset or invalid, defaults are used.
     pub fn from_env() -> Self {
@@ -96,6 +99,10 @@ impl ExecutorConfig {
             if let Ok(capacity) = capacity_str.parse::<usize>() {
                 config.channel_capacity = capacity;
             }
+        }
+
+        if let Ok(metrics_path) = std::env::var("TUPA_METRICS_OUTPUT") {
+            config.metrics_output = Some(std::path::PathBuf::from(metrics_path));
         }
 
         config
@@ -114,6 +121,13 @@ impl ExecutorConfig {
         self.channel_capacity = capacity;
         self
     }
+
+    /// Set a path to write metrics JSON after pipeline execution.
+    /// If set, `Executor::run_parallel` will serialize `PipelineResult::metrics` to this file.
+    pub fn with_metrics_output(mut self, path: std::path::PathBuf) -> Self {
+        self.metrics_output = Some(path);
+        self
+    }
 }
 
 /// Parse a duration string like "30s", "1m", "500ms".
@@ -121,14 +135,14 @@ impl ExecutorConfig {
 /// Supported units: ms, s, m. If no unit given, assumes seconds.
 fn parse_duration(s: &str) -> Result<std::time::Duration, std::num::ParseIntError> {
     let s = s.trim();
-    if s.ends_with("ms") {
-        let ms = s[..s.len() - 2].parse::<u64>()?;
+    if let Some(ms_str) = s.strip_suffix("ms") {
+        let ms = ms_str.parse::<u64>()?;
         Ok(std::time::Duration::from_millis(ms))
-    } else if s.ends_with("s") {
-        let secs = s[..s.len() - 1].parse::<u64>()?;
+    } else if let Some(s_str) = s.strip_suffix("s") {
+        let secs = s_str.parse::<u64>()?;
         Ok(std::time::Duration::from_secs(secs))
-    } else if s.ends_with("m") {
-        let mins = s[..s.len() - 1].parse::<u64>()?;
+    } else if let Some(m_str) = s.strip_suffix("m") {
+        let mins = m_str.parse::<u64>()?;
         Ok(std::time::Duration::from_secs(mins * 60))
     } else {
         // Assume seconds if no unit
@@ -158,28 +172,28 @@ impl Executor {
         Self {
             step_timeout: config.step_timeout,
             channel_capacity: config.channel_capacity,
+            metrics_output: config.metrics_output,
             cancel_token: Arc::new(AtomicBool::new(false)),
         }
     }
 
-    /// Create an executor with configuration from environment variables.
+    /// Create a new executor with configuration from environment variables.
     ///
     /// Environment variables:
     /// - `TUPA_STEP_TIMEOUT`: duration string (e.g., "30s", "1m", "500ms")
     /// - `TUPA_CHANNEL_CAPACITY`: usize (default: 10000)
+    /// - `TUPA_METRICS_OUTPUT`: path to write metrics JSON (optional)
     ///
     /// If variables are unset or invalid, defaults are used.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// // Use environment configuration
+    /// let engine = tupa_engine::Executor::from_env();
+    /// ```
     pub fn from_env() -> Self {
         Self::with_config(ExecutorConfig::from_env())
-    }
-
-    /// Request cancellation of a running pipeline.
-    ///
-    /// This sets an internal flag that causes the executor to return
-    /// `EngineError::Cancelled` at the next opportunity (between steps).
-    /// Note: currently only affects parallel execution.
-    pub fn cancel(&self) {
-        self.cancel_token.store(true, Ordering::SeqCst);
     }
 
     /// Execute a pipeline synchronously (sequential step execution).
@@ -280,7 +294,8 @@ impl Executor {
 
         // Shared state
         let values = Arc::new(Mutex::new(HashMap::new()));
-        let step_metrics: Arc<Mutex<HashMap<String, StepMetrics>>> = Arc::new(Mutex::new(HashMap::new()));
+        let step_metrics: Arc<Mutex<HashMap<String, StepMetrics>>> =
+            Arc::new(Mutex::new(HashMap::new()));
 
         // Channel for step completion notifications: (step_id, result)
         // Use bounded channel to apply backpressure; capacity configurable.
@@ -306,69 +321,77 @@ impl Executor {
         // Spawn manager task
         let manager_handle = tokio::spawn(async move {
             // Helper to spawn a worker for a step
-            let spawn_worker = |step_id: String,
-                                pipeline: P,
-                                input: I,
-                                complete_tx: mpsc::Sender<(
-                String,
-                Result<serde_json::Value, EngineError>,
-            )>,
-                metrics: Arc<Mutex<HashMap<String, StepMetrics>>>| {
-                tokio::spawn(async move {
-                    // Record start time
-                    let start = Instant::now();
-                    {
-                        let mut guard = metrics.lock().await;
-                        guard.insert(
-                            step_id.clone(),
-                            StepMetrics {
-                                step_id: step_id.clone(),
-                                start_time: start,
-                                end_time: None,
-                                duration: None,
-                                state: StepState::Running,
-                            },
-                        );
-                    }
-
-                    // Execute step with optional timeout
-                    let result = if let Some(timeout) = step_timeout {
-                        let step_id_for_timeout = step_id.clone();
-                        match tokio::time::timeout(timeout, async move {
-                            pipeline.execute_step(&input, &step_id_for_timeout)
-                        })
-                        .await
+            let spawn_worker =
+                |step_id: String,
+                 pipeline: P,
+                 input: I,
+                 complete_tx: mpsc::Sender<(String, Result<serde_json::Value, EngineError>)>,
+                 metrics: Arc<Mutex<HashMap<String, StepMetrics>>>| {
+                    tokio::spawn(async move {
+                        // Record start time
+                        let start = std::time::SystemTime::now();
+                        let start_nanos = start
+                            .duration_since(std::time::UNIX_EPOCH)
+                            .unwrap_or_default()
+                            .as_nanos() as u64;
                         {
-                            Ok(inner_result) => inner_result,
-                            Err(_) => Err(EngineError::StepTimeout {
-                                step: step_id.clone(),
-                                duration: timeout,
-                            }),
+                            let mut guard = metrics.lock().await;
+                            guard.insert(
+                                step_id.clone(),
+                                StepMetrics {
+                                    step_id: step_id.clone(),
+                                    start_nanos,
+                                    end_nanos: None,
+                                    duration_nanos: None,
+                                    state: StepState::Running,
+                                },
+                            );
                         }
-                    } else {
-                        pipeline.execute_step(&input, &step_id)
-                    };
 
-                    // Record completion
-                    let end = Instant::now();
-                    let state = match &result {
-                        Ok(_) => StepState::Completed,
-                        Err(EngineError::StepTimeout { .. }) => StepState::Timeout,
-                        Err(_) => StepState::Failed,
-                    };
-                    {
-                        let mut guard = metrics.lock().await;
-                        if let Some(entry) = guard.get_mut(&step_id) {
-                            entry.end_time = Some(end);
-                            entry.duration = Some(end.duration_since(start));
-                            entry.state = state;
+                        // Execute step with optional timeout
+                        let result = if let Some(timeout) = step_timeout {
+                            let step_id_for_timeout = step_id.clone();
+                            match tokio::time::timeout(timeout, async move {
+                                pipeline.execute_step(&input, &step_id_for_timeout)
+                            })
+                            .await
+                            {
+                                Ok(inner_result) => inner_result,
+                                Err(_) => Err(EngineError::StepTimeout {
+                                    step: step_id.clone(),
+                                    duration: timeout,
+                                }),
+                            }
+                        } else {
+                            pipeline.execute_step(&input, &step_id)
+                        };
+
+                        // Record completion
+                        let end = std::time::SystemTime::now();
+                        let end_nanos = end
+                            .duration_since(std::time::UNIX_EPOCH)
+                            .unwrap_or_default()
+                            .as_nanos() as u64;
+                        let duration_nanos =
+                            end.duration_since(start).ok().map(|d| d.as_nanos() as u64);
+                        let state = match &result {
+                            Ok(_) => StepState::Completed,
+                            Err(EngineError::StepTimeout { .. }) => StepState::Timeout,
+                            Err(_) => StepState::Failed,
+                        };
+                        {
+                            let mut guard = metrics.lock().await;
+                            if let Some(entry) = guard.get_mut(&step_id) {
+                                entry.end_nanos = Some(end_nanos);
+                                entry.duration_nanos = duration_nanos;
+                                entry.state = state;
+                            }
                         }
-                    }
 
-                    // Do NOT insert values here; manager does it after collecting produces metadata
-                    let _ = complete_tx.send((step_id, result)).await;
-                });
-            };
+                        // Do NOT insert values here; manager does it after collecting produces metadata
+                        let _ = complete_tx.send((step_id, result)).await;
+                    });
+                };
 
             // Spawn initial ready steps
             for step_id in step_ids.iter().copied().filter(|&id| in_degree[id] == 0) {
@@ -387,22 +410,6 @@ impl Executor {
                 // Check for cancellation
                 if manager_cancellation.load(Ordering::SeqCst) {
                     return Err(EngineError::Cancelled);
-                }
-
-                let end_time = Instant::now();
-
-                // Update step metrics with completion time and state
-                {
-                    let mut guard = manager_metrics.lock().await;
-                    if let Some(entry) = guard.get_mut(&step_id) {
-                        entry.end_time = Some(end_time);
-                        entry.duration = Some(end_time.duration_since(entry.start_time));
-                        entry.state = match &step_res {
-                            Ok(_) => StepState::Completed,
-                            Err(EngineError::StepTimeout { .. }) => StepState::Timeout,
-                            Err(_) => StepState::Failed,
-                        };
-                    }
                 }
 
                 // If this step failed, return error immediately
@@ -461,17 +468,26 @@ impl Executor {
 
                 // Collect metrics from Arc
                 let metrics_guard = step_metrics.lock().await;
-                let metrics_vec: Vec<StepMetrics> = metrics_guard
-                    .values()
-                    .cloned()
-                    .collect();
+                let metrics_vec: Vec<StepMetrics> = metrics_guard.values().cloned().collect();
 
-                Ok(PipelineResult {
+                let result = PipelineResult {
                     values: values_guard.clone(),
                     passed,
                     failures,
-                    metrics: metrics_vec,
-                })
+                    metrics: metrics_vec.clone(),
+                };
+
+                // Write metrics to file if configured
+                if let Some(ref path) = self.metrics_output {
+                    let json = serde_json::to_string_pretty(&metrics_vec).map_err(|e| {
+                        EngineError::Other(format!("Failed to serialize metrics: {}", e))
+                    })?;
+                    std::fs::write(path, json).map_err(|e| {
+                        EngineError::Other(format!("Failed to write metrics file: {}", e))
+                    })?;
+                }
+
+                Ok(result)
             }
             Ok(Err(e)) => Err(e),
             Err(join_err) => Err(EngineError::Other(join_err.to_string())),
@@ -523,22 +539,21 @@ pub struct PipelineResult {
 }
 
 /// Per-step execution metrics.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize)]
 pub struct StepMetrics {
     /// Step identifier
     pub step_id: String,
-    /// When the step started
-    pub start_time: Instant,
-    /// When the step finished (None if still running)
-    pub end_time: Option<Instant>,
-    /// Total duration (None if still running)
-    pub duration: Option<Duration>,
+    /// Start timestamp (nanoseconds since UNIX epoch)
+    pub start_nanos: u64,
+    /// End timestamp (nanoseconds since UNIX epoch), if finished
+    pub end_nanos: Option<u64>,
+    /// Total duration in nanoseconds (computed as end - start), if finished
+    pub duration_nanos: Option<u64>,
     /// Final execution state
     pub state: StepState,
 }
 
-/// Step execution lifecycle state.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize)]
 pub enum StepState {
     /// Step is currently running
     Running,

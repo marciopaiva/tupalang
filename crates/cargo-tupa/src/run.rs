@@ -1,13 +1,14 @@
-use anyhow::{Result, Context};
+use anyhow::{Context, Result};
 use std::path::PathBuf;
 
-use super::discover::{discover_binary_target, build_binary, execute_binary};
+use super::discover::{build_binary, discover_binary_target, execute_binary};
 
 /// Run `cargo tupa run` — build and execute the project's pipeline binary.
 pub fn run(
     manifest_path: &Option<PathBuf>,
     input: Option<PathBuf>,
     parallel: bool,
+    metrics_output: Option<PathBuf>,
 ) -> Result<()> {
     // Resolve Cargo.toml path
     let manifest = if let Some(ref p) = manifest_path {
@@ -35,20 +36,23 @@ pub fn run(
     println!("📦 Using manifest: {}", manifest.display());
 
     // Discover binary target
-    let bin_name = discover_binary_target(&manifest)
-        .context("Failed to discover binary target")?;
+    let bin_name = discover_binary_target(&manifest).context("Failed to discover binary target")?;
 
     println!("🎯 Target binary: {}", bin_name);
 
     // Build
-    let binary_path = build_binary(&manifest, &bin_name)
-        .context("Build failed")?;
+    let binary_path = build_binary(&manifest, &bin_name).context("Build failed")?;
 
     println!("✅ Built: {}", binary_path.display());
 
     // Execute
-    execute_binary(&binary_path, input.as_ref(), parallel)
-        .context("Execution failed")?;
+    execute_binary(
+        &binary_path,
+        input.as_ref(),
+        parallel,
+        metrics_output.as_ref(),
+    )
+    .context("Execution failed")?;
 
     Ok(())
 }

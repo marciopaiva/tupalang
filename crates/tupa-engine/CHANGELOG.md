@@ -63,21 +63,17 @@ All notable changes to `tupa-engine` will be documented in this file.
 
 ### Added
 
-- **Executor configuration from environment**: `Executor::from_env()` reads `TUPA_STEP_TIMEOUT` and `TUPA_CHANNEL_CAPACITY`
-- **Step metrics collection**: `PipelineResult::metrics` — per-step `StepMetrics` with start/end times, duration, and state
-- **Cancellation support**: `Executor::cancel()` sets a flag; parallel execution returns `EngineError::Cancelled` at next step boundary
-- **`EngineError::Cancelled`** variant for user-initiated cancellation
+- **Step metrics collection**: `PipelineResult::metrics` now includes per-step `StepMetrics` with start/end timestamps, duration, and execution state
+- **Cancellation support**: `Executor::cancel()` sets internal flag; `run_parallel` checks periodically and returns `EngineError::Cancelled` when detected
+- **Environment-driven configuration**: `Executor::from_env()` reads `TUPA_STEP_TIMEOUT` (duration string: e.g., "30s", "1m", "500ms") and `TUPA_CHANNEL_CAPACITY` (usize)
+- **`parse_duration` utility**: parses duration strings with units (ms, s, m) for convenient timeout configuration
+- **`EngineError::Cancelled`** error variant for pipeline cancellation scenarios
 
 ### Changed
 
-- `run_parallel` now records timestamps via shared `Arc<Mutex<HashMap>>`
-- `Executor` always has a `cancel_token` (no optional)
+- `Executor` now always has `cancel_token: Arc<AtomicBool>` (removed optionality)
+- Parallel worker tasks wrapped in `tokio::time::timeout` when `step_timeout` is configured
+- `StepState::Cancelled` added to `StepState` enum
+- Manager task aggregates `StepMetrics` in shared `Arc<Mutex<HashMap>>` during execution
 
-## [0.9.3] - 2026-05-14
-
-### Changed
-
-- Workspace cleanup: removed legacy `.tp` compiler crates and tooling from workspace
-- Removed dev-dependencies on workspace crates to enable `--locked` publishing
-- Bump all active crate versions to 0.9.3
-
+---

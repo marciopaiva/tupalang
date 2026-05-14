@@ -48,8 +48,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Version bump to 0.9.4. No functional changes.
+- Version bump to 0.9.4. No functional changes in this crate; engine and macros handle metrics/cancellation transparently.
 
 ## [Unreleased]
 
-- Planned: `tupa-migrate` CLI tool for automated `.tp` → Rust DSL conversion
+No unreleased changes.

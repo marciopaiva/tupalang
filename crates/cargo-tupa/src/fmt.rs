@@ -1,4 +1,4 @@
-use anyhow::{Result, Context};
+use anyhow::Result;
 use std::fs;
 use std::path::PathBuf;
 use walkdir::WalkDir;
@@ -15,10 +15,7 @@ pub fn format_pipeline(file: Option<PathBuf>) -> Result<()> {
     } else {
         // Walk src/ directory for .rs files
         let mut files = Vec::new();
-        for entry in WalkDir::new("src")
-            .into_iter()
-            .filter_map(|e| e.ok())
-        {
+        for entry in WalkDir::new("src").into_iter().filter_map(|e| e.ok()) {
             let path = entry.path();
             if path.extension().and_then(|s| s.to_str()) == Some("rs") {
                 files.push(path.to_path_buf());
@@ -84,8 +81,13 @@ fn format_file(content: &str) -> Result<String> {
 }
 
 fn reformat_pipeline_block(block: &str) -> Result<String> {
-    let start = block.find('{').ok_or_else(|| anyhow::anyhow!("no opening brace"))? + 1;
-    let end = block.rfind('}').ok_or_else(|| anyhow::anyhow!("no closing brace"))?;
+    let start = block
+        .find('{')
+        .ok_or_else(|| anyhow::anyhow!("no opening brace"))?
+        + 1;
+    let end = block
+        .rfind('}')
+        .ok_or_else(|| anyhow::anyhow!("no closing brace"))?;
     let inner = &block[start..end];
 
     let mut formatted = String::new();

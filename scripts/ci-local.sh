@@ -113,6 +113,14 @@ run_lychee_docs() {
 
 run_golden_check() {
   echo -e "${YELLOW}==>${NC} Checking golden outputs (dry-run)"
+
+  # Skip if legacy tupa-cli is not available (Rust-DSL era)
+  if [ ! -d "crates/tupa-cli" ]; then
+    echo -e "${YELLOW}skip:${NC} golden check (tupa-cli removed — Rust-DSL migration)"
+    echo
+    return 0
+  fi
+
   local tmp_expected
   tmp_expected="$(mktemp -d)"
   trap "rm -rf $tmp_expected" EXIT

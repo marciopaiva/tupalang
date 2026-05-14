@@ -55,5 +55,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- Planned: Improved error messages with span information and hints
-- Planned: `tupa-expand` tool to show macro expansion output
+Planned: Improved error messages with span information and hints.
+Planned: `tupa-expand` tool to show macro expansion output.

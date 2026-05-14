@@ -51,11 +51,13 @@ pub fn lint(file: Option<PathBuf>) -> Result<()> {
     Ok(())
 }
 
-fn lint_file(content: &str, file: &PathBuf) -> Result<u32> {
+fn lint_file(content: &str, file: &std::path::Path) -> Result<u32> {
     let mut issues = 0;
 
     // Find pipeline! block
-    let start = content.find("pipeline!").ok_or_else(|| anyhow::anyhow!("no pipeline found"))?;
+    let start = content
+        .find("pipeline!")
+        .ok_or_else(|| anyhow::anyhow!("no pipeline found"))?;
     let block_start = content[start..].find('{').map(|i| start + i);
 
     if let Some(idx) = block_start {
@@ -78,7 +80,7 @@ fn lint_file(content: &str, file: &PathBuf) -> Result<u32> {
     Ok(issues)
 }
 
-fn lint_pipeline_block(block: &str, file: &PathBuf) -> Result<u32> {
+fn lint_pipeline_block(block: &str, file: &std::path::Path) -> Result<u32> {
     let mut issues = 0;
 
     let step_names = extract_step_names(block)?;
@@ -87,7 +89,11 @@ fn lint_pipeline_block(block: &str, file: &PathBuf) -> Result<u32> {
     let mut seen = HashSet::new();
     for name in &step_names {
         if seen.contains(name) {
-            println!("  ⚠️  Duplicate step name: '{}' in {}", name, file.display());
+            println!(
+                "  ⚠️  Duplicate step name: '{}' in {}",
+                name,
+                file.display()
+            );
             issues += 1;
         } else {
             seen.insert(name);
@@ -99,14 +105,22 @@ fn lint_pipeline_block(block: &str, file: &PathBuf) -> Result<u32> {
 
     for req in &requires {
         if !seen.contains(req) {
-            println!("  ⚠️  Undefined step reference in requires: '{}' in {}", req, file.display());
+            println!(
+                "  ⚠️  Undefined step reference in requires: '{}' in {}",
+                req,
+                file.display()
+            );
             issues += 1;
         }
     }
 
     for prod in &produces {
         if !seen.contains(prod) {
-            println!("  ⚠️  Undefined step reference in produces: '{}' in {}", prod, file.display());
+            println!(
+                "  ⚠️  Undefined step reference in produces: '{}' in {}",
+                prod,
+                file.display()
+            );
             issues += 1;
         }
     }
@@ -128,9 +142,15 @@ fn extract_step_names(block: &str) -> Result<Vec<String>> {
     for (idx, _) in block.match_indices("step(") {
         let sub = &block[idx + 5..];
         // Find the opening quote
-        let start = sub.find('"').ok_or_else(|| anyhow::anyhow!("missing quote in step name"))? + 1;
+        let start = sub
+            .find('"')
+            .ok_or_else(|| anyhow::anyhow!("missing quote in step name"))?
+            + 1;
         // Find the closing quote after that
-        let end = sub[start..].find('"').ok_or_else(|| anyhow::anyhow!("unclosed step name"))? + start;
+        let end = sub[start..]
+            .find('"')
+            .ok_or_else(|| anyhow::anyhow!("unclosed step name"))?
+            + start;
         let name = &sub[start..end];
         names.push(name.to_string());
     }
@@ -161,7 +181,10 @@ fn extract_string_refs(block: &str, keyword: &str) -> Result<Vec<String>> {
         let mut pos = 0;
         while let Some(quote_pos) = args[pos..].find('"') {
             let s_start = pos + quote_pos + 1;
-            let s_end = args[s_start..].find('"').ok_or_else(|| anyhow::anyhow!("unclosed string"))? + s_start;
+            let s_end = args[s_start..]
+                .find('"')
+                .ok_or_else(|| anyhow::anyhow!("unclosed string"))?
+                + s_start;
             refs.push(args[s_start..s_end].to_string());
             pos = s_end + 1;
         }

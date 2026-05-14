@@ -3,7 +3,6 @@
 use serde::{Deserialize, Serialize};
 use std::env;
 use tupa_core::pipeline;
-use tupa_engine::Executor;
 
 // Minimal input: no data
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -43,7 +42,8 @@ async fn main() {
     };
 
     let plan = FraudDetection::new();
-    let engine = Executor::new();
+    // Use executor configured from environment (TUPA_STEP_TIMEOUT, TUPA_CHANNEL_CAPACITY, TUPA_METRICS_OUTPUT)
+    let engine = tupa_engine::Executor::from_env();
     let result = engine
         .run_parallel(&plan, &input)
         .await
@@ -72,7 +72,7 @@ mod tests {
     #[tokio::test]
     async fn test_execution() {
         let plan = FraudDetection::new();
-        let engine = Executor::new();
+        let engine = Executor::from_env();
         let input = Unit;
         let result = engine.run_parallel(&plan, &input).await.unwrap();
         assert!(result.passed);

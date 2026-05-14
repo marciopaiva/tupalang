@@ -40,6 +40,10 @@ enum Commands {
         /// Enable parallel execution
         #[arg(long)]
         parallel: bool,
+
+        /// Write step metrics to JSON file
+        #[arg(long)]
+        metrics_output: Option<PathBuf>,
     },
     /// Run pipeline integration tests
     Test {
@@ -75,20 +79,14 @@ fn main() -> Result<()> {
             println!("✅ Pipeline typecheck OK (Rust compiler)");
             Ok(())
         }
-        Commands::Run { input, parallel } => {
-            run::run(&cli.manifest_path, input, parallel)
-        }
-        Commands::Test { filter } => {
-            test_cmd::run(&cli.manifest_path, filter)
-        }
-        Commands::Fmt { file } => {
-            fmt::format_pipeline(file)
-        }
-        Commands::Lint { file } => {
-            lint::lint(file)
-        }
-        Commands::PluginNew { filename } => {
-            plugin_new::run(filename)
-        }
+        Commands::Run {
+            input,
+            parallel,
+            metrics_output,
+        } => run::run(&cli.manifest_path, input, parallel, metrics_output),
+        Commands::Test { filter } => test_cmd::run(&cli.manifest_path, filter),
+        Commands::Fmt { file } => fmt::format_pipeline(file),
+        Commands::Lint { file } => lint::lint(file),
+        Commands::PluginNew { filename } => plugin_new::run(filename),
     }
 }
