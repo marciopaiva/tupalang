@@ -38,7 +38,7 @@ All notable changes to `tupa-engine` will be documented in this file.
 - Removed `#[must_use]` from `Executor::run` and `Executor::run_parallel` methods (Result already has must_use)
 - Updated cargo-tupa guide with subcommand documentation (`fmt`, `lint`, `test`, `plugin new`)
 
-## [0.9.2] - Unreleased
+## [0.9.2] - 2026-05-13
 
 ### Added
 

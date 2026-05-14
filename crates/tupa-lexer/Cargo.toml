@@ -9,6 +9,8 @@ homepage = "https://github.com/marciopaiva/tupalang"
 documentation = "https://github.com/marciopaiva/tupalang/wiki"
 readme = "README.md"
 
+publish = false
+
 [dependencies]
 nom = "7.1"
 thiserror = "1.0"

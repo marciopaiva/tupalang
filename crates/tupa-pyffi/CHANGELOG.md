@@ -30,4 +30,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Template pinned dependency fix (workspace-wide)
 
+## [0.9.2] - 2026-05-13
+
+### Changed
+
+- Workspace version alignment to 0.9.2. No functional changes in this crate.
+
 ## [Unreleased]

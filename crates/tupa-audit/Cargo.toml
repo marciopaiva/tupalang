@@ -9,6 +9,8 @@ homepage = "https://github.com/marciopaiva/tupalang"
 documentation = "https://github.com/marciopaiva/tupalang/wiki"
 readme = "README.md"
 
+publish = false
+
 [dependencies]
 serde_json = "1.0"
 sha3 = "0.10"

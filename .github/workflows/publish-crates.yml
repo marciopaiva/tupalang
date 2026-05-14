@@ -68,77 +68,20 @@ jobs:
             return $CODE
           }
 
-          # New crate-first architecture (0.9.0)
-          # Publish order: dependencies first
-          for crate in \
-            tupa-core-macros \
-            tupa-core \
-            tupa-engine \
-            tupa-plugin; do
-            publish_crate "$crate"
-          done
+           # New crate-first architecture (0.9.2)
+           # Publish order: dependencies first (core-macros -> core -> engine -> plugin -> pyffi)
+           for crate in \
+             tupa-core-macros \
+             tupa-core \
+             tupa-engine \
+             tupa-plugin \
+             tupa-pyffi; do
+             publish_crate "$crate"
+           done
 
-          # Legacy crates (still supported until 2027)
-          for crate in \
-            tupa-lexer \
-            tupa-effects \
-            tupa-parser \
-            tupa-typecheck \
-            tupa-codegen \
-            tupa-pyffi \
-            tupa-runtime; do
-            publish_crate "$crate"
-          done
+           # Legacy crates (0.8.x) are frozen with publish=false.
+           # They remain in the workspace for local .tp tooling but are not published.
 
-  publish-cli:
-    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && github.event.inputs.publish_cli == 'true')
-    runs-on: ubuntu-latest
-    needs: publish-core
-    env:
-      CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+  # Legacy CLI tools (tupa-audit, tupa-fmt, tupa-lint, cargo-tupa, tupa-cli)
+  # are frozen at 0.8.x with publish=false — not published in 0.9.2.
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Publish CLI tools
-        shell: bash
-        run: |
-          set -euo pipefail
-          MODE="--locked"
-          if [[ "${{ github.event.inputs.dry_run || 'false' }}" == "true" ]]; then
-            MODE="--locked --dry-run"
-          fi
-
-          publish_crate() {
-            local crate="$1"
-            echo "Publishing $crate ($MODE)"
-
-            set +e
-            OUTPUT=$(cargo publish -p "$crate" $MODE 2>&1)
-            CODE=$?
-            set -e
-
-            echo "$OUTPUT"
-
-            if [[ $CODE -eq 0 ]]; then
-              if [[ "$MODE" != *"--dry-run"* ]]; then
-                sleep 30
-              fi
-              return 0
-            fi
-
-            if [[ "$OUTPUT" == *"already exists on crates.io index"* ]]; then
-              echo "Skipping $crate: already published"
-              return 0
-            fi
-
-            return $CODE
-          }
-
-          for crate in tupa-audit tupa-fmt tupa-lint cargo-tupa; do
-            publish_crate "$crate"
-          done
