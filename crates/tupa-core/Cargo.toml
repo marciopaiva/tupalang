@@ -14,7 +14,6 @@ tupa-core-macros = { path = "../tupa-core-macros", version = "0.9.2" }
 serde_json = "1.0"
 
 [dev-dependencies]
-tupa-engine = { path = "../tupa-engine" }
 tokio = { version = "1.0", features = ["full"] }
 
 [features]
