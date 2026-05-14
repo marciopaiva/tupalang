@@ -9,5 +9,7 @@ homepage = "https://github.com/marciopaiva/tupalang"
 documentation = "https://github.com/marciopaiva/tupalang/wiki"
 readme = "README.md"
 
+publish = false
+
 [dependencies]
-tupa-lexer = { path = "../tupa-lexer", version = "0.8.2" }
+# No legacy dependencies — standalone formatter

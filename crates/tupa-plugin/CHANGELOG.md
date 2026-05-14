@@ -41,6 +41,12 @@ All notable changes to `tupa-plugin` will be documented in this file.
 
 - Template Cargo.toml pinned dependencies
 
+## [0.9.2] - 2026-05-13
+
+### Changed
+
+- Workspace version alignment to 0.9.2. No functional changes in this crate.
+
 ## [Unreleased]
 
 - Planned: Plugin hot-reload support
