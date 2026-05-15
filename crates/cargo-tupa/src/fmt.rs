@@ -146,4 +146,12 @@ mod tests {
         assert!(output.contains("  constraints: ["));
         Ok(())
     }
+
+    #[test]
+    fn test_fmt_idempotent_on_clean_input() {
+        let clean = "pipeline! {\n  name: X,\n  input: i32,\n  steps: [],\n  constraints: []\n}";
+        let once = format_file(clean).unwrap();
+        let twice = format_file(&once).unwrap();
+        assert_eq!(once, twice, "fmt must be idempotent");
+    }
 }

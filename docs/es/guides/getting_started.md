@@ -2,49 +2,84 @@
 
 ## Propósito
 
-Proporcionar el camino mínimo para compilar el proyecto y ejecutar el primer ejemplo.
+Proporcionar el camino mínimo para compilar el proyecto y ejecutar el primer ejemplo con Rust DSL.
 
-## Requisitos previos
+## Prerrequisitos
 
 - Rust estable (vía rustup)
 - Git
 
 ## Pasos
 
-1) Clona el repositorio:
+### 1) Clona el repositorio
 
 ```bash
 git clone https://github.com/marciopaiva/tupalang.git
 cd tupalang
-```text
+```
 
-1) Ejecuta el ejemplo básico:
-
-```bash
-cargo run -p tupa-cli -- parse examples/hello.tp
-cargo run -p tupa-cli -- parse examples/lambda_basic.tp
-```text
-
-1) Ejecuta el verificador de tipos:
+### 2) Ejecuta el ejemplo básico
 
 ```bash
-cargo run -p tupa-cli -- check examples/hello.tp
-cargo run -p tupa-cli -- check examples/lambda_basic.tp
-```text
+cargo run --example minimal
+```
 
-1) Salida JSON (opcional):
-
-```bash
-cargo run -p tupa-cli -- parse --format json examples/hello.tp
-```text
-
-1) Ejecuta las pruebas golden (recomendado para validar el pipeline completo):
+### 3) Verifica el pipeline
 
 ```bash
-cargo test -p tupa-cli --test cli_golden
-```text
+cargo tupa check        # si tienes el CLI instalado globalmente
+# o simplemente compila:
+cargo build
+```
+
+### 4) Ejecuta pruebas
+
+```bash
+cargo test --workspace --locked
+```
+
+## Primer pipeline en tu proyecto
+
+```bash
+cargo new my-strategy --lib
+cd my-strategy
+```
+
+Añade a `Cargo.toml`:
+
+```toml
+[dependencies]
+tupa-core = "0.9"
+tupa-engine = "0.9"
+```
+
+Crea `src/lib.rs`:
+
+```rust
+use tupa_core::pipeline;
+
+pipeline! {
+    name: HolaMundo,
+    input: (),
+    steps: [
+        step("hola") { println!("Hola, Tupã!") }
+    ],
+    constraints: []
+}
+```
+
+Compila y ejecuta:
+
+```bash
+cargo run
+```
+
+---
 
 ## Próximos pasos
 
-- Explora [Ejemplos](../../../examples/README.md)
-- Configura el entorno en [Entorno de desarrollo](dev_env.md)
+- Explora [Ejemplos](../../examples/README.md)
+- Lee la [Guía de Pipeline](pipeline_guide.md)
+- Consulta la [Documentación de API](https://docs.rs/tupa-core)
+- Revisa [TRANSITION.md](../TRANSITION.md) si vienes de `.tp`
+- Únete a [Comunidad](https://github.com/marciopaiva/tupalang/discussions)

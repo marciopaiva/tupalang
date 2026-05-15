@@ -2,7 +2,7 @@
 
 **Target audience:** Existing Tupã users (`.tp` files + CLI) migrating to the new crate-based Rust DSL.
 
-**Timeline:** Legacy `.tp` compilation will be supported until **2027-01-01**. After that, only the Rust DSL will receive updates.
+**Timeline:** The standalone `.tp` compiler was **removed** from the Tupã workspace in version 0.9.0. Legacy `.tp` pipelines must be migrated to the Rust DSL. No future updates will be made to the `.tp` toolchain.
 
 ---
 
@@ -138,9 +138,9 @@ cargo run --release
 ```toml
 # Cargo.toml
 [dependencies]
-tupa-core = "1.0"
-tupa-engine = "1.0"
-```text
+tupa-core = "0.9"
+tupa-engine = "0.9"
+```
 
 ### Step 2: Convert enum/type definitions
 
@@ -368,22 +368,11 @@ Benchmark target: <1μs per step decision.
 
 ---
 
-## Support Timeline
-
-| Date | Action |
-|---|---|
-| 2026-05 | `tupa-core` 0.9.0 released (beta) |
-| 2026-08 | `tupa-core` 0.2.0 — stable macro API |
-| 2026-12 | `tupa-core` 1.0.0-RC1 |
-| 2027-01-01 | `.tp` parsing deprecated; warnings on legacy files |
-| 2027-06 | `.tp` compilation removed from `tupa-cli` (still parseable via lib) |
-| 2027-12 | Full EOL for legacy `.tp` workflow |
-
-**Migration urgency:** Low for new projects. Medium for projects started before 2026.
+**Estado de la migración:** La toolchain `.tp` fue eliminada en v0.9.0. Todos los usuarios deben migrar a Rust DSL. No se harán más actualizaciones de `.tp`.
 
 ---
 
-## Need Help?
+## ¿Necesitas Ayuda?
 
 - Open issue: [GitHub Issues](https://github.com/marciopaiva/tupalang/issues)
 - Migration examples: `examples/migration/` directory

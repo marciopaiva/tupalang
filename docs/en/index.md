@@ -35,10 +35,10 @@ Detailed:
 ## For ViperTrade Users
 
 - [ViperTrade Integration Guide](guides/pipeline_guide.md) — using Tupã inside ViperTrade
-- [Audit & Hashing](guides/testing.md) — reproducibility with `tupa-audit`
+- [Audit & Hashing](guides/testing.md) — reproducibility via engine metrics
 - [Examples](https://github.com/marciopaiva/vipertrade) — real-world pipelines
 
-ViperTrade uses Tupã as its strategy policy layer. New strategies should use Rust DSL; legacy `.tp` strategies are supported until 2027.
+ViperTrade uses Tupã as its strategy policy layer via the Rust crates.
 
 ---
 
@@ -46,36 +46,22 @@ ViperTrade uses Tupã as its strategy policy layer. New strategies should use Ru
 
 ### Normative Specifications (must-read for implementers)
 
-- [Language SPEC (v0.1)](reference/spec.md) — full normative spec
-- [EBNF Grammar](../reference/grammar.ebnf) — machine-readable syntax (legacy `.tp` format)
+- [Language SPEC](reference/spec.md) — formal definition of the Rust-DSL (`pipeline!` macro)
 - [Type Semantics](../reference/type_semantics.md) — formal type rules, inference, subtyping
-- [Conformance Suite](https://github.com/marciopaiva/tupalang/tree/main/crates/tupa-conformance) — test oracle
 
 ### Crate API Reference
 
 - [`tupa-core`](https://crates.io/crates/tupa-core) — DSL macros, types, constraints
 - [`tupa-engine`](https://crates.io/crates/tupa-engine) — executor runtime
-- [`tupa-fmt`](https://crates.io/crates/tupa-fmt) — formatter for legacy `.tp`
-- [`tupa-lint`](https://crates.io/crates/tupa-lint) — linter for policy code
-- [`tupa-audit`](https://crates.io/crates/tupa-audit) — audit hashing
 - [`tupa-plugin`](https://crates.io/crates/tupa-plugin) — dynamic plugin loading
-
----
-
-## Legacy `.tp` Documentation (Deprecated)
-
-During the transition period, some legacy docs are still accessible:
-
-- [Installation (legacy CLI)](guides/installation.md#legacy-cli) — standalone binary for existing `.tp` pipelines
-
-All other `.tp`--centric guides have been removed. New code should use Rust DSL.
+- [`tupa-pyffi`](https://crates.io/crates/tupa-pyffi) — Python bindings (alpha)
 
 ---
 
 ## Community & Support
 
 - GitHub Issues: [marciopaiva/tupalang/issues](https://github.com/marciopaiva/tupalang/issues)
-- Discussions: [GitHub Issues](https://github.com/marciopaiva/tupalang/issues)
+- Discussions: [GitHub Discussions](https://github.com/marciopaiva/tupalang/discussions)
 - Applied reference: [ViperTrade](https://github.com/marciopaiva/vipertrade)
 
 ---

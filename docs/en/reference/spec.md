@@ -1,14 +1,14 @@
-# Tupã Language Specification v0.9
+# Tupã Language Specification v0.9 (Rust-DSL)
 
-> **Ancestral strength, modern code**  
-> Brazilian language for critical systems and evolving AI
+> **Note:** This specification describes Tupã as a **Rust DSL** using the `pipeline!` macro (crate-first architecture). The standalone `.tp` language was **removed** in v0.9.0. All examples use Rust syntax.
 
-[![Specification Status](https://img.shields.io/badge/status-draft-orange)](#)
-[![License](https://img.shields.io/badge/license-CC--BY--SA%204.0-ff69b4)](#)
+**Status:** Draft (aligning with implementation in `tupa-core` 0.9.x)
+
+---
 
 ## Purpose
 
-This document defines the formal specification of the Tupã language, including grammar, type rules, and semantics.
+This document defines the formal specification of Tupã's `pipeline!` macro DSL, including structure, type rules, and semantics when embedded in Rust.
 
 ## Index
 
@@ -235,10 +235,10 @@ dimension   = integer_literal | "..." ;  // "..." = dynamic dimension
 
 ```tupa
 // Dense 28x28 tensor (MNIST)
-let image: Tensor<f32, shape=[28, 28]> = load("digit.tp")
+let image: Tensor<f32, shape=[28, 28]> = load("digits.bin")
 
 // 90% sparse tensor (recommended for LLMs)
-let weights: Tensor<f16, shape=[4096, 4096], density=0.1> = load("llama3.tp")
+let weights: Tensor<f16, shape=[4096, 4096], density=0.1> = load("llama3.bin")
 ```text
 
 #### 3.2.6 Alignment Types (ethical constraints)
@@ -652,10 +652,10 @@ match await rx.recv_timeout(1000) {  // 1000ms
 ### 7.1 Modules
 
 ```tupa
-// math.tp
+// math.rs
 export fn square(x: f64): f64 { x * x }
 
-// main.tp
+// main.rs
 import "math" as math
 
 let result = math.square(5.0)
@@ -824,17 +824,13 @@ step_decl       = "step" "(" string_literal ")" "{" expression "}" ;
 ### 9.1 Compiler Pipeline
 
 ```text
-Source (.tp) 
-  ↓ [Lexer: nom]
-Tokens 
-  ↓ [Parser: recursive descent]
-AST 
-  ↓ [Type Checker: Hindley-Milner + constraint solver]
-Typed AST 
-  ↓ [Codegen: inkwell → LLVM IR]
-LLVM IR 
-  ↓ [LLVM Optimizer (-O3)]
-Native Binary (ELF/Mach-O/PE)
+Source (.rs with pipeline! macro)
+  ↓ [Macro expansion: proc-macro]
+Rust AST (checked by rustc)
+  ↓ [Type checking + constraint propagation]
+Typed Rust code
+  ↓ [Engine: tupa-engine executor]
+Runtime output
 ```text
 
 ### 9.2 Gradient Compilation Strategy
@@ -890,7 +886,7 @@ For `Safe<T, !constraint>`:
 
 - Errors must include: code, message, location, and hint.
 - Minimum format: `E####: message (file:line:column)`.
-- Example: `E3002: cannot prove constraint '!nan' at compile time (main.tp:12:5)`.
+- Example: `E3002: cannot prove constraint '!nan' at compile time (main.rs:12:5)`.
 
 **Recommended codes**:
 
@@ -901,13 +897,13 @@ For `Safe<T, !constraint>`:
 - `E4001`: invalid `unsafe` usage
 
 Example:
-`E2001: incompatible types in assignment (main.tp:8:12)`
+`E2001: incompatible types in assignment (main.rs:8:12)`
 
 Visual example:
 
 ```text
 error[E2001]: incompatible types
-    --> main.tp:8:12
+    --> main.rs:8:12
      |
 8 | let x: i64 = "text"
      |            ^^^^^^^^
@@ -943,7 +939,7 @@ fn softmax(x: Tensor<f32, shape=[10]>): Tensor<f32, shape=[10]> {
 }
 
 fn predict(image: Tensor<f32, shape=[28, 28]>): i64 {
-    let weights: Tensor<f16, shape=[784, 10], density=0.15> = load("weights.tp")
+    let weights: Tensor<f16, shape=[784, 10], density=0.15> = load("weights.bin")
     let flattened = image.flatten()
     let logits = matmul(flattened, weights)
     let probs = softmax(logits)
@@ -962,7 +958,7 @@ fn summarize(article: string): Safe<string, !misinformation, !hate_speech> {
 }
 
 fn main() {
-    let article = load_article("news.tp")
+    let article = load_article("news.json")
     let summary = summarize(article)  // ✅ Compiles only if safety is proven
     publish(summary)  // Never publishes dangerous content
 }
@@ -1006,7 +1002,7 @@ Example:
 
 ```text
 error[E0003]: expected ';' after expression
-    --> examples/hello.tp:3:18
+    --> examples/hello.rs:3:18
      |
  3 |    let age = 28
      |                 ^
@@ -1029,7 +1025,7 @@ The compiler **must** emit type errors with a code and, when possible, with a sp
 
 ```text
 error[E2001]: type mismatch: expected I64, got Bool
-    --> examples/invalid_type.tp:2:15
+    --> examples/invalid_type.rs:2:15
      |
  2 |    let x: i64 = true;
      |               ^^^^
@@ -1039,7 +1035,7 @@ For incorrect arity:
 
 ```text
 error[E2002]: arity mismatch: expected 2, got 1
-    --> examples/invalid_call.tp:6:10
+    --> examples/invalid_call.rs:6:10
      |
  6 |    let y = add(1);
      |          ^^^^^^

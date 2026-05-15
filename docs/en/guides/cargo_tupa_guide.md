@@ -36,23 +36,34 @@ TUPA_INPUT='{"x":42}' TUPA_PARALLEL=1 cargo tupa run
 
 # With a file
 cargo tupa run --input data.json
-```text
+
+# Export step execution metrics as JSON
+cargo tupa run --metrics-output metrics.json
+```
 
 Your `src/main.rs` should read `TUPA_INPUT` (or use the default) and call `Executor::run` or `Executor::run_parallel`.
 
+**Options:**
+
+- `--input <FILE>` — JSON input file (default: stdin or `TUPA_INPUT`)
+- `--parallel` — enable parallel step execution (overrides `TUPA_PARALLEL`)
+- `--metrics-output <FILE>` — write per-step metrics JSON (timestamps, state) after execution
+
 ### `cargo tupa fmt`
 
-Formats legacy `.tp` pipeline files using the Tupã formatter.
+Formats Rust-DSL pipeline code (`pipeline!` blocks) in source files.
 
 ```bash
-cargo tupa fmt                # format all .tp files in the package
+cargo tupa fmt                # format all pipeline code in src/
 cargo tupa fmt --dry-run       # show what would change
 cargo tupa fmt --check         # fail if any file needs formatting
 ```
 
+> **Note:** The legacy `.tp` toolchain was removed in v0.9.0. This command operates exclusively on Rust DSL code.
+
 ### `cargo tupa lint`
 
-Runs static analysis on pipeline definitions (both `.tp` and Rust DSL).
+Runs static analysis on Rust-DSL pipeline definitions (`pipeline!` macros).
 
 ```bash
 cargo tupa lint                # lint current package
@@ -60,9 +71,11 @@ cargo tupa lint --json         # machine-readable output
 cargo tupa lint --deny warnings # treat warnings as errors
 ```
 
+> **Note:** The legacy `.tp` toolchain was removed in v0.9.0. This command analyzes Rust DSL code only.
+
 ### `cargo tupa test`
 
-Runs pipeline unit tests and example validations.
+Alias for `cargo test --examples`, convenient for running example pipelines and pipeline integration tests.
 
 ```bash
 cargo tupa test                # run all tests
@@ -87,7 +100,7 @@ This creates a template `my_plugin.rs` exporting:
 Build as a cdylib:
 
 ```bash
-cargo build --crate-type=cdylib --release
+cargo build --crate-type cdylib --release
 # target/release/libmy_plugin.so (or .dll/.dylib)
 ```
 
@@ -118,11 +131,11 @@ The template includes a sample pipeline, Cargo.toml with dependencies, and a `ma
 
 ## How It Works
 
-- `check`: Delegates to `cargo check --message-format=json`, filters Tupã macro errors.
+- `check`: Delegates to `cargo check` and filters Tupã macro expansion errors.
 - `run`: Builds and executes your binary with `TUPA_INPUT` set; your binary calls `Executor::run` or `Executor::run_parallel`.
-- `test`: Runs `cargo test --examples` to validate pipeline unit tests.
-- `fmt`: Calls `tupa-fmt` on `.tp` files; uses `rustfmt` for Rust DSL.
-- `lint`: Runs `tupa-lint` on legacy files and surfaces Rust warnings.
+- `test`: Alias for `cargo test --examples`, runs example pipelines as tests.
+- `fmt`: Formats Rust-DSL pipeline code (`pipeline!` blocks) with basic indentation rules.
+- `lint`: Performs static analysis on Rust-DSL pipeline definitions (detects duplicate steps, missing names, undefined requires/produces).
 - `plugin new`: Generates a plugin template (`_tupa_plugin_name`, `_tupa_plugin_register`, sample step function).
 
 ## Notes

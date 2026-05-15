@@ -1,4 +1,4 @@
-#![allow(deprecated)]
+#![allow(unused)]
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
@@ -9,7 +9,6 @@ mod fmt;
 mod lint;
 mod plugin_new;
 mod run;
-mod test_cmd;
 
 #[derive(Parser)]
 #[command(name = "cargo-tupa")]
@@ -45,12 +44,6 @@ enum Commands {
         #[arg(long)]
         metrics_output: Option<PathBuf>,
     },
-    /// Run pipeline integration tests
-    Test {
-        /// Filter test name
-        #[arg(short, long)]
-        filter: Option<String>,
-    },
     /// Format Rust-DSL pipeline code
     Fmt {
         /// Format specific file (default: all src/**/*.rs)
@@ -84,7 +77,6 @@ fn main() -> Result<()> {
             parallel,
             metrics_output,
         } => run::run(&cli.manifest_path, input, parallel, metrics_output),
-        Commands::Test { filter } => test_cmd::run(&cli.manifest_path, filter),
         Commands::Fmt { file } => fmt::format_pipeline(file),
         Commands::Lint { file } => lint::lint(file),
         Commands::PluginNew { filename } => plugin_new::run(filename),

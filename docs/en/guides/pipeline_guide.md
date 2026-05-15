@@ -492,6 +492,76 @@ proptest! {
 
 ---
 
+## Executor Configuration
+
+### Environment Variables
+
+The executor can be configured via environment variables:
+
+- `TUPA_STEP_TIMEOUT` — maximum duration for any single step (e.g., `"30s"`, `"1m"`, `"500ms"`). Steps exceeding this limit will return `EngineError::StepTimeout`.
+- `TUPA_CHANNEL_CAPACITY` — capacity of the bounded channel used for step coordination (default: 1000). Increase for high-throughput pipelines with many concurrent steps.
+
+Example:
+```rust
+use tupa_engine::Executor;
+
+// Reads TUPA_STEP_TIMEOUT and TUPA_CHANNEL_CAPACITY from environment
+let executor = Executor::from_env()?;
+```
+
+### Metrics Export
+
+Pipeline execution metrics can be exported as JSON for observability and debugging:
+
+```bash
+TUPA_METRICS_OUTPUT=metrics.json cargo tupa run
+```
+
+Or via CLI flag:
+
+```bash
+cargo tupa run --metrics-output metrics.json
+```
+
+The output file contains an array of `StepMetrics` objects:
+
+```json
+[
+  {
+    "step_id": "risk",
+    "start_nanos": 1700000000000000000,
+    "end_nanos": 1700000000005000000,
+    "duration_nanos": 5000000,
+    "state": "Completed"
+  }
+]
+```
+
+### Cancellation
+
+Long-running pipelines can be cancelled programmatically or via Ctrl+C:
+
+```rust
+use tupa_engine::Executor;
+use std::time::Duration;
+
+let executor = Executor::from_env()?;
+let handle = executor.handle();  // obtains cancellation token
+
+// Spawn a thread that cancels after 5 seconds
+std::thread::spawn(move || {
+    thread::sleep(Duration::from_secs(5));
+    handle.cancel();
+});
+
+let result = executor.run(pipeline, &input);
+// result will be Err(EngineError::Cancelled) if cancellation triggered
+```
+
+When running via `cargo tupa run`, Ctrl+C is automatically handled — the engine will attempt graceful shutdown.
+
+---
+
 ## FAQ
 
 **Q: Can I mix `.tp` files with Rust DSL?**  

@@ -6,19 +6,16 @@ Tupã is designed to be embedded as a Rust library. There is **no separate runti
 
 ---
 
-## Core Crates
+## Core Crates (0.9.x)
 
-| Crate | Purpose | Public API |
+| Crate | Purpose | Status |
 |---|---|---|
-| `tupa-core` | DSL macros, types (`Safe`, `Tensor`), traits (`Pipeline`) | ✅ Stable |
-| `tupa-engine` | Executor, constraint solver, runner | ✅ Beta |
-| `tupa-runtime` | Low-level runtime primitives (internal) | ❌ Internal |
-| `tupa-audit` | AST hashing, reproducibility | ✅ Stable |
-| `tupa-plugin` | Dynamic step function loading | ✅ Stable |
-| `tupa-fmt` | Formatter (legacy `.tp` files) | ✅ Stable |
-| `tupa-lint` | Linter for policy code | ✅ Beta |
+| `tupa-core` | DSL macros, types (`Safe`, `Tensor`), traits (`Pipeline`) | ✅ Alpha |
+| `tupa-engine` | Executor, constraint solver, runner | ✅ Alpha |
+| `tupa-plugin` | Dynamic step function loading | ✅ Alpha |
+| `tupa-pyffi` | Python bindings (PyO3) | ⚠️ Alpha (unstable) |
 
-**Stable crates** can be used in production. **Beta** crates have minor breaking changes possible before 1.0.
+**Note:** All public crates are versioned together (SemVer). No internal-only crates in 0.9.x.
 
 ---
 
@@ -27,9 +24,9 @@ Tupã is designed to be embedded as a Rust library. There is **no separate runti
 ```rust
 // Cargo.toml
 [dependencies]
-tupa-core = "0.2"
-tupa-engine = "0.2"
-```text
+tupa-core = "0.9"
+tupa-engine = "0.9"
+```
 
 ```rust
 // src/lib.rs
@@ -154,8 +151,8 @@ Track progress: [tupa-pyffi crate](../../crates/tupa-pyffi/).
 ## API Stability
 
 - `tupa-core` 0.x → 1.0 (est. 2026-Q4) will have minor breaking changes in macro syntax. Once 1.0 released, API freeze.
-- `tuba-engine` runtime behavior (scheduling, channel semantics) will be stable after 0.2.0.
-- FFI ABI will be locked at 1.0.0.
+- `tupa-engine` runtime behavior (scheduling, channel semantics) will be stable after 0.9.0 (currently alpha).
+- FFI ABI will be locked at 1.0.0 (when released).
 
 See [versioning](../reference/versioning.md) for details.
 
@@ -188,7 +185,7 @@ CI integration: run `cargo test` as usual.
 
 - Step outputs logged at `trace` level — enable with `RUST_LOG=tupa_engine=debug`
 - Constraint failures include metric name, expected vs actual
-- Audit trail: enable `tupa_audit::enable()` to get per-step hashes
+- Engine metrics: use `Executor::run_parallel` returns `PipelineResult::metrics` with per-step timings
 
 ---
 

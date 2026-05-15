@@ -1,8 +1,8 @@
-# Análise de Estado — Tupã 0.9.4 (2026-05-14)
+# Análise de Estado — Tupã 0.9.4 (2026-05-15)
 
-**Branch:** `release/0.9.4`  
-**Commit HEAD:** `2021863` — "chore(release): 0.9.4 — engine metrics, cancellation, cargo-tupa matured"  
-**Workspace:** Limpo (apenas `.kilo/` não rastreado)
+**Branch:** `release/0.9.4` (após Fases 3–5 concluídas)
+**Commit HEAD:** pendente de atualização — Fases 3–5 concluídas
+**Workspace:** Limpo
 
 ---
 
@@ -15,21 +15,29 @@
 - `ExecutorConfig::from_env()` com `TUPA_STEP_TIMEOUT` e `TUPA_CHANNEL_CAPACITY`
 - `parse_duration()` — suporta `ms`, `s`, `m`
 - `ExecutionResult::metrics: Vec<StepMetrics>` — coleta timings por passo
+- `--metrics-output <FILE>` — exporta métricas como JSON via CLI
 - Per-step timeout via `tokio::time::timeout` em workers
 - Cancellation check no loop do manager (Ctrl+C via signal handler)
+- `Executor::from_env()`, `ExecutorConfig::from_env()`, `Executor::handle()` públicos
 
 **Local:** `crates/tupa-engine/src/lib.rs:527` (StepMetrics), `:542` (StepState), `:181` (cancel), `:86` (from_env)
 
 ### CLI (cargo-tupa 0.9.4)
 
-- `discover` — auto-detecta binário target no Cargo.toml
-- `fmt` — formatação básica de blocos `pipeline!` (indentação)
-- `lint` — detecta steps duplicados, requires/produces indefinidos, nome/input ausentes
-- `run` — executa binário após `cargo build --release --bin <name>`
-- 5 unit tests passing (discover, fmt, lint)
-- `--parallel` flag (repassa para engine)
+| Subcommand | Status |
+|---|---|
+| `check` | ✅ build + typecheck via rustc |
+| `run` | ✅ executa binário, `--parallel`, `--metrics-output <FILE>` |
+| `fmt` | ✅ formata blocos `pipeline!` (indentação 2 espaços) |
+| `lint` | ✅ detecta steps duplicados, requires/produces indefinidos, nome/input ausentes |
+| `plugin-new` | ✅ scaffold de novo plugin Rust |
+| `test` | ❌ **removido** (era alias para `cargo test --examples`) |
+| `discover` | ⚠️ módulo existe mas **não registrado** em `Commands` (deferred) |
 
-**Local:** `crates/cargo-tupa/src/{discover.rs,fmt.rs,lint.rs,run.rs,main.rs}`
+- `cargo-tupa/src/run.rs:11` — flag `--metrics-output` ativa serialização de `Vec<StepMetrics>` para JSON
+- Unit tests: 8 passing (discover, fmt x2, lint x3)
+- Integration test: 1 passing (`run_metrics` — `tests/run_metrics.rs`)
+- `cargo tupa test` **removido da enum `Commands`** (alineado com DOC_FIX_PLAN Fase 1 – GAP-2)
 
 ### Workspace
 
@@ -40,173 +48,58 @@
   - `tupa-plugin` 0.9.4
   - `tupa-pyffi` 0.9.4
   - `cargo-tupa` 0.9.4
-- `Cargo.lock` atualizado
-- **Legacy `.tp` completamente removido** (tupa-parser, typecheck, codegen, cli, runtime, effects, audit, conformance, fmt, lint antigos)
+- **Legacy `.tp` completamente removido** do workspace
+
+### Plugins (Fase 3 ✓)
+
+- `crates/tupa-plugin/tests/plugin_src/rust_plugin/` — exemplo mínimo `cdylib` com 2 steps
+- `crates/tupa-plugin/tests/plugin_src/python_plugin/` — exemplo Python com `tupa-pyffi` (README)
+- integração.rs compila plugin de teste (rótulos: `integration_test_plugin`)
+
+### Docs (Fases 3–4 ✓)
+
+- `docs/es/guides/migration_guide.md` — guia de migração completo em ES (novo)
+- `docs/es/tutorials/` — pasta criada com `plugin-rust.md` e `plugin-python.md`
+- `docs/en/reference/spec.md` — limpo (única referência `.tp` é a nota de depreciação original)
+- DOC_REVIEW.md estado desatualizado — não reflete Fases 3–5
+
+### CI
+
+- `./scripts/ci-local.sh` → `All local CI checks passed`
+- `docs-parity-check.sh` → `ok`
+- `lychee` — 3 `[404]` em `/discussions` (não fatais em modo não-strict)
 
 ---
 
 ## ❌ Não Implementado / Pendente
 
-| Item | Prioridade | Local |
-|------|-----------|-------|
-| `--metrics-output` em `cargo tupa run` | Alta | `crates/cargo-tupa/src/run.rs` |
-| Integration test para `cargo tupa run` | Alta | `crates/cargo-tupa/tests/` |
-| Migration guide (.tp → Rust-DSL) | Média | `docs/guides/migration_guide.md` |
-| Plugin tutorials (Rust + Python) | Média | `docs/tutorials/plugin-*.md` |
-| Plugin examples ( Rust + Python ) | Média | `examples/plugins/` |
-| Golden tests para fmt/lint | Baixa | `crates/cargo-tupa/tests/golden/` |
-| CHANGELOGs 0.9.4 (todos crates) | Alta | `crates/*/CHANGELOG.md` |
-| Fix warning: `unused import: Context` | Alta | `crates/cargo-tupa/src/fmt.rs:1` |
+| Item | Prioridade | Local / Nota |
+|------|-----------|--------------|
+| `discover` subcommand no CLI | Baixa | Módulo existe, não registrado na enum `Commands` |
+| SCAR (scaffold completo) | Média | `plugin_src/rust_plugin/` é exemplo mínimo, não scaffold CLI |
+| CHANGELOGs finalizados | Baixa | Motor e CLI bons; demais crates verificados |
+| Observabilidade detalhada | Baixa | Métricas são u64 nanos, não `Instant` |
+
+### Gaps de Documentação (⚠️ Requer atualização)
+
+| Item | Prioridade | Local / Nota |
+|------|-----------|--------------|
+| `docs/en/OVERVIEW.md` | Alta | Lista crates desatualizados (ver GAP-10 no DOC_FIX_PLAN) |
+| `docs/pt-br/OVERVIEW.md` | Média | Idem EN |
+| `docs/es/OVERVIEW.md` | Média | Pasta `es/` agora existe |
+| DOC_FIX_PLAN.md | Alta | Seção "Fases 3–5" não reflete conclusão |
+| STATE_ANALYSIS.md este arquivo desatualizou rapidamente | Alta | Autoreferencial — esta seção, na prática, é snapshots |
+| DOC_REVIEW.md | Média | Desatualizado em relação à execução atual |
 
 ---
 
-## 📊 Status dos CHANGELOGs
+## 📋 Próximos Passos
 
-| Crate | Versão 0.9.4 no Cargo.toml | CHANGELOG tem seção 0.9.4? |
-|-------|--------------------------|---------------------------|
-| tupa-engine | ✅ 0.9.4 | ✅ Tem seção `## [0.9.4]` (vazia) |
-| tupa-plugin | ✅ 0.9.4 | ⚠️ Não verificado |
-| tupa-pyffi | ✅ 0.9.4 | ⚠️ Não verificado |
-| tupa-core | ✅ 0.9.4 | ⚠️ Não verificado |
-| tupa-core-macros | ✅ 0.9.4 | ⚠️ Não verificado |
-| cargo-tupa | ✅ 0.9.4 | ✅ Tem seção `## [0.9.4]` (com conteúdo) |
-
-**Ação:** Preencher seções 0.9.4 em todos CHANGELOGs antes do release.
+1. **AtualizarDOC_FIX_PLAN.md** — marcar Fases 3 e 5 como concluídas; Fase 4 parcial
+2. **Atualizar DOC_REVIEW.md** — refletir ações já executadas
+3. **Revisit arOVERVIEWs** — se existirem em cada idioma
+4. **Commit + tag** — `git commit -m "chore(docs): Fases 3–5 concluídas — plugin examples, ES migration guide, golden tests, cargo tupa removido" && git tag v0.9.4 && git push`
 
 ---
 
-## 🧪 Testes Atuais
-
-```bash
-cargo test --workspace --locked
-# Result: ok
-# - Unit tests: cargo-tupa (5 passing)
-# - Doc-tests: engine (1 passing), core-macros (2 ignored)
-# - Integration tests: 0
-```
-
-**Falta:**
-- Integration test de `cargo tupa run` (sample pipeline package)
-- Testes de timeout/cancellation no engine
-- Testes de métricas (StepMetrics)
-- Golden tests para fmt/lint output
-
----
-
-## ⚠️ Bloqueios Imediatos
-
-1. **Cargo-tupa warning** — `fmt.rs` importa `Context` mas não usa:
-   ```rust
-   // crates/cargo-tupa/src/fmt.rs:1
-   use anyhow::{Result, Context}; // Context unused
-   ```
-   **Fix:** `cargo fix --bin cargo-tupa -p cargo-tupa` ou editar manualmente.
-
-2. **`--metrics-output` não implementado** — Sprint 0.9.4 requer métricas exportáveis.
-   - `cargo-tupa/src/run.rs:50` chama `execute_binary()` sem flags
-   - `execute_binary()` em `discover.rs` não captura `ExecutionResult.metrics`
-   - **Solução:** Adicionar flag `--metrics-output <path>` e serializar `result.metrics` como JSON.
-
-3. **CHANGELOGs incompletos** — Motor e CLI têm rascunho, outros crates não.
-
-4. **Documentação ausente** — migration guide, plugin tutorials, examples.
-
----
-
-## 🎯 Critérios de "Done" (0.9.4)
-
-**Definition of Done da sprint:**
-
-- [x] Engine per-step timeout (TUPA_STEP_TIMEOUT) — ✅
-- [x] Engine cancellation (Ctrl+C, `Executor::cancel()`) — ✅
-- [x] StepMetrics coletados internamente — ✅
-- [ ] StepMetrics exportáveis via `--metrics-output` — ❌
-- [ ] `cargo tupa run` integration test — ❌
-- [ ] Migration guide published — ❌
-- [ ] Plugin tutorials (Rust + Python) completos — ❌
-- [ ] Golden tests para fmt/lint — ❌?
-- [ ] CI local passa (fmt, clippy -D, test, goldens, lychee, parity) — ⏳
-- [ ] CHANGELOGs atualizados — ❌
-- [ ] Todos crates 0.9.4 no crates.io — ⏳ (aguarda tag)
-
----
-
-## 📋 Próximos Passos (Ordenados)
-
-### Fase 1: Correções Críticas (20 min)
-
-1. **Fix warning no cargo-tupa**
-   ```bash
-   cd tupalang/crates/cargo-tupa
-   cargo fix --bin cargo-tupa -p cargo-tupa
-   # Ou editar: remover `Context` de fmt.rs:1
-   ```
-
-2. **Atualizar CHANGELOGs**
-   - `tupa-engine/CHANGELOG.md` — adicionar 0.9.4: metrics, cancellation, timeout
-   - `cargo-tupa/CHANGELOG.md` — já tem, revisar
-   - Outros crates: adicionar seção genérica (no breaking changes)
-
-3. **Implementar `--metrics-output`**
-   - Adicionar flag em `cargo-tupa/src/run.rs`:
-     ```rust
-     #[arg(long)]
-     metrics_output: Option<PathBuf>,
-     ```
-   - Modificar `execute_binary()` para retornar `ExecutionResult`
-   - Se `metrics_output` fornecido, serializar `result.metrics` para JSON
-
-4. **Integration test para `cargo tupa run`**
-   - Criar `crates/cargo-tupa/tests/integration/` com pipeline mínimo
-   - Testar auto-discovery, build, execution, métricas
-
-### Fase 2: Documentação (1–2h)
-
-5. **Migration guide** (`docs/guides/migration_guide.md`)
-   - Tabela mapeando .tp → Rust-DSL
-   - Exemplo completo: fraud_complete.tp → Rust
-   - Notas sobre diferenças semânticas
-
-6. **Plugin tutorials**
-   - `docs/tutorials/plugin-rust.md` — passo-a-passo Rust
-   - `docs/tutorials/plugin-python.md` — Python com `tupa-pyffi`
-   - Exemplo funcional em `examples/plugins/`
-
-### Fase 3: Validação Final (30 min)
-
-7. **Golden tests**
-   - Verificar se `crates/cargo-tupa/tests/golden/` existe
-   - Se não, criar fixtures expected para fmt/lint
-   - `cargo tupa fmt --check` + diff vs expected
-
-8. **Executar ci-local**
-   ```bash
-   cd tupalang
-   ./scripts/ci-local.sh
-   # Corrigir tudo que falhar
-   ```
-
-9. **Commit + tag**
-   ```bash
-   git add -A
-   git commit -m "chore(release): prepare 0.9.4 — metrics, cancellation, CLI matured"
-   git tag v0.9.4
-   git push --tags
-   # GitHub Actions publish workflow dispara
-   ```
-
----
-
-## 🚀 Execução Imediata Sugerida
-
-**Ordem:** Fase 1 (críticas) → Fase 3 (validação) → Fase 2 (docs pode ser post-release, mas idealmente antes)
-
-Vou começar implementando o que falta técnico:
-
-1. Fix warning + CHANGELOGs
-2. `--metrics-output`
-3. Integration test para `run`
-4. Rodar ci-local e corrigir
-5. Commit + tag
-
-**Você quer que eu execute essas tarefas agora?**
+*Última atualização: 2026-05-15 — Fases 3–5 concluídas; CI local passa.*

@@ -1,205 +1,138 @@
+# Common Errors — Rust-DSL
 
-# Common Errors
+This document describes frequent errors when writing Tupã pipelines using the `pipeline!` macro and their solutions.
 
-## Purpose
+---
 
-This document describes frequent errors and quick solutions.
+## 1) Cannot find macro `pipeline`
 
-## 1) E1002 — Undefined variable
+**Cause:** `tupa-core` is not in `Cargo.toml` or `use tupa_core::pipeline;` is missing.
 
-**Cause**: variable used before being declared.
-**Solution**: declare it with `let` before use.
+**Solution:**
 
-## 2) E2001 — Type mismatch
+```toml
+[dependencies]
+tupa-core = "0.9"
+tupa-engine = "0.9"
+```
 
-**Cause**: expected type differs from the found type.
-**Solution**: adjust the type annotation or the expression.
+```rust
+use tupa_core::pipeline;
+```
+
+---
+
+## 2) E3002 — Constraint cannot be proven at compile time
+
+**Cause:** A constraint expression is not a compile-time constant.
 
 **Example:**
 
-```tupa
-fn foo(x: int): bool {
-  x + true
+```rust
+pipeline! {
+    name: MyPolicy,
+    input: Trade,
+    steps: [
+        step("risk") { calculate_risk(input) }  // non-const function
+    ],
+    constraints: [
+        metric("risk").lt(10.0)  // ❌ cannot prove at compile time
+    ]
 }
-```text
+```
 
-Typical message:
+**Solution:** Either make the step value a `const fn` or accept runtime-only checking:
 
-```text
-error: type mismatch: expected int, found bool
-  --> foo.tupa:2:9
-  |
-2 |     x + true
-  |         ^^^^
-```text
+```rust
+const fn constant_risk() -> f64 { 5.0 }
 
-## 3) E2002 — Incorrect arity
-
-**Cause**: argument count does not match the signature.
-**Solution**: check the function definition.
-
-**Example:**
-
-```tupa
-fn bar(x: int, y: int): int {
-  x + y
+pipeline! {
+    constraints: [
+        metric("risk").lt(10.0)  // ✅ provable
+    ]
 }
-bar(1)
-```text
+```
 
-Typical message:
+---
 
-```text
-error: argument count mismatch: expected 2, found 1
-  --> main.tupa:6:1
-  |
-6 | bar(1)
-  | ^^^^^
-```text
+## 3) E3001 — Step function not found
 
-## 4) E2007 — Missing return
-
-**Cause**: the function should return a value, but does not.
-**Solution**: add `return` on all paths.
+**Cause:** Step body refers to an undefined function.
 
 **Example:**
 
-```tupa
-fn f(): int {
-  // no return
+```rust
+pipeline! {
+    steps: [
+        step("x") { nonexistent_function(input) }  // ❌ not in scope
+    ]
 }
-```text
+```
 
-Typical message:
+**Solution:** Ensure the function is in scope and has the correct signature:
 
-```text
-error: function does not return a value for type int
-  --> main.tupa:1:1
-  |
-1 | fn f(): int {
-  | ^^^^^^^^^^^
-```text
+```rust
+fn compute(input: &Input) -> i32 { ... }
 
-## 5) E2101 — Lambda type mismatch
-
-**Cause**: lambda body returns a different type than expected.
-**Solution**: adjust the body or the annotation.
-**Example:**
-
-```tupa
-let f: fn(int) -> int = |x| x + "a"
-```text
-
-Typical message:
-
-```text
-error: type mismatch: expected int, found string
-  --> main.tupa:1:29
-  |
-1 | let f: fn(int) -> int = |x| x + "a"
-  |                             ^^^^^^
-```text
-
-## 6) E2102 — Incorrect print usage
-
-**Cause**: invalid argument count for print.
-**Solution**: use only one argument.
-
-**Example:**
-
-```tupa
-print(1, 2)
-```text
-
-Typical message:
-
-```text
-error: argument count mismatch: expected 1, found 2
-  --> main.tupa:1:1
-  |
-1 | print(1, 2)
-  | ^^^^^^^^^
-```text
-
-## 7) E2103 — Incompatible concatenation
-
-**Cause**: attempt to concatenate string with another type.
-**Solution**: convert to string before concatenating.
-
-**Example:**
-
-```tupa
-let s = "abc" + 123
-```text
-
-Typical message:
-
-```text
-error: incompatible concatenation: expected string operands
-  --> main.tupa:1:15
-  |
-1 | let s = "abc" + 123
-  |               ^^^
-```text
-
-## 8) E3002 — Unproven constraint
-
-**Cause**: the compiler cannot prove `Safe<T, ...>`.
-**Solution**: use provable literals/constant expressions for `f64`, or pass a `Safe<...>` value already proven.
-
-**Example:**
-
-```tupa
-let x: Safe<string, !hate_speech> = "ok"
-```text
-
-Typical message:
-
-```text
-error[E3002]: cannot prove constraint 'hate_speech' at compile time
-  --> main.tupa:1:33
-```text
-
-**Positive example (propagation):**
-
-```tupa
-fn pass(x: Safe<string, !misinformation>) -> Safe<string, !misinformation> {
-  return x
+pipeline! {
+    steps: [
+        step("x") { compute(input) }  // ✅
+    ]
 }
-```text
+```
 
-## 9) E3001 — Invalid constraint
+---
 
-**Cause**: unsupported constraint or incompatible base type.
-**Solution**: use `!nan`/`!inf` with `f64`, and `!hate_speech`/`!misinformation` with `string`.
+## 4) Duplicate step name
 
-**Example:**
+**Cause:** Two steps share the same identifier.
 
-```tupa
-let x: Safe<f64, !hate_speech> = 1.0
-```text
+**Solution:** Rename one of the steps.
 
-Typical message:
+---
 
-```text
-error[E3001]: invalid constraint 'hate_speech' for base type F64
-  --> main.tupa:1:32
-```text
+## 5) Metric reference not produced by any step
 
-**Example (misinformation):**
+**Cause:** `requires` or `constraints` reference a metric name that no step `produces`.
 
-```tupa
-let x: Safe<f64, !misinformation> = 1.0
-```text
+**Solution:** Ensure some step declares `produces ["metric_name"]`.
 
-Typical message:
+---
 
-```text
-error[E3001]: invalid constraint 'misinformation' for base type F64
-  --> main.tupa:1:35
-```text
+## 6) Type mismatch in step body
 
-## References
+**Cause:** Expression in step body doesn't match expected return type (or input type mismatch).
 
-- [Diagnostics Glossary](diagnostics_glossary.md)
-- [Examples Guide](../guides/examples_guide.md)
+**Solution:** Check function signature matches pipeline expectations.
+
+---
+
+## 7) Missing `pipeline!` name or input
+
+**Cause:** `pipeline!` block missing required `name:` or `input:` fields.
+
+**Solution:** Add both fields:
+
+```rust
+pipeline! {
+    name: MyPipeline,
+    input: MyInputType,
+    // ...
+}
+```
+
+---
+
+## 8) Async step without `#[tokio::main]` or async runtime
+
+**Cause:** Pipeline uses async step functions but main is not async.
+
+**Solution:** Add `#[tokio::main]` to `main` or use synchronous steps.
+
+---
+
+## Finding More Help
+
+- Compiler errors include span info and suggestions — read them carefully.
+- Run `cargo tupa lint` to catch common mistakes early.
+- See [Diagnostics Checklist](../reference/diagnostics_checklist.md) for a systematic guide.

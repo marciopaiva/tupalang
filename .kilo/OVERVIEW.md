@@ -23,13 +23,14 @@ Tupã is **not** a standalone language with its own compiler. It is a **set of R
 
 | Crate | Purpose | Status |
 |---|---|---|
-| `tupa-core` | DSL macros + policy types (`Safe`, `Tensor`) | 🚀 Alpha |
-| `tupa-engine` | Pipeline executor (channels, scheduling) | 🚀 Alpha |
-| `tupa-fmt` | Standalone formatter for legacy `.tp` files | ✅ Stable |
-| `tupa-lint` | Linter for policy code quality | ✅ Stable |
-| `tupa-audit` | Execution hashing for reproducibility | ✅ Stable |
-| `tupa-plugin` | Dynamic step function loading | ✅ Stable |
-| `tupa-conformance` | SPEC validator (CI tool) | ✅ Stable |
+| `tupa-core-macros` | Procedural macro: `pipeline!` implementation | 🚀 Alpha |
+| `tupa-core` | DSL API: types (`Safe`, `Tensor`), traits, re-exports | 🚀 Alpha |
+| `tupa-engine` | Executor: parallel/sequential scheduling, constraints, metrics | 🚀 Alpha |
+| `tupa-plugin` | Dynamic step function loading (Rust plugins, FFI) | 🚀 Alpha |
+| `tupa-pyffi` | Python bindings via PyO3 | 🚀 Alpha |
+| `cargo-tupa` | CLI: `cargo tupa` subcommands (check/run/fmt/lint/plugin-new) | 🚀 Alpha |
+
+**Removed crates (pre-0.9.0):** `tupa-parser`, `tupa-lexer`, `tupa-typecheck`, `tupa-codegen`, `tupa-runtime` (old), `tupa-cli`, `tupa-fmt`, `tupa-lint`, `tupa-audit`, `tupa-conformance`, `tupa-effects`, `tupa-sys`, `tupa-lsp`. These were part of the standalone `.tp` compiler toolchain and are no longer maintained.
 
 ## Quick Example
 
@@ -54,26 +55,24 @@ pipeline! {
 
 ```
 tupalang/
-├── crates/               # Rust crates (core, engine, runtime, etc.)
-│   ├── tupa-core/
-│   ├── tupa-engine/
-│   ├── tupa-runtime/
-│   ├── tupa-plugin/
-│   ├── tupa-fmt/
-│   ├── tupa-lint/
-│   ├── tupa-audit/
-│   ├── tupa-conformance/
-│   └── tupa-pyffi/
+├── crates/               # Rust crates (core, engine, plugin, etc.)
+│   ├── tupa-core-macros/ # Procedural macro (pipeline!)
+│   ├── tupa-core/        # DSL types, traits, constants
+│   ├── tupa-engine/      # Executor, constraints, metrics, cancellation
+│   ├── tupa-plugin/      # Dynamic plugin loading (cdylib)
+│   ├── tupa-pyffi/       # Python bindings via PyO3
+│   └── cargo-tupa/       # CLI: cargo tupa check/run/fmt/lint/plugin-new
 ├── docs/                 # Comprehensive documentation
 │   ├── en/
 │   │   ├── PROPOSAL.md          # Strategic rationale
 │   │   ├── ARCHITECTURE.md      # System design
 │   │   ├── IMPLEMENTATION_PLAN.md
-│   │   ├── reference/spec.md    # Normative SPEC
+│   │   ├── reference/spec.md    # Normative SPEC (Rust-DSL)
 │   │   └── guides/
 │   └── pt-br/
-├── examples/             # Sample pipelines
+├── examples/             # Sample pipelines and plugins
 ├── scripts/              # Build and release scripts
+├── .kilo/                # Sprint planning, gap analysis, state
 └── .gitignore
 ```
 
@@ -107,12 +106,10 @@ cargo build --workspace
 # Run examples
 cargo run --example minimal
 
-# Check conformance
-cargo test -p tupa-conformance
-
 # Use the CLI
 cargo install cargo-tupa
-cargo tupa check examples/minimal.tp
+cargo tupa check
+cargo tupa run
 ```
 
 ## License

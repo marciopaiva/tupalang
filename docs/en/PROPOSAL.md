@@ -6,6 +6,8 @@
 
 **Rationale:** Faster adoption, lower integration friction, leverage Rust ecosystem, reach v1.0.0 in 4–6 months instead of years.
 
+> **Update (2026-05-14):** The standalone `.tp` compiler and crates (`tupa-parser`, `tupa-typecheck`, `tupa-codegen`, `tupa-cli`, `tupa-runtime` [old], `tupa-fmt`, `tupa-lint`, `tupa-audit`, `tupa-conformance`, `tupa-lsp`) were **removed** in v0.9.0. The current active crates are `tupa-core`, `tupa-core-macros`, `tupa-engine`, `tupa-plugin`, `tupa-pyffi`, and `cargo-tupa`. See [ARCHITECTURE.md](./ARCHITECTURE.md) for the current crate map.
+
 ---
 
 ## Current State (Standalone Language)
@@ -40,15 +42,12 @@
 ┌──────────────────────────────────────────────────────────┐
 │  Rust developer workflow (cargo build / rust-analyzer)  │
 ├──────────────────────────────────────────────────────────┤
-│  tupa-core      ← DSL macros + type-safe AST           │
-│  tupa-engine    ← executor (channels, constraints)     │
-│  tupa-runtime   ← runtime primitives (Safe, Tensor)    │
-│  tupa-plugin    ← dynamic loading (already exists)     │
-│  tupa-fmt       ← formatter (already exists)           │
-│  tupa-lint      ← linter (already exists)              │
-│  tupa-lsp       ← language server (new, optional)      │
-│  tupa-audit     ← audit/hash (already exists)          │
-│  tupa-conformance ← SPEC validation (standalone bin)   │
+│  tupa-core         ← DSL macros + core types (Safe, Tensor) │
+│  tupa-core-macros  ← procedural macro implementation        │
+│  tupa-engine       ← executor (channels, constraints, metrics) │
+│  tupa-plugin       ← dynamic step function loading          │
+│  tupa-pyffi        ← Python bindings (PyO3)                 │
+│  cargo-tupa        ← CLI: check/run/fmt/lint                │
 └──────────────────────────────────────────────────────────┘
 ```text
 

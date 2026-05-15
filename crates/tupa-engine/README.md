@@ -110,12 +110,11 @@ cargo tupa check
 # Run with JSON input
 TUPA_INPUT='{"amount":1000}' cargo tupa run
 
-# Run an example
-cargo tupa run --example minimal
-
 # Run with parallel execution
-TUPA_PARALLEL=1 cargo tupa run --example fraud_complete
-```text
+
+```bash
+cargo tupa run --example minimal --parallel
+```
 
 Your binary should read `TUPA_INPUT` from the environment:
 

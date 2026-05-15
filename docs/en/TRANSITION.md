@@ -2,7 +2,7 @@
 
 **Target audience:** Existing Tupã users (`.tp` files + CLI) migrating to the new crate-based Rust DSL.
 
-**Timeline:** Legacy `.tp` compilation will be supported until **2027-01-01**. After that, only the Rust DSL will receive updates.
+**Status:** Legacy `.tp` toolchain was **removed** in v0.9.0. The Rust DSL is the only supported approach. This guide helps you migrate manually, as no automatic conversion tool exists yet.
 
 ---
 
@@ -368,18 +368,7 @@ Benchmark target: <1μs per step decision.
 
 ---
 
-## Support Timeline
-
-| Date | Action |
-|---|---|
-| 2026-05 | `tupa-core` 0.9.0 released (beta) |
-| 2026-08 | `tupa-core` 0.2.0 — stable macro API |
-| 2026-12 | `tupa-core` 1.0.0-RC1 |
-| 2027-01-01 | `.tp` parsing deprecated; warnings on legacy files |
-| 2027-06 | `.tp` compilation removed from `tupa-cli` (still parseable via lib) |
-| 2027-12 | Full EOL for legacy `.tp` workflow |
-
-**Migration urgency:** Low for new projects. Medium for projects started before 2026.
+**Migration status:** The `.tp` toolchain was removed in v0.9.0. All users must migrate to Rust DSL. No further `.tp` updates will be made.
 
 ---
 

@@ -228,4 +228,33 @@ mod tests {
         assert_eq!(produces, vec!["C"]);
         Ok(())
     }
+
+    #[test]
+    fn test_lint_detects_duplicate_steps() -> Result<()> {
+        let block = r#"
+            name: Dup,
+            input: (),
+            steps: [
+                step("a"){1},
+                step("a"){2}
+            ],
+            constraints: []
+        "#;
+        let issues = lint_pipeline_block(block, std::path::Path::new("dup.rs"))?;
+        assert_eq!(issues, 1, "expected exactly 1 issue (duplicate step)");
+        Ok(())
+    }
+
+    #[test]
+    fn test_lint_clean_pipeline_has_no_issues() -> Result<()> {
+        let block = r#"
+            name: Clean,
+            input: (),
+            steps: [ step("a"){1}, step("b"){2} ],
+            constraints: []
+        "#;
+        let issues = lint_pipeline_block(block, std::path::Path::new("clean.rs"))?;
+        assert_eq!(issues, 0, "expected 0 issues for clean pipeline");
+        Ok(())
+    }
 }

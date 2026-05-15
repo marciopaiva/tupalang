@@ -12,70 +12,63 @@ This document outlines the delivery sequence for Tupã as a set of Rust crates (
 ## Current Status (May 2026)
 
 - **Phase 0 complete:** SPEC finalized, conformance suite (29 tests) green
-- **Existing crates:** `tupa-fmt`, `tupa-lint`, `tupa-audit`, `tupa-plugin`, `tupa-parser`, `tupa-typecheck`
-- **Legacy:** Standalone `.tp` compilation path deprecated (still functional but not primary)
+- **Phase 1 complete:** `tupa-core`, `tupa-engine`, `tupa-plugin`, `tupa-pyffi`, `cargo-tupa` published (0.9.0 → 0.9.4)
+- **Active crates:** `tupa-core-macros`, `tupa-core`, `tupa-engine`, `tupa-plugin`, `tupa-pyffi`, `cargo-tupa`
+- **Removed crates:** `tupa-parser`, `tupa-typecheck`, `tupa-lexer`, `tupa-codegen`, `tupa-runtime` (old), `tupa-cli`, `tupa-fmt`, `tupa-lint`, `tupa-audit`, `tupa-conformance`, `tupa-effects`, `tupa-sys` — these were part of the legacy `.tp` toolchain and are no longer in the workspace.
+- **Legacy:** Standalone `.tp` compilation is no longer supported in the repository. Migration to Rust DSL required.
 
 ---
 
-## Milestone Sequence
+## Milestone Sequence (Completed)
 
-### M1 — Foundation Crates (Month 1–2)
+### M1 — Foundation Crates (Weeks 1–4) ✅
 
-**Goal:** Publish `tupa-core` and `tupa-engine` 0.9.0 to crates.io
+**Goal:** Publish `tupa-core` 0.9.0 and `tupa-engine` 0.9.0.
 
-| Task | Owner | Target |
-|---|---|---|
-| Design `pipeline!` macro AST | core team | Week 2 |
-| Implement constraint solver at compile time | typecheck team | Week 4 |
-| Build executor with channel-based steps | runtime team | Week 6 |
-
-- Integration tests: 5 ViperTrade pipelines ported| QA | Week 8 |
-
-**Deliverable:** `tupa-core = "0.1"`可用
+- `pipeline!` macro AST design
+- Constraint solver (compile-time constant folding)
+- Channel-based executor (sequential + parallel)
+- **Delivered:** 0.9.0 released
 
 ---
 
-### M2 — Toolchain Integration (Month 3–4)
+### M2 — CLI Maturation (Weeks 5–12) ✅
 
-**Goal:** `cargo tupa` feels native
+**Goal:** `cargo tupa` feels native.
 
-- Create `cargo-tupa` subcommand wrapper (`cargo tupa fmt`, `cargo tupa lint`, `cargo tupa check`)
-- Stabilize `tupa-fmt` formatting rules (no breaking changes)
-- Expand `tupa-lint` rule set (≥10 warnings, all documented)
-- Documentation: Getting started, template, examples all using Rust DSL
-- Publish `tupa-core` 0.2.0 + `tupa-engine` 0.2.0
-
-**Success:** `cargo tupa fmt && cargo tupa lint && cargo tupa check` passes on example project
+- `cargo-tupa` subcommands: `check`, `run`, `fmt`, `lint`, `discover`
+- Parallel execution with `produces`/`requires`
+- Plugin system integration
+- **Delivered:** 0.9.1 → 0.9.4 released
 
 ---
 
-### M3 — FFI & Bindings (Month 5–6)
+### M3 — Engine Enhancements (Weeks 13–16) ✅ (Current)
 
-**Goal:** Non-Rust languages can execute Tupã pipelines
+**Goal:** Metrics, cancellation, environment config.
 
-| Task | Status |
-|---|---|
-| Implement C ABI in `tupa-runtime` | planned |
-| Generate `tupa-sys` (C bindings crate) | planned |
-
-- Python bindings (`tupa-pyffi`) | planned |
-| Document ABI stability guarantees | planned |
-
-**Gate:** External integration test (Python script calls Rust pipeline) passes.
+- Per-step timeout (`TUPA_STEP_TIMEOUT`)
+- StepMetrics collection (timestamps, state)
+- Pipeline cancellation (`Executor::cancel()`)
+- Channel capacity config (`TUPA_CHANNEL_CAPACITY`)
+- `--metrics-output` for `cargo tupa run`
+- Integration tests + CI local
+- **Target:** 0.9.4 (in progress)
 
 ---
 
-### M4 — Stabilization (Month 7–8)
+### M4 — Stabilization (Months 7–8) ⏳ Planned
 
 **Goal:** API freeze for 1.0.0 candidate
 
-- No breaking changes in `tupa-core`/`tupa-engine` public API
-- Complete spec-to-implementation traceability matrix
+- No breaking changes in public API
+- Complete SPEC-to-implementation traceability
 - Security audit of constraint solver
-- Performance baseline established (benchmarks in `criterion/`)
-- Migration guide from 0.x → 1.0 written
+- Performance benchmarks (`criterion`)
+- Migration guide 0.x → 1.0
+- FFI (C ABI + Python) — Phase 3 deferred to post-1.0
 
-**Release candidate:** `tupa-core 1.0.0-rc.1`
+**Release candidate:** `tupa-core 1.0.0-rc.1` (Q4 2026)
 
 ---
 

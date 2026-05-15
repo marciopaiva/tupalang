@@ -1,7 +1,7 @@
 # Versioning Policy
 
-**Effective:** 2026-05-10  
-**Applies to:** All Tupã crates
+**Effective:** 2026-05-14  
+**Applies to:** All Tupã crates (0.9.x series)
 
 ---
 
@@ -17,17 +17,18 @@ All published crates follow SemVer 2.0.0:
 
 ## Crate Lifecycle & Version Matrix
 
-### New Cores (crate-first, alpha)
+### Active Crates (crate-first, alpha)
 
-These crates are **new implementations** using Rust DSL approach. They start at 0.9.0 and will reach 1.0.0 when stable.
+These are the **currently active crates** in the workspace (0.9.x series). They are published to crates.io and under active development. API may change before 1.0.
 
-| Crate | Initial Ver | Target 1.0 | Breaking Change Policy (pre-1.0) |
+| Crate | Version | Target 1.0 | Status |
 |---|---|---|---|
-| `tupa-core` | 0.9.0 | 2026-Q4 | Minor releases may break compat; migration guide in CHANGELOG |
-| `tupa-core-macros` | 0.9.0 | 2026-Q4 | Same |
-| `tupa-engine` | 0.9.0 | 2026-Q4 | Same |
-| `tupa-plugin` | 0.9.0 | 2026-Q4 | Same |
-| `cargo-tupa` | 0.9.0 | 2026-Q4 | Same |
+| `tupa-core` | 0.9.x | 2026-Q4 | Alpha |
+| `tupa-core-macros` | 0.9.x | 2026-Q4 | Alpha (internal) |
+| `tupa-engine` | 0.9.x | 2026-Q4 | Alpha |
+| `tupa-plugin` | 0.9.x | 2026-Q4 | Alpha |
+| `tupa-pyffi` | 0.9.x | TBD | Alpha (unstable) |
+| `cargo-tupa` | 0.9.x | 2026-Q4 | Alpha (CLI) |
 
 **Advice:** Pin to a minor version in production until 1.0:
 
@@ -36,102 +37,50 @@ tupa-core = "0.9"
 tupa-engine = "0.9"
 tupa-plugin = "0.9"
 cargo-tupa = "0.9"
-```text
+```
 
 ---
 
-### Active Support Crates (stable, will align to 1.0)
+### Removed Crates (pre-0.9.0)
 
-These crates already exist and are stable. They will receive bug fixes and minor features, eventually converging to 1.0 alongside `tupa-core`.
-
-| Crate | Current Ver | 1.0 Target | Action |
-|---|---|---|---|
-| `tupa-audit` | 0.8.x | bump to 1.0.0 | Maintained |
-| `tupa-conformance` | 0.8.x | 1.0.0 | Maintained |
-| `tupa-fmt` | 0.8.x | 1.0.0 | Maintained (legacy `.tp` only) |
-| `tupa-lint` | 0.8.x | 1.0.0 | Maintained; will add DSL rules |
-| `tupa-pyffi` | 0.8.x | 1.0.0 | Requires migration to `tupa-core` (Phase 3) |
-
-**Guarantee:** No breaking changes within same major version. Minor releases add features backward-compatibly.
-
----
-
-### Deprecated Crates (legacy, EOL 2027)
-
-These crates implement the old standalone `.tp` compiler pipeline. They are **frozen** — no new features, security fixes only until 2027-01-01. After that they will be removed from the workspace and crates.io.
+These crates were **removed** from the workspace in 0.9.0. They are no longer maintained or published:
 
 | Crate | Last Release | Reason |
 |---|---|---|
-| `tupa-parser` | 0.8.x | Replaced by `tupa-core` macro |
+| `tupa-parser` | 0.8.x | Replaced by `pipeline!` macro in `tupa-core` |
+| `tupa-lexer` | 0.8.x | No longer needed |
 | `tupa-typecheck` | 0.8.x | Integrated into macro expansion |
-| `tupa-lexer` | 0.8.x | Parser dependency; no longer needed for new code |
-| `tupa-codegen` | 0.8.x | LLVM backend dead; executor interprets |
-| `tupa-runtime` | 0.8.x | Merged into `tupa-engine` |
-| `tupa-effects` | 0.8.x | Merged into `tupa-core` |
-| `tupa-cli` | 0.8.x | Replaced by `cargo tupa` wrapper (not yet implemented) |
+| `tupa-codegen` | 0.8.x | LLVM backend removed |
+| `tupa-runtime` (old) | 0.8.x | Merged into `tupa-engine` |
+| `tupa-cli` | 0.8.x | Replaced by `cargo-tupa` |
+| `tupa-fmt` | 0.8.x | Legacy `.tp` formatter removed |
+| `tupa-lint` | 0.8.x | Legacy `.tp` linter removed |
+| `tupa-audit` | 0.8.x | Audit integrated into engine |
+| `tupa-conformance` | 0.8.x | SPEC validator folded into CI |
+| `tupa-effects` | 0.8.x | Effect system merged into core |
+| `tupa-sys` | — | C ABI not yet implemented |
+| `tupa-lsp` | — | Language server never released |
+| `tupa-ad` | — | Auto-diff (planned for future) |
 
-**Warning:** Do not start new projects with these crates. They exist only for maintaining existing `.tp` codebases until 2027.
-
----
-
-## Deprecation Process
-
-For any feature or entire crate:
-
-1. **Announce** in `CHANGELOG.md` with `Deprecated` tag.
-2. **Emit warning** at compile time (Rust APIs) or runtime (CLI) when feature is used.
-3. **Document** migration path in next minor release notes.
-4. **Remove** after:
-    - **Pre-1.0:** at least one minor version (e.g., deprecated in 0.9.0, removed in 0.10.0)
-    - **Post-1.0:** at least 6 months
-
-Deprecated crates will receive security patches only until EOL date, then removed from crates.io.
+These crates are **not available** in the current workspace. Do not depend on them for new projects.
 
 ---
 
-## Compatibility Guarantees
+## Deprecation Process (Future)
 
-### Pre-1.0 (0.x)
+If a feature or crate must be deprecated in the future:
 
-Between 0.9.0 and 1.0.0:
-
-- Minor releases (0.1 → 0.2, 0.2 → 0.3) **may** contain breaking changes to the DSL macro or executor API.
-- Each minor release includes a **migration guide** in its `CHANGELOG.md`.
-- Patch releases (0.1.1, 0.1.2) are backward-compatible within the same minor series.
-
-### Post-1.0
-
-After a crate reaches 1.0.0:
-
-- Major version reserved for breaking changes.
-- At least **6 months deprecation cycle** for any removed feature.
-- Migration guide required for every major bump.
+1. Announce in CHANGELOG and docs
+2. Mark with `#[deprecated]` attribute (if in code)
+3. Provide migration path
+4. Keep functional for at least one minor version
+5. Remove only in a major version bump (1.0 → 2.0)
 
 ---
 
-## Release Cadence
+## Stability Guarantees
 
-- **`tupa-core` / `tupa-engine` (alpha):** biweekly patch, monthly minor until stable.
-- **Active support crates:** sync with core major versions; minor releases as needed.
-- **Deprecated crates:** security-only, as-needed.
+- Before 1.0: **No stability guarantees**. Breaking changes may occur in minor releases. Migration guidance will be provided in CHANGELOG.
+- After 1.0: **Full SemVer**. Breaking changes only in major versions; deprecations announced at least one major version ahead.
 
----
-
-## Changelog Format
-
-Each crate has a `CHANGELOG.md` following [keepachangelog.com](https://keepachangelog.com/) format:
-
-- `Added` (new feature)
-- `Changed` (modification to existing feature)
-- `Deprecated` (feature slated for removal)
-- `Removed` (feature removed)
-- `Fixed` (bug fix)
-- `Security` (vulnerability fix)
-
----
-
-## See Also
-
-- [Adoption Plan](../governance/adoption_plan.md) — milestones to 1.0
-- [Roadmap](../releases/roadmap.md) — timeline
-- [Compatibility Guide](../reference/compatibility.md) — platform support
+See individual crate CHANGELOGs for specific breaking changes.

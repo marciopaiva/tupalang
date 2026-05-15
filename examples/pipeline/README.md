@@ -1,42 +1,38 @@
-# Pipeline Examples
+# Pipeline Examples (Legacy `.tp` Files)
 
-- fraud_complete.tp: fraud pipeline with constraints and validation.
-- credit_decision.tp: credit decision with 3 constraints.
-- loan_underwriting.tp: underwriting with risk metrics.
-- customer_churn.tp: churn and retention metrics.
-- config_driven_strategy.tp: typed nested input pattern for host-provided strategy config.
-- temporal_policy.tp: temporal policy pattern with host-provided confirmation and cooldown state.
+**⚠️ DEPRECATED:** These `.tp` examples are from the pre-0.9.0 era. They are **no longer supported** in the current workspace. New development should use Rust-DSL examples instead.
 
-## Run
+## Legacy Files
+
+These examples are kept for historical reference only:
+
+- `fraud_complete.tp` — fraud pipeline with constraints and validation
+- `credit_decision.tp` — credit decision with 3 constraints
+- `loan_underwriting.tp` — underwriting with risk metrics
+- `customer_churn.tp` — churn and retention metrics
+- `config_driven_strategy.tp` — typed nested input pattern
+- `temporal_policy.tp` — temporal policy pattern with confirmation/cooldown
+
+## Legacy Commands (do not use)
 
 ```bash
+# These commands relied on tupa-cli which was removed in 0.9.0
 tupa codegen --format=json examples/pipeline/fraud_complete.tp
 tupa run --pipeline=FraudDetection --input examples/pipeline/tx.json examples/pipeline/fraud_complete.tp
-```text
+```
 
-Generate plan and run from plan:
+## Current Examples (Rust-DSL)
 
-```bash
-tupa codegen --plan-only examples/pipeline/fraud_complete.tp
-tupa run --plan fraud_complete.plan.json --pipeline=FraudDetection --input examples/pipeline/tx.json
-```text
+See active Rust examples in the workspace:
 
-Config-driven strategy example:
+- `crates/tupa-engine/examples/minimal.rs` — basic sequential pipeline
+- `crates/tupa-engine/examples/vipertrade_smoke.rs` — ViperTrade-style pipeline
 
-```bash
-tupa check examples/pipeline/config_driven_strategy.tp
-tupa run \
-  --pipeline=ConfigDrivenStrategy \
-  --input examples/pipeline/config_driven_strategy.json \
-  examples/pipeline/config_driven_strategy.tp
-```text
-
-Temporal policy example:
+**Run current examples:**
 
 ```bash
-tupa check examples/pipeline/temporal_policy.tp
-tupa run \
-  --pipeline=TemporalPolicySupport \
-  --input examples/pipeline/temporal_policy.json \
-  examples/pipeline/temporal_policy.tp
-```text
+cargo run --example minimal --package tupa-engine
+cargo run --example vipertrade_smoke --package tupa-engine
+```
+
+For custom pipelines, create your own Rust crate with `tupa-core` and `tupa-engine` dependencies and write a `pipeline!` macro block. See [Getting Started](../docs/en/guides/getting_started.md).

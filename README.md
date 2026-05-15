@@ -11,7 +11,7 @@
 
 <p align="center">
   <a href="https://github.com/marciopaiva/tupalang/actions"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/marciopaiva/tupalang/ci.yml?branch=main&label=CI" /></a>
-   <a href="docs/en/releases/changelog.md"><img alt="Version" src="https://img.shields.io/badge/version-0.9.0-blue.svg" /></a>
+   <a href="docs/en/releases/changelog.md"><img alt="Version" src="https://img.shields.io/badge/version-0.9.4-blue.svg" /></a>
   <a href="https://crates.io/crates/tupa-core"><img alt="Crates.io" src="https://img.shields.io/crates/v/tupa-core?color=orange" /></a>
   <a href="https://rust-lang.org"><img alt="Rust" src="https://img.shields.io/badge/Rust-1.83-black?logo=rust" /></a>
   <a href="https://github.com/marciopaiva/vipertrade"><img alt="Applied In ViperTrade" src="https://img.shields.io/badge/Applied%20In-ViperTrade-0f766e" /></a>
@@ -94,21 +94,22 @@ fn main() {
 
 ## Crates Overview
 
-| Crate | Purpose | Status |
-|---|---|---|
-| **`tupa-core`** | DSL macros + policy types (`Safe`, `Tensor`) | 🚀 Alpha |
-| **`tupa-engine`** | Pipeline executor (channels, scheduling) | 🚀 Alpha |
-| **`tupa-fmt`** | Standalone formatter for legacy `.tp` files | ✅ Stable |
-| **`tupa-lint`** | Linter for policy code quality | ✅ Stable |
-| **`tupa-audit`** | Execution hashing for reproducibility | ✅ Stable |
-| **`tupa-plugin`** | Dynamic step function loading | ✅ Stable |
-| **`tupa-conformance`** | SPEC validator (CI tool) | ✅ Stable |
+Tupã is distributed as a set of Rust crates. All crates are currently **0.9.x (Alpha)**.
+
+| Crate | Purpose |
+|---|---|
+| **`tupa-core`** | DSL macros (`pipeline!`) and core types (`Safe`, `Tensor`) |
+| **`tupa-core-macros`** | Procedural macro implementation (internal) |
+| **`tupa-engine`** | Pipeline executor (sequential & parallel) with metrics & cancellation |
+| **`tupa-plugin`** | Dynamic step function loading (Python bridge, custom plugins) |
+| **`tupa-pyffi`** | Python bindings via PyO3 |
+| **`cargo-tupa`** | CLI: `cargo tupa check/run/fmt/lint/discover` |
 
 Add to your project:
 
 ```bash
 cargo add tupa-core tupa-engine
-```text
+```
 
 See [Crates.io](https://crates.io/crates/tupa-core) for latest versions.
 
@@ -147,9 +148,9 @@ Add to `Cargo.toml`:
 
 ```toml
 [dependencies]
-tupa-core = "0.2"
-tupa-engine = "0.2"
-```text
+tupa-core = "0.9"
+tupa-engine = "0.9"
+```
 
 Write your first pipeline in `src/lib.rs`:
 
@@ -201,20 +202,9 @@ This is not a prototype — it's production code running real capital.
 
 ---
 
-## Legacy `.tp` Files
+The standalone `.tp` compiler and tooling have been **removed** from this repository (since 0.9.0). New projects should use the Rust DSL exclusively (`pipeline!` macro).
 
-Standalone `.tp` compilation still works:
-
-```bash
-# Install the CLI (legacy)
-curl -L https://github.com/marciopaiva/tupalang/releases/latest/download/tupa-linux-x86_64 -o /usr/local/bin/tupa
-chmod +x /usr/local/bin/tupa
-
-# Check old pipeline
-tupa check old_strategy.tp
-```text
-
-**But:** we strongly recommend new projects use the Rust DSL. No new features will target `.tp` standalone mode. Legacy support will be dropped after 2027-01-01.
+Legacy `.tp` pipelines are no longer supported. See [TRANSITION.md](docs/en/TRANSITION.md) for historical context.
 
 ---
 
@@ -229,9 +219,9 @@ We welcome contributions! Please read:
 **Areas of need:**
 
 - Port more ViperTrade pipelines to Rust DSL (real-world validation)
-- Expand `tupa-lint` rule set
-- Write benchmark suite (`criterion`)
-- FFI implementation (`tupa-sys`, `tupa-pyffi`)
+- Expand `cargo tupa lint` rule set (in `cargo-tupa` crate)
+- Write benchmark suite (`criterion`) for `tupa-engine`
+- FFI improvements (`tupa-pyffi` stability, examples)
 
 ---
 

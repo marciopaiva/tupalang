@@ -1,0 +1,13 @@
+pipeline! {
+  name: CreditDecision,
+  input: LoanApplication,
+  steps: [
+    step("score"){credit_score(input)},
+    step("risk"){risk_level(input)},
+    step("decision"){final_decision(input)}
+  ],
+  constraints: [
+    metric("default_rate").le(0.05),
+    metric("approval_rate").ge(0.60)
+  ]
+}
