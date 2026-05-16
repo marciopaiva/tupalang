@@ -1,26 +1,13 @@
 [workspace]
 members = [
-    # Legacy crates (deprecated, frozen at 0.8.x)
-    "crates/tupa-lexer",
-    "crates/tupa-parser",
-    "crates/tupa-typecheck",
-    "crates/tupa-codegen",   # kept for tupa-plugin dependency
-    "crates/tupa-runtime",  # kept for tupa-plugin dependency
-    "crates/tupa-effects",  # kept for typecheck deps
-    # Active crates (maintained)
-    "crates/tupa-audit",
-    "crates/tupa-conformance",
-    "crates/tupa-fmt",
-    "crates/tupa-lint",
-    "crates/tupa-plugin",   # needs migration to tupa-engine
-    "crates/tupa-pyffi",    # Phase 3 (prototype)
-    # NEW: crate-first core (alpha)
-    "crates/tupa-core-macros",  # proc-macro for pipeline!
+    # Active crates (0.9.x — Rust-DSL era)
+    "crates/tupa-core-macros",
     "crates/tupa-core",
     "crates/tupa-engine",
-    # CLI tools
+    "crates/tupa-plugin",
+    "crates/tupa-pyffi",
     "crates/cargo-tupa",
-    "crates/tupa-cli",
+    "crates/tupa-lints",
 ]
 resolver = "2"
 

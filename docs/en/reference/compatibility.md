@@ -2,11 +2,11 @@
 
 ## Purpose
 
-Supported Rust versions, platforms, and crate compatibility matrix.
+Supported Rust versions, platforms, and crate compatibility matrix for Tupã 0.9.x.
 
 ## Rust Version
 
-- **MSRV (Minimum Supported Rust Version):** 1.83 for `tupa-core` 0.2+
+- **MSRV (Minimum Supported Rust Version):** 1.83 for all active crates (0.9.x series)
 - Future 1.0 release will lock MSRV at 1.83 or higher
 
 ## Platforms
@@ -17,22 +17,35 @@ Supported Rust versions, platforms, and crate compatibility matrix.
 
 ## Crate Compatibility
 
-All Tupã crates follow SemVer independently. Use matching major versions:
+All active Tupã crates follow SemVer independently. Use matching major versions:
 
-| tupa-core | tupa-engine | tupa-audit | Rust MSRV |
-|---|---|---|---|
-| 0.2.x | 0.2.x | 0.8.x | 1.83 |
-| 0.1.x | 0.1.x | 0.8.x | 1.75 (legacy) |
+| tupa-core | tupa-engine | tupa-plugin | tupa-pyffi | Rust MSRV |
+|---|---|---|---|---|
+| 0.9.x | 0.9.x | 0.9.x | 0.9.x | 1.83 |
 
-## Deprecated Crates
+**Note:** `cargo-tupa` CLI is a separate crate tightly coupled to the engine; ensure version matches.
 
-The following crates are maintained for backward compatibility only and will be removed after 2027:
+## Removed Crates (pre-0.9.0)
 
-- `tupa-parser` (use `tupa-core` macro instead)
-- `tupa-typecheck` (integrated into macro expansion)
-- `tupa-codegen` (no longer used)
-- `tupa-cli` (replaced by `cargo tupa` wrapper)
-- `tupa-runtime` (merged into `tupa-engine`)
-- `tupa-effects` (merged into `tupa-core`)
+The following crates were **removed** from the workspace in 0.9.0 and are no longer available:
 
-They are not recommended for new projects.
+- `tupa-parser` — standalone `.tp` parser (replaced by `pipeline!` macro)
+- `tupa-lexer` — tokenizer for `.tp` (removed)
+- `tupa-typecheck` — type checker for `.tp` (integrated into macro)
+- `tupa-codegen` — code generator for `.tp` (no longer used)
+- `tupa-runtime` (old) — merged into `tupa-engine`
+- `tupa-cli` — standalone CLI replaced by `cargo-tupa`
+- `tupa-fmt` — `.tp` formatter removed
+- `tupa-lint` — `.tp` linter removed
+- `tupa-audit` — audit functionality integrated into engine
+- `tupa-conformance` — SPEC validator (no longer a separate crate)
+- `tupa-effects` — effect system merged into core
+- `tupa-sys` — C ABI bindings not yet published
+- `tupa-lsp` — language server (never published)
+- `tupa-ad` — automatic differentiation (planned for future)
+
+These crates are **not maintained**. Do not depend on them for new projects.
+
+## Migration from Legacy `.tp`
+
+See [TRANSITION.md](../TRANSITION.md) for guidance on moving from legacy standalone `.tp` pipelines to the Rust-DSL (`pipeline!` macro).

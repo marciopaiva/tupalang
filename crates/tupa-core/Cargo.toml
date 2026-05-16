@@ -1,6 +1,6 @@
 [package]
 name = "tupa-core"
-version = "0.9.2"
+version = "0.9.5"
 edition = "2021"
 description = "Core types and pipeline definition macro for Tupã"
 license = "Apache-2.0"
@@ -10,7 +10,7 @@ documentation = "https://docs.rs/tupa-core"
 readme = "README.md"
 
 [dependencies]
-tupa-core-macros = { path = "../tupa-core-macros", version = "0.9.2" }
+tupa-core-macros = { path = "../tupa-core-macros", version = "0.9.5" }
 serde_json = "1.0"
 
 [dev-dependencies]

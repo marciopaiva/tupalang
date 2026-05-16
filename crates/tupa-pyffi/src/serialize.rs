@@ -22,7 +22,7 @@ impl ToPython for Value {
                 } else if let Some(f) = n.as_f64() {
                     Ok(f.into_py(py))
                 } else {
-                    Ok(py.None()) // Should not happen for valid JSON numbers
+                    Ok(py.None())
                 }
             }
             Value::String(s) => Ok(s.into_py(py)),
@@ -56,7 +56,31 @@ impl FromPython for i64 {
     }
 }
 
+impl FromPython for i32 {
+    fn from_python(obj: &Bound<'_, PyAny>) -> PyResult<Self> {
+        obj.extract()
+    }
+}
+
+impl FromPython for u64 {
+    fn from_python(obj: &Bound<'_, PyAny>) -> PyResult<Self> {
+        obj.extract()
+    }
+}
+
+impl FromPython for u32 {
+    fn from_python(obj: &Bound<'_, PyAny>) -> PyResult<Self> {
+        obj.extract()
+    }
+}
+
 impl FromPython for f64 {
+    fn from_python(obj: &Bound<'_, PyAny>) -> PyResult<Self> {
+        obj.extract()
+    }
+}
+
+impl FromPython for f32 {
     fn from_python(obj: &Bound<'_, PyAny>) -> PyResult<Self> {
         obj.extract()
     }
@@ -77,11 +101,30 @@ impl FromPython for Value {
             let b = bool::from_python(obj)?;
             return Ok(Value::Bool(b));
         }
+        // Try integers in order: i64, i32, u64, u32
         if let Ok(i) = i64::from_python(obj) {
             return Ok(Value::Number(Number::from(i)));
         }
+        if let Ok(i) = i32::from_python(obj) {
+            return Ok(Value::Number(Number::from(i)));
+        }
+        if let Ok(u) = u64::from_python(obj) {
+            return Ok(Value::Number(Number::from(u)));
+        }
+        if let Ok(u) = u32::from_python(obj) {
+            return Ok(Value::Number(Number::from(u)));
+        }
         if let Ok(f) = f64::from_python(obj) {
             if let Some(n) = Number::from_f64(f) {
+                return Ok(Value::Number(n));
+            } else {
+                return Err(PyErr::new::<PyValueError, _>(
+                    "NaN/Inf encountered in float conversion",
+                ));
+            }
+        }
+        if let Ok(f) = f32::from_python(obj) {
+            if let Some(n) = Number::from_f64(f64::from(f)) {
                 return Ok(Value::Number(n));
             } else {
                 return Err(PyErr::new::<PyValueError, _>(
@@ -108,5 +151,25 @@ impl FromPython for Value {
             return Ok(Value::Object(map));
         }
         Ok(Value::String(obj.to_string()))
+    }
+}
+
+/// Convert Python bytes to a Vec<u8>
+impl FromPython for Vec<u8> {
+    fn from_python(obj: &Bound<'_, PyAny>) -> PyResult<Self> {
+        let bytes = obj.call_method0("tobytes")?;
+        bytes.extract()
+    }
+}
+
+/// Convert Python tuple to a Vec<Value>
+impl FromPython for Vec<Value> {
+    fn from_python(obj: &Bound<'_, PyAny>) -> PyResult<Self> {
+        let seq = obj.downcast::<pyo3::types::PySequence>()?;
+        let mut vec = Vec::new();
+        for item in seq.iter()? {
+            vec.push(Value::from_python(&item?)?);
+        }
+        Ok(vec)
     }
 }

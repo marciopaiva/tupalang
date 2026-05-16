@@ -10,11 +10,15 @@ Report vulnerabilities via [GitHub Issues](https://github.com/marciopaiva/tupala
 
 ## Scope
 
+Security reviews and patches apply to **active crates** only:
+
 - `tupa-core` (DSL macros, types)
 - `tupa-engine` (executor)
-- `tupa-audit`, `tupa-plugin`, `tupa-fmt`, `tupa-lint` (supporting crates)
-- `tupa-conformance` (test suite)
-- Legacy: `tupa-parser`, `tupa-typecheck` (maintained for backward compatibility)
+- `tupa-plugin` (plugin system)
+- `tupa-pyffi` (Python bindings)
+- `cargo-tupa` (CLI)
+
+Legacy crates (`tupa-parser`, `tupa-typecheck`, `tupa-cli`, `tupa-fmt`, `tupa-lint`, `tupa-audit`, `tupa-conformance`, and others) were **removed from the workspace** in version 0.9.0 and are no longer maintained. They are out of scope.
 
 ## SLA
 

@@ -11,11 +11,14 @@ This document describes CI workflows and their triggers.
 File: `.github/workflows/ci.yml`
 
 - Runs on `push` and `pull_request`.
-- Runs tests per crate:
-  - `tupa-lexer`
-  - `tupa-parser`
-  - `tupa-typecheck`
-  - `tupa-cli`
+- Runs tests per active crate:
+  - `tupa-core`
+  - `tupa-core-macros`
+  - `tupa-engine`
+  - `tupa-plugin`
+  - `tupa-pyffi`
+  - `cargo-tupa`
+- ViperTrade smoke test via `scripts/vipertrade-smoke.sh`
 
 ### Docs Lint
 

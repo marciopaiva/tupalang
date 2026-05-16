@@ -1,0 +1,12 @@
+# Ignore build artifacts
+target/
+*.log
+
+# Ignore temporary files
+*.tmp
+*.swp
+*~
+
+# Ignore IDE files
+.idea/
+.vscode/

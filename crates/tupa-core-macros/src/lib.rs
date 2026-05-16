@@ -431,9 +431,201 @@ fn generate_constraint_checks(constraints: &[ConstraintDecl]) -> proc_macro2::To
 ///
 /// The macro expands to a `pub struct MyPipeline` implementing `tupa_core::Pipeline`
 /// and `tupa_engine::ExecutorPipeline`.
+///
+/// ## Diagnostic codes
+///
+/// | Code | Description |
+/// |------|-------------|
+/// | E100 | Duplicate step name |
+/// | E101 | Cycle detected in `requires`/`produces` dependencies |
+/// | E102 | `requires` references a step that doesn't exist |
+/// | E103 | `produces` references a step that doesn't exist |
+/// | E104 | Constraint references a metric not produced by any step |
+/// | E105 | Constraint value is not a numeric literal |
+/// | E106 | Unknown constraint operator (use `.ge()`, `.le()`, `.eq()`, `.ne()`, `.gt()`, `.lt()`) |
+/// | E107 | Empty pipeline — no steps defined |
+/// | E108 | Step name is a Rust keyword |
+/// | E109 | Step name starts with a digit |
 #[proc_macro]
 pub fn pipeline(input: TokenStream) -> TokenStream {
     let ast = syn::parse_macro_input!(input as PipelineInput);
+
+    // --- Validation: E100 duplicate step names ---
+    let mut seen_names = std::collections::HashSet::new();
+    for step in &ast.steps {
+        if !seen_names.insert(&step.id) {
+            return syn::Error::new_spanned(
+                &ast.name,
+                format!("[E100] Duplicate step name: '{}'", step.id),
+            )
+            .to_compile_error()
+            .into();
+        }
+    }
+
+    // --- Validation: E107 empty steps ---
+    if ast.steps.is_empty() {
+        return syn::Error::new_spanned(
+            &ast.name,
+            "[E107] Empty pipeline — at least one step is required",
+        )
+        .to_compile_error()
+        .into();
+    }
+
+    // --- Validation: E102 requires references a metric not produced by any step ---
+    // Collect all metrics produced by any step (explicit or default)
+    let produced_metrics: std::collections::HashSet<_> = ast
+        .steps
+        .iter()
+        .flat_map(|s| {
+            s.produces
+                .as_ref()
+                .map(|v| v.iter().map(|m| m.as_str()).collect::<Vec<_>>())
+                .unwrap_or_else(|| vec![s.id.as_str()])
+        })
+        .collect();
+    for step in &ast.steps {
+        if let Some(ref reqs) = step.requires {
+            for req in reqs {
+                if !produced_metrics.contains(req.as_str()) {
+                    return syn::Error::new_spanned(
+                        &ast.name,
+                        format!("[E102] requires() references undefined metric '{}'", req),
+                    )
+                    .to_compile_error()
+                    .into();
+                }
+            }
+        }
+    }
+
+    // --- Validation: E108 step name is a Rust keyword ---
+    let rust_keywords: &[&str] = &[
+        "fn",
+        "let",
+        "match",
+        "if",
+        "else",
+        "for",
+        "while",
+        "loop",
+        "return",
+        "struct",
+        "enum",
+        "impl",
+        "trait",
+        "type",
+        "const",
+        "static",
+        "mod",
+        "use",
+        "crate",
+        "self",
+        "Self",
+        "super",
+        "move",
+        "ref",
+        "as",
+        "break",
+        "continue",
+        "dyn",
+        "where",
+        "async",
+        "await",
+        "unsafe",
+        "extern",
+        "true",
+        "false",
+        "in",
+        "select",
+        "select_neq",
+    ];
+    for step in &ast.steps {
+        if rust_keywords.contains(&step.id.as_str()) {
+            return syn::Error::new_spanned(
+                &ast.name,
+                format!("[E108] Step name '{}' is a Rust keyword", step.id),
+            )
+            .to_compile_error()
+            .into();
+        }
+    }
+
+    // --- Validation: E109 step name starts with a digit ---
+    for step in &ast.steps {
+        if step.id.starts_with(|c: char| c.is_ascii_digit()) {
+            return syn::Error::new_spanned(
+                &ast.name,
+                format!("[E109] Step name '{}' starts with a digit", step.id),
+            )
+            .to_compile_error()
+            .into();
+        }
+    }
+
+    // --- Validation: E101 cycle detection via topological sort ---
+    // Build a map: metric -> step index that produces it
+    let metric_to_step: std::collections::HashMap<&str, usize> = ast
+        .steps
+        .iter()
+        .enumerate()
+        .flat_map(|(idx, s)| {
+            let metrics = s
+                .produces
+                .as_ref()
+                .map(|v| v.iter().map(|m| m.as_str()).collect::<Vec<_>>())
+                .unwrap_or_else(|| vec![s.id.as_str()]);
+            metrics.into_iter().map(move |m| (m, idx))
+        })
+        .collect();
+
+    for (step_idx, step) in ast.steps.iter().enumerate() {
+        if let Some(ref reqs) = step.requires {
+            for req in reqs {
+                if let Some(&producer_idx) = metric_to_step.get(req.as_str()) {
+                    if producer_idx >= step_idx {
+                        return syn::Error::new_spanned(
+                            &ast.name,
+                            format!(
+                                "[E101] Cycle detected: step '{}' requires metric '{}' produced by later step",
+                                step.id, req
+                            ),
+                        )
+                        .to_compile_error()
+                        .into();
+                    }
+                }
+            }
+        }
+    }
+
+    // --- Validation: E104 constraint references unknown metric ---
+    // Collect all metric names produced by steps (explicit produces or step id default)
+    let produced_metrics: std::collections::HashSet<_> = ast
+        .steps
+        .iter()
+        .flat_map(|s| {
+            s.produces
+                .as_ref()
+                .map(|v| v.iter().map(|m| m.as_str()).collect::<Vec<_>>())
+                .unwrap_or_else(|| vec![s.id.as_str()])
+        })
+        .collect();
+    for c in &ast.constraints {
+        if !produced_metrics.contains(c.metric_name.as_str()) {
+            return syn::Error::new_spanned(
+                &ast.name,
+                format!(
+                    "[E104] Constraint on '{}' but no step produces it (produces: {:?})",
+                    c.metric_name,
+                    produced_metrics.iter().collect::<Vec<_>>()
+                ),
+            )
+            .to_compile_error()
+            .into();
+        }
+    }
 
     let name = &ast.name;
     let input_type = &ast.input_type;
@@ -535,7 +727,7 @@ pub fn pipeline(input: TokenStream) -> TokenStream {
                 let mut values = std::collections::HashMap::new();
                 #step_calls
                 let (passed, failures) = Self::check_constraints(&values);
-                Ok(PipelineResult { values, passed, failures })
+                Ok(PipelineResult { values, passed, failures, metrics: Vec::new() })
             }
         }
 
@@ -591,29 +783,4 @@ pub fn pipeline(input: TokenStream) -> TokenStream {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_parse_simple_pipeline() {
-        let input = r#"
-            name: TestPipeline,
-            input: i64,
-            steps: [
-                step("double") { input * 2 }
-            ],
-            constraints: [
-                metric("result").ge(10)
-            ]
-        "#;
-
-        let ast: PipelineInput = syn::parse_str(input).unwrap();
-        assert_eq!(ast.name.to_string(), "TestPipeline");
-        assert_eq!(ast.steps.len(), 1);
-        assert_eq!(ast.steps[0].id, "double");
-        assert_eq!(ast.constraints.len(), 1);
-        assert_eq!(ast.constraints[0].metric_name, "result");
-        assert_eq!(ast.constraints[0].value, 10.0);
-        assert!(matches!(ast.constraints[0].op, ConstraintOp::Ge));
-    }
-}
+mod tests;

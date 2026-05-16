@@ -2,7 +2,7 @@
 
 ## Propósito
 
-Fornecer o caminho mínimo para compilar o projeto e executar o primeiro exemplo.
+Fornecer o caminho mínimo para compilar o projeto e executar o primeiro exemplo com Rust DSL.
 
 ## Pré-requisitos
 
@@ -11,41 +11,74 @@ Fornecer o caminho mínimo para compilar o projeto e executar o primeiro exemplo
 
 ## Passos
 
-1) Clone o repositório:
+### 1) Clone o repositório
 
 ```bash
 git clone https://github.com/marciopaiva/tupalang.git
 cd tupalang
-```text
+```
 
-1) Execute o exemplo básico:
-
-```bash
-cargo run -p tupa-cli -- parse examples/hello.tp
-cargo run -p tupa-cli -- parse examples/lambda_basic.tp
-```text
-
-1) Execute o verificador de tipos:
+### 2) Execute o exemplo básico
 
 ```bash
-cargo run -p tupa-cli -- check examples/hello.tp
-cargo run -p tupa-cli -- check examples/lambda_basic.tp
-```text
+cargo run --example minimal
+```
 
-1) Saída JSON (opcional):
-
-```bash
-cargo run -p tupa-cli -- parse --format json examples/hello.tp
-```text
-
-1) Execute os testes goldens (recomendado para validar o pipeline completo):
+### 3) Verifique o pipeline
 
 ```bash
-cargo test -p tupa-cli --test cli_golden
-```text
+cargo tupa check        # com CLI instalado globalmente
+# ou simplesmente:
+cargo build
+```
+
+### 4) Execute os testes
+
+```bash
+cargo test --workspace --locked
+```
+
+## Primeiro pipeline no seu projeto
+
+```bash
+cargo new my-strategy --lib
+cd my-strategy
+```
+
+Adicione ao `Cargo.toml`:
+
+```toml
+[dependencies]
+tupa-core = "0.9"
+tupa-engine = "0.9"
+```
+
+Crie `src/lib.rs`:
+
+```rust
+use tupa_core::pipeline;
+
+pipeline! {
+    name: OlaMundo,
+    input: (),
+    steps: [
+        step("ola") { println!("Olá, Tupã!") }
+    ],
+    constraints: []
+}
+```
+
+Compile e execute:
+
+```bash
+cargo run
+```
+
+---
 
 ## Próximos passos
 
-- Leia a [SPEC](spec.md)
-- Explore [Exemplos](../examples/README.md)
+- Leia a [SPEC](../reference/spec.md)
+- Explore [Exemplos](../../examples/README.md)
 - Configure o ambiente em [Ambiente de desenvolvimento](dev_env.md)
+- Participe da [Comunidade](https://github.com/marciopaiva/tupalang/discussions)

@@ -1,18 +1,18 @@
 # cargo-tupa
 
-Cargo subcommand for Tupã policy development.
+Subcomando de Cargo para desarrollo de políticas Tupã.
 
-## Installation
+## Instalación
 
 ```bash
 cargo install cargo-tupa
 ```text
 
-## Commands
+## Comandos
 
 ### `cargo tupa check`
 
-Validates the `pipeline!` macro expansion and type checking. Runs `cargo check` and filters Tupã-relevant messages.
+Valida la expansión del macro `pipeline!` y la verificación de tipos. Ejecuta `cargo check` y filtra mensajes relevantes de Tupã.
 
 ```bash
 cargo tupa check          # check current package
@@ -20,54 +20,174 @@ cargo tupa check -v       # verbose
 cargo tupa check --manifest-path path/to/Cargo.toml
 ```text
 
-### `cargo tupa run`
+### `cargo tupa discover`
 
-Executes the pipeline defined in the current package with optional JSON input.
+Descubre e imprime el nombre del objetivo binario del paquete Cargo actual.
 
 ```bash
-# Use default input (if pipeline supports unit-like input)
+cargo tupa discover
+cargo tupa discover --manifest-path path/to/Cargo.toml
+```
+
+El comando escanea `Cargo.toml` buscando una sección `[[bin]]` con un campo `name`. Si no se encuentra ninguna, cae en `src/main.rs` y usa el `package.name` como nombre del binario.
+
+### `cargo tupa expand`
+
+Expande el macro pipeline! a código Rust generado
+
+```bash
+cargo tupa expand --pretty
+cargo tupa expand --file src/pipeline.rs
+```
+
+### `cargo tupa bench`
+
+Benchmark del pipeline ejecutando múltiples veces y agregando métricas de timing.
+
+```bash
+cargo tupa bench                    # ejecuta con iteraciones por defecto
+cargo tupa bench --iterations 100   # número custom de iteraciones
+cargo tupa bench --metrics          # incluye métricas de step en la salida
+```
+
+**Opciones:**
+
+- `--iterations <N>` — número de iteraciones del benchmark (por defecto: 10)
+- `--metrics` — incluye métricas por-step de la ejecución del pipeline
+
+La salida incluye tiempo total, duración promedio por step, y estimados de throughput.
+
+### `cargo tupa watch`
+
+Observa archivos fuente por cambios y re-ejecuta el pipeline automáticamente.
+
+```bash
+cargo tupa watch                    # observa src/**/*.rs por cambios
+cargo tupa watch --debounce 500     # delay custom en ms
+```
+
+**Opciones:**
+
+- `--debounce <MS>` — delay antes de re-ejecutar tras cambios (por defecto: 300ms)
+
+### `cargo tupa run`
+
+Ejecuta el pipeline definido en el paquete actual con entrada JSON opcional.
+
+```bash
+# Use entrada por defecto (si el pipeline soporta input unitario)
 cargo tupa run
 
-# Provide JSON input via environment variable
+# Proporcione entrada JSON via variable de entorno
 TUPA_INPUT='{"amount":1000.0,"risk_score":0.5}' cargo tupa run
 
-# Enable parallel step execution
+# Habilita ejecución paralela de steps
 TUPA_INPUT='{"x":42}' TUPA_PARALLEL=1 cargo tupa run
 
-# With a file
+# Con un archivo
 cargo tupa run --input data.json
+
+# Exportar métricas de ejecución de pasos como JSON
+cargo tupa run --metrics-output metrics.json
 ```text
 
-Your `src/main.rs` should read `TUPA_INPUT` (or use the default) and call `Executor::run` or `Executor::run_parallel`.
+El `src/main.rs` debe leer `TUPA_INPUT` (o usar el defecto) y llamar a `Executor::run` o `Executor::run_parallel`.
 
-### `cargo tupa fmt` (future)
+### `cargo tupa fmt`
 
-Formats legacy `.tp` files.
+Formatea código de pipeline Rust-DSL (bloques `pipeline!`) en archivos fuente.
 
-### `cargo tupa lint` (future)
+```bash
+cargo tupa fmt                # formatea todo el código de pipeline en src/
+cargo tupa fmt --dry-run       # muestra lo que cambiaría
+cargo tupa fmt --check         # falla si algún archivo necesita formateo
+```
 
-Runs static analysis on pipeline definitions.
+> **Nota:** La toolchain `.tp` legada fue removida en v0.9.0. Este comando opera exclusivamente en código Rust DSL.
 
-## Project Template
+### `cargo tupa lint`
 
-Generate a new project from the template:
+Ejecuta análisis estático en definiciones de pipeline Rust-DSL (macros `pipeline!`).
+
+```bash
+cargo tupa lint                # lint del paquete actual
+cargo tupa lint --json         # salida legible por máquina
+cargo tupa lint --deny warnings # trata warnings como errores
+```
+
+> **Nota:** La toolchain `.tp` legada fue removida en v0.9.0. Este comando analiza solo código Rust DSL.
+
+### `cargo tupa test`
+
+Alias para `cargo test --examples`, conveniente para ejecutar ejemplos de pipeline y tests de integración.
+
+```bash
+cargo tupa test                # ejecuta todos los tests
+cargo tupa test --example credit_decision  # test de ejemplo específico
+cargo tupa test -- --nocapture  # pasa argumentos a cargo test
+```
+
+### `cargo tupa plugin new`
+
+Genera un scaffold de plugin para funciones de step personalizadas.
+
+```bash
+cargo tupa plugin new my_plugin.rs  # crea plantilla my_plugin.rs
+```
+
+Esto crea una plantilla `my_plugin.rs` exportando:
+
+- `_tupa_plugin_name()`: retorna el nombre del plugin
+- `_tupa_plugin_register(ctx)`: registra funciones de step
+- Función de step de ejemplo `my_step(input: Value) -> Value`
+
+Compila como cdylib:
+
+```bash
+cargo build --crate-type=cdylib --release
+# target/release/libmy_plugin.so (o .dll/.dylib)
+```
+
+Uso en el pipeline:
+
+```rust
+use tupa_plugin::PluginManager;
+
+let mut pm = PluginManager::new();
+pm.load_plugin("./target/release/libmy_plugin.so")?;
+
+fn use_plugin(pm: &PluginManager, input: &MyInput) -> Result<Value, String> {
+    pm.call("my_step", serde_json::to_value(input)?).map_err(|e| e.to_string())
+}
+```
+
+## Plantilla de Proyecto
+
+Genera un nuevo proyecto desde la plantilla:
 
 ```bash
 cargo generate --git https://github.com/marciopaiva/tupalang#crates/tupa-template
-# or local:
+# o local:
 cargo generate --path crates/tupa-template
 ```text
 
-The template includes a sample pipeline, Cargo.toml with dependencies, and a `main.rs` that integrates with `cargo-tupa run`.
+La plantilla incluye un pipeline de ejemplo, Cargo.toml con dependencias, y un `main.rs` que integra con `cargo-tupa run`.
 
-## How It Works
+## Cómo Funciona
 
-- `check`: Delegates to `cargo check --message-format=json` and surfaces Tupã macro errors.
-- `run`: Builds and executes your binary with `TUPA_INPUT` set, enabling quick iteration.
-- Future subcommands will leverage `tupa-lint` and `tupa-fmt`.
+- `check`: Delega a `cargo check` y filtra errores de macros Tupã.
+- `run`: Compila y ejecuta tu binario con `TUPA_INPUT` seteado; el binario llama a `Executor::run` o `Executor::run_parallel`.
+- `test`: Alias de `cargo test --examples`, ejecuta tests de ejemplos.
+- `fmt`: Formatea código Rust-DSL (macros `pipeline!`) con reglas básicas de indentación.
+- `lint`: Realiza análisis estático en definiciones de pipeline Rust-DSL (detecta steps duplicados, requires/produces indefinidos, nombres/inputs ausentes).
+- `plugin new`: Genera plantilla de plugin (`_tupa_plugin_name`, `_tupa_plugin_register`, step function de ejemplo).
+- `discover`: Imprime el nombre del objetivo binario desde `[[bin]]` o `src/main.rs`.
+- `expand`: Expande el macro `pipeline!` a código Rust generado (usa `--pretty` para salida indentada).
+- `bench`: Benchmark del pipeline ejecutando múltiples iteraciones y reportando métricas de timing agregadas.
+- `watch`: Observa archivos fuente y re-ejecuta el pipeline en cambios con debounce configurables.
 
-## Notes
+## Notas
 
-- Workspace-aware: use `--manifest-path` to point to a specific package.
-- Parallel execution: set `TUPA_PARALLEL=1` or pass `--parallel` flag (when implemented).
-- Output is printed to stdout; errors to stderr.
+- Workspace-aware: usa `--manifest-path` para apuntar a un Cargo.toml específico.
+- Ejecución paralela: define `TUPA_PARALLEL=1` o usa la flag `--parallel` (cuando implementada).
+- La salida se imprime en stdout; errores en stderr.

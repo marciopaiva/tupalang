@@ -6,15 +6,15 @@ Add Tupã crates to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-tupa-core = "0.2"      # DSL macros and policy types
-tupa-engine = "0.2"    # Pipeline executor
-```text
+tupa-core = "0.9"      # DSL macros and policy types
+tupa-engine = "0.9"    # Pipeline executor
+```
 
 Run:
 
 ```bash
 cargo build
-```text
+```
 
 That's it — there's **no separate toolchain to install**. The crates integrate directly into your Rust build.
 
@@ -37,91 +37,44 @@ pipeline! {
     ],
     constraints: []
 }
-```text
+```
 
 Build:
 
 ```bash
 cargo check
-```text
+```
 
 Should succeed with no errors.
 
 ---
 
-## Optional: Standalone CLI (Legacy)
+## CLI (cargo-tupa)
 
-The `tupa` binary is still available for:
-
-- Validating legacy `.tp` files
-- One-off checks via CI
-- Migration tooling (future)
-
-### Install binary
+The `cargo tupa` command provides subcommands for working with Tupã pipelines:
 
 ```bash
-# Linux/macOS
-curl -L https://github.com/marciopaiva/tupalang/releases/latest/download/tupa-linux-x86_64 -o /usr/local/bin/tupa
-chmod +x /usr/local/bin/tupa
+cargo install cargo-tupa   # optional, if you want the CLI globally
 
-# macOS (Apple Silicon)
-curl -L https://github.com/marciopaiva/tupalang/releases/latest/download/tupa-macos-aarch64 -o /usr/local/bin/tupa
-chmod +x /usr/local/bin/tupa
-```text
+# In any Tupã project:
+cargo tupa check           # type-check pipeline (if applicable)
+cargo tupa run             # run pipeline with JSON input
+cargo tupa fmt             # format pipeline! blocks
+cargo tupa lint            # lint for common issues
+cargo tupa discover        # auto-detect binary target
+```
 
-### Install via Cargo (legacy CLI)
-
-```bash
-cargo install tupa-cli
-tupa --help
-```text
-
-**Note:** The CLI does not support the new `pipeline!` DSL directly. Use `cargo check` for that. The CLI is only for `.tp` files (deprecated).
-
----
-
-## Which Path Should I Choose?
-
-| Use case | Choose |
-|---|---|
-| New Rust application needing policy/strategy logic | **Crates** (`tupa-core`, `tupa-engine`) |
-| Existing ViperTrade project migrating from `.tp` | **Crates** (see [Transition Guide](../TRANSITION.md)) |
-
-- One-off validation of a `.tp` file | **Standalone CLI** (`tupa check file.tp`) |
-- CI pipeline that checks legacy `.tp` files | **Standalone CLI** installed via curl or `cargo install tupa-cli` |
-- Building a new non-Rust system that needs Tupã | **FFI** via `tupa-sys` (coming in Phase 3) |
-
-**Bottom line:** New Rust projects should **never** use the standalone compiler. The crates are the primary delivery mechanism.
-
----
-
-## Uninstallation
-
-To remove the standalone binary:
-
-```bash
-rm /usr/local/bin/tupa   # if installed via curl
-# or
-cargo uninstall tupa-cli  # if installed via cargo
-```text
-
-Crates are removed like any Rust dependency: delete from `Cargo.toml` and `cargo update`.
+Note: `cargo tupa` is **optional** — your project builds without it. It is a developer convenience wrapper around the crates.
 
 ---
 
 ## Version Matrix
 
+Always use matching major versions (SemVer):
+
 | `tupa-core` | `tupa-engine` | Rust MSRV | Notes |
 |---|---|---|---|
-| 0.2.x | 0.2.x | 1.83 | Current stable |
-| 0.1.x | 0.1.x | 1.75 | Legacy (pre-crate-first) |
+| 0.9.x | 0.9.x | 1.83 | Current (Rust-DSL only) |
+| 0.8.x | 0.8.x | 1.75 | Legacy (standalone `.tp` toolchain) — EOL |
 
-Always use matching major versions (SemVer).
-
----
-
-## Next
-
-- [Getting Started](getting_started.md) — write and run your first pipeline
-- [Pipeline Guide](pipeline_guide.md) — advanced features (async, plugins, tensors)
-- [Transition Guide](../TRANSITION.md) — migrating from `.tp` files
+The 0.9.x series is the Rust-DSL era. Legacy 0.8.x and earlier are no longer supported.

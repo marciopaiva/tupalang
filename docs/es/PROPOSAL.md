@@ -6,6 +6,8 @@
 
 **Rationale:** Faster adoption, lower integration friction, leverage Rust ecosystem, reach v1.0.0 in 4–6 months instead of years.
 
+> **Actualización (2026-05-14):** El compilador `.tp` independiente y las crates (`tupa-parser`, `tupa-typecheck`, `tupa-codegen`, `tupa-cli`, `tupa-runtime` [old], `tupa-fmt`, `tupa-lint`, `tupa-audit`, `tupa-conformance`, `tupa-lsp`) fueron **eliminadas** en v0.9.0. Las crates activas actuales son `tupa-core`, `tupa-core-macros`, `tupa-engine`, `tupa-plugin`, `tupa-pyffi`, y `cargo-tupa`. Vea [ARCHITECTURE.md](./ARCHITECTURE.md) para el mapa de crates actual.
+
 ---
 
 ## Current State (Standalone Language)

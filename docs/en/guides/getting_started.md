@@ -282,6 +282,49 @@ cargo test
 
 ---
 
+## Engine Configuration
+
+### Timeouts
+
+Set a per-step timeout to prevent hanging steps:
+
+```bash
+TUPA_STEP_TIMEOUT=30s cargo tupa run
+```
+
+Or programmatically:
+
+```rust
+use tupa_engine::{Executor, ExecutorConfig};
+
+let config = ExecutorConfig::default()
+    .with_step_timeout(std::time::Duration::from_secs(30));
+let executor = Executor::with_config(config);
+```
+
+### Metrics Export
+
+Export step timings for profiling and observability:
+
+```bash
+cargo tupa run --metrics-output metrics.json
+```
+
+The generated `metrics.json` contains per-step start/end timestamps and execution state.
+
+### Cancellation
+
+Graceful shutdown is automatic when using `cargo tupa run` (Ctrl+C handled). Programmatic cancellation:
+
+```rust
+let executor = Executor::from_env()?;
+let handle = executor.handle();
+// In another thread or on signal:
+handle.cancel();
+```
+
+---
+
 ## Formatting & Linting
 
 ```bash
@@ -289,21 +332,8 @@ cargo test
 cargo fmt
 
 # Lint for common mistakes
-cargo tupa lint  # coming in Phase 1; meanwhile use tupa-lint crate directly
-```text
-
----
-
-## CLI (Optional)
-
-If you prefer a standalone command (like the old `.tp` workflow), you can still install:
-
-```bash
-cargo install tupa-cli
-tupa --help
-```text
-
-But **for Rust projects, you don't need the CLI** — just depend on the crates.
+cargo tupa lint
+```
 
 ---
 
@@ -311,7 +341,7 @@ But **for Rust projects, you don't need the CLI** — just depend on the crates.
 
 | Symptom | Fix |
 |---|---|
-| `cannot find macro 'pipeline'` | Ensure `tupa-core = "0.2"` in `Cargo.toml` and `use tupa_core::pipeline;` |
+| `cannot find macro 'pipeline'` | Ensure `tupa-core = "0.9"` in `Cargo.toml` and `use tupa_core::pipeline;` |
 | "constraint cannot be proven" | Adjust metric value or expression to be constant-foldable |
 | Engine hangs | Check for infinite loops in step functions or missing `await` on async steps |
 

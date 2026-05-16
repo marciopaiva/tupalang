@@ -1,45 +1,38 @@
-# Tupã Production Pipeline Example (MNIST)
+# Production Example — MNIST (Legacy `.tp`)
 
-This example demonstrates a complete end-to-end production pipeline using Tupã language integrated with PyTorch for deep learning inference.
+**⚠️ DEPRECATED:** This example uses the legacy `.tp` toolchain (`tupa-cli`) which was removed in Tupã 0.9.0. It is kept for historical reference only.
 
-## Prerequisites
+## Legacy Setup (not applicable to Rust-DSL)
+
+**Prerequisites (old):**
 
 - Rust (latest stable)
 - Python 3.8+
-- Tupã Compiler (built from source)
+- Tupã Compiler (built from source) — no longer available
 
-## Setup
+## Legacy Files
 
-1. Run the setup script to create a virtual environment and install dependencies:
+- `mnist_pipeline.tp` — Tupã pipeline definition (legacy syntax)
+- `mnist_cnn_model.py` — PyTorch model
+- `mnist_utils.py` — helper functions
+- `mnist_sample.json` — sample input
 
-   ```bash
-   chmod +x setup_pytorch.sh
-   ./setup_pytorch.sh
-   ```
-
-## Files
-
-- `mnist_pipeline.tp`: The Tupã pipeline definition, including external function declarations and audit constraints.
-- `mnist_cnn_model.py`: PyTorch model definition (SimpleCNN) and forward pass wrapper.
-- `mnist_utils.py`: Helper functions for image decoding and preprocessing.
-- `mnist_sample.json`: Sample input data (simulated).
-
-## Running the Pipeline
-
-Activate the virtual environment and run the pipeline using `tupa-cli`:
+## Legacy Command (do not use)
 
 ```bash
 source .venv/bin/activate
 export PYTHONPATH=$PYTHONPATH:$(pwd)
 cargo run -p tupa-cli -- run --pipeline MNISTAudit --input mnist_sample.json mnist_pipeline.tp
-```text
+```
 
-## Expected Output
+## Modern Equivalent (Rust-DSL)
 
-The pipeline should execute the following steps:
+With Tupã 0.9+, the same pattern is expressed as a Rust crate using the `pipeline!` macro. Python integration is achieved via `tupa-pyffi` (in development) or by registering Python functions as step plugins.
 
-1. `preprocess`: Decode and normalize the input image.
-2. `inference`: Run the PyTorch model to get logits.
-3. `postprocess`: Apply softmax and argmax to get the predicted digit.
+See:
 
-Finally, it runs validation checks (confidence > 0.7).
+- `crates/tupa-engine/examples/minimal.rs` for pipeline structure
+- `crates/tupa-pyffi/` for Python binding examples (when available)
+- [docs/en/guides/pipeline_guide.md](../docs/en/guides/pipeline_guide.md) for step function patterns
+
+**Migration:** Legacy `.tp` pipelines must be manually converted to Rust-DSL; no automatic migration tool exists yet. See [docs/en/TRANSITION.md](../docs/en/TRANSITION.md) for guidance.

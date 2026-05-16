@@ -285,6 +285,29 @@ Registrar cambios relevantes por versión.
 - Soporte básico de closures en codegen (aún sin captura de entorno).
 - Correcciones de golden tests para casos de error (mensajes de cargo removidos).
 
+## 0.9.5 (2026-05-16)
+
+- Tema del release: cobertura de tests, operaciones Safe/Tensor, paths de cargo-tupa, y estabilidad de tupa-pyffi.
+
+### Alcance Entregado
+
+- **Completado de cobertura de tests** (TC-51, TC-54, TC-55, TC-56):
+  - Corregido `tc41_step_panic_display` — eliminada aserción incorrecta `source()`
+  - Corregido `tc46_step_timeout` / `tc52_from_env_timeout_caught_by_executor` — sleep de SlowP cambiado de 10ms a 200ms con `spawn_blocking`
+  - Corregido `tc51_no_produces_for_single_step` — `SingleP::produces` retorna array vacío para step desconocido
+- **Nuevos tests unitarios**: 32 tests en `tupa-core-macros/tests.rs` y 30 tests en `tupa-core/src/tests.rs` (TC-C54..TC-C81)
+- **Tests de cancelación de Executor**: TC-55 y TC-56 para comportamiento de `Executor::cancel()`
+- **Benchmarks criterion**: `engine_bench.rs` con benchmarks de secuencial, paralelo, DAG, constraint, metrics y executor_new
+- **Operadores aritméticos Safe**: `Add`, `Sub`, `Mul`, `Div`, `Neg`, `AddAssign`, `SubAssign`, `MulAssign`, `DivAssign` para `Safe<T,C>`
+- **Métodos Tensor**: `new()`, `get()`, `into_inner()`, implementación `PartialEq`
+- **Mejoras tupa-pyffi**: `call_with_multiple_args()` para llamadas multi-arg, `reset_python_bridge()` para reset de estado global, tipos extendidos (i32, u64, u32, f32, Vec<u8>, Vec<Value>)
+
+### Ingeniería y CI Completados
+
+- 162 tests pasando en el workspace
+- `cargo fmt`, `cargo clippy`, `cargo test --workspace` todos verdes
+- Bump de versión a 0.9.5 en todos los crates activos
+
 ## 0.9.0 (2026-05-11)
 
 ### Alcance Entregado

@@ -10,8 +10,6 @@ pub use serde_json;
 // Core types
 // ============================================================================
 
-use std::marker::PhantomData;
-
 /// A value with a compile-time proven constraint marker `C`.
 ///
 /// The constraint type `C` is a zero-sized marker. Example:
@@ -19,12 +17,12 @@ use std::marker::PhantomData;
 /// type X = Safe<f64, !nan>;
 /// ```
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub struct Safe<T, C>(pub T, PhantomData<C>);
+pub struct Safe<T, C>(pub T, std::marker::PhantomData<C>);
 
 impl<T, C> Safe<T, C> {
     /// Create a new `Safe` value.
     pub fn new(value: T) -> Self {
-        Safe(value, PhantomData)
+        Safe(value, std::marker::PhantomData)
     }
 
     /// Extract the inner value.
@@ -33,12 +31,125 @@ impl<T, C> Safe<T, C> {
     }
 }
 
+impl<T, C> Safe<T, C>
+where
+    T: Copy,
+{
+    /// Get a reference to the inner value.
+    pub fn get(&self) -> T {
+        self.0
+    }
+
+    /// Map the inner value to a new `Safe` with a different constraint marker.
+    pub fn map<U, F>(self, f: F) -> Safe<U, C>
+    where
+        F: FnOnce(T) -> U,
+    {
+        Safe::new(f(self.0))
+    }
+}
+
+/// Arithmetic operators for Safe<T, C>
+macro_rules! impl_safe_arith {
+    ($trait:ident, $method:ident, $assign_trait:ident, $assign_method:ident) => {
+        impl<T, C> std::ops::$trait for Safe<T, C>
+        where
+            T: std::ops::$trait<Output = T> + Copy,
+        {
+            type Output = Safe<T, C>;
+
+            fn $method(self, rhs: Self) -> Self::Output {
+                Safe::new(self.0.$method(rhs.0))
+            }
+        }
+    };
+}
+
+impl_safe_arith!(Add, add, AddAssign, add_assign);
+impl_safe_arith!(Sub, sub, SubAssign, sub_assign);
+impl_safe_arith!(Mul, mul, MulAssign, mul_assign);
+impl_safe_arith!(Div, div, DivAssign, div_assign);
+
+// Support RHS as raw value
+impl<T, C> std::ops::Add<T> for Safe<T, C>
+where
+    T: std::ops::Add<Output = T> + Copy,
+{
+    type Output = Safe<T, C>;
+    fn add(self, rhs: T) -> Self::Output {
+        Safe::new(self.0 + rhs)
+    }
+}
+
+impl<T, C> std::ops::Sub<T> for Safe<T, C>
+where
+    T: std::ops::Sub<Output = T> + Copy,
+{
+    type Output = Safe<T, C>;
+    fn sub(self, rhs: T) -> Self::Output {
+        Safe::new(self.0 - rhs)
+    }
+}
+
+impl<T, C> std::ops::Mul<T> for Safe<T, C>
+where
+    T: std::ops::Mul<Output = T> + Copy,
+{
+    type Output = Safe<T, C>;
+    fn mul(self, rhs: T) -> Self::Output {
+        Safe::new(self.0 * rhs)
+    }
+}
+
+impl<T, C> std::ops::Div<T> for Safe<T, C>
+where
+    T: std::ops::Div<Output = T> + Copy,
+{
+    type Output = Safe<T, C>;
+    fn div(self, rhs: T) -> Self::Output {
+        Safe::new(self.0 / rhs)
+    }
+}
+
+/// Negation for Safe<T, C>
+impl<T, C> std::ops::Neg for Safe<T, C>
+where
+    T: std::ops::Neg<Output = T> + Copy,
+{
+    type Output = Safe<T, C>;
+    fn neg(self) -> Self::Output {
+        Safe::new(-self.0)
+    }
+}
+
 /// Tensor placeholder with shape information.
 ///
 /// In full implementation, shape will be encoded as const generics.
 /// For Sprint 1, this is a simple wrapper.
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Tensor<T>(pub T);
+
+impl<T> Tensor<T> {
+    /// Create a new Tensor.
+    pub fn new(value: T) -> Self {
+        Tensor(value)
+    }
+
+    /// Extract the inner value.
+    pub fn into_inner(self) -> T {
+        self.0
+    }
+}
+
+impl<T> Tensor<T>
+where
+    T: Copy,
+{
+    /// Get a reference to the inner value.
+    pub fn get(&self) -> T {
+        self.0
+    }
+}
 
 // ============================================================================
 // Pipeline trait
@@ -54,3 +165,17 @@ pub trait Pipeline {
     /// Returns the human-readable name of the pipeline.
     fn name(&self) -> &'static str;
 }
+
+/// Test-only pipeline for compile-time trait bound verification.
+#[derive(Debug, Clone)]
+pub struct TestPipeline;
+
+impl Pipeline for TestPipeline {
+    type Input = i32;
+    fn name(&self) -> &'static str {
+        "TestPipeline"
+    }
+}
+
+#[cfg(test)]
+mod tests;

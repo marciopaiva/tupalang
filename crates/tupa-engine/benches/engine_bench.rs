@@ -34,7 +34,7 @@ pipeline! {
 
 // Pipeline with independent steps for parallel benchmark
 pipeline! {
-    name: ParallelPipeline,
+    name: IndepPipeline,
     input: Input,
     steps: [
         step("p1") { step1(input) },
@@ -42,6 +42,18 @@ pipeline! {
         step("p3") { step3(input) },
         step("p4") { step1(input) },
         step("p5") { step2(input) }
+    ],
+    constraints: []
+}
+
+// Pipeline with DAG dependencies for parallel benchmarking
+pipeline! {
+    name: DagPipeline,
+    input: Input,
+    steps: [
+        step("a") { step1(input) } produces ["a_val"],
+        step("b") { step2(input) } produces ["b_val"] requires ["a_val"],
+        step("c") { step3(input) } produces ["c_val"] requires ["a_val"]
     ],
     constraints: []
 }
@@ -57,7 +69,7 @@ fn bench_sequential(c: &mut Criterion) {
 }
 
 fn bench_parallel(c: &mut Criterion) {
-    let plan = ParallelPipeline::new();
+    let plan = IndepPipeline::new();
     let executor = Executor::new();
     let input = Input { value: 42 };
 
@@ -65,6 +77,17 @@ fn bench_parallel(c: &mut Criterion) {
     let rt = Runtime::new().unwrap();
 
     c.bench_function("parallel::5steps_independent", |b| {
+        b.iter(|| rt.block_on(executor.run_parallel(&plan, &input)).unwrap())
+    });
+}
+
+fn bench_dag_parallel(c: &mut Criterion) {
+    let plan = DagPipeline::new();
+    let executor = Executor::new();
+    let input = Input { value: 42 };
+    let rt = Runtime::new().unwrap();
+
+    c.bench_function("parallel::dag_3_steps_sequential_deps", |b| {
         b.iter(|| rt.block_on(executor.run_parallel(&plan, &input)).unwrap())
     });
 }
@@ -95,10 +118,28 @@ fn bench_constraint_throughput(c: &mut Criterion) {
     });
 }
 
+fn bench_metrics_collection(c: &mut Criterion) {
+    let plan = IndepPipeline::new();
+    let executor = Executor::new();
+    let input = Input { value: 42 };
+    let rt = Runtime::new().unwrap();
+
+    c.bench_function("metrics::collection_5_steps", |b| {
+        b.iter(|| rt.block_on(executor.run_parallel(&plan, &input)).unwrap())
+    });
+}
+
+fn bench_executor_new(c: &mut Criterion) {
+    c.bench_function("executor::new", |b| b.iter(|| Executor::new()));
+}
+
 criterion_group!(
     benches,
     bench_sequential,
     bench_parallel,
-    bench_constraint_throughput
+    bench_dag_parallel,
+    bench_constraint_throughput,
+    bench_metrics_collection,
+    bench_executor_new
 );
 criterion_main!(benches);

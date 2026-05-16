@@ -1,6 +1,6 @@
 # Tupã Architecture Overview (Crate-First)
 
-**Last updated:** 2026-05-10
+**Last updated:** 2026-05-14
 
 This document describes the architecture of Tupã as a set of Rust crates (crate-first approach). See [PROPOSAL.md](./PROPOSAL.md) for strategic rationale.
 
@@ -18,33 +18,20 @@ This document describes the architecture of Tupã as a set of Rust crates (crate
 
 ## Crate Map
 
-```text
-tupa-core        ← Public DSL (macros, types, traits)
-tupa-engine      ← Executor (channels, scheduler, constraint checker)
-tupa-runtime     ← Internal runtime (memory, event loop)
-tupa-types       ← Shared type definitions (Safe, Tensor, Value) — merged into core? TBD
-tupa-audit       ← AST hashing, execution trace capture
-tupa-plugin      ← Dynamic library loading (.so/.dll)
-tupa-fmt         ← Formatter for legacy .tp files
-tupa-lint        ← Linter for policy code
-tupa-conformance ← SPEC test runner (CI only)
-tupa-pyffi       ← Python bindings (Phase 3)
-tupa-sys         ← C ABI bindings (Phase 3)
-```text
-
-**Dependency graph:**
+Tupã consists of the following **public crates** (0.9.x):
 
 ```text
-tupa-core  ──┐
-              ├─> tupa-engine ──> tupa-runtime
-tupa-audit ──┘       ▲
-tupa-plugin ────────┘
-tupa-fmt   ─┐
-tupa-lint  ─┼─> tupa-parser (legacy)
-            └─> tupa-typecheck (legacy)
-```text
+tupa-core-macros  ← Procedural macro: pipeline! macro implementation
+tupa-core         ← Public API: types (Safe, Tensor), traits, re-exports
+tupa-engine       ← Executor: parallel/sequential scheduling, constraints, metrics
+tupa-plugin       ← Plugin system: dynamic loading of external step functions
+tupa-pyffi        ← Python bindings (PyO3, not yet stable)
+cargo-tupa        ← CLI wrapper: cargo tupa <subcommand>
+```
 
-After 1.0: `tupa-parser`/`tupa-typecheck` become internal-only; `tupa-core` exposes macro API.
+**Internal/private crates:** None — all crates in the workspace are public.
+
+**Removed crates (pre-0.9.0):** `tupa-parser`, `tupa-lexer`, `tupa-typecheck`, `tupa-codegen`, `tupa-runtime` (old), `tupa-cli`, `tupa-fmt`, `tupa-lint`, `tupa-audit`, `tupa-conformance`, `tupa-effects`, `tupa-sys`, `tupa-lsp`. These were part of the standalone `.tp` compiler toolchain and are no longer maintained.
 
 ---
 
@@ -265,4 +252,4 @@ See `crates/tupa-plugin/` for the plugin API and `create_plugin_template()`.
 - [Getting Started](../guides/getting_started.md)
 - [Pipeline Guide](pipeline_guide.md)
 - [SPEC](../reference/spec.md)
-- [Conformance Tests](../../crates/tupa-conformance/README.md)
+- [Crate Documentation](../reference/)

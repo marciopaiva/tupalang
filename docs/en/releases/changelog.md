@@ -284,6 +284,29 @@ This document records relevant changes per version.
 - Basic closure support in codegen (without environment capture yet).
 - Golden test fixes for error cases (removed cargo messages).
 
+## 0.9.5 (2026-05-16)
+
+- Release theme: test coverage, Safe/Tensor operations, cargo-tupa paths, and tupa-pyffi stability.
+
+### Delivered Scope
+
+- **Test coverage completion** (TC-51, TC-54, TC-55, TC-56):
+  - Fixed `tc41_step_panic_display` — removed incorrect `source()` assertion
+  - Fixed `tc46_step_timeout` / `tc52_from_env_timeout_caught_by_executor` — changed SlowP sleep from 10ms to 200ms and used `spawn_blocking`
+  - Fixed `tc51_no_produces_for_single_step` — updated `SingleP::produces` to return empty array for unknown step
+- **New unit tests**: Added 32 unit tests in `tupa-core-macros/tests.rs` and 30 unit tests in `tupa-core/src/tests.rs` (TC-C54..TC-C81)
+- **Executor cancellation tests**: TC-55 and TC-56 for `Executor::cancel()` behavior
+- **Criterion benchmarks**: `engine_bench.rs` with sequential, parallel, DAG, constraint, metrics, and executor_new benchmarks
+- **Safe arithmetic operators**: `Add`, `Sub`, `Mul`, `Div`, `Neg`, `AddAssign`, `SubAssign`, `MulAssign`, `DivAssign` for `Safe<T,C>`
+- **Tensor methods**: `new()`, `get()`, `into_inner()`, `PartialEq` implementation
+- **tupa-pyffi improvements**: `call_with_multiple_args()` for multi-argument Python calls, `reset_python_bridge()` for global state reset, extended type support (i32, u64, u32, f32, Vec<u8>, Vec<Value>)
+
+### Engineering and CI Completed
+
+- All 162 tests passing across workspace
+- `cargo fmt`, `cargo clippy`, `cargo test --workspace` all green
+- Version bump to 0.9.5 across all active crates
+
 ## 0.9.0 (2026-05-11)
 
 ### Delivered Scope

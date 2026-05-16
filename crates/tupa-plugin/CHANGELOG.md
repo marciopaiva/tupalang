@@ -47,8 +47,27 @@ All notable changes to `tupa-plugin` will be documented in this file.
 
 - Workspace version alignment to 0.9.2. No functional changes in this crate.
 
+## [0.9.3] - 2026-05-14
+
+### Changed
+
+- Version bump to 0.9.3 with legacy-free workspace
+- Ready for publish with `tupa-core` 0.9.3 and `tupa-engine` 0.9.3
+
+## [0.9.5] - 2026-05-16
+
+### Changed
+
+- Version bump to 0.9.5. No functional changes.
+
+## [0.9.4] - 2026-05-14
+
+### Changed
+
+- Version bump to 0.9.4. No functional changes.
+
 ## [Unreleased]
 
-- Planned: Plugin hot-reload support
-- Planned: Versioned plugin ABI for compatibility
-- Planned: Sandboxing/isolation options
+Planned: Plugin hot-reload support.
+Planned: Versioned plugin ABI for compatibility.
+Planned: Sandboxing/isolation options.

@@ -1,0 +1,14 @@
+[package]
+name = "tupa-lints"
+version = "0.9.5"
+edition = "2021"
+description = "Lint definitions for Tupã pipelines"
+license = "Apache-2.0"
+repository = "https://github.com/marciopaiva/tupalang"
+homepage = "https://github.com/marciopaiva/tupalang"
+documentation = "https://docs.rs/tupa-lints"
+
+[lib]
+name = "tupa_lints"
+
+[dev-dependencies]
