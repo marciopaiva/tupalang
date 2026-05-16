@@ -51,14 +51,16 @@ The pipeline expects a JSON object matching the `Input` struct:
 ### Output
 
 **Success:**
-```
+
+```text
 ✅ Pipeline passed all constraints
 score_val = 45.0
 enriched = {"amount":1500.0,"risk_score":0.45}
 ```
 
 **Constraint failure:**
-```
+
+```text
 ❌ Pipeline failed constraints:
   - score_val: expected >= 10.0, got 5.0
 ```

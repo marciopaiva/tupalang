@@ -2,3 +2,9 @@ target/
 .venv/
 node_modules/
 examples/production/.venv/
+docs/en/releases/migration_1_0.md
+docs/en/releases/security_audit.md
+docs/es/releases/migration_1_0.md
+docs/es/releases/security_audit.md
+docs/pt-br/releases/migration_1_0.md
+docs/pt-br/releases/security_audit.md

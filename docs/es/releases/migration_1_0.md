@@ -64,12 +64,11 @@ pipeline! {
 ## Migration Steps
 
 1. Update `Cargo.toml`:
-
-    ```toml
-    [dependencies]
-    tupa-core = "1.0"
-    tupa-engine = "1.0"
-    ```
+   ```toml
+   [dependencies]
+   tupa-core = "1.0"
+   tupa-engine = "1.0"
+   ```
 
 2. Verify constraint syntax matches frozen operators
 
@@ -78,7 +77,6 @@ pipeline! {
 ## Deprecation Policy
 
 After 1.0.0, breaking changes require:
-
 1. Major version bump (2.0.0)
 2. 6-month deprecation period
 3. Migration guide in release notes

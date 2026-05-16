@@ -711,7 +711,8 @@ mod class10 {
     /// TC-47: metrics_output via env var grava JSON válido com campos obrigatórios.
     async fn tc47_metrics_output_via_env() {
         use tupa_engine_clean_env;
-        let path = std::env::temp_dir().join(format!("tupa_engine_test_m_{}.json", std::process::id()));
+        let path =
+            std::env::temp_dir().join(format!("tupa_engine_test_m_{}.json", std::process::id()));
         let _ = std::fs::remove_file(&path);
         tupa_engine_clean_env();
         std::env::set_var("TUPA_METRICS_OUTPUT", path.to_string_lossy().as_ref());
