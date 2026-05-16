@@ -1,14 +1,22 @@
 # tupa-core-macros
 
-**Implementation detail:** Procedural macro for `pipeline!`.
+Procedural macro implementation for `pipeline!`.
 
-This crate is not meant to be used directly. Add `tupa-core` to your project instead.
+## Overview
+
+This is an implementation detail crate providing the `pipeline!` procedural macro. It is not intended for direct use.
+
+Add `tupa-core` to your project instead, which re-exports the macro.
 
 ## Status
 
-Alpha (0.1.x). Part of the crate-first Tupã architecture.
+Alpha (0.9.x). Part of the crate-first Tupã architecture.
 
-## Crates
+## License
 
-- Source: [tupalang](https://github.com/marciopaiva/tupalang)
-- License: Apache-2.0
+Apache-2.0
+
+## Links
+
+- [Source](https://github.com/marciopaiva/tupalang)
+- [Documentation](https://docs.rs/tupa-core-macros)

@@ -25,7 +25,7 @@ pipeline! {
     input: i64,
     steps: [
         step("signal") { compute_signal(input, 90) } produces ["signal"],
-        step("position") { compute_position_bps(compute_signal(input, 90)) } requires ["signal"] produces ["position"]
+        step("position") { compute_position_bps(compute_signal(input, 90)) } requires ["signal"] produces ["position", "max_drawdown_bps", "copy_success_rate_bps"]
     ],
     constraints: [
         metric("max_drawdown_bps").le(1500),

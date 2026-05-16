@@ -20,6 +20,56 @@ cargo tupa check -v       # verbose
 cargo tupa check --manifest-path path/to/Cargo.toml
 ```text
 
+### `cargo tupa discover`
+
+Descubre e imprime el nombre del objetivo binario del paquete Cargo actual.
+
+```bash
+cargo tupa discover
+cargo tupa discover --manifest-path path/to/Cargo.toml
+```
+
+El comando escanea `Cargo.toml` buscando una sección `[[bin]]` con un campo `name`. Si no se encuentra ninguna, cae en `src/main.rs` y usa el `package.name` como nombre del binario.
+
+### `cargo tupa expand`
+
+Expande el macro pipeline! a código Rust generado
+
+```bash
+cargo tupa expand --pretty
+cargo tupa expand --file src/pipeline.rs
+```
+
+### `cargo tupa bench`
+
+Benchmark del pipeline ejecutando múltiples veces y agregando métricas de timing.
+
+```bash
+cargo tupa bench                    # ejecuta con iteraciones por defecto
+cargo tupa bench --iterations 100   # número custom de iteraciones
+cargo tupa bench --metrics          # incluye métricas de step en la salida
+```
+
+**Opciones:**
+
+- `--iterations <N>` — número de iteraciones del benchmark (por defecto: 10)
+- `--metrics` — incluye métricas por-step de la ejecución del pipeline
+
+La salida incluye tiempo total, duración promedio por step, y estimados de throughput.
+
+### `cargo tupa watch`
+
+Observa archivos fuente por cambios y re-ejecuta el pipeline automáticamente.
+
+```bash
+cargo tupa watch                    # observa src/**/*.rs por cambios
+cargo tupa watch --debounce 500     # delay custom en ms
+```
+
+**Opciones:**
+
+- `--debounce <MS>` — delay antes de re-ejecutar tras cambios (por defecto: 300ms)
+
 ### `cargo tupa run`
 
 Ejecuta el pipeline definido en el paquete actual con entrada JSON opcional.
@@ -36,6 +86,9 @@ TUPA_INPUT='{"x":42}' TUPA_PARALLEL=1 cargo tupa run
 
 # Con un archivo
 cargo tupa run --input data.json
+
+# Exportar métricas de ejecución de pasos como JSON
+cargo tupa run --metrics-output metrics.json
 ```text
 
 El `src/main.rs` debe leer `TUPA_INPUT` (o usar el defecto) y llamar a `Executor::run` o `Executor::run_parallel`.
@@ -128,6 +181,10 @@ La plantilla incluye un pipeline de ejemplo, Cargo.toml con dependencias, y un `
 - `fmt`: Formatea código Rust-DSL (macros `pipeline!`) con reglas básicas de indentación.
 - `lint`: Realiza análisis estático en definiciones de pipeline Rust-DSL (detecta steps duplicados, requires/produces indefinidos, nombres/inputs ausentes).
 - `plugin new`: Genera plantilla de plugin (`_tupa_plugin_name`, `_tupa_plugin_register`, step function de ejemplo).
+- `discover`: Imprime el nombre del objetivo binario desde `[[bin]]` o `src/main.rs`.
+- `expand`: Expande el macro `pipeline!` a código Rust generado (usa `--pretty` para salida indentada).
+- `bench`: Benchmark del pipeline ejecutando múltiples iteraciones y reportando métricas de timing agregadas.
+- `watch`: Observa archivos fuente y re-ejecuta el pipeline en cambios con debounce configurables.
 
 ## Notas
 

@@ -125,12 +125,14 @@ checksum = "1e748733b7cbc798e1434b6ac524f0c1ff2ab456fe201501e6497c8417a4fc33"
 
 [[package]]
 name = "cargo-tupa"
-version = "0.9.4"
+version = "0.9.5"
 dependencies = [
  "anyhow",
  "assert_cmd",
  "clap",
+ "glob",
  "predicates",
+ "prettyplease",
  "proc-macro2",
  "quote",
  "serde",
@@ -420,6 +422,12 @@ dependencies = [
  "wasip2",
  "wasip3",
 ]
+
+[[package]]
+name = "glob"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0cc23270f6e1808e30a928bdc84dea0b9b4136a8bc82338574f23baf47bbd280"
 
 [[package]]
 name = "half"
@@ -1131,7 +1139,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-core"
-version = "0.9.4"
+version = "0.9.5"
 dependencies = [
  "serde_json",
  "tokio",
@@ -1140,18 +1148,19 @@ dependencies = [
 
 [[package]]
 name = "tupa-core-macros"
-version = "0.9.4"
+version = "0.9.5"
 dependencies = [
  "proc-macro2",
  "quote",
  "syn",
  "thiserror",
  "tokio",
+ "tupa-core",
 ]
 
 [[package]]
 name = "tupa-engine"
-version = "0.9.4"
+version = "0.9.5"
 dependencies = [
  "criterion",
  "serde",
@@ -1162,8 +1171,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "tupa-lints"
+version = "0.9.5"
+
+[[package]]
 name = "tupa-plugin"
-version = "0.9.4"
+version = "0.9.5"
 dependencies = [
  "criterion",
  "libloading",
@@ -1177,7 +1190,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-pyffi"
-version = "0.9.4"
+version = "0.9.5"
 dependencies = [
  "once_cell",
  "pyo3",

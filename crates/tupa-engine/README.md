@@ -2,15 +2,26 @@
 
 **Tupã pipeline executor** — runs pipelines built with `tupa-core`.
 
-## Purpose
+## Overview
 
-Provides the runtime that executes `pipeline!`-defined pipelines: step orchestration, constraint checking, and result collection. Supports both sequential and parallel step execution based on declared dependencies.
+This crate provides the runtime for executing `pipeline!`-defined pipelines:
+
+- Step orchestration with dependency-based scheduling
+- Sequential execution via `Executor::run`
+- Parallel execution via `Executor::run_parallel` (Tokio-based)
+- Constraint checking with metric evaluation
+- Step metrics collection and cancellation support
 
 **Status:** Alpha (0.9.x). API subject to change before 1.0.
 
-## Usage
+## Installation
 
-### Sequential execution
+```toml
+[dependencies]
+tupa-engine = "0.9"
+```
+
+## Quick Example
 
 ```rust
 use tupa_core::pipeline;
@@ -50,33 +61,28 @@ fn main() {
     let result = executor.run(&plan, &input).expect("execution failed");
     println!("Passed: {}", result.passed);
 }
-```text
+```
 
-### Parallel execution (Sprint 4)
+## Parallel Execution
 
-Steps can run in parallel when they don't share metric dependencies. Declare which metrics each step `produces` and `requires`:
+Steps can run in parallel when they don't share metric dependencies:
 
 ```rust
 pipeline! {
     name: ParallelPipeline,
     input: Input,
     steps: [
-        // enrich runs first and produces 'enriched' metric
-        step("enrich")  { enrich(input) } produces ["enriched"],
-        // score and audit both require 'enriched', so they can run in parallel after enrich
-        step("score")   { score(input) }  requires ["enriched"] produces ["score_val"],
-        step("audit")   { audit(input) }  requires ["enriched"] produces ["audit_ok"],
-        // decide waits for both score and audit
-        step("decide")  { decide(input) } requires ["score_val", "audit_ok"]
+        step("enrich") { enrich(input) } produces ["enriched"],
+        step("score")  { score(input) }  requires ["enriched"] produces ["score_val"],
+        step("audit")  { audit(input) }  requires ["enriched"] produces ["audit_ok"],
+        step("decide") { decide(input) } requires ["score_val", "audit_ok"]
     ],
     constraints: [
         metric("score_val").ge(0.0),
         metric("audit_ok").eq(1.0)
     ]
 }
-```text
-
-Use `Executor::run_parallel` (requires Tokio runtime):
+```
 
 ```rust
 #[tokio::main]
@@ -85,50 +91,28 @@ async fn main() {
     let executor = Executor::new();
     let result = executor.run_parallel(&plan, &input).await?;
 }
-```text
-
-The engine automatically schedules steps based on their declared `produces`/`requires` metric dependencies, executing independent steps concurrently.
-
-## Annotation syntax
-
-- `produces["metric1", "metric2"]` — metrics this step outputs (used by later steps)
-- `requires["metricA", "metricB"]` — metrics this step needs from earlier steps
-
-Steps without annotations are considered independent and may run at any time.
-
-## CLI Integration
-
-Use `cargo-tupa` to run your pipeline:
-
-```bash
-# Install
-cargo install cargo-tupa
-
-# Check your pipeline
-cargo tupa check
-
-# Run with JSON input
-TUPA_INPUT='{"amount":1000}' cargo tupa run
-
-# Run with parallel execution
-
-```bash
-cargo tupa run --example minimal --parallel
 ```
 
-Your binary should read `TUPA_INPUT` from the environment:
+## Annotation Syntax
 
-```rust
-use std::env;
-let input: Input = if let Ok(json) = env::var("TUPA_INPUT") {
-    serde_json::from_str(&json).unwrap_or_else(|_| Input::default())
-} else {
-    Input::default()
-};
-```text
+- `produces["metric1", "metric2"]` — metrics this step outputs
+- `requires["metricA", "metricB"]` — metrics this step needs
 
-## Crates
+Steps without annotations are considered independent.
 
-- Source: [tupalang](https://github.com/marciopaiva/tupalang)
-- License: Apache-2.0
-- Docs: [docs.rs/tupa-engine](https://docs.rs/tupa-engine)
+## API
+
+- `Executor::new()` — create executor
+- `Executor::run(&plan, &input)` — sequential execution
+- `Executor::run_parallel(&plan, &input)` — parallel execution (async)
+- `Executor::cancel()` — cancel running pipeline
+- `Executor::from_env()` — create from environment variables
+
+## License
+
+Apache-2.0
+
+## Links
+
+- [Source](https://github.com/marciopaiva/tupalang)
+- [Documentation](https://docs.rs/tupa-engine)

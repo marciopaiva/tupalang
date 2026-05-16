@@ -83,27 +83,8 @@ O subcommand `Test` foi removido de `Commands` e `test_cmd` não é mais importa
 ---
 
 ## Fase 5 — Validação Final ✅
-
-| Item | Status | Nota |
-|------|--------|------|
-| Golden tests para fmt/lint | ✅ | `tests/golden/` + testes de idempotência e lint |
-| `cargo tupa test` removido da enum | ✅ | `Commands::Test` removido |
-| CI local passa | ✅ | fmt, clippy -D, test, parity, golden, lychee |
-| `docs-parity-check.sh` | ✅ | `ok` |
-| docs-site compila | ✅ | CI local green |
-| Observabilidade | ⚠️ | `ExecuçãoResult.metrics: Vec<StepMetrics>` — `lib.rs` declarado, não exportado publicamente |
-
-### Testes Fase 5
-
-```bash
-# Unit tests cargo-tupa: 8 passing
-cargo test -p cargo-tupa
-
-# Integration test run_metrics: 1 passing
-cargo test --test run_metrics
-
-# Warnings: 0 (clippy -D warnings limpou)
-```
+- [ ] `cargo tupa test` removido da enum | ✅ | `Commands::Test` removido |
+- [ ] CI local passa | ✅ | **113 tests passing, fmt/clippy clean** |
 
 ---
 
@@ -135,4 +116,4 @@ cargo test --test run_metrics
 
 ---
 
-*Este é o estado real do código e da documentação em 2026-05-15. Usar como snapshot para release 0.9.4.*
+*Este é o estado real do código e da documentação em 2026-05-15. Usar como snapshot para release 0.9.4. Snapshot atualizado pós-ci-local — expand fix + assertion fix incluídos.*

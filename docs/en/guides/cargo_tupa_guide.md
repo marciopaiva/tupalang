@@ -117,6 +117,61 @@ fn use_plugin(pm: &PluginManager, input: &MyInput) -> Result<Value, String> {
 }
 ```
 
+### `cargo tupa discover`
+
+Discovers and prints the binary target name for the current Cargo package.
+
+```bash
+cargo tupa discover
+cargo tupa discover --manifest-path path/to/Cargo.toml
+```
+
+The command scans `Cargo.toml` for a `[[bin]]` section with a `name` field. If none is found, it falls back to `src/main.rs` and uses the `package.name` as the binary name.
+
+### `cargo tupa expand`
+
+Expand pipeline! macro to generated Rust code.
+
+```bash
+cargo tupa expand --pretty
+cargo tupa expand --file src/pipeline.rs
+```
+
+**Options:**
+
+- `--pretty` — enable pretty-print (indentation)
+- `--file <FILE>` — specific file to expand (default: all src/**/*.rs)
+
+### `cargo tupa bench`
+
+Benchmark a pipeline by running it multiple times and aggregating timing metrics.
+
+```bash
+cargo tupa bench                    # run with default iterations
+cargo tupa bench --iterations 100   # custom iteration count
+cargo tupa bench --metrics          # include step metrics in output
+```
+
+**Options:**
+
+- `--iterations <N>` — number of benchmark iterations (default: 10)
+- `--metrics` — include per-step metrics from the pipeline run
+
+Output includes total time, average per-step duration, and throughput estimates.
+
+### `cargo tupa watch`
+
+Watch source files for changes and re-run the pipeline automatically.
+
+```bash
+cargo tupa watch                    # watch src/**/*.rs for changes
+cargo tupa watch --debounce 500     # custom debounce delay in ms
+```
+
+**Options:**
+
+- `--debounce <MS>` — delay before re-running after changes (default: 300ms)
+
 ## Project Template
 
 Generate a new project from the template:
@@ -137,6 +192,10 @@ The template includes a sample pipeline, Cargo.toml with dependencies, and a `ma
 - `fmt`: Formats Rust-DSL pipeline code (`pipeline!` blocks) with basic indentation rules.
 - `lint`: Performs static analysis on Rust-DSL pipeline definitions (detects duplicate steps, missing names, undefined requires/produces).
 - `plugin new`: Generates a plugin template (`_tupa_plugin_name`, `_tupa_plugin_register`, sample step function).
+- `discover`: Prints the binary target name from `[[bin]]` or `src/main.rs`.
+- `expand`: Expands `pipeline!` macro to generated Rust code (`--pretty` for indented output).
+- `bench`: Benchmarks pipeline by running multiple iterations and reporting aggregated timing metrics.
+- `watch`: Watches source files and re-runs pipeline on changes with configurable debounce.
 
 ## Notes
 

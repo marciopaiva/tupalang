@@ -20,6 +20,56 @@ cargo tupa check -v       # verbose
 cargo tupa check --manifest-path path/to/Cargo.toml
 ```text
 
+### `cargo tupa discover`
+
+Descobre e imprime o nome do alvo binário do pacote Cargo atual.
+
+```bash
+cargo tupa discover
+cargo tupa discover --manifest-path path/to/Cargo.toml
+```
+
+O comando escaneia `Cargo.toml` procurando uma seção `[[bin]]` com um campo `name`. Se nenhuma for encontrada, ele usa `src/main.rs` e o `package.name` como nome do binário.
+
+### `cargo tupa expand`
+
+Expande o macro pipeline! para código Rust gerado
+
+```bash
+cargo tupa expand --pretty
+cargo tupa expand --file src/pipeline.rs
+```
+
+### `cargo tupa bench`
+
+Benchmark do pipeline executando múltiplas vezes e agregando métricas de timing.
+
+```bash
+cargo tupa bench                    # roda com iterações padrão
+cargo tupa bench --iterations 100   # número customizado de iterações
+cargo tupa bench --metrics          # inclui métricas de step na saída
+```
+
+**Opções:**
+
+- `--iterations <N>` — número de iterações do benchmark (padrão: 10)
+- `--metrics` — inclui métricas por-step da execução do pipeline
+
+A saída inclui tempo total, duração média por step, e estimativas de throughput.
+
+### `cargo tupa watch`
+
+Observa arquivos fonte por mudanças e re-executa o pipeline automaticamente.
+
+```bash
+cargo tupa watch                    # observa src/**/*.rs por mudanças
+cargo tupa watch --debounce 500     # delay customizado em ms
+```
+
+**Opções:**
+
+- `--debounce <MS>` — delay antes de re-executar após mudanças (padrão: 300ms)
+
 ### `cargo tupa run`
 
 Executa o pipeline definido no pacote atual com entrada JSON opcional.
@@ -36,6 +86,9 @@ TUPA_INPUT='{"x":42}' TUPA_PARALLEL=1 cargo tupa run
 
 # Com um arquivo
 cargo tupa run --input data.json
+
+# Exportar métricas de execução dos steps como JSON
+cargo tupa run --metrics-output metrics.json
 ```text
 
 O `src/main.rs` deve ler `TUPA_INPUT` (ou usar o padrão) e chamar `Executor::run` ou `Executor::run_parallel`.
@@ -128,6 +181,10 @@ O template inclui um pipeline de exemplo, Cargo.toml com dependências, e um `ma
 - `fmt`: Formata código Rust-DSL (macros `pipeline!`) com regras básicas de indentação.
 - `lint`: Realiza análise estática em definições de pipeline Rust-DSL (detecta steps duplicados, requires/produces indefinidos, nomes/inputs ausentes).
 - `plugin new`: Gera template de plugin (`_tupa_plugin_name`, `_tupa_plugin_register`, step function de exemplo).
+- `discover`: Imprime o nome do alvo binário a partir de `[[bin]]` ou `src/main.rs`.
+- `expand`: Expande macro `pipeline!` para código Rust gerado (use `--pretty` para saída indentada).
+- `bench`: Benchmark do pipeline executando múltiplas iterações e reportando métricas de timing agregadas.
+- `watch`: Observa arquivos fonte e re-executa o pipeline em mudanças com debounce configurável.
 
 ## Notas
 

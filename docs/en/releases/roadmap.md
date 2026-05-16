@@ -57,7 +57,7 @@ This document outlines the delivery sequence for Tupã as a set of Rust crates (
 
 ---
 
-### M4 — Stabilization (Months 7–8) ⏳ Planned
+### M4 — Stabilization (Months 7–8) ⏳ In Progress
 
 **Goal:** API freeze for 1.0.0 candidate
 

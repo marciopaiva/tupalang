@@ -43,6 +43,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump to 0.9.3 with clean workspace (no legacy deps)
 - Fixed Cargo.toml format (ensured [dependencies] section present)
 
+## [0.9.5] - 2026-05-16
+
+### Added
+
+- **`call_with_multiple_args`**: Support for multi-argument Python function calls from pipelines
+- **`reset_python_bridge`**: Global state reset capability for Python GIL management
+- **Extended type support**: `i32`, `u64`, `u32`, `f32`, `Vec<u8>`, `Vec<Value>` conversions via `FromPython` trait
+
 ## [0.9.4] - 2026-05-14
 
 ### Changed

@@ -46,6 +46,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed dev-dependencies on workspace crates to support locked publishing
 - Workspace simplification: legacy `.tp` crates removed from members
 
+## [0.9.5] - 2026-05-16
+
+### Added
+
+- **New unit tests**: Added 32 comprehensive unit tests in `tests.rs` covering macro expansion, constraint parsing, and pipeline generation (TC-C54..TC-C85)
+
 ## [0.9.4] - 2026-05-14
 
 ### Changed

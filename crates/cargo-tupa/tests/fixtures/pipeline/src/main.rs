@@ -12,8 +12,8 @@ pipeline! {
     name: TestPipeline,
     input: Input,
     steps: [
-        step("s1") { step1(input) } produces ["v1"],
-        step("s2") { step2(input) } requires ["v1"] produces ["v2"]
+        step("s1") { step1(input) },
+        step("s2") { step2(input) }
     ],
     constraints: []
 }

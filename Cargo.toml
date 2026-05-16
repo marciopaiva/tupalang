@@ -7,6 +7,7 @@ members = [
     "crates/tupa-plugin",
     "crates/tupa-pyffi",
     "crates/cargo-tupa",
+    "crates/tupa-lints",
 ]
 resolver = "2"
 

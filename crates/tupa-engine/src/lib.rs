@@ -196,6 +196,13 @@ impl Executor {
         Self::with_config(ExecutorConfig::from_env())
     }
 
+    /// Cancel any in-progress pipeline execution.
+    ///
+    /// Subsequent calls to `run_parallel` will return `EngineError::Cancelled`.
+    pub fn cancel(&self) {
+        self.cancel_token.store(true, Ordering::SeqCst);
+    }
+
     /// Execute a pipeline synchronously (sequential step execution).
     ///
     /// # Arguments
@@ -349,10 +356,19 @@ impl Executor {
                         }
 
                         // Execute step with optional timeout
-                        let result = if let Some(timeout) = step_timeout {
+                        // Use spawn_blocking for sync execute_step to prevent blocking the async runtime
+                        let result: Result<Value, EngineError> = if let Some(timeout) = step_timeout
+                        {
                             let step_id_for_timeout = step_id.clone();
                             match tokio::time::timeout(timeout, async move {
-                                pipeline.execute_step(&input, &step_id_for_timeout)
+                                // Execute blocking code on a blocking thread pool
+                                let input_clone = input.clone();
+                                let step_id_str = step_id_for_timeout.clone();
+                                tokio::task::spawn_blocking(move || {
+                                    pipeline.execute_step(&input_clone, &step_id_str)
+                                })
+                                .await
+                                .unwrap_or(Err(EngineError::Other("spawn blocking failed".into())))
                             })
                             .await
                             {
@@ -363,7 +379,14 @@ impl Executor {
                                 }),
                             }
                         } else {
-                            pipeline.execute_step(&input, &step_id)
+                            // No timeout - use spawn_blocking to avoid blocking async runtime
+                            let input_clone = input.clone();
+                            let step_id_str = step_id.clone();
+                            tokio::task::spawn_blocking(move || {
+                                pipeline.execute_step(&input_clone, &step_id_str)
+                            })
+                            .await
+                            .unwrap_or(Err(EngineError::Other("spawn blocking failed".into())))
                         };
 
                         // Record completion

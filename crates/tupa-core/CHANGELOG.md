@@ -44,6 +44,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Workspace cleanup: removed legacy `.tp` toolchain (lexer, parser, typecheck, codegen, runtime, effects) and dependent tooling.
 - Bump to 0.9.3 as part of Rust-DSL only release.
 
+## [0.9.5] - 2026-05-16
+
+### Added
+
+- **Safe arithmetic operators**: `Add`, `Sub`, `Mul`, `Div`, `Neg`, `AddAssign`, `SubAssign`, `MulAssign`, `DivAssign` implementations for `Safe<T,C>`
+- **Tensor methods**: `new()`, `get()`, `into_inner()`, `PartialEq` implementation for tensor types
+
 ## [0.9.4] - 2026-05-14
 
 ### Changed

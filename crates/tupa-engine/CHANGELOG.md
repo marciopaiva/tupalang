@@ -59,6 +59,24 @@ All notable changes to `tupa-engine` will be documented in this file.
 - Removed dev-dependencies on workspace crates to enable `--locked` publishing
 - Bump all active crate versions to 0.9.3
 
+## [0.9.5] - 2026-05-16
+
+### Added
+
+- **Fixed test suite** (TC-51, TC-46, TC-52): Corrected `produces` implementation for single-step pipelines, increased sleep duration for timeout tests, and fixed panic display assertion
+- **New unit tests**: Added 32 unit tests in `tupa-core-macros/tests.rs` and 30 unit tests in `tupa-core/src/tests.rs` (TC-C54..TC-C81)
+- **Executor cancellation tests**: TC-55 and TC-56 for `Executor::cancel()` behavior
+- **Criterion benchmarks**: `engine_bench.rs` with sequential, parallel, DAG, constraint, metrics, and executor_new benchmarks
+- **Safe arithmetic operators**: `Add`, `Sub`, `Mul`, `Div`, `Neg`, `AddAssign`, `SubAssign`, `MulAssign`, `DivAssign` for `Safe<T,C>`
+- **Tensor methods**: `new()`, `get()`, `into_inner()`, `PartialEq` implementation
+- **tupa-pyffi improvements**: `call_with_multiple_args()` for multi-argument Python calls, `reset_python_bridge()` for global state reset, extended type support (i32, u64, u32, f32, Vec<u8>, Vec<Value>)
+
+### Fixed
+
+- `SlowP` sleep in timeout tests changed from 10ms to 200ms for reliable detection
+- `SingleP::produces` now returns empty array for unknown steps instead of panicking
+- Panic error message assertion corrected (removed incorrect `source()` check)
+
 ## [0.9.4] - 2026-05-14
 
 ### Added

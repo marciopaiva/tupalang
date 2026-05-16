@@ -63,13 +63,14 @@ jobs:
             return $CODE
           }
 
-          # 0.9.3 — Rust-DSL era: core -> engine -> plugin -> pyffi -> cargo-tupa
+          # 0.9.5 — Rust-DSL era (7 crates): macros -> core -> engine -> plugin -> pyffi -> tupa-lints -> cargo-tupa
           for crate in \
             tupa-core-macros \
             tupa-core \
             tupa-engine \
             tupa-plugin \
             tupa-pyffi \
+            tupa-lints \
             cargo-tupa; do
             publish_crate "$crate"
           done

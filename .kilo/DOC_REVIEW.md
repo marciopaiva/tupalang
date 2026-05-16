@@ -45,9 +45,10 @@
 ```bash
  cargo fmt --check          ✅
  cargo clippy -D warnings    ✅
- cargo test --workspace      ✅ (31 testes)
+ cargo test --workspace      ✅ (24 testes: 12 cargo-tupa unit + 1 integration + 1 tupa-core-macros + 7 tupa-plugin + 1 tupa-pyffi + 2 doc)
  docs-parity-check           ✅
- golden tests (fmt idempotência, lint) ✅
+ golden tests (fmt idempotência, lint, expand) ✅
+ lychee (non-strict)         ⚠️ 3 [404] GitHub Discussions links (expected, acceptable)
 ```
 
 ---
