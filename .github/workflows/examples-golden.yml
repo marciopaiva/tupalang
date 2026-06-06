@@ -21,9 +21,10 @@ jobs:
 
       - name: Run update-goldens script to generate outputs
         run: |
-          mkdir -p generated
-          bash scripts/update-goldens.sh
-          cp -r examples/expected generated/expected
+          mkdir -p generated/expected
+          # Generate goldens into a separate directory so the diff below
+          # compares freshly generated output against the committed goldens.
+          EXPECTED_DIR="$PWD/generated/expected" bash scripts/update-goldens.sh
 
       - name: Show diff
         id: diff
@@ -65,7 +66,7 @@ jobs:
             ### Checklist
             - [ ] Review the changes in `examples/expected/`
             - [ ] Ensure changes are expected (e.g., CLI output format improvements)
-            - [ ] Run `cargo test -p tupa-cli` locally to verify
+            - [ ] Run `cargo test --workspace` locally to verify
             - [ ] Update changelog if necessary
 
             ### Artifacts
