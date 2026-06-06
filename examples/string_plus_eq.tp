@@ -1,5 +1,0 @@
-fn main() {
-  let s = "ola";
-  s += "mundo";
-  print(s);
-}

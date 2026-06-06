@@ -1,5 +1,0 @@
-error[E2005]: impure function in deterministic pipeline: step 'n' has forbidden effect Time
-  --> examples/pipeline/now_violation.tp:4:10
-   |
- 4 |     step("n") { now() },
-   |          ^

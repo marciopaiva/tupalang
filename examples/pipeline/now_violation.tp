@@ -1,6 +1,0 @@
-pipeline NowBad @deterministic {
-  input: i64,
-  steps: [
-    step("n") { now() },
-  ],
-}

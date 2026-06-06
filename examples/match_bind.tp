@@ -1,6 +1,0 @@
-fn main() {
-  let x = 7;
-  match x {
-    v => print(v),
-  }
-}

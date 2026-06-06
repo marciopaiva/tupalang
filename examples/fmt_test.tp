@@ -1,8 +1,0 @@
-pipeline P{
-    input:int,
-    steps:[
-    step("s1") {
-        print("hello")
-    }
-    ]
-}

@@ -1,5 +1,0 @@
-fn accept(x: Safe<string, !hate_speech>) {
-	let y: Safe<string, !hate_speech> = x;
-}
-
-fn main() {}

@@ -1,9 +1,0 @@
-fn main() {
-  let a = "hi";
-  let b = "hi";
-  let c = "bye";
-  let eq = a == b;
-  let ne = a != c;
-  print(eq);
-  print(ne);
-}

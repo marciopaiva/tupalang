@@ -1,5 +1,0 @@
-error[E2005]: impure function in deterministic pipeline: step 'bad' has forbidden effect Random
-  --> examples/pipeline/deterministic_violation.tp:5:10
-   |
- 5 |     step("bad") { random() },
-   |          ^

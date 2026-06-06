@@ -1,6 +1,0 @@
-pipeline TimeBad @deterministic {
-  input: i64,
-  steps: [
-    step("t") { time() },
-  ],
-}
