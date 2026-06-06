@@ -55,9 +55,9 @@ cargo --version
 ## Running tests locally
 
 ```bash
-cargo test -p tupa-lexer -p tupa-parser
-cargo test -p tupa-typecheck
-cargo test -p tupa-cli
+cargo test -p tupa-core -p tupa-core-macros
+cargo test -p tupa-engine
+cargo test -p cargo-tupa
 
 # full suite
 cargo test

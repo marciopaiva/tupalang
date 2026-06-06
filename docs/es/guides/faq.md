@@ -33,7 +33,7 @@ Tipos con restricciones probadas en tiempo de compilación, por ejemplo `Safe<f6
 
 ### 6) ¿Cómo ejecuto el CLI?
 
-Usa `cargo run -p tupa-cli -- <command>` y revisa [docs/getting_started.md](getting_started.md).
+Usa `cargo tupa <command>` y revisa [docs/getting_started.md](getting_started.md).
 
 ### 7) ¿Hay una hoja de ruta?
 

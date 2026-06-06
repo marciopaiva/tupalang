@@ -58,21 +58,16 @@ The SPEC remains normative; the implementation just happens to be a Rust library
 
 ### 5) Can I still use `.tp` files?
 
-Yes, **legacy support** remains:
+No. The standalone `.tp` language and its toolchain (`tupa-cli`, `tupa-parser`, `tupa-typecheck`, …) were **removed in 0.9.0**. All development uses the `pipeline!` macro in Rust.
 
-- `tupa-cli` can parse/typecheck/run `.tp` files
-- `tupa-parser` and `tupa-typecheck` crates still exist for parsing
-
-**But:** No new features target `.tp`. New code should use Rust DSL. Legacy support will be deprecated on **2027-01-01**.
-
-See [TRANSITION.md](../TRANSITION.md).
+See [TRANSITION.md](../TRANSITION.md) to migrate existing `.tp` pipelines.
 
 ---
 
 ### 6) Where are the examples?
 
-- **Rust DSL examples:** `examples/` (coming soon) and [ViperTrade strategies](https://github.com/marciopaiva/vipertrade)
-- **Legacy `.tp` examples:** `examples/` (still valid but deprecated)
+- **Rust DSL examples:** `examples/` (e.g. `simple_pipeline.rs`, `migration/`) and the `tupa-engine` crate examples (`cargo run -p tupa-engine --example minimal`)
+- **Applied:** [ViperTrade strategies](https://github.com/marciopaiva/vipertrade)
 - **Spec examples:** [SPEC §10](../reference/spec.md#10-validated-examples)
 
 ---
@@ -118,7 +113,7 @@ Only works on **pure** functions (no I/O, no randomness). The macro generates a 
 - Go to definition for step functions
 - Type hints and errors
 
-A minimal LSP may be built for legacy `.tp` files only (deprecated path).
+Since the standalone `.tp` language was removed in 0.9.0, no separate LSP is planned.
 
 ---
 

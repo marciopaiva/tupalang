@@ -2,51 +2,54 @@
 
 ## Propósito
 
-Descrever comandos padrão de teste e dicas de triagem de falhas.
+Comandos de teste padrão e dicas de triagem de falhas para o Tupã 0.9.x (era Rust-DSL).
+
+---
 
 ## Comandos principais
 
 ```bash
-# suite completa
-cargo test
+# Suite completa do workspace
+cargo test --workspace --locked
 
-# por crate
-cargo test -p tupa-lexer
-cargo test -p tupa-parser
-cargo test -p tupa-typecheck
-cargo test -p tupa-cli
-```text
+# Por crate (apenas crates ativos)
+cargo test -p tupa-core
+cargo test -p tupa-core-macros
+cargo test -p tupa-engine
+cargo test -p tupa-plugin
+cargo test -p tupa-pyffi
+cargo test -p cargo-tupa
+```
 
-## Testes do CLI
+---
 
-```bash
-# saídas golden
-cargo test -p tupa-cli -- tests::cli_golden
-```text
-
-## Testes de desempenho
-
-- Objetivo: verificar tempo de execução para exemplos médios (alvo < 200ms).
-- Como rodar com logs:
-  - `cargo test -p tupa-cli perf -- --nocapture`
-- O que é verificado:
-  - Codegen do exemplo `fraud_complete` abaixo de 500ms (limite não-frágil).
-  - Execução de `tupa run` para `FraudDetection` abaixo de 500ms.
-- Observações:
-  - Os valores impressos são ilustrativos e variam por máquina.
-  - Para medições mais rigorosas, use `hyperfine` com aquecimento (`--warmup`).
-  - Preferir Rust stable e builds de release para medições de produto.
-
-## Restrições éticas
+## Testes do cargo-tupa
 
 ```bash
-cargo run -p tupa-cli -- check examples/invalid_safe_misinformation.tp
-cargo run -p tupa-cli -- check examples/invalid_safe_misinformation_base.tp
-```text
+# Testes unitários dos subcomandos do CLI
+cargo test -p cargo-tupa
+
+# Teste de integração (saída de métricas)
+cargo test -p cargo-tupa --test run_metrics
+```
+
+---
+
+## Benchmarks de desempenho
+
+A suite de benchmarks do `tupa-engine` (com `criterion`) roda com:
+
+```bash
+cargo bench -p tupa-engine
+```
+
+Para medições rigorosas, use builds de release e `hyperfine` com aquecimento.
+
+---
 
 ## Dicas de triagem
 
 - Rode o teste isolado antes da suite completa.
-- Verifique se o erro é em parsing ou typecheck.
-- Compare spans e mensagens com a saída esperada.
-- Reproduza via `tupa-cli -- parse|check`.
+- Distinga erros de compilação (`rustc` / macro `pipeline!`) de erros de execução
+  (`Executor::run` retorna `PipelineResult`).
+- Compare mensagens e códigos de diagnóstico com a saída esperada.

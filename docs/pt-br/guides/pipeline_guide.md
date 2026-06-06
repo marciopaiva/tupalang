@@ -6,19 +6,11 @@ Executar um pipeline Tupã de ponta a ponta: gerar um ExecutionPlan e executar c
 
 ## Passos
 
-- Gerar o plano:
-  - `tupa codegen --format=json examples/pipeline/fraud_complete.tp`
-- Executar o pipeline:
-  - `tupa run --pipeline=FraudDetection --input examples/pipeline/tx.json examples/pipeline/fraud_complete.tp`
-
-### Somente plano
-
-- `tupa codegen --plan-only examples/pipeline/fraud_complete.tp`
-- `tupa run --plan fraud_complete.plan.json --pipeline=FraudDetection --input examples/pipeline/tx.json`
-
-### Persistir saída
-
-- `tupa run --pipeline=FraudDetection --input examples/pipeline/tx.json --output out.json examples/pipeline/fraud_complete.tp`
+- Escreva o pipeline com a macro `pipeline!` (veja [getting_started.md](getting_started.md)).
+- Verifique os tipos: `cargo tupa check`.
+- Execute com entrada JSON: `cargo tupa run --input data.json`.
+- Execução paralela: `cargo tupa run --parallel --input data.json`.
+- Persistir métricas por passo: `cargo tupa run --input data.json --metrics-output metrics.json`.
 
 ## Estrutura do ExecutionPlan
 

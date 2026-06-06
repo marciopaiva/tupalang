@@ -107,7 +107,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 ```bash
 # New workflow
 cargo tupa check          # validates pipeline DSL
-cargo tupa fmt            # formats .tp files if still used
+cargo tupa fmt            # formats Rust-DSL pipeline code
 cargo tupa lint           # lints Rust code for Tupã patterns
 cargo build --release
 cargo run --release
@@ -215,16 +215,10 @@ Delete `strategy.tp`. All logic now lives in `.rs` files.
 
 ---
 
-## Automatic Migration Tool (Planned)
+## Automatic Migration Tool
 
-We will provide `tupa-migrate` command:
-
-```bash
-# Convert .tp → Rust DSL skeletons (human refinement needed)
-tupa-migrate convert strategy.tp --output src/generated/
-```text
-
-**Status:** Not yet implemented. Track issue #XXX.
+There is no automatic conversion tool. Migrate manually by moving each `.tp`
+construct into a `pipeline!` block in a `.rs` file, using the mapping table above.
 
 ---
 

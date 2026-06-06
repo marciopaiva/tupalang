@@ -7,7 +7,7 @@ Definir critérios de curadoria e padrões para exemplos.
 ## Onde colocar exemplos
 
 - Exemplos curados: `examples/`
-- Experimentos: `examples/playground/`
+- Migração de `.tp`: `examples/migration/`
 
 ## Critérios de curadoria
 
@@ -18,18 +18,18 @@ Definir critérios de curadoria e padrões para exemplos.
 
 ## Padrões
 
-- Nomeie arquivos por tema (`match.tp`, `types.tp`).
+- Nomeie arquivos por tema (`credit_decision.rs`, `fraud_complete.rs`).
 - Inclua comentários breves quando necessário.
 - Atualize `examples/README.md` ao adicionar/remover exemplos.
 - Prefira `Safe<string, ...>` ao ilustrar restrições éticas.
 - Mencione novos exemplos `safe_*` em `examples/README.md`.
-- Use `safe_misinformation_hate_speech.tp` como referência de restrições combinadas.
+- Use os exemplos do crate `tupa-engine` como referência de pipelines com constraints.
 
 ## Lista de verificação
 
 - [ ] Arquivo adicionado em `examples/`
 - [ ] Referenciado em `examples/README.md`
-- [ ] Roda com `tupa-cli -- parse|check`
+- [ ] Compila/roda com `cargo run -p tupa-engine --example <nome>`
 
 ## Atualizando goldens
 
