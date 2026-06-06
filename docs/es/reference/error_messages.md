@@ -17,35 +17,35 @@ Estandarizar el contenido y el formato de los mensajes de error.
 
 ```text
 error[E2001]: type mismatch: expected I64, got F64
-  --> examples/types.tp:4:10
+  --> examples/types.rs:4:10
 ```text
 
 ### Variable indefinida
 
 ```text
 error[E1002]: undefined variable 'x'
-  --> examples/types.tp:2:1
+  --> examples/types.rs:2:1
 ```text
 
 ### Restricción no comprobada
 
 ```text
 error[E3002]: cannot prove constraint 'hate_speech' at compile time
-  --> examples/invalid_safe_hate_speech.tp:2:38
+  --> examples/invalid_safe_hate_speech.rs:2:38
 ```text
 
 ### Restricción no comprobada (misinformation)
 
 ```text
 error[E3002]: cannot prove constraint 'misinformation' at compile time
-  --> examples/invalid_safe_misinformation.tp:2:41
+  --> examples/invalid_safe_misinformation.rs:2:41
 ```text
 
 ### Restricción no comprobada con sugerencia
 
 ```text
 error[E3002]: constraint !misinformation not proven
-  --> pipeline.tp:42:15
+  --> pipeline.rs:42:15
    |
 42 | let summary = summarize(article)
    |               ^^^^^^^^^^^^^^^^^^^
@@ -61,7 +61,7 @@ error[E3002]: constraint !misinformation not proven
   "error": {
     "code": "E3002",
     "col": 41,
-    "label": "examples/invalid_safe_misinformation.tp",
+    "label": "examples/invalid_safe_misinformation.rs",
     "line": 2,
     "line_text": "\tlet x: Safe<string, !misinformation> = \"ok\";",
     "message": "cannot prove constraint 'misinformation' at compile time\nhelp: constraint must be provable at compile time; use a provable literal or pass a Safe value already proven",
@@ -77,14 +77,14 @@ error[E3002]: constraint !misinformation not proven
 
 ```text
 error[E3001]: invalid constraint 'hate_speech' for base type F64
-  --> examples/invalid_safe_hate_speech_base.tp:2:35
+  --> examples/invalid_safe_hate_speech_base.rs:2:35
 ```text
 
 ### Restricción inválida (misinformation)
 
 ```text
 error[E3001]: invalid constraint 'misinformation' for base type F64
-  --> examples/invalid_safe_misinformation_base.tp:2:38
+  --> examples/invalid_safe_misinformation_base.rs:2:38
 ```text
 
 ## Referencias
