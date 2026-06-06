@@ -46,9 +46,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.9.6] - 2026-06-06
 
+### Added (experimental)
+
+- `Constraint<T>` trait and `ConstraintError` for real constraint enforcement on `Safe<T, C>`.
+- Built-in markers in `tupa_core::constraints`: `NonNan`, `NonInf`, `Finite` (for `f64`).
+- `Safe::try_new` (runtime-checked) and `Safe::new_unchecked`.
+- Re-export of the `safe!` macro (compile-time proof for constant `f64` expressions, runtime guard otherwise).
+
 ### Changed
 
-- Version bump to 0.9.6. No functional changes; this release focuses on removing the legacy `.tp` toolchain artifacts from the repository.
+- Repository-level cleanup of legacy `.tp` toolchain artifacts (see workspace changelog). Version bump to 0.9.6.
+
+> **Note:** The constraint API above is an experimental proof of concept; its surface may change before stabilization.
 
 ## [0.9.5] - 2026-05-16
 

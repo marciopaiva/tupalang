@@ -297,6 +297,7 @@ This document records relevant changes per version.
 - **Version bump**: all active crates bumped to 0.9.6 (no functional or API changes).
 - **Feature docs rewritten to Rust DSL**: `features/trading_support.md` (EN/ES/PT-BR) now reflects the current crates with a runnable `pipeline!` + `Executor` example and explicitly marks the removed 0.8.2 runtime features (backtest, circuit breaker, hot reload, schema registry); `governance/audit_engine.md` (ES/PT-BR) replaced with a discontinuation note pointing to `tupa-engine` step metrics.
 - **Crate READMEs corrected** for crates.io accuracy (API mismatches in `tupa-core`, `tupa-pyffi`, `tupa-plugin`, `tupa-engine`; `tupa-lints` reframed as string constants, not rustc lints).
+- **Experimental — type-level constraints (PoC)**: real `Safe<T, C>` enforcement via `Constraint`/`ConstraintError`, built-in markers (`tupa_core::constraints::{NonNan, NonInf, Finite}`), `Safe::try_new`/`new_unchecked`, and a `safe!` macro that proves `!nan`/`!inf` on constant `f64` expressions at compile time (runtime guard otherwise). Unstable surface — first step of the spec→crates roadmap.
 
 ### Engineering and CI Completed
 

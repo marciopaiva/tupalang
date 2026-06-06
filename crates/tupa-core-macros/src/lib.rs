@@ -27,7 +27,9 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::parse::{Parse, ParseStream};
 use syn::Token;
-use syn::{braced, punctuated::Punctuated, token::Comma, Expr, Ident, Lit, LitStr, Type};
+use syn::{
+    braced, punctuated::Punctuated, token::Comma, BinOp, Expr, Ident, Lit, LitStr, Type, UnOp,
+};
 
 // ============================================================================
 // AST
@@ -780,6 +782,104 @@ pub fn pipeline(input: TokenStream) -> TokenStream {
     };
 
     TokenStream::from(expanded)
+}
+
+// ============================================================================
+// `safe!` macro — compile-time-proven constrained values (experimental)
+// ============================================================================
+
+/// Input grammar: `safe!(MarkerType, expr)`.
+struct SafeInput {
+    marker: Type,
+    expr: Expr,
+}
+
+impl Parse for SafeInput {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let marker: Type = input.parse()?;
+        input.parse::<Token![,]>()?;
+        let expr: Expr = input.parse()?;
+        Ok(SafeInput { marker, expr })
+    }
+}
+
+/// Constant-fold an `f64` expression: literals, parentheses, unary `-`, and
+/// `+ - * /` between folded operands. Returns `None` when not foldable.
+fn fold_f64(expr: &Expr) -> Option<f64> {
+    match expr {
+        Expr::Lit(lit) => match &lit.lit {
+            Lit::Float(f) => f.base10_parse::<f64>().ok(),
+            Lit::Int(i) => i.base10_parse::<f64>().ok(),
+            _ => None,
+        },
+        Expr::Paren(p) => fold_f64(&p.expr),
+        Expr::Group(g) => fold_f64(&g.expr),
+        Expr::Unary(u) => match u.op {
+            UnOp::Neg(_) => fold_f64(&u.expr).map(|v| -v),
+            _ => None,
+        },
+        Expr::Binary(b) => {
+            let l = fold_f64(&b.left)?;
+            let r = fold_f64(&b.right)?;
+            match b.op {
+                BinOp::Add(_) => Some(l + r),
+                BinOp::Sub(_) => Some(l - r),
+                BinOp::Mul(_) => Some(l * r),
+                BinOp::Div(_) => Some(l / r),
+                _ => None,
+            }
+        }
+        _ => None,
+    }
+}
+
+/// Last path segment of a marker type, e.g. `tupa_core::constraints::NonNan` -> `"NonNan"`.
+fn marker_ident(ty: &Type) -> Option<String> {
+    if let Type::Path(tp) = ty {
+        tp.path.segments.last().map(|s| s.ident.to_string())
+    } else {
+        None
+    }
+}
+
+/// Construct a `Safe<f64, Marker>`, proving built-in constraints at compile time
+/// for constant expressions and falling back to a runtime check otherwise.
+///
+/// ```ignore
+/// let a = safe!(NonNan, 1.0 + 2.0); // proven at compile time
+/// let b = safe!(NonNan, x);         // runtime-checked guard
+/// ```
+#[proc_macro]
+pub fn safe(input: TokenStream) -> TokenStream {
+    let SafeInput { marker, expr } = syn::parse_macro_input!(input as SafeInput);
+
+    if let Some(value) = fold_f64(&expr) {
+        // Constant expression: try to prove a built-in constraint at compile time.
+        let proven = match marker_ident(&marker).as_deref() {
+            Some("NonNan") => Some(!value.is_nan()),
+            Some("NonInf") => Some(!value.is_infinite()),
+            Some("Finite") => Some(value.is_finite()),
+            _ => None, // unknown marker: cannot reason at compile time
+        };
+        if proven == Some(false) {
+            let name = marker_ident(&marker).unwrap_or_default();
+            let msg = format!(
+                "E3002: cannot prove constraint `{}` — constant expression evaluates to {}",
+                name, value
+            );
+            return syn::Error::new_spanned(&expr, msg)
+                .to_compile_error()
+                .into();
+        }
+        quote! { tupa_core::Safe::<f64, #marker>::new_unchecked(#expr) }.into()
+    } else {
+        // Non-constant expression: fall back to a runtime guard.
+        quote! {
+            tupa_core::Safe::<f64, #marker>::try_new(#expr)
+                .expect(concat!("constraint violated at runtime: ", stringify!(#marker)))
+        }
+        .into()
+    }
 }
 
 #[cfg(test)]

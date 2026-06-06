@@ -48,9 +48,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.9.6] - 2026-06-06
 
+### Added (experimental)
+
+- `safe!(Marker, expr)` procedural macro: constant-folds `f64` expressions and proves built-in constraints (`NonNan`, `NonInf`, `Finite`) at compile time, emitting `E3002` for provable violations; falls back to a runtime guard for non-constant expressions.
+
 ### Changed
 
-- Version bump to 0.9.6. No functional changes; this release focuses on removing the legacy `.tp` toolchain artifacts from the repository.
+- Version bump to 0.9.6.
+
+> **Note:** `safe!` is an experimental proof of concept; its surface may change.
 
 ## [0.9.5] - 2026-05-16
 

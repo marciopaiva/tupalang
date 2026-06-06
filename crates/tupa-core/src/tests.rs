@@ -130,6 +130,50 @@ mod class1 {
 }
 
 // =============================================================================
+// Classe 1b — Constraints (Safe::try_new + safe! macro) — experimental
+// =============================================================================
+mod class_constraints {
+    use crate::constraints::{Finite, NonInf, NonNan};
+    use crate::{safe, Safe};
+
+    #[test]
+    fn safe_macro_proves_constant_expr() {
+        let s = safe!(NonNan, 1.0 + 2.0);
+        assert_eq!(s.get(), 3.0);
+    }
+
+    #[test]
+    fn safe_macro_runtime_ok() {
+        let x = "0.5".parse::<f64>().unwrap();
+        let s = safe!(NonNan, x);
+        assert_eq!(s.get(), 0.5);
+    }
+
+    #[test]
+    #[should_panic(expected = "constraint violated at runtime")]
+    fn safe_macro_runtime_violation_panics() {
+        let x = f64::NAN;
+        let _ = safe!(NonNan, x);
+    }
+
+    #[test]
+    fn try_new_enforces_constraint() {
+        assert!(Safe::<f64, NonNan>::try_new(1.0).is_ok());
+        assert!(Safe::<f64, NonNan>::try_new(f64::NAN).is_err());
+        assert!(Safe::<f64, Finite>::try_new(f64::INFINITY).is_err());
+        // NaN is not infinite, so it satisfies `!inf`.
+        assert!(Safe::<f64, NonInf>::try_new(f64::NAN).is_ok());
+    }
+
+    #[test]
+    fn constraint_error_reports_name() {
+        let err = Safe::<f64, NonNan>::try_new(f64::NAN).unwrap_err();
+        assert_eq!(err.constraint, "!nan");
+        assert!(err.to_string().contains("!nan"));
+    }
+}
+
+// =============================================================================
 // Classe 2 — Tensor<T>
 // =============================================================================
 mod class2 {
