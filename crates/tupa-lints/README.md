@@ -1,29 +1,34 @@
 # tupa-lints
 
-**Lint definitions for Tupã pipelines** — static analysis rules for pipeline quality.
+**Lint identifiers for Tupã pipelines** — named constants for pipeline-quality rules.
 
 ## Overview
 
-Provides lint constants that can be used with `#[deny]` / `#[warn]` attributes to enforce pipeline quality constraints.
+This crate exposes a small set of `&'static str` constants that name recommended
+pipeline-quality lints. They are stable string identifiers meant to be shared
+across Tupã tooling and reports.
+
+> **Note:** These are plain string constants, **not** `rustc`/Clippy lints. They
+> cannot be used with `#[deny(...)]` / `#[warn(...)]` attributes. Enforcement of
+> these rules against pipeline code is performed by external tooling, not by the
+> compiler.
 
 **Status:** Alpha (0.9.x). Part of the crate-first Tupã architecture.
 
 ## Usage
 
 ```rust
-#![deny(tupa_lints::PIPELINE_UNUSED_METRIC)]
-#![warn(tupa_lints::PIPELINE_TOO_LARGE)]
-
-use tupa_core::pipeline;
+// Reference the identifier when emitting or filtering diagnostics.
+assert_eq!(tupa_lints::PIPELINE_UNUSED_METRIC, "tupa_pipeline_unused_metric");
 ```
 
 ## Available Lints
 
-| Lint | Description |
-|---|---|
-| `PIPELINE_UNUSED_METRIC` | Warn when a produced metric is not consumed by any constraint |
-| `PIPELINE_TOO_LARGE` | Warn when pipeline exceeds 20 steps |
-| `CONSTRAINT_LITERAL` | Warn when constraint uses a literal value instead of named constant |
+| Constant | Identifier | Meaning |
+|---|---|---|
+| `PIPELINE_UNUSED_METRIC` | `tupa_pipeline_unused_metric` | A produced metric is not consumed by any constraint |
+| `PIPELINE_TOO_LARGE` | `tupa_pipeline_too_large` | Pipeline exceeds 20 steps (maintainability) |
+| `CONSTRAINT_LITERAL` | `tupa_constraint_literal` | Constraint uses a literal value instead of a named constant |
 
 ## License
 

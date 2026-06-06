@@ -89,14 +89,16 @@ pipeline! {
 async fn main() {
     let plan = ParallelPipeline::new();
     let executor = Executor::new();
-    let result = executor.run_parallel(&plan, &input).await?;
+    let input = Input { amount: 100.0, risk_score: 0.5 };
+    let result = executor.run_parallel(&plan, &input).await.expect("execution failed");
+    println!("Passed: {}", result.passed);
 }
 ```
 
 ## Annotation Syntax
 
-- `produces["metric1", "metric2"]` — metrics this step outputs
-- `requires["metricA", "metricB"]` — metrics this step needs
+- `produces ["metric1", "metric2"]` — metrics this step outputs
+- `requires ["metricA", "metricB"]` — metrics this step needs
 
 Steps without annotations are considered independent.
 

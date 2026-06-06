@@ -1,24 +1,17 @@
-//! Tupã lints — Clippy-like lint definitions for pipeline definitions.
+//! Tupã lints — named identifiers for pipeline-quality rules.
 //!
-//! This crate provides `#[must_use]` annotations and lint-like functions
-//! that can be called from `#[allow]` / `#[warn]` attributes via
-//! `#[deny]` at the crate root.
+//! This crate exposes `&'static str` constants that name recommended
+//! pipeline-quality lints. They are stable string identifiers shared across
+//! Tupã tooling and reports.
+//!
+//! These are plain string constants, **not** `rustc`/Clippy lints: they cannot
+//! be used with `#[deny(...)]` / `#[warn(...)]` attributes. Enforcement against
+//! pipeline code is performed by external tooling, not the compiler.
 //!
 //! ## Example
 //!
-//! ```rust,ignore
-//! #![deny(tupa_lints::pipeline_unused)]
-//!
-//! use tupa_core::pipeline;
-//!
-//! pipeline! {
-//!     name: MyPipeline,
-//!     input: MyInput,
-//!     steps: [
-//!         step("unused_step") { expensive_compute(input) }
-//!     ],
-//!     constraints: []
-//! }
+//! ```rust
+//! assert_eq!(tupa_lints::PIPELINE_UNUSED_METRIC, "tupa_pipeline_unused_metric");
 //! ```
 
 #![deny(missing_docs)]
