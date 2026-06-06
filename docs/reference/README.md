@@ -7,10 +7,10 @@
 These documents define the **language semantics** regardless of implementation technology. The crate implementation must behave according to these specs.
 
 - **[SPEC](spec.md)** — Full normative specification, including lexical structure, type system, semantics, EBNF grammar, and diagnostics. **This is the source of truth.**
-- **[Grammar (EBNF)](grammar.ebnf)** — Machine-readable grammar extracted from the SPEC (legacy `.tp` format). Still normative for `.tp` compatibility layer.
+- **[Grammar (EBNF)](grammar.ebnf)** — Machine-readable grammar extracted from the SPEC. Retained as a historical reference for the original `.tp` grammar.
 - **[Type Semantics](type_semantics.md)** — Concise formal summary of type rules, inference, subtyping, effects, and constraint resolution.
 
-**These files are frozen at v0.1** (Phase 0 deliverable). They serve as the oracle for the `tupa-conformance` test suite.
+**These files are frozen at v0.1** (Phase 0 deliverable) and remain the normative reference for the `pipeline!` DSL semantics.
 
 ---
 
@@ -20,13 +20,13 @@ The following crates constitute the **implementation** of the SPEC as a Rust lib
 
 | Crate | Docs | Description |
 |---|---|---|
-| [`tupa-core`](https://crates.io/crates/tupa-core) | [API docs](https://docs.rs/tupa-core) | DSL macros (`pipeline!`, `grad!`), types (`Safe<T>`, `Tensor`), traits |
+| [`tupa-core`](https://crates.io/crates/tupa-core) | [API docs](https://docs.rs/tupa-core) | DSL macro (`pipeline!`), types (`Safe<T, C>`, `Tensor<T>`), traits |
+| [`tupa-core-macros`](https://crates.io/crates/tupa-core-macros) | [API docs](https://docs.rs/tupa-core-macros) | Procedural macro implementation for `pipeline!` (internal) |
 | [`tupa-engine`](https://crates.io/crates/tupa-engine) | [API docs](https://docs.rs/tupa-engine) | Pipeline executor, constraint solver, channel scheduler |
-| [`tupa-runtime`](https://crates.io/crates/tupa-runtime) | [API docs](https://docs.rs/tupa-runtime) | Low-level runtime primitives (internal) |
-| [`tupa-audit`](https://crates.io/crates/tupa-audit) | [API docs](https://docs.rs/tupa-audit) | AST hashing, execution reproducibility |
 | [`tupa-plugin`](https://crates.io/crates/tupa-plugin) | [API docs](https://docs.rs/tupa-plugin) | Dynamic plugin loading for custom step functions |
-| [`tupa-fmt`](https://crates.io/crates/tupa-fmt) | [API docs](https://docs.rs/tupa-fmt) | Formatter for legacy `.tp` sources |
-| [`tupa-lint`](https://crates.io/crates/tupa-lint) | [API docs](https://docs.rs/tupa-lint) | Linter for policy code (unused vars, naming, constraints) |
+| [`tupa-pyffi`](https://crates.io/crates/tupa-pyffi) | [API docs](https://docs.rs/tupa-pyffi) | Python bindings (PyO3) — alpha |
+| [`tupa-lints`](https://crates.io/crates/tupa-lints) | [API docs](https://docs.rs/tupa-lints) | Lint identifier constants for pipeline quality |
+| [`cargo-tupa`](https://crates.io/crates/cargo-tupa) | [API docs](https://docs.rs/cargo-tupa) | Cargo subcommand: `check`, `run`, `fmt`, `lint`, `expand` |
 
 ---
 
@@ -129,9 +129,7 @@ See [Diagnostics Checklist](../reference/diagnostics_checklist.md) for full list
 
 ## Migration from `.tp`
 
-If you have existing `.tp` files, see [TRANSITION.md](../TRANSITION.md). The `tupa-cli` can still parse and check `.tp` files, but **no new features will target that format**.
-
-Recommended path: convert to Rust DSL using `tupa-migrate` (coming soon) or manual port (straightforward mapping).
+The standalone `.tp` toolchain (including `tupa-cli`) was **removed in 0.9.0**. Port existing `.tp` files manually to the Rust DSL (`pipeline!` macro); there is no automatic conversion tool. See the per-language transition guides under `docs/<lang>/TRANSITION.md`.
 
 ---
 

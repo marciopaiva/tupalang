@@ -1,72 +1,20 @@
-# Python FFI Contract (v0.8.2)
+# Python FFI
 
-## 1. Chamada Controlada
+> **Atualizado para 0.9.x.** O antigo contrato FFI `.tp` `v0.8.2` (com sintaxe
+> `@external(python=...)` e o design `tupa-parser` / `tupa-typecheck`) está
+> obsoleto. A integração com Python agora vive no crate **`tupa-pyffi`**.
 
-```tupa
-@external(python="torch.nn.Linear", effects=[ExternalCall("pytorch")])
-fn linear_layer(input: Tensor) -> Tensor {
-    // Corpo vazio — implementação delegada para Python
-}
-```text
+Chame funções Python a partir de um step via `tupa-pyffi`:
 
-### Schema Enforcement
+```rust
+use tupa_pyffi::call_python_function;
+use serde_json::json;
 
-- **Inputs Tupã** → serializados para Python via JSON/msgpack
-- **Outputs Python** → validados contra tipo Tupã antes de retorno
+let result = call_python_function("math", "sqrt", json!(16.0))?;
+assert_eq!(result, json!(4.0));
+```
 
-### Tipos suportados inicialmente
-
-- `i64`, `f64`, `bool`, `string`
-- `Tensor` (wrapper mínimo para ndarray/PyTorch tensor)
-- `Structs` simples (sem generics)
-
-### Efeitos Rastreados
-
-- Toda chamada Python recebe efeito `ExternalCall("lib_name")`
-- Propagado para análise de determinismo:
-
-```tupa
-pipeline SafeInference @deterministic {
-    steps: [
-        step("predict") { linear_layer(input) }  // ❌ Rejeitado: ExternalCall em @deterministic
-    ]
-}
-```text
-
-## 2. Estrutura de Crates
-
-```bash
-# Novo crate para FFI
-cargo new --lib crates/tupa-pyffi
-```text
-
-```toml
-# crates/tupa-pyffi/Cargo.toml
-[dependencies]
-pyo3 = { version = "0.21", features = ["extension-module"] }
-serde = "1.0"
-serde_json = "1.0"
-tupa-parser = { path = "../tupa-parser" } # Substitui tupa-ast
-tupa-typecheck = { path = "../tupa-typecheck" }
-```text
-
-## 3. Contrato de Build
-
-```toml
-# Cargo.toml (root)
-[workspace.metadata.tupa]
-python-min-version = "3.9"
-pytorch-min-version = "2.0"  # Documentado, não enforceado ainda
-```text
-
-## 4. Fluxo de Execução
-
-```mermaid
-graph TD
-    Tupa[Tupã Runtime] -->|Serialize Args| PyO3[PyO3 Bridge]
-    PyO3 -->|Call| Python[Python Interpreter]
-    Python -->|Return Value| PyO3
-    PyO3 -->|Validate Type| Validator[Schema Validator]
-    Validator -->|Ok| Tupa
-    Validator -->|Error| TupaError[Runtime Error]
-```text
+Requer os headers de desenvolvimento do Python instalados. Veja o
+[README do crate `tupa-pyffi`](https://docs.rs/tupa-pyffi) e
+[features/trading_support.md](../features/trading_support.md) para uso dentro de
+um pipeline.
