@@ -284,6 +284,34 @@ This document records relevant changes per version.
 - Basic closure support in codegen (without environment capture yet).
 - Golden test fixes for error cases (removed cargo messages).
 
+## 0.9.6 (2026-06-06)
+
+- Release theme: legacy `.tp` cleanup and coordinated version bump.
+
+### Delivered Scope
+
+- **Legacy `.tp` removal**: deleted all `.tp` example sources (~100 files) and their support assets (Python FFI helpers, JSON inputs, generator scripts) from `examples/`.
+- **Golden cleanup**: removed obsolete golden outputs in `examples/expected/` produced by the discontinued `.tp` CLI; kept only the Rust-DSL golden (`expand_simple_pipeline.txt`).
+- **Repository tidy-up**: removed stray legacy root artifacts (`update_golden.py`, `data.json`, `tx.json`, `my_test_plugin.rs`, `my_fixed_plugin.rs`, `integration_test.tupa`, `test_pipe.tupa`, `vipertrade_smoke.plan.json`, `test_find.md`).
+- **Examples reorganized**: `examples/` now contains Rust-DSL material only; updated `examples/README.md` and `examples/migration/README.md`; removed obsolete `pipeline/`, `production/`, and `playground/` subdirectories.
+- **Version bump**: all active crates bumped to 0.9.6 (no functional or API changes).
+
+### Engineering and CI Completed
+
+- Fixed `examples-golden.yml` workflow to diff freshly generated goldens against the committed ones (it previously compared the directory against itself, masking drift).
+- `cargo fmt`, `cargo clippy --workspace --all-targets`, `cargo test --workspace` all green.
+
+### Validation Snapshot (workspace)
+
+- Build: `cargo build --workspace` ok.
+- Tests: `cargo test --workspace` green (167 tests).
+- Smoke: `scripts/vipertrade-smoke.sh` ok.
+- Goldens: `scripts/update-goldens.sh` produces no diff against `examples/expected/`.
+
+### Technical Debt
+
+- Legacy `.tp`/`tupa-cli` references remain in some feature docs (`docs/*/features/trading_support.md`, `docs/{es,pt-br}/governance/audit_engine.md`); they describe the removed toolchain and should be rewritten to Rust DSL in a follow-up.
+
 ## 0.9.5 (2026-05-16)
 
 - Release theme: test coverage, Safe/Tensor operations, cargo-tupa paths, and tupa-pyffi stability.

@@ -46,6 +46,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed dev-dependencies on workspace crates to support locked publishing
 - Workspace simplification: legacy `.tp` crates removed from members
 
+## [0.9.6] - 2026-06-06
+
+### Changed
+
+- Version bump to 0.9.6. No functional changes; this release focuses on removing the legacy `.tp` toolchain artifacts from the repository.
+
 ## [0.9.5] - 2026-05-16
 
 ### Added

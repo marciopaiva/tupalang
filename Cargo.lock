@@ -125,7 +125,7 @@ checksum = "1e748733b7cbc798e1434b6ac524f0c1ff2ab456fe201501e6497c8417a4fc33"
 
 [[package]]
 name = "cargo-tupa"
-version = "0.9.5"
+version = "0.9.6"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -1139,7 +1139,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-core"
-version = "0.9.5"
+version = "0.9.6"
 dependencies = [
  "serde_json",
  "tokio",
@@ -1148,7 +1148,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-core-macros"
-version = "0.9.5"
+version = "0.9.6"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1160,7 +1160,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-engine"
-version = "0.9.5"
+version = "0.9.6"
 dependencies = [
  "criterion",
  "serde",
@@ -1172,11 +1172,11 @@ dependencies = [
 
 [[package]]
 name = "tupa-lints"
-version = "0.9.5"
+version = "0.9.6"
 
 [[package]]
 name = "tupa-plugin"
-version = "0.9.5"
+version = "0.9.6"
 dependencies = [
  "criterion",
  "libloading",
@@ -1190,7 +1190,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-pyffi"
-version = "0.9.5"
+version = "0.9.6"
 dependencies = [
  "once_cell",
  "pyo3",

@@ -54,6 +54,12 @@ All notable changes to `tupa-plugin` will be documented in this file.
 - Version bump to 0.9.3 with legacy-free workspace
 - Ready for publish with `tupa-core` 0.9.3 and `tupa-engine` 0.9.3
 
+## [0.9.6] - 2026-06-06
+
+### Changed
+
+- Version bump to 0.9.6. No functional changes; this release focuses on removing the legacy `.tp` toolchain artifacts from the repository.
+
 ## [0.9.5] - 2026-05-16
 
 ### Changed

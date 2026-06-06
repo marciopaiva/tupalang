@@ -44,6 +44,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Workspace cleanup: removed legacy `.tp` toolchain (lexer, parser, typecheck, codegen, runtime, effects) and dependent tooling.
 - Bump to 0.9.3 as part of Rust-DSL only release.
 
+## [0.9.6] - 2026-06-06
+
+### Changed
+
+- Version bump to 0.9.6. No functional changes; this release focuses on removing the legacy `.tp` toolchain artifacts from the repository.
+
 ## [0.9.5] - 2026-05-16
 
 ### Added

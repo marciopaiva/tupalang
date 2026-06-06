@@ -285,6 +285,34 @@ Registrar cambios relevantes por versión.
 - Soporte básico de closures en codegen (aún sin captura de entorno).
 - Correcciones de golden tests para casos de error (mensajes de cargo removidos).
 
+## 0.9.6 (2026-06-06)
+
+- Tema de la versión: limpieza del legado `.tp` y bump de versión coordinado.
+
+### Alcance Entregado
+
+- **Eliminación del legado `.tp`**: se borraron todos los fuentes de ejemplo `.tp` (~100 archivos) y sus recursos de soporte (helpers FFI de Python, entradas JSON, scripts generadores) de `examples/`.
+- **Limpieza de goldens**: se eliminaron las salidas golden obsoletas en `examples/expected/` generadas por el CLI `.tp` descontinuado; se conservó solo el golden de Rust-DSL (`expand_simple_pipeline.txt`).
+- **Orden del repositorio**: se eliminaron artefactos legacy sueltos de la raíz (`update_golden.py`, `data.json`, `tx.json`, `my_test_plugin.rs`, `my_fixed_plugin.rs`, `integration_test.tupa`, `test_pipe.tupa`, `vipertrade_smoke.plan.json`, `test_find.md`).
+- **Ejemplos reorganizados**: `examples/` ahora contiene solo material Rust-DSL; se actualizaron `examples/README.md` y `examples/migration/README.md`; se eliminaron los subdirectorios obsoletos `pipeline/`, `production/` y `playground/`.
+- **Bump de versión**: todos los crates activos a 0.9.6 (sin cambios funcionales ni de API).
+
+### Ingeniería y CI Completados
+
+- Se corrigió el workflow `examples-golden.yml` para comparar goldens recién generados contra los versionados (antes comparaba el directorio consigo mismo, ocultando desvíos).
+- `cargo fmt`, `cargo clippy --workspace --all-targets`, `cargo test --workspace` en verde.
+
+### Snapshot de Validación (workspace)
+
+- Build: `cargo build --workspace` ok.
+- Tests: `cargo test --workspace` en verde (167 tests).
+- Smoke: `scripts/vipertrade-smoke.sh` ok.
+- Goldens: `scripts/update-goldens.sh` no produce diff contra `examples/expected/`.
+
+### Deuda Técnica
+
+- Quedan referencias al legado `.tp`/`tupa-cli` en algunos docs de features (`docs/*/features/trading_support.md`, `docs/{es,pt-br}/governance/audit_engine.md`); describen el toolchain eliminado y deben reescribirse a Rust DSL en un seguimiento.
+
 ## 0.9.5 (2026-05-16)
 
 - Tema del release: cobertura de tests, operaciones Safe/Tensor, paths de cargo-tupa, y estabilidad de tupa-pyffi.
