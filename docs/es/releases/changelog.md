@@ -296,6 +296,8 @@ Registrar cambios relevantes por versión.
 - **Orden del repositorio**: se eliminaron artefactos legacy sueltos de la raíz (`update_golden.py`, `data.json`, `tx.json`, `my_test_plugin.rs`, `my_fixed_plugin.rs`, `integration_test.tupa`, `test_pipe.tupa`, `vipertrade_smoke.plan.json`, `test_find.md`).
 - **Ejemplos reorganizados**: `examples/` ahora contiene solo material Rust-DSL; se actualizaron `examples/README.md` y `examples/migration/README.md`; se eliminaron los subdirectorios obsoletos `pipeline/`, `production/` y `playground/`.
 - **Bump de versión**: todos los crates activos a 0.9.6 (sin cambios funcionales ni de API).
+- **Docs de features reescritos a Rust DSL**: `features/trading_support.md` (EN/ES/PT-BR) ahora refleja los crates actuales con un ejemplo ejecutable `pipeline!` + `Executor` y marca explícitamente las funciones del runtime 0.8.2 eliminadas (backtest, circuit breaker, hot reload, registro de esquemas); `governance/audit_engine.md` (ES/PT-BR) reemplazado por una nota de descontinuación que apunta a las métricas por paso de `tupa-engine`.
+- **READMEs de crates corregidos** para precisión en crates.io (desajustes de API en `tupa-core`, `tupa-pyffi`, `tupa-plugin`, `tupa-engine`; `tupa-lints` re-encuadrado como constantes string, no lints de rustc).
 
 ### Ingeniería y CI Completados
 
@@ -311,7 +313,7 @@ Registrar cambios relevantes por versión.
 
 ### Deuda Técnica
 
-- Quedan referencias al legado `.tp`/`tupa-cli` en algunos docs de features (`docs/*/features/trading_support.md`, `docs/{es,pt-br}/governance/audit_engine.md`); describen el toolchain eliminado y deben reescribirse a Rust DSL en un seguimiento.
+- Varios docs instructivos todavía invocan el removido `tupa-cli` (`reference/codegen.md`, `guides/testing.md`, `guides/tutorials.md`, `guides/faq.md`, `governance/issues_guide.md`, `guides/examples_guide.md`); deben migrarse a flujos `cargo-tupa` / Rust-DSL en un seguimiento. Las referencias históricas en `ARCHITECTURE.md`, `PROPOSAL.md`, `roadmap.md`, archivos y changelogs previos son intencionales y se dejan como están.
 
 ## 0.9.5 (2026-05-16)
 

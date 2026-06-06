@@ -1,75 +1,27 @@
-# Motor de Auditoria
+# Motor de Auditoria (descontinuado)
 
-## Propósito
+> **Removido na 0.9.0.** A auditoria por hash determinístico descrita aqui fazia
+> parte do toolchain `.tp` standalone (crates `tupa-audit` e `tupa-parser`),
+> removido na 0.9.0. A arquitetura atual baseada em crates **não** inclui esse
+> recurso de hash de execução.
 
-Descrever o hash de auditoria determinístico usado para gerar a impressão das execuções.
+## O que existia
 
-## Entradas
+O recurso gerava uma impressão SHA3-256 estável de uma execução combinando a AST
+normalizada, as entradas JSON canônicas e a versão do compilador (via
+`tupa-audit::hash_execution`). Como o compilador `.tp` foi removido, essa função
+e seus crates não existem mais no workspace.
 
-O hash de auditoria combina:
+## Mecanismo atual de observabilidade
 
-- AST normalizada (ordem estável de campos, sem spans)
-- Entradas JSON canônicas (chaves de objeto ordenadas)
-- String de versão do compilador
+Para rastrear execuções no Rust-DSL atual, use as métricas por passo do
+`tupa-engine`:
 
-## Saída
+- `PipelineResult::metrics` — um `Vec<StepMetrics>` com `step_id`, timestamps de
+  início/fim e duração de cada passo.
+- `PipelineResult::passed` — resultado agregado da avaliação de constraints.
 
-O hash de saída é uma string hex SHA3-256. O CLI retorna:
-
-- `hash`: hash da execução (AST + entradas + versão)
-- `ast_fingerprint`: hash apenas da AST (AST + versão)
-- `compiler_version`: versão do compilador usada no hash
-
-## Exemplo
-
-Fonte:
-
-```tupa
-fn main() {
-  let x = 1;
-  print(x);
-}
-```text
-
-Entradas:
-
-```json
-[
-  1,
-  "ok",
-  {
-    "b": 2,
-    "a": 1
-  }
-]
-```text
-
-CLI:
-
-```bash
-cargo run -p tupa-cli -- audit examples/audit_hello.tp --input examples/audit_inputs.json
-cargo run -p tupa-cli -- audit --format json examples/audit_hello.tp --input examples/audit_inputs.json
-```text
-
-Critérios de aceitação:
-
-```bash
-tupa audit examples/pipeline.tp --input=data.json
-```text
-
-## API de biblioteca
-
-```rust
-use serde_json::Value;
-use tupa_audit::hash_execution;
-use tupa_parser::parse_program;
-
-let program = parse_program("fn main() { let x = 1; }").unwrap();
-let inputs = vec![Value::from(1)];
-let hash = hash_execution(&program, &inputs);
-println!("{hash}");
-```text
-
-## Determinismo
-
-Dada a mesma fonte, versão do compilador e entradas, o hash é estável entre máquinas.
+Para reprodutibilidade ou integridade no estilo de auditoria, faça o hashing no
+nível da sua aplicação sobre a entrada serializada e os valores resultantes
+(`PipelineResult::values`). Veja também o [TRANSITION.md](../TRANSITION.md) para a
+migração do fluxo `.tp` legado.

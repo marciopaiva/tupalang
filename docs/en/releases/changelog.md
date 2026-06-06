@@ -295,6 +295,8 @@ This document records relevant changes per version.
 - **Repository tidy-up**: removed stray legacy root artifacts (`update_golden.py`, `data.json`, `tx.json`, `my_test_plugin.rs`, `my_fixed_plugin.rs`, `integration_test.tupa`, `test_pipe.tupa`, `vipertrade_smoke.plan.json`, `test_find.md`).
 - **Examples reorganized**: `examples/` now contains Rust-DSL material only; updated `examples/README.md` and `examples/migration/README.md`; removed obsolete `pipeline/`, `production/`, and `playground/` subdirectories.
 - **Version bump**: all active crates bumped to 0.9.6 (no functional or API changes).
+- **Feature docs rewritten to Rust DSL**: `features/trading_support.md` (EN/ES/PT-BR) now reflects the current crates with a runnable `pipeline!` + `Executor` example and explicitly marks the removed 0.8.2 runtime features (backtest, circuit breaker, hot reload, schema registry); `governance/audit_engine.md` (ES/PT-BR) replaced with a discontinuation note pointing to `tupa-engine` step metrics.
+- **Crate READMEs corrected** for crates.io accuracy (API mismatches in `tupa-core`, `tupa-pyffi`, `tupa-plugin`, `tupa-engine`; `tupa-lints` reframed as string constants, not rustc lints).
 
 ### Engineering and CI Completed
 
@@ -310,7 +312,7 @@ This document records relevant changes per version.
 
 ### Technical Debt
 
-- Legacy `.tp`/`tupa-cli` references remain in some feature docs (`docs/*/features/trading_support.md`, `docs/{es,pt-br}/governance/audit_engine.md`); they describe the removed toolchain and should be rewritten to Rust DSL in a follow-up.
+- Several instructional docs still invoke the removed `tupa-cli` (`reference/codegen.md`, `guides/testing.md`, `guides/tutorials.md`, `guides/faq.md`, `governance/issues_guide.md`, `guides/examples_guide.md`); these should be migrated to `cargo-tupa` / Rust-DSL workflows in a follow-up. Historical references in `ARCHITECTURE.md`, `PROPOSAL.md`, `roadmap.md`, archives, and prior changelog entries are intentional and left as-is.
 
 ## 0.9.5 (2026-05-16)
 

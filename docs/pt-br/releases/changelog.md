@@ -296,6 +296,8 @@ Registrar mudanças relevantes por versão.
 - **Organização do repositório**: removidos artefatos legados soltos da raiz (`update_golden.py`, `data.json`, `tx.json`, `my_test_plugin.rs`, `my_fixed_plugin.rs`, `integration_test.tupa`, `test_pipe.tupa`, `vipertrade_smoke.plan.json`, `test_find.md`).
 - **Exemplos reorganizados**: `examples/` agora contém apenas material Rust-DSL; atualizados `examples/README.md` e `examples/migration/README.md`; removidos os subdiretórios obsoletos `pipeline/`, `production/` e `playground/`.
 - **Bump de versão**: todos os crates ativos para 0.9.6 (sem mudanças funcionais ou de API).
+- **Docs de features reescritos para Rust DSL**: `features/trading_support.md` (EN/ES/PT-BR) agora reflete os crates atuais com um exemplo executável `pipeline!` + `Executor` e marca explicitamente as funcionalidades do runtime 0.8.2 removidas (backtest, circuit breaker, hot reload, registro de schemas); `governance/audit_engine.md` (ES/PT-BR) substituído por nota de descontinuação apontando para as métricas por passo do `tupa-engine`.
+- **READMEs de crates corrigidos** para precisão no crates.io (divergências de API em `tupa-core`, `tupa-pyffi`, `tupa-plugin`, `tupa-engine`; `tupa-lints` reposicionado como constantes string, não lints do rustc).
 
 ### Engenharia e CI Entregues
 
@@ -311,7 +313,7 @@ Registrar mudanças relevantes por versão.
 
 ### Débito Técnico
 
-- Restam referências ao legado `.tp`/`tupa-cli` em alguns docs de features (`docs/*/features/trading_support.md`, `docs/{es,pt-br}/governance/audit_engine.md`); descrevem o toolchain removido e devem ser reescritos para Rust DSL em um follow-up.
+- Vários docs instrucionais ainda invocam o removido `tupa-cli` (`reference/codegen.md`, `guides/testing.md`, `guides/tutorials.md`, `guides/faq.md`, `governance/issues_guide.md`, `guides/examples_guide.md`); devem ser migrados para fluxos `cargo-tupa` / Rust-DSL em um follow-up. Referências históricas em `ARCHITECTURE.md`, `PROPOSAL.md`, `roadmap.md`, arquivos e changelogs anteriores são intencionais e mantidas como estão.
 
 ## 0.9.5 (2026-05-16)
 

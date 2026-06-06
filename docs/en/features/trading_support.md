@@ -1,161 +1,138 @@
-# Trading Bot Support in Tupã
+# Trading Support in Tupã
 
-This document details the features implemented in the Tupã Runtime for the `0.8.2` line, specifically to support algorithmic trading applications like `ViperTrade`.
+This document describes how Tupã's current crate-based architecture (0.9.x)
+supports algorithmic trading policy use cases such as
+[ViperTrade](https://github.com/marciopaiva/vipertrade).
 
-See also the `0.8.1` strategy-modeling RFC:
+> **History:** Earlier 0.8.x releases shipped a standalone `.tp` runtime with a
+> built-in backtesting engine, circuit breaker, hot reload, and schema registry
+> (the `tupa-runtime` / `tupa-codegen` crates). That standalone toolchain was
+> removed in 0.9.0. The patterns below reflect what the current Rust-DSL crates
+> (`tupa-core`, `tupa-engine`, `tupa-pyffi`, `tupa-plugin`) actually provide;
+> removed features are called out explicitly under
+> [Discontinued 0.8.2 runtime features](#discontinued-082-runtime-features).
 
-- [RFC: v0.8.1 Trading Strategy Support](../releases/rfc_v0.8.1_trading_strategy_support.md)
+## Modeling a strategy as a typed pipeline
 
-## Overview
-
-The Tupã language and runtime have been enhanced to support critical financial operations, ensuring safety, resilience, and auditability.
-
-## Key Features
-
-### 1. Backtesting Engine
-
-The `run_backtest` function provides a built-in simulation environment for trading strategies.
-
-- **Purpose**: Validate strategy logic against historical data before live deployment.
-- **Mechanism**:
-  - Iterates through a dataset of historical candles/ticks.
-  - Executes the pipeline for each time step.
-  - Evaluates risk constraints (e.g., `MaxDrawdown`, `PositionSize`).
-  - Tracks Portfolio PnL (Profit and Loss) based on `BUY`/`SELL` signals and `close` prices.
-- **Audit**: Every trade and blocked action is logged with a structured audit trail.
-
-### 2. Circuit Breaker
-
-A resilience pattern to prevent cascading failures during market volatility or API outages.
-
-- **Configuration**:
-  - `failure_threshold`: Number of consecutive errors allowed (e.g., 3).
-  - `reset_timeout`: Time to wait before testing the connection again (e.g., 30s).
-- **Behavior**:
-  - **Closed**: Normal operation.
-  - **Open**: Blocks execution immediately when threshold is reached.
-  - **Half-Open**: Allows a single test request to check for recovery.
-
-### 3. Python AI Integration (`tupa-pyffi`)
-
-Seamless integration with Python-based ML models (PyTorch/TensorFlow) for signal generation.
-
-- **Syntax**: Steps defined as `py:module.func` (e.g., `py:viper_model.predict`).
-- **Safety**: Inputs and outputs are validated against strict schemas (e.g., Tensor shapes `[1, 60, 4]`).
-- **Performance**: Zero-copy (where possible) data transfer via FFI.
-
-### 4. Structured Audit Logging
-
-Compliance-ready logging using the `tracing` crate.
-
-- **Format**: JSON-structured logs.
-- **Events**:
-  - `pipeline_start` / `pipeline_complete`
-  - `trade_executed` (with price, type, and index)
-  - `trade_blocked_by_risk` (when constraints fail)
-  - `circuit_breaker_tripped`
-
-### 5. Typed host-provided config via structured input
-
-Tupã already supports a practical config-binding pattern for production strategy systems:
-
-- declare pipeline input as a nested record
-- pass market data and config in the same typed input object
-- use ordinary field access inside policy functions
-
-This is already enough for many strategy cases such as:
-
-- per-symbol thresholds
-- mode/profile overlays
-- trailing parameters
-- confirmation thresholds
-
-Example shape:
-
-```text
-input: {
-  symbol: string,
-  signal: { spread_pct: f64, trend_score: f64 },
-  config: {
-    entry: {
-      max_spread_pct: f64,
-      min_trend_score_long: f64
-    }
-  }
-}
-```text
-
-See:
-
-- `examples/pipeline/config_driven_strategy.tp`
-- `examples/pipeline/config_driven_strategy.json`
-
-### 6. Declarative temporal policy via host-provided state
-
-Tupã can already model a first slice of temporal strategy policy without moving host state into the
-language runtime:
-
-- the host keeps counters and timers
-- the pipeline receives that temporal state as structured input
-- built-ins express the policy result shape for confirmation and cooldown decisions
-
-Current built-ins:
-
-- `confirm(observed, consecutive_hits, required_hits, reason)`
-- `cooldown(active, remaining_ticks, reason)`
-
-These are designed for cases such as:
-
-- signal confirmation after `N` consecutive observations
-- stop-loss cooldown gates
-- thesis persistence thresholds driven by host-maintained counters
-
-Example shape:
-
-```text
-input: {
-  temporal: {
-    signal_confirmation: {
-      observed: bool,
-      consecutive_hits: i64,
-      required_hits: i64
-    },
-    cooldown_guard: {
-      active: bool,
-      remaining_seconds: i64
-    },
-    thesis_confirmation: {
-      observed: bool,
-      consecutive_hits: i64,
-      required_hits: i64
-    }
-  }
-}
-```text
-
-See:
-
-- `examples/pipeline/temporal_policy.tp`
-- `examples/pipeline/temporal_policy.json`
-
-## Usage Example
+Express a trading policy as a `pipeline!` over a typed input. Market data and
+configuration travel together in one nested input struct, and policy steps use
+ordinary Rust field access.
 
 ```rust
-// Configuring the runtime for a trading bot
-let runtime = Runtime::new();
-runtime.configure_circuit_breaker(3, Duration::from_secs(10));
+use tupa_core::pipeline;
+use tupa_engine::Executor;
+use serde::Serialize;
 
-// Running a backtest
-let result = runtime.run_backtest(&plan, historical_data).await?;
-println!("Final PnL: {}", result["final_pnl"]);
-```text
+#[derive(Debug, Clone, Serialize)]
+struct Entry { max_spread_pct: f64, min_trend_score_long: f64 }
+#[derive(Debug, Clone, Serialize)]
+struct Config { entry: Entry }
+#[derive(Debug, Clone, Serialize)]
+struct Signal { spread_pct: f64, trend_score: f64 }
+#[derive(Debug, Clone, Serialize)]
+struct StrategyInput { symbol: String, signal: Signal, config: Config }
 
-## v0.8.2 Additions
+fn long_ok(i: &StrategyInput) -> f64 {
+    let within_spread = i.signal.spread_pct <= i.config.entry.max_spread_pct;
+    let trend_ok = i.signal.trend_score >= i.config.entry.min_trend_score_long;
+    if within_spread && trend_ok { 1.0 } else { 0.0 }
+}
 
-- **Built-in Functions**: `tupa::weighted`, `tupa::warn`, `tupa::pass`, `tupa::confirm`, `tupa::cooldown` provide structured decision outputs and temporal policy primitives.
-- **Extension API**: `TupaExtension` trait allows projects to register custom step helpers directly in Rust (`ViperExtensions` in ViperTrade).
-- **Plugin System**: `tupa-plugin` crate loads step functions from shared libraries, enabling dynamic extension without recompiling the pipeline.
-- **Schema Registry**: Versioned schemas in `tupa-codegen` support migrations and deprecation warnings for evolving input/output contracts.
-- **Hot Reload**: `Runtime::watch_and_reload()` observes `.tp` file changes and reloads pipelines on the fly (feature flag `hot-reload`).
+pipeline! {
+    name: EntryPolicy,
+    input: StrategyInput,
+    steps: [
+        step("long_ok") { long_ok(input) }
+    ],
+    constraints: [
+        metric("long_ok").ge(0.0)
+    ]
+}
 
-These enhancements collectively improve Tupã's ergonomics for production trading systems, enabling clearer policy expression, better modularization, and faster iteration.
+fn main() {
+    let plan = EntryPolicy::new();
+    let engine = Executor::new();
+    let input = StrategyInput {
+        symbol: "BTCUSDT".into(),
+        signal: Signal { spread_pct: 0.04, trend_score: 0.8 },
+        config: Config { entry: Entry { max_spread_pct: 0.10, min_trend_score_long: 0.5 } },
+    };
+    let result = engine.run(&plan, &input).expect("run failed");
+    println!("passed={} long_ok={}", result.passed, result.values["long_ok"]);
+}
+```
+
+This typed-config pattern covers many strategy cases — per-symbol thresholds,
+mode/profile overlays, trailing parameters, confirmation thresholds — all as
+fields on the input.
+
+## Risk constraints
+
+Risk limits are expressed as `constraints` on metrics produced by steps. The
+executor evaluates them and reports the outcome in `PipelineResult::passed`. For
+example, cap a computed position-size or drawdown metric:
+
+```rust
+constraints: [
+    metric("position_size").le(1_000_000.0),
+    metric("max_drawdown_bps").le(1500.0)
+]
+```
+
+## Temporal policy via host-provided state
+
+Tupã keeps host state (counters, timers) outside the language: the host
+maintains them and passes the current temporal state as part of the typed input.
+Steps then express confirmation / cooldown decisions with ordinary Rust logic.
+
+```rust
+use serde::Serialize;
+
+#[derive(Debug, Clone, Serialize)]
+struct Confirmation { observed: bool, consecutive_hits: i64, required_hits: i64 }
+#[derive(Debug, Clone, Serialize)]
+struct Cooldown { active: bool, remaining_seconds: i64 }
+#[derive(Debug, Clone, Serialize)]
+struct Temporal { signal_confirmation: Confirmation, cooldown_guard: Cooldown }
+```
+
+These cover signal confirmation after *N* consecutive observations, stop-loss
+cooldown gates, and thesis-persistence thresholds driven by host-maintained
+counters. (The 0.8.x `confirm(...)` / `cooldown(...)` built-ins were part of the
+removed `.tp` runtime; express the same logic directly in Rust step functions.)
+
+## Python / AI model integration (`tupa-pyffi`)
+
+Call Python models (PyTorch / TensorFlow / NumPy) from a step via `tupa-pyffi`:
+
+```rust
+use tupa_pyffi::call_python_function;
+use serde_json::json;
+
+fn predict(input: &StrategyInput) -> Result<serde_json::Value, String> {
+    call_python_function("viper_model", "predict", json!({ "symbol": input.symbol }))
+}
+```
+
+> The old `py:module.func` step syntax was a `.tp` feature; in the Rust DSL you
+> call `tupa-pyffi` functions directly from a step body.
+
+## Dynamic extension via plugins (`tupa-plugin`)
+
+Step functions can be loaded from shared libraries at runtime using `tupa-plugin`
+(`PluginManager`), enabling extension without recompiling the host. See the
+`tupa-plugin` crate README for the plugin ABI and a complete example.
+
+## Discontinued 0.8.2 runtime features
+
+The following were part of the standalone `.tp` runtime removed in 0.9.0 and are
+**not** available in the current crates:
+
+- Built-in backtesting engine (`run_backtest`)
+- Circuit breaker (`configure_circuit_breaker`)
+- Hot reload (`Runtime::watch_and_reload`)
+- Schema registry / migrations (`tupa-codegen`)
+- `tupa::*` built-ins and the `py:` step syntax
+
+For execution observability today, use the executor's per-step metrics
+(`PipelineResult::metrics`) plus your application's own logging.
