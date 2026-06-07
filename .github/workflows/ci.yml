@@ -10,6 +10,9 @@ on:
       - ".markdownlintignore"
       - "docs/**"
   pull_request:
+    # Include `edited` so PR title/body fixes re-run pr-title-convention
+    # (default types are opened/synchronize/reopened only).
+    types: [opened, synchronize, reopened, edited]
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
