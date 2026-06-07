@@ -130,7 +130,7 @@ fn bench_metrics_collection(c: &mut Criterion) {
 }
 
 fn bench_executor_new(c: &mut Criterion) {
-    c.bench_function("executor::new", |b| b.iter(|| Executor::new()));
+    c.bench_function("executor::new", |b| b.iter(Executor::new));
 }
 
 criterion_group!(
