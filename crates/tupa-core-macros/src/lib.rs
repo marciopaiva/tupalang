@@ -853,6 +853,15 @@ fn marker_ident(ty: &Type) -> Option<String> {
 pub fn safe(input: TokenStream) -> TokenStream {
     let SafeInput { marker, expr } = syn::parse_macro_input!(input as SafeInput);
 
+    // Runtime guard: enforce the constraint via `try_new` at runtime.
+    let runtime_guard = || -> TokenStream {
+        quote! {
+            tupa_core::Safe::<f64, #marker>::try_new(#expr)
+                .expect(concat!("constraint violated at runtime: ", stringify!(#marker)))
+        }
+        .into()
+    };
+
     if let Some(value) = fold_f64(&expr) {
         // Constant expression: try to prove a built-in constraint at compile time.
         let proven = match marker_ident(&marker).as_deref() {
@@ -861,24 +870,27 @@ pub fn safe(input: TokenStream) -> TokenStream {
             Some("Finite") => Some(value.is_finite()),
             _ => None, // unknown marker: cannot reason at compile time
         };
-        if proven == Some(false) {
-            let name = marker_ident(&marker).unwrap_or_default();
-            let msg = format!(
-                "E3002: cannot prove constraint `{}` — constant expression evaluates to {}",
-                name, value
-            );
-            return syn::Error::new_spanned(&expr, msg)
-                .to_compile_error()
-                .into();
+        match proven {
+            // Proven true at compile time: safe to skip the runtime check.
+            Some(true) => quote! { tupa_core::Safe::<f64, #marker>::new_unchecked(#expr) }.into(),
+            // Proven false at compile time: reject with a compile error.
+            Some(false) => {
+                let name = marker_ident(&marker).unwrap_or_default();
+                let msg = format!(
+                    "E3002: cannot prove constraint `{}` — constant expression evaluates to {}",
+                    name, value
+                );
+                syn::Error::new_spanned(&expr, msg)
+                    .to_compile_error()
+                    .into()
+            }
+            // Unknown marker (e.g. user-defined): cannot prove at compile time,
+            // so fall back to the runtime guard rather than bypassing the check.
+            None => runtime_guard(),
         }
-        quote! { tupa_core::Safe::<f64, #marker>::new_unchecked(#expr) }.into()
     } else {
         // Non-constant expression: fall back to a runtime guard.
-        quote! {
-            tupa_core::Safe::<f64, #marker>::try_new(#expr)
-                .expect(concat!("constraint violated at runtime: ", stringify!(#marker)))
-        }
-        .into()
+        runtime_guard()
     }
 }
 

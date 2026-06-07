@@ -156,6 +156,31 @@ mod class_constraints {
         let _ = safe!(NonNan, x);
     }
 
+    // User-defined marker the macro cannot reason about at compile time.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+    struct Positive;
+    impl crate::Constraint<f64> for Positive {
+        const NAME: &'static str = "positive";
+        fn satisfied(value: &f64) -> bool {
+            *value > 0.0
+        }
+    }
+
+    // Regression: a constant with an unknown (user-defined) marker must fall
+    // back to the runtime guard, not silently construct via `new_unchecked`.
+    // Previously `safe!(Positive, -1.0)` bypassed the constraint entirely.
+    #[test]
+    #[should_panic(expected = "constraint violated at runtime")]
+    fn safe_macro_unknown_marker_constant_violation_panics() {
+        let _ = safe!(Positive, -1.0);
+    }
+
+    #[test]
+    fn safe_macro_unknown_marker_constant_ok() {
+        let s = safe!(Positive, 1.0 + 1.0);
+        assert_eq!(s.get(), 2.0);
+    }
+
     #[test]
     fn try_new_enforces_constraint() {
         assert!(Safe::<f64, NonNan>::try_new(1.0).is_ok());
