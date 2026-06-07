@@ -4,6 +4,10 @@
 /.vscode
 .wiki-tmp/
 
+# Cargo build output and generated metrics from cargo-tupa test fixtures
+crates/cargo-tupa/tests/fixtures/pipeline/target/
+crates/cargo-tupa/tests/fixtures/metrics.json
+
 # Generated plans and LLVM outputs
 *.plan.json
 *.ll
