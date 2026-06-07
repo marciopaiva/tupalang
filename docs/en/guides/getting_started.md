@@ -32,8 +32,8 @@ Edit `Cargo.toml`:
 
 ```toml
 [dependencies]
-tupa-core = "0.9"      # DSL macros and types
-tupa-engine = "0.9"    # Pipeline executor
+tupa-core = "0.10"      # DSL macros and types
+tupa-engine = "0.10"    # Pipeline executor
 ```text
 
 Check crates.io for latest version: [crates.io/crates/tupa-core](https://crates.io/crates/tupa-core)
@@ -341,7 +341,7 @@ cargo tupa lint
 
 | Symptom | Fix |
 |---|---|
-| `cannot find macro 'pipeline'` | Ensure `tupa-core = "0.9"` in `Cargo.toml` and `use tupa_core::pipeline;` |
+| `cannot find macro 'pipeline'` | Ensure `tupa-core = "0.10"` in `Cargo.toml` and `use tupa_core::pipeline;` |
 | "constraint cannot be proven" | Adjust metric value or expression to be constant-foldable |
 | Engine hangs | Check for infinite loops in step functions or missing `await` on async steps |
 

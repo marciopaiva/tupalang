@@ -156,14 +156,14 @@ Agregar las dependencias:
 
 ```toml
 [dependencies]
-tupa-core = "0.9"
-tupa-engine = "0.9"
+tupa-core = "0.10"
+tupa-engine = "0.10"
 ```
 
 Si usó plugins en `.tp`, agregue:
 
 ```toml
-tupa-plugin = "0.9"
+tupa-plugin = "0.10"
 ```
 
 ### 6. Crear el binario principal (si aún no existe)
@@ -247,7 +247,7 @@ rm strategies/risk_limits.tp
 
 ```toml
 [dependencies]
-tupa-core = "0.9"
+tupa-core = "0.10"
 ```
 
 ```rust

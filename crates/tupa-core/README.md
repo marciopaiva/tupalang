@@ -11,13 +11,13 @@ This crate provides the main user-facing API for writing Tupã policies in Rust:
 - Trait: `Pipeline`
 - Constraint builder: constraint DSL in pipeline definitions
 
-**Status:** Alpha (0.9.x). API may change before 1.0.
+**Status:** Alpha (0.10.x). API may change before 1.0.
 
 ## Installation
 
 ```toml
 [dependencies]
-tupa-core = "0.9"
+tupa-core = "0.10"
 ```
 
 ## Quick Example

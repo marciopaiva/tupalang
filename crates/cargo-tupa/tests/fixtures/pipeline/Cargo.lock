@@ -271,7 +271,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-core"
-version = "0.9.6"
+version = "0.10.0"
 dependencies = [
  "serde_json",
  "tupa-core-macros",
@@ -279,7 +279,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-core-macros"
-version = "0.9.6"
+version = "0.10.0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -289,7 +289,7 @@ dependencies = [
 
 [[package]]
 name = "tupa-engine"
-version = "0.9.6"
+version = "0.10.0"
 dependencies = [
  "serde",
  "serde_json",

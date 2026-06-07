@@ -1,6 +1,6 @@
 [package]
 name = "tupa-core-macros"
-version = "0.9.6"
+version = "0.10.0"
 edition = "2021"
 description = "Tupã DSL procedural macro (pipeline!)"
 license = "Apache-2.0"

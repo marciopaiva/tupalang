@@ -284,9 +284,9 @@ This document records relevant changes per version.
 - Basic closure support in codegen (without environment capture yet).
 - Golden test fixes for error cases (removed cargo messages).
 
-## 0.9.6 (2026-06-06)
+## 0.10.0 (2026-06-06)
 
-- Release theme: legacy `.tp` cleanup and coordinated version bump.
+- Release theme: legacy `.tp` cleanup, crate-distribution reframing, and an experimental type-level constraints API.
 
 ### Delivered Scope
 
@@ -294,7 +294,7 @@ This document records relevant changes per version.
 - **Golden cleanup**: removed obsolete golden outputs in `examples/expected/` produced by the discontinued `.tp` CLI; kept only the Rust-DSL golden (`expand_simple_pipeline.txt`).
 - **Repository tidy-up**: removed stray legacy root artifacts (`update_golden.py`, `data.json`, `tx.json`, `my_test_plugin.rs`, `my_fixed_plugin.rs`, `integration_test.tupa`, `test_pipe.tupa`, `vipertrade_smoke.plan.json`, `test_find.md`).
 - **Examples reorganized**: `examples/` now contains Rust-DSL material only; updated `examples/README.md` and `examples/migration/README.md`; removed obsolete `pipeline/`, `production/`, and `playground/` subdirectories.
-- **Version bump**: all active crates bumped to 0.9.6 (no functional or API changes).
+- **Version bump**: all active crates bumped to 0.10.0 (minor release — repository cleanup plus the experimental constraints API below).
 - **Feature docs rewritten to Rust DSL**: `features/trading_support.md` (EN/ES/PT-BR) now reflects the current crates with a runnable `pipeline!` + `Executor` example and explicitly marks the removed 0.8.2 runtime features (backtest, circuit breaker, hot reload, schema registry); `governance/audit_engine.md` (ES/PT-BR) replaced with a discontinuation note pointing to `tupa-engine` step metrics.
 - **Crate READMEs corrected** for crates.io accuracy (API mismatches in `tupa-core`, `tupa-pyffi`, `tupa-plugin`, `tupa-engine`; `tupa-lints` reframed as string constants, not rustc lints).
 - **Experimental — type-level constraints (PoC)**: real `Safe<T, C>` enforcement via `Constraint`/`ConstraintError`, built-in markers (`tupa_core::constraints::{NonNan, NonInf, Finite}`), `Safe::try_new`/`new_unchecked`, and a `safe!` macro that proves `!nan`/`!inf` on constant `f64` expressions at compile time (runtime guard otherwise). Unstable surface — first step of the spec→crates roadmap.

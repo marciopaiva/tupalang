@@ -19,8 +19,8 @@ adicione os crates ao seu `Cargo.toml` e escreva pipelines tipados com a macro
 
 ```toml
 [dependencies]
-tupa-core = "0.9"
-tupa-engine = "0.9"
+tupa-core = "0.10"
+tupa-engine = "0.10"
 ```
 
 ```rust

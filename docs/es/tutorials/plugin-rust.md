@@ -28,7 +28,7 @@ name = "mi_plugin_tupa"
 crate-type = ["cdylib"]
 
 [dependencies]
-tupa-plugin = "0.9"
+tupa-plugin = "0.10"
 serde_json = "1.0"
 ```
 

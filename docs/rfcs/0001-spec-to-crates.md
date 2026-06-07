@@ -19,7 +19,7 @@ positioning*:
 3. **Retire the compiler-machinery parts of the spec** (lexer, EBNF, expression
    grammar, standalone codegen/FFI), which Rust already provides.
 
-Phase 0 of (2) has shipped as an experimental proof of concept in 0.9.6: real
+Phase 0 of (2) has shipped as an experimental proof of concept in 0.10.0: real
 `Safe<T, C>` constraints and a `safe!` macro (see `tupa-core`).
 
 ## Motivation
@@ -47,7 +47,7 @@ keeping and is expressible in idiomatic Rust.
 
 Concretely, prefer "package / crate suite / DSL (embedded in Rust)" over
 "language" in: `README.md`, `docs/*/index.md`, `spec.md` §1, and crate
-descriptions. (Most of this framing already landed in 0.9.6; this RFC records the
+descriptions. (Most of this framing already landed in 0.10.0; this RFC records the
 intent so it stays consistent.)
 
 ## What to salvage vs. retire
@@ -67,7 +67,7 @@ intent so it stays consistent.)
 
 ## Roadmap
 
-### Phase 0 — Alignment types PoC ✅ (0.9.6, experimental)
+### Phase 0 — Alignment types PoC ✅ (0.10.0, experimental)
 
 - `Constraint<T>` + `ConstraintError`; markers `NonNan`/`NonInf`/`Finite`.
 - `Safe::try_new` / `Safe::new_unchecked`.
@@ -112,9 +112,9 @@ intent so it stays consistent.)
 ## Versioning
 
 The Phase 0 additions are additive and backward-compatible but introduce new
-public API. Recommendation: cut them as **0.10.0** (a feature minor) rather than
-fold them into the 0.9.6 cleanup release, and mark the constraint API
-`#[doc(hidden)]`/"experimental" until Phase 1 stabilizes it.
+public API. They ship in **0.10.0** (a feature minor over 0.9.5), together with
+the repository cleanup and crate-distribution reframing. The constraint API is
+marked experimental until Phase 1 stabilizes it.
 
 ## Open questions
 

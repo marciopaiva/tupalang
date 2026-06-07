@@ -6,13 +6,13 @@
 
 Enables pipeline steps to call functions implemented in dynamically loaded shared libraries (`.so`, `.dll`, `.dylib`). Plugin functions follow the C ABI and can be written in any language that can export C symbols.
 
-**Status:** Alpha (0.9.x). API subject to change before 1.0.
+**Status:** Alpha (0.10.x). API subject to change before 1.0.
 
 ## Installation
 
 ```toml
 [dependencies]
-tupa-plugin = "0.9"
+tupa-plugin = "0.10"
 ```
 
 ## Quick Example

@@ -11,7 +11,7 @@
 
 <p align="center">
   <a href="https://github.com/marciopaiva/tupalang/actions"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/marciopaiva/tupalang/ci.yml?branch=main&label=CI" /></a>
-    <a href="docs/en/releases/changelog.md"><img alt="Version" src="https://img.shields.io/badge/version-0.9.6-blue.svg" /></a>
+    <a href="docs/en/releases/changelog.md"><img alt="Version" src="https://img.shields.io/badge/version-0.10.0-blue.svg" /></a>
   <a href="https://crates.io/crates/tupa-core"><img alt="Crates.io" src="https://img.shields.io/crates/v/tupa-core?color=orange" /></a>
   <a href="https://rust-lang.org"><img alt="Rust" src="https://img.shields.io/badge/Rust-1.83-black?logo=rust" /></a>
   <a href="https://github.com/marciopaiva/vipertrade"><img alt="Applied In ViperTrade" src="https://img.shields.io/badge/Applied%20In-ViperTrade-0f766e" /></a>
@@ -94,7 +94,7 @@ fn main() {
 
 ## Crates Overview
 
-Tupã is distributed as a set of Rust crates. All crates are currently **0.9.x (Alpha)**.
+Tupã is distributed as a set of Rust crates. All crates are currently **0.10.x (Alpha)**.
 
 | Crate | Purpose |
 |---|---|
@@ -179,8 +179,8 @@ Add to `Cargo.toml`:
 
 ```toml
 [dependencies]
-tupa-core = "0.9"
-tupa-engine = "0.9"
+tupa-core = "0.10"
+tupa-engine = "0.10"
 ```
 
 Write your first pipeline in `src/lib.rs`:

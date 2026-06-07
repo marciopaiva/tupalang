@@ -12,8 +12,8 @@ This document describes frequent errors when writing Tupã pipelines using the `
 
 ```toml
 [dependencies]
-tupa-core = "0.9"
-tupa-engine = "0.9"
+tupa-core = "0.10"
+tupa-engine = "0.10"
 ```
 
 ```rust

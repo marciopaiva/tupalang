@@ -46,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Removed dev-dependencies on workspace crates to support locked publishing
 - Workspace simplification: legacy `.tp` crates removed from members
 
-## [0.9.6] - 2026-06-06
+## [0.10.0] - 2026-06-06
 
 ### Added (experimental)
 
@@ -54,7 +54,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Version bump to 0.9.6.
+- Version bump to 0.10.0.
 
 > **Note:** `safe!` is an experimental proof of concept; its surface may change.
 

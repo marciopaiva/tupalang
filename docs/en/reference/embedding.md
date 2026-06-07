@@ -24,8 +24,8 @@ Tupã is designed to be embedded as a Rust library. There is **no separate runti
 ```rust
 // Cargo.toml
 [dependencies]
-tupa-core = "0.9"
-tupa-engine = "0.9"
+tupa-core = "0.10"
+tupa-engine = "0.10"
 ```
 
 ```rust

@@ -285,9 +285,9 @@ Registrar cambios relevantes por versión.
 - Soporte básico de closures en codegen (aún sin captura de entorno).
 - Correcciones de golden tests para casos de error (mensajes de cargo removidos).
 
-## 0.9.6 (2026-06-06)
+## 0.10.0 (2026-06-06)
 
-- Tema de la versión: limpieza del legado `.tp` y bump de versión coordinado.
+- Tema de la versión: limpieza del legado `.tp`, reencuadre como distribución de crates, y una API experimental de constraints a nivel de tipo.
 
 ### Alcance Entregado
 
@@ -295,7 +295,7 @@ Registrar cambios relevantes por versión.
 - **Limpieza de goldens**: se eliminaron las salidas golden obsoletas en `examples/expected/` generadas por el CLI `.tp` descontinuado; se conservó solo el golden de Rust-DSL (`expand_simple_pipeline.txt`).
 - **Orden del repositorio**: se eliminaron artefactos legacy sueltos de la raíz (`update_golden.py`, `data.json`, `tx.json`, `my_test_plugin.rs`, `my_fixed_plugin.rs`, `integration_test.tupa`, `test_pipe.tupa`, `vipertrade_smoke.plan.json`, `test_find.md`).
 - **Ejemplos reorganizados**: `examples/` ahora contiene solo material Rust-DSL; se actualizaron `examples/README.md` y `examples/migration/README.md`; se eliminaron los subdirectorios obsoletos `pipeline/`, `production/` y `playground/`.
-- **Bump de versión**: todos los crates activos a 0.9.6 (sin cambios funcionales ni de API).
+- **Bump de versión**: todos los crates activos a 0.10.0 (release menor — limpieza del repositorio más la API experimental de constraints abajo).
 - **Docs de features reescritos a Rust DSL**: `features/trading_support.md` (EN/ES/PT-BR) ahora refleja los crates actuales con un ejemplo ejecutable `pipeline!` + `Executor` y marca explícitamente las funciones del runtime 0.8.2 eliminadas (backtest, circuit breaker, hot reload, registro de esquemas); `governance/audit_engine.md` (ES/PT-BR) reemplazado por una nota de descontinuación que apunta a las métricas por paso de `tupa-engine`.
 - **READMEs de crates corregidos** para precisión en crates.io (desajustes de API en `tupa-core`, `tupa-pyffi`, `tupa-plugin`, `tupa-engine`; `tupa-lints` re-encuadrado como constantes string, no lints de rustc).
 - **Experimental — constraints a nivel de tipo (PoC)**: enforcement real de `Safe<T, C>` vía `Constraint`/`ConstraintError`, markers integrados (`tupa_core::constraints::{NonNan, NonInf, Finite}`), `Safe::try_new`/`new_unchecked`, y una macro `safe!` que prueba `!nan`/`!inf` en expresiones `f64` constantes en tiempo de compilación (guard en runtime en otro caso). Superficie inestable — primer paso del roadmap spec→crates.

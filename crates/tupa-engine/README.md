@@ -12,13 +12,13 @@ This crate provides the runtime for executing `pipeline!`-defined pipelines:
 - Constraint checking with metric evaluation
 - Step metrics collection and cancellation support
 
-**Status:** Alpha (0.9.x). API subject to change before 1.0.
+**Status:** Alpha (0.10.x). API subject to change before 1.0.
 
 ## Installation
 
 ```toml
 [dependencies]
-tupa-engine = "0.9"
+tupa-engine = "0.10"
 ```
 
 ## Quick Example

@@ -6,13 +6,13 @@ Python FFI bindings for Tupã — call Python functions from Rust pipelines.
 
 Enables interoperability with Python libraries (NumPy, PyTorch, TensorFlow) by allowing Tupã pipelines to invoke Python functions as steps.
 
-**Status:** Alpha (0.9.x). API may change before 1.0.
+**Status:** Alpha (0.10.x). API may change before 1.0.
 
 ## Installation
 
 ```toml
 [dependencies]
-tupa-pyffi = "0.9"
+tupa-pyffi = "0.10"
 ```
 
 **Note:** Requires Python development headers installed on the system.

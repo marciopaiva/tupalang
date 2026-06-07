@@ -13,7 +13,7 @@ across Tupã tooling and reports.
 > these rules against pipeline code is performed by external tooling, not by the
 > compiler.
 
-**Status:** Alpha (0.9.x). Part of the crate-first Tupã architecture.
+**Status:** Alpha (0.10.x). Part of the crate-first Tupã architecture.
 
 ## Usage
 

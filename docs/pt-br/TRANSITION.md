@@ -138,8 +138,8 @@ cargo run --release
 ```toml
 # Cargo.toml
 [dependencies]
-tupa-core = "0.9"
-tupa-engine = "0.9"
+tupa-core = "0.10"
+tupa-engine = "0.10"
 ```
 
 ### Step 2: Convert enum/type definitions

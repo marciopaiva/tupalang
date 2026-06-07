@@ -1,16 +1,16 @@
 [
   {
     "step_id": "s2",
-    "start_nanos": 1778948830820133283,
-    "end_nanos": 1778948830820220243,
-    "duration_nanos": 86960,
+    "start_nanos": 1780798404710043003,
+    "end_nanos": 1780798404710266076,
+    "duration_nanos": 223073,
     "state": "Completed"
   },
   {
     "step_id": "s1",
-    "start_nanos": 1778948830820142569,
-    "end_nanos": 1778948830820223877,
-    "duration_nanos": 81308,
+    "start_nanos": 1780798404710058685,
+    "end_nanos": 1780798404710269469,
+    "duration_nanos": 210784,
     "state": "Completed"
   }
 ]
