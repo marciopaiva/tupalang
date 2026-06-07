@@ -24,7 +24,7 @@ Estandarizar la creación de issues con información útil de triage.
 
 **Description**:
 
-- Pasos: `tupa-cli -- parse examples/match.tp`
+- Pasos: `cargo tupa check` (sobre el paquete que reproduce el problema)
 - Esperado: AST válido
 - Actual: error `unexpected token`
 

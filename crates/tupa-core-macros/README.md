@@ -10,7 +10,7 @@ Add `tupa-core` to your project instead, which re-exports the macro.
 
 ## Status
 
-Alpha (0.9.x). Part of the crate-first Tupã architecture.
+Alpha (0.10.x). Part of the crate-first Tupã architecture.
 
 ## License
 

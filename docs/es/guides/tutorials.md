@@ -2,81 +2,76 @@
 
 ## Propósito
 
-Guiar a usuarios de distintos niveles en tareas comunes y proyectos de ejemplo con Tupã.
+Guiar a usuarios de distintos niveles por tareas comunes con el Rust DSL de Tupã
+(macro `pipeline!`). El lenguaje `.tp` independiente fue eliminado en 0.9.0.
 
 ---
 
 ## 1. Hola, Mundo
 
-```tupa
-print("¡Hola, Tupã!")
-```text
+```rust
+use tupa_core::pipeline;
+use tupa_engine::Executor;
 
-Ejecuta:
+pipeline! {
+    name: Hello,
+    input: (),
+    steps: [
+        step("hello") { println!("¡Hola, Tupã!") }
+    ],
+    constraints: []
+}
 
-```bash
-cargo run -p tupa-cli -- check examples/hello.tp
-```text
+fn main() {
+    let engine = Executor::new();
+    engine.run(&Hello::new(), &()).unwrap();
+}
+```
 
 ---
 
-## 2. Funciones y lambdas
+## 2. Funciones y closures
 
-```tupa
-let inc: fn(int) -> int = |x| x + 1
-print(inc(41)) // salida: 42
-```text
+```rust
+let inc = |x: i64| x + 1;
+println!("{}", inc(41)); // 42
+```
 
 ---
 
 ## 3. Trabajando con strings
 
-```tupa
-let name = "Tupã"
-print("Bienvenido, " + name)
-```text
+```rust
+let name = "Tupã";
+println!("Bienvenido, {name}");
+```
 
 ---
 
-## 4. Funciones con tipos Safe
+## 4. Tipos Safe
 
-```tupa
-fn safe(x: f64): Safe<f64, !nan> {
-  return x
+```rust
+use tupa_core::Safe;
+
+struct NonNan;
+let x = Safe::<f64, NonNan>::new(3.14);
+println!("{}", x.get());
+```
+
+---
+
+## 5. Proyecto de ejemplo: suma de vectores
+
+```rust
+fn sum(v: &[i64]) -> i64 {
+    v.iter().sum()
 }
 
-fn safe_text(x: Safe<string, !misinformation>) -> Safe<string, !misinformation> {
-  return x
+fn main() {
+    println!("{}", sum(&[1, 2, 3, 4])); // 10
 }
-```text
+```
 
----
-
-## 5. Proyecto de ejemplo: Suma de vectores
-
-Archivo: `examples/soma_vetor.tp`
-
-```tupa
-fn sum(v: [int]) -> int {
-  let mut total = 0
-  for x in v {
-    total = total + x
-  }
-  return total
-}
-print(sum([1,2,3,4])) // salida: 10
-```text
-
----
-
-## 6. Depuración y diagnósticos
-
-- Consulta [docs/common_errors.md](../reference/common_errors.md) para ejemplos de errores.
-- Usa `cargo test` para ejecutar todas las pruebas.
-
----
-
-## 7. Contribuyendo ejemplos
-
-- Agrega nuevos tutoriales en `docs/en/guides/tutorials.md`.
-- Consulta [CONTRIBUTING.md](../../CONTRIBUTING.md) para las guías.
+Para un pipeline completo de extremo a extremo, vea
+[`examples/simple_pipeline.rs`](../../../examples/simple_pipeline.rs) y los
+ejemplos del crate `tupa-engine`.

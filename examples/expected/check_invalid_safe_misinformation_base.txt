@@ -1,5 +1,0 @@
-error[E3001]: invalid constraint 'misinformation' for base type F64
-  --> examples/invalid_safe_misinformation_base.tp:2:38
-   |
- 2 | 	let x: Safe<f64, !misinformation> = 1.0;
-   |                                      ^

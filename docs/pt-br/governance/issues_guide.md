@@ -24,7 +24,7 @@ Padronizar a criação de issues com informações úteis de triagem.
 
 **Description**:
 
-- Passos: `tupa-cli -- parse examples/match.tp`
+- Passos: `cargo tupa check` (no pacote que reproduz o problema)
 - Esperado: AST válido
 - Atual: erro `unexpected token`
 

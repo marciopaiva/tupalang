@@ -6,7 +6,7 @@ Cargo subcommand for Tupã Rust-DSL pipelines.
 
 `cargo-tupa` provides Cargo subcommands for working with Tupã pipelines written in the Rust DSL.
 
-**Status:** Alpha (0.9.x). Part of the crate-first Tupã architecture.
+**Status:** Alpha (0.10.x). Part of the crate-first Tupã architecture.
 
 ## Installation
 

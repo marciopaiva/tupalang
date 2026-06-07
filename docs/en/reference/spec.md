@@ -1,6 +1,6 @@
 # Tupã Language Specification v0.9 (Rust-DSL)
 
-> **Note:** This specification describes Tupã as a **Rust DSL** using the `pipeline!` macro (crate-first architecture). The standalone `.tp` language was **removed** in v0.9.0. All examples use Rust syntax.
+> **Note:** Tupã is distributed as a set of Rust crates (crate-first); there is no standalone language to install. This document specifies the Tupã **policy DSL** — the surface accepted by the `pipeline!` macro and the semantics of `tupa-core` / `tupa-engine`. The standalone `.tp` compiler was **removed** in v0.9.0; the syntax shown in examples describes the policy DSL embedded in Rust.
 
 **Status:** Draft (aligning with implementation in `tupa-core` 0.9.x)
 
@@ -1068,12 +1068,19 @@ error[E2002]: arity mismatch: expected 2, got 1
 
 ## 14. Distribution Model (Informative)
 
-For `v0.8.0-rc`, Tupã uses a hybrid distribution model:
+Tupã is distributed exclusively as a set of public Rust crates (crate-first).
+There is no standalone compiler or binary to install — add the crates to your
+`Cargo.toml` and write pipelines with the `pipeline!` macro:
 
-- Standalone binary artifacts for end-user execution and operations.
-- Public Rust crates (`tupa-parser`, `tupa-typecheck`, `tupa-runtime`) for embedding in Rust systems.
+- `tupa-core`, `tupa-core-macros` — the `pipeline!` DSL and core types.
+- `tupa-engine` — the executor.
+- `tupa-plugin`, `tupa-pyffi` — dynamic plugins and Python bindings.
+- `cargo-tupa` — the `cargo tupa` developer subcommand.
+- `tupa-lints` — lint identifier constants.
 
-This section is informative and does not change normative grammar or typing rules.
+The standalone `.tp` compiler and its crates (`tupa-parser`, `tupa-typecheck`,
+`tupa-runtime`, `tupa-codegen`) were removed in 0.9.0. This section is informative
+and does not change normative typing rules.
 
 *Specification maintained by the Tupã community • License: CC-BY-SA 4.0*  
 *Version: 0.1-draft*

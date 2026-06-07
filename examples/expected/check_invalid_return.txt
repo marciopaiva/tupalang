@@ -1,5 +1,0 @@
-error[E2007]: expected function body to return a value
-  --> examples/invalid_return.tp:2:2
-   |
- 2 | 	if x > 0 {
-   |  ^

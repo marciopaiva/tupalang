@@ -44,6 +44,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Workspace cleanup: removed legacy `.tp` toolchain (lexer, parser, typecheck, codegen, runtime, effects) and dependent tooling.
 - Bump to 0.9.3 as part of Rust-DSL only release.
 
+## [0.10.0] - 2026-06-06
+
+### Added (experimental)
+
+- `Constraint<T>` trait and `ConstraintError` for real constraint enforcement on `Safe<T, C>`.
+- Built-in markers in `tupa_core::constraints`: `NonNan`, `NonInf`, `Finite` (for `f64`).
+- `Safe::try_new` (runtime-checked) and `Safe::new_unchecked`.
+- Re-export of the `safe!` macro (compile-time proof for constant `f64` expressions, runtime guard otherwise).
+
+### Changed
+
+- Repository-level cleanup of legacy `.tp` toolchain artifacts (see workspace changelog). Version bump to 0.10.0.
+
+> **Note:** The constraint API above is an experimental proof of concept; its surface may change before stabilization.
+
 ## [0.9.5] - 2026-05-16
 
 ### Added

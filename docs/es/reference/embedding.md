@@ -1,80 +1,58 @@
-# Embedding de Tupã en Rust
+# Embedding de Tupã en Rust (Crate-First)
 
-## Propósito
+**Estado:** Forma canónica de usar Tupã (0.9.x).
 
-Describir la superficie soportada de embedding para `v0.8.2`.
+Tupã se integra como biblioteca Rust. No hay runtime separado que instalar: agrega
+los crates a tu `Cargo.toml` y escribe pipelines tipados con la macro `pipeline!`.
 
-## Crates públicas soportadas
+## Crates públicos (0.9.x)
 
-- `tupa-parser`
-- `tupa-typecheck`
-- `tupa-runtime`
-- `tupa-codegen`
+| Crate | Propósito |
+|---|---|
+| `tupa-core` | Macro DSL, tipos (`Safe`, `Tensor`), trait `Pipeline` |
+| `tupa-engine` | Executor, evaluación de constraints, runner |
+| `tupa-plugin` | Carga dinámica de step functions |
+| `tupa-pyffi` | Bindings de Python (PyO3) — alpha |
 
-Estas crates son la superficie estable de embedding para esta release.
+## Ejemplo
 
-## API de Extensiones
-
-Los proyectos pueden definir funciones de paso personalizadas a través del trait `TupaExtension`:
+```toml
+[dependencies]
+tupa-core = "0.10"
+tupa-engine = "0.10"
+```
 
 ```rust
-use tupa_runtime::{Runtime, TupaExtension};
+use tupa_core::pipeline;
+use tupa_engine::Executor;
+use serde::Serialize;
 
-pub struct MisExtensiones;
-impl TupaExtension for MisExtensiones {
-    fn name(&self) -> &str { "mi_proyecto" }
-    fn register(&self, runtime: &Runtime) {
-        runtime.register_step("mi::helper", |input| {
-            // lógica de negocio
-            Ok(serde_json::json!({ "status": "ok" }))
-        });
-    }
+#[derive(Debug, Clone, Serialize)]
+struct Order { user_id: u64, amount_usd: f64, risk_score: f64 }
+
+fn risk(o: &Order) -> f64 { o.risk_score }
+
+pipeline! {
+    name: OrderPolicy,
+    input: Order,
+    steps: [
+        step("risk") { risk(input) }
+    ],
+    constraints: [
+        metric("risk").le(0.9)
+    ]
 }
 
-// Durante la inicialización
-MisExtensiones.register(&runtime);
-```text
-
-## Sistema de Plugins
-
-Carga dinámica de plugins (`tupa-plugin`):
-
-```rust
-use tupa_plugin::PluginManager;
-
-let mut pm = PluginManager::new();
-pm.load_plugin("./plugins/mi_plugin.so")?;
-
-// En un paso del pipeline, llamar a una función del plugin:
-// pm.call("mi_step", json!(input))?
-```text
-
-Los plugins son bibliotecas compartidas que exportan `_tupa_plugin_name` y `_tupa_plugin_register`.
-
-## Hot Reload
-
-Habilitar feature `hot-reload` para observar cambios en archivos:
-
-```rust
-let (tx, rx) = runtime.watch_and_reload("./strategies")?;
-// Notifica cambios automáticamente
-```text
-
-## Ejemplo mínimo
-
-```rust
-use tupa_parser::parse;
-use tupa_typecheck::typecheck;
-
-fn main() -> anyhow::Result<()> {
-    let src = "fn main() { print(1) }";
-    let ast = parse(src)?;
-    let _typed = typecheck(&ast)?;
-    Ok(())
+fn main() {
+    let policy = OrderPolicy::new();
+    let engine = Executor::new();
+    let order = Order { user_id: 42, amount_usd: 5_000.0, risk_score: 0.3 };
+    let result = engine.run(&policy, &order).expect("run failed");
+    println!("constraints OK: {}", result.passed);
 }
-```text
+```
 
-## Notas de compatibilidad
-
-- Sigue SemVer según [Versionado](versioning.md).
-- Evita depender de crates internas no listadas arriba si necesitas estabilidad de API.
+Para extender step functions en tiempo de ejecución, usa el sistema de plugins
+(`tupa-plugin`). Para Python, usa `tupa-pyffi`. Las crates `.tp` de embedding
+(`tupa-parser`, `tupa-typecheck`, `tupa-runtime`, `tupa-codegen`) fueron
+eliminadas en 0.9.0.

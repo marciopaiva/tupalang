@@ -12,13 +12,13 @@ This crate provides the runtime for executing `pipeline!`-defined pipelines:
 - Constraint checking with metric evaluation
 - Step metrics collection and cancellation support
 
-**Status:** Alpha (0.9.x). API subject to change before 1.0.
+**Status:** Alpha (0.10.x). API subject to change before 1.0.
 
 ## Installation
 
 ```toml
 [dependencies]
-tupa-engine = "0.9"
+tupa-engine = "0.10"
 ```
 
 ## Quick Example
@@ -89,14 +89,16 @@ pipeline! {
 async fn main() {
     let plan = ParallelPipeline::new();
     let executor = Executor::new();
-    let result = executor.run_parallel(&plan, &input).await?;
+    let input = Input { amount: 100.0, risk_score: 0.5 };
+    let result = executor.run_parallel(&plan, &input).await.expect("execution failed");
+    println!("Passed: {}", result.passed);
 }
 ```
 
 ## Annotation Syntax
 
-- `produces["metric1", "metric2"]` — metrics this step outputs
-- `requires["metricA", "metricB"]` — metrics this step needs
+- `produces ["metric1", "metric2"]` — metrics this step outputs
+- `requires ["metricA", "metricB"]` — metrics this step needs
 
 Steps without annotations are considered independent.
 

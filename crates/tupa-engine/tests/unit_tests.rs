@@ -610,9 +610,16 @@ impl ParallelPipeline for SlowP {
     fn execute_step(&self, _: &(), _: &str) -> Result<Value, EngineError> {
         // Não usar tokio::time::sleep aqui — execute_step é fn, não async fn.
         // O timeout é detectado pela camada superior (run_parallel) que envolve
-        // este método com tokio::time::timeout(). O std::thread::sleep de 200ms
-        // ultrapassa o timeout de 50-100ms dos testes TC-46 e TC-52.
-        std::thread::sleep(std::time::Duration::from_millis(200));
+        // este método com tokio::time::timeout().
+        //
+        // Margem ampla (1s de sleep contra timeouts de 50-100ms): os testes
+        // TC-46/TC-52 rodam num runtime current-thread e, sob carga de CPU, a
+        // thread pode demorar a ser escalonada para processar o timer. Enquanto
+        // ela acordar antes de o sleep terminar, o timer já estará expirado e o
+        // StepTimeout vence de forma determinística. Como `tokio::time::timeout`
+        // abandona o spawn_blocking ao expirar, os testes retornam em ~timeout
+        // (não em ~sleep), então a margem maior não os deixa mais lentos.
+        std::thread::sleep(std::time::Duration::from_millis(1000));
         Ok(Value::from(42))
     }
     fn check_constraints(_: &HashMap<String, Value>) -> (bool, Vec<ConstraintFailure>) {

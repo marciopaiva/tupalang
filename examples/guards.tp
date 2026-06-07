@@ -1,8 +1,0 @@
-fn classify(code: i64): string {
-	let label = match code {
-		200 => "ok",
-		code if code >= 500 => "server_error",
-		_ => "other",
-	};
-	return label;
-}

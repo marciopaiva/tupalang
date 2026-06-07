@@ -1,7 +1,0 @@
-fn main() {
-  let x: i64 = 1;
-  match x {
-    1 if 2 => print("ok"),
-    _ => print("no"),
-  };
-}

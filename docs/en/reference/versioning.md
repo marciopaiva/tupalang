@@ -33,9 +33,9 @@ These are the **currently active crates** in the workspace (0.9.x series). They 
 **Advice:** Pin to a minor version in production until 1.0:
 
 ```toml
-tupa-core = "0.9"
-tupa-engine = "0.9"
-tupa-plugin = "0.9"
+tupa-core = "0.10"
+tupa-engine = "0.10"
+tupa-plugin = "0.10"
 cargo-tupa = "0.9"
 ```
 

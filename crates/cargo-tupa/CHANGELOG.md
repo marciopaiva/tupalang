@@ -2,6 +2,13 @@
 
 All notable changes to `cargo-tupa` will be documented in this file.
 
+## [0.10.0] - 2026-06-06
+
+### Changed
+
+- Updated dependencies to `tupa-core`/`tupa-engine`/`tupa-plugin` 0.10.0.
+- No functional changes; release focuses on legacy `.tp` cleanup.
+
 ## [0.9.5] - 2026-05-16
 
 ### Changed

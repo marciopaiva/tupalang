@@ -1,5 +1,0 @@
-error[E3001]: invalid constraint 'nan' for base type I64
-  --> examples/invalid_safe_return_base.tp:1:1
-   |
- 1 | fn main(): Safe<i64, !nan> {
-   | ^

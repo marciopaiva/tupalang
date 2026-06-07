@@ -6,8 +6,8 @@ Add Tupã crates to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-tupa-core = "0.9"      # DSL macros and policy types
-tupa-engine = "0.9"    # Pipeline executor
+tupa-core = "0.10"      # DSL macros and policy types
+tupa-engine = "0.10"    # Pipeline executor
 ```
 
 Run:

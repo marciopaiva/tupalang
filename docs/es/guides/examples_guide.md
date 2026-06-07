@@ -7,7 +7,7 @@ Definir criterios de curación y estándares para ejemplos.
 ## Dónde colocar ejemplos
 
 - Ejemplos curados: `examples/`
-- Experimentos: `examples/playground/`
+- Migración desde `.tp`: `examples/migration/`
 
 ## Criterios de curación
 
@@ -18,18 +18,18 @@ Definir criterios de curación y estándares para ejemplos.
 
 ## Estándares
 
-- Nombra archivos por tema (`match.tp`, `types.tp`).
+- Nombra archivos por tema (`credit_decision.rs`, `fraud_complete.rs`).
 - Incluye comentarios breves cuando sea necesario.
 - Actualiza `examples/README.md` al agregar/eliminar ejemplos.
 - Prefiere `Safe<string, ...>` al ilustrar restricciones éticas.
 - Menciona nuevos ejemplos `safe_*` en `examples/README.md`.
-- Usa `safe_misinformation_hate_speech.tp` como referencia de restricciones combinadas.
+- Usa los ejemplos del crate `tupa-engine` como referencia de pipelines con constraints.
 
 ## Lista de verificación
 
 - [ ] Archivo agregado en `examples/`
 - [ ] Referenciado en `examples/README.md`
-- [ ] Ejecuta con `tupa-cli -- parse|check`
+- [ ] Compila/ejecuta con `cargo run -p tupa-engine --example <nombre>`
 
 ## Actualizando goldens
 

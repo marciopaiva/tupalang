@@ -285,6 +285,37 @@ Registrar cambios relevantes por versión.
 - Soporte básico de closures en codegen (aún sin captura de entorno).
 - Correcciones de golden tests para casos de error (mensajes de cargo removidos).
 
+## 0.10.0 (2026-06-06)
+
+- Tema de la versión: limpieza del legado `.tp`, reencuadre como distribución de crates, y una API experimental de constraints a nivel de tipo.
+
+### Alcance Entregado
+
+- **Eliminación del legado `.tp`**: se borraron todos los fuentes de ejemplo `.tp` (~100 archivos) y sus recursos de soporte (helpers FFI de Python, entradas JSON, scripts generadores) de `examples/`.
+- **Limpieza de goldens**: se eliminaron las salidas golden obsoletas en `examples/expected/` generadas por el CLI `.tp` descontinuado; se conservó solo el golden de Rust-DSL (`expand_simple_pipeline.txt`).
+- **Orden del repositorio**: se eliminaron artefactos legacy sueltos de la raíz (`update_golden.py`, `data.json`, `tx.json`, `my_test_plugin.rs`, `my_fixed_plugin.rs`, `integration_test.tupa`, `test_pipe.tupa`, `vipertrade_smoke.plan.json`, `test_find.md`).
+- **Ejemplos reorganizados**: `examples/` ahora contiene solo material Rust-DSL; se actualizaron `examples/README.md` y `examples/migration/README.md`; se eliminaron los subdirectorios obsoletos `pipeline/`, `production/` y `playground/`.
+- **Bump de versión**: todos los crates activos a 0.10.0 (release menor — limpieza del repositorio más la API experimental de constraints abajo).
+- **Docs de features reescritos a Rust DSL**: `features/trading_support.md` (EN/ES/PT-BR) ahora refleja los crates actuales con un ejemplo ejecutable `pipeline!` + `Executor` y marca explícitamente las funciones del runtime 0.8.2 eliminadas (backtest, circuit breaker, hot reload, registro de esquemas); `governance/audit_engine.md` (ES/PT-BR) reemplazado por una nota de descontinuación que apunta a las métricas por paso de `tupa-engine`.
+- **READMEs de crates corregidos** para precisión en crates.io (desajustes de API en `tupa-core`, `tupa-pyffi`, `tupa-plugin`, `tupa-engine`; `tupa-lints` re-encuadrado como constantes string, no lints de rustc).
+- **Experimental — constraints a nivel de tipo (PoC)**: enforcement real de `Safe<T, C>` vía `Constraint`/`ConstraintError`, markers integrados (`tupa_core::constraints::{NonNan, NonInf, Finite}`), `Safe::try_new`/`new_unchecked`, y una macro `safe!` que prueba `!nan`/`!inf` en expresiones `f64` constantes en tiempo de compilación (guard en runtime en otro caso). Superficie inestable — primer paso del roadmap spec→crates.
+
+### Ingeniería y CI Completados
+
+- Se corrigió el workflow `examples-golden.yml` para comparar goldens recién generados contra los versionados (antes comparaba el directorio consigo mismo, ocultando desvíos).
+- `cargo fmt`, `cargo clippy --workspace --all-targets`, `cargo test --workspace` en verde.
+
+### Snapshot de Validación (workspace)
+
+- Build: `cargo build --workspace` ok.
+- Tests: `cargo test --workspace` en verde (167 tests).
+- Smoke: `scripts/vipertrade-smoke.sh` ok.
+- Goldens: `scripts/update-goldens.sh` no produce diff contra `examples/expected/`.
+
+### Deuda Técnica
+
+- Varios docs instructivos todavía invocan el removido `tupa-cli` (`reference/codegen.md`, `guides/testing.md`, `guides/tutorials.md`, `guides/faq.md`, `governance/issues_guide.md`, `guides/examples_guide.md`); deben migrarse a flujos `cargo-tupa` / Rust-DSL en un seguimiento. Las referencias históricas en `ARCHITECTURE.md`, `PROPOSAL.md`, `roadmap.md`, archivos y changelogs previos son intencionales y se dejan como están.
+
 ## 0.9.5 (2026-05-16)
 
 - Tema del release: cobertura de tests, operaciones Safe/Tensor, paths de cargo-tupa, y estabilidad de tupa-pyffi.

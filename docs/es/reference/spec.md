@@ -1,14 +1,12 @@
-# Especificación del Lenguaje Tupã v0.9
+# Especificación de Tupã (DSL Rust) v0.9
 
-> **Fuerza ancestral, código moderno**  
-> Lenguaje brasileño para sistemas críticos e IA en evolución
+> **Nota:** Tupã se distribuye como un conjunto de crates Rust (crate-first); no hay un lenguaje independiente que instalar. Este documento especifica el **DSL de políticas** de Tupã — la superficie aceptada por la macro `pipeline!` y la semántica de `tupa-core` / `tupa-engine`. El compilador `.tp` independiente fue **eliminado** en v0.9.0.
 
-![Specification Status](https://img.shields.io/badge/status-draft-orange)
-![License](https://img.shields.io/badge/license-CC--BY--SA%204.0-ff69b4)
+**Estado:** Borrador (alineado con `tupa-core` 0.9.x)
 
 ## Propósito
 
-Definir la especificación formal del lenguaje Tupã, incluyendo gramática, reglas de tipo y semántica.
+Definir la especificación formal del DSL de Tupã (macro `pipeline!`), incluyendo estructura, reglas de tipo y semántica al embeberse en Rust.
 
 ## Índice
 
@@ -235,10 +233,10 @@ dimension   = integer_literal | "..." ;  // "..." = dimensão dinâmica
 
 ```tupa
 // Tensor denso 28x28 (MNIST)
-let image: Tensor<f32, shape=[28, 28]> = load("digit.tp")
+let image: Tensor<f32, shape=[28, 28]> = load("digits.bin")
 
 // Tensor esparso 90% (recomendado para LLMs)
-let weights: Tensor<f16, shape=[4096, 4096], density=0.1> = load("llama3.tp")
+let weights: Tensor<f16, shape=[4096, 4096], density=0.1> = load("llama3.bin")
 ```text
 
 #### 3.2.6 Tipos de alinhamento (restrições éticas)
@@ -652,10 +650,10 @@ match await rx.recv_timeout(1000) {  // 1000ms
 ### 7.1 Módulos
 
 ```tupa
-// math.tp
+// math.rs
 export fn square(x: f64): f64 { x * x }
 
-// main.tp
+// main.rs
 import "math" as math
 
 let result = math.square(5.0)
@@ -821,20 +819,16 @@ step_decl       = "step" "(" string_literal ")" "{" expression "}" ;
 
 ## 9. Semántica y notas de implementación
 
-### 9.1 Pipeline do compilador
+### 9.1 Pipeline de compilación
 
 ```text
-Fonte (.tp) 
-  ↓ [Lexer: nom]
-Tokens 
-  ↓ [Parser: descida recursiva]
-AST 
-  ↓ [Verificador de tipos: Hindley-Milner + solucionador de restrições]
-AST tipada 
-  ↓ [Geração de código: inkwell → LLVM IR]
-LLVM IR 
-  ↓ [Otimizador LLVM (-O3)]
-Binário nativo (ELF/Mach-O/PE)
+Fuente (.rs con macro pipeline!)
+  ↓ [Expansión de macro: proc-macro]
+AST de Rust (verificado por rustc)
+  ↓ [Verificación de tipos + propagación de constraints]
+Código Rust tipado
+  ↓ [Motor: executor de tupa-engine]
+Salida en tiempo de ejecución
 ```text
 
 ### 9.2 Estratégia de compilación de gradientes
@@ -890,7 +884,7 @@ Para `Safe<T, !constraint>`:
 
 - Erros devem incluir: código, mensagem, localização e sugestão.
 - Formato mínimo: `E####: mensagem (arquivo:linha:coluna)`.
-- Exemplo: `E3002: não foi possível provar a restrição '!nan' em tempo de compilación (main.tp:12:5)`.
+- Exemplo: `E3002: não foi possível provar a restrição '!nan' em tempo de compilación (main.rs:12:5)`.
 
 **Códigos recomendados**:
 
@@ -901,13 +895,13 @@ Para `Safe<T, !constraint>`:
 - `E4001`: uso inválido de `unsafe`
 
 Exemplo:
-`E2001: tipos incompatíveis em atribuição (main.tp:8:12)`
+`E2001: tipos incompatíveis em atribuição (main.rs:8:12)`
 
 Exemplo visual:
 
 ```text
 errorr[E2001]: tipos incompatíveis
-  --> main.tp:8:12
+  --> main.rs:8:12
    |
 8 | let x: i64 = "text"
    |            ^^^^^^^^
@@ -943,7 +937,7 @@ fn softmax(x: Tensor<f32, shape=[10]>): Tensor<f32, shape=[10]> {
 }
 
 fn predict(image: Tensor<f32, shape=[28, 28]>): i64 {
-  let weights: Tensor<f16, shape=[784, 10], density=0.15> = load("weights.tp")
+  let weights: Tensor<f16, shape=[784, 10], density=0.15> = load("weights.bin")
   let flattened = image.flatten()
   let logits = matmul(flattened, weights)
   let probs = softmax(logits)
@@ -962,7 +956,7 @@ fn summarize(article: string): Safe<string, !misinformation, !hate_speech> {
 }
 
 fn main() {
-  let article = load_article("news.tp")
+  let article = load_article("news.json")
   let summary = summarize(article)  // ✅ Compila apenas se a segurança for comprovada
   publish(summary)  // Nunca publica conteúdo perigoso
 }
@@ -1006,7 +1000,7 @@ Exemplo:
 
 ```text
 errorr[E0003]: esperado ';' após a expressão
-  --> examples/hello.tp:3:18
+  --> examples/hello.rs:3:18
    |
  3 |  let age = 28
    |                 ^
@@ -1029,7 +1023,7 @@ O compilador **deve** emitir errors de tipo com um código e, quando possível, 
 
 ```text
 errorr[E2001]: incompatibilidad de tipos: esperado I64, obtido Bool
-  --> examples/invalid_type.tp:2:15
+  --> examples/invalid_type.rs:2:15
    |
  2 |  let x: i64 = true;
    |               ^^^^
@@ -1039,7 +1033,7 @@ Para aridade incorreta:
 
 ```text
 errorr[E2002]: aridade incompatible: esperado 2, obtido 1
-  --> examples/invalid_call.tp:6:10
+  --> examples/invalid_call.rs:6:10
    |
  6 |  let y = add(1);
    |          ^^^^^^
@@ -1072,12 +1066,19 @@ errorr[E2002]: aridade incompatible: esperado 2, obtido 1
 
 ## 14. Modelo de distribución (Informativo)
 
-Para `v0.8.0-rc`, Tupã usa un modelo híbrido de distribución:
+Tupã se distribuye exclusivamente como un conjunto de crates Rust públicos
+(crate-first). No hay compilador ni binario independiente que instalar: agrega los
+crates a tu `Cargo.toml` y escribe pipelines con la macro `pipeline!`.
 
-- Artifacts binarios standalone para ejecución y operación por usuarios finales.
-- Crates Rust públicas (`tupa-parser`, `tupa-typecheck`, `tupa-runtime`) para embedding en sistemas Rust.
+- `tupa-core`, `tupa-core-macros` — el DSL `pipeline!` y los tipos base.
+- `tupa-engine` — el executor.
+- `tupa-plugin`, `tupa-pyffi` — plugins dinámicos y bindings de Python.
+- `cargo-tupa` — el subcomando `cargo tupa`.
+- `tupa-lints` — constantes de identificadores de lint.
 
-Esta sección es informativa y no cambia reglas normativas de gramática o tipado.
+El compilador `.tp` independiente y sus crates (`tupa-parser`, `tupa-typecheck`,
+`tupa-runtime`, `tupa-codegen`) fueron eliminados en 0.9.0. Esta sección es
+informativa y no cambia reglas normativas de tipado.
 
 *Especificação mantida pela comunidade Tupã • Licença: CC-BY-SA 4.0*  
 *Versão: 0.1-draft*

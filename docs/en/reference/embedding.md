@@ -24,8 +24,8 @@ Tupã is designed to be embedded as a Rust library. There is **no separate runti
 ```rust
 // Cargo.toml
 [dependencies]
-tupa-core = "0.9"
-tupa-engine = "0.9"
+tupa-core = "0.10"
+tupa-engine = "0.10"
 ```
 
 ```rust
@@ -69,9 +69,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut executor = Executor::new();
 
     let order = Order { user_id: 42, amount_usd: 5_000.0, risk_score: 0.3 };
-    let result = executor.run(policy, &order)?;
+    let result = executor.run(&policy, &order)?;
 
-    println!("All constraints passed: {}", result.all_constraints_passed);
+    println!("All constraints passed: {}", result.passed);
     Ok(())
 }
 ```text

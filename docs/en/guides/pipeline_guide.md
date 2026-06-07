@@ -565,10 +565,10 @@ When running via `cargo tupa run`, Ctrl+C is automatically handled — the engin
 ## FAQ
 
 **Q: Can I mix `.tp` files with Rust DSL?**  
-A: Yes. Use `tupa_parser::parse_file("legacy.tp")?` to load and embed `.tp` pipelines alongside Rust-defined ones. But new code should be Rust-only.
+A: No. The `.tp` toolchain (including `tupa-parser`) was removed in 0.9.0. Port legacy `.tp` pipelines to the `pipeline!` macro — see [TRANSITION.md](../TRANSITION.md).
 
 **Q: How do I debug a pipeline?**  
-A: Set `RUST_LOG=tupa_engine=debug` to see step-by-step execution logs. Use `tupa-audit` to hash ASTs.
+A: Set `RUST_LOG=tupa_engine=debug` for execution logs, and inspect `PipelineResult::metrics` for per-step timing.
 
 **Q: Are steps really pure?**  
 A: The compiler enforces purity for steps marked as `pure` (default). You can override with `#[tupa::side_effects(...)]`, but then the step cannot be used in gradient calculations.

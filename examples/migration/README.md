@@ -1,33 +1,23 @@
 # Migration Examples: `.tp` → Rust DSL
 
-This directory contains side-by-side examples showing how to migrate legacy Tupã (`.tp`) pipelines to the new Rust DSL (`pipeline!` macro).
+This directory contains Rust DSL (`pipeline!` macro) programs derived from former
+legacy Tupã (`.tp`) pipelines. They illustrate how the discontinued `.tp` syntax
+maps onto idiomatic Rust.
 
-Each example includes:
+> The standalone `.tp` toolchain was removed in 0.9.0. Only the Rust DSL
+> equivalents (`*_after.rs`) are kept; the original `.tp` sources no longer exist.
 
-- `*_before.tp` — the original `.tp` source
-- `*_after.rs` — equivalent Rust DSL program
+## Files
 
-## Running the Examples
+- `minimal_after.rs` — two-step pipeline with simple functions (enrich, score).
+- `credit_decision_after.rs` — pipeline with constraints and validation context.
 
-To run a migrated example:
-
-```bash
-# Build and run the Rust DSL version
-cargo run --example minimal_after
-
-# Or execute via tupa-engine directly
-cargo tupa run examples/migration/minimal_after.rs
-```text
-
-The `.tp` versions can be run with the legacy toolchain:
+These are illustrative source files. To run a pipeline as a `cargo`-integrated
+example, see the canonical examples in the `tupa-engine` crate:
 
 ```bash
-cargo tupa run examples/pipeline/minimal.tp
-```text
+cargo run --package tupa-engine --example minimal
+cargo run --package tupa-engine --example credit_decision
+```
 
-## Included Examples
-
-- **minimal** — two-step pipeline with simple functions (enrich, score)
-- **credit_decision** — pipeline with constraints and validation context
-
-See also: [`../docs/en/TRANSITION.md`](../docs/en/TRANSITION.md) for a complete migration guide.
+See also: [`../../docs/en/TRANSITION.md`](../../docs/en/TRANSITION.md) for the complete migration guide.

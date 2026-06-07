@@ -23,7 +23,7 @@ No workflow `CI` (`.github/workflows/ci.yml`):
 
 1. `examples-golden.yml`
 
-- Rodar apenas quando houver mudancas em `examples/**`, `crates/tupa-cli/**`, `scripts/update-goldens.sh`.
+- Rodar apenas quando houver mudancas em `examples/**`, `crates/cargo-tupa/**`, `scripts/update-goldens.sh`.
 - Adicionar `workflow_dispatch` e `concurrency`.
 - Nao abortar antes de publicar artifact/diff.
 - Separar job de verificacao (`read`) do job de criacao de PR (`write`, so em `push` para `main`).

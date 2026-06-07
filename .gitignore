@@ -17,3 +17,16 @@
 out.json
 audit_report.json
 tmp_input_i64.json
+
+# AI agent working directories (local scratch, not versioned)
+.kilo/
+.claude/
+.cursor/
+.aider*
+.windsurf/
+.continue/
+.codeium/
+.gemini/
+.roo/
+.cline/
+.serena/

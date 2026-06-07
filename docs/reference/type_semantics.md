@@ -158,7 +158,7 @@ Example:
 
 ```text
 E2001: type mismatch
-   --> main.tp:12:5
+   --> main.rs:12:5
     |
 12  | let x: i64 = "text"
     |            ^^^^^^^ expected i64, found string

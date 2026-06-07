@@ -1,62 +1,46 @@
 # Examples
 
-⚠️ **These examples use the legacy `.tp` file format.** New development should use the **Rust DSL** (`tupa-core` crate). See [Getting Started](../docs/en/guides/getting_started.md) for the modern approach.
+These examples use the **Rust DSL** (`pipeline!` macro from the `tupa-core` crate).
+The legacy `.tp` file format was removed in 0.9.0 — see [TRANSITION.md](../docs/en/TRANSITION.md).
 
 ## Purpose
 
-Curated examples reflecting the current state of the parser, typechecker, and codegen (legacy path). These examples are **deprecated** and will be removed after 2027.
-
-For up-to-date examples, see the `tupa-core` crate documentation and ViperTrade repository.
-
-## Curation and playground
-
-- Use this folder for curated and stable examples.
-- Use [examples/playground](playground/README.md) for quick tests and experiments.
+Curated, runnable Rust-DSL examples that mirror the patterns used in production
+(e.g. [ViperTrade](https://github.com/marciopaiva/vipertrade)). For the canonical,
+`cargo run`-able examples, see the `tupa-engine` crate.
 
 ## Files
 
-### General
+### Standalone
 
-... (keep existing list)
+- `simple_pipeline.rs` — end-to-end `pipeline!` definition with constraints, run via `tupa-engine::Executor`.
+- `expected/expand_simple_pipeline.txt` — golden output for `cargo tupa expand --file examples/simple_pipeline.rs`.
 
-### Pipeline Examples
+### Migration (`.tp` → Rust DSL)
 
-The `pipeline/` subdirectory contains realistic trading strategy pipelines demonstrating various constraints and governance features:
+The [`migration/`](migration/README.md) directory shows former `.tp` pipelines re-expressed
+as idiomatic Rust DSL programs.
 
-- `pipeline/minimal.tp`: simplest valid pipeline.
-- `pipeline/fraud_complete.tp`: comprehensive fraud detection pipeline (used for valid golden).
-- `pipeline/credit_decision.tp`: credit decision pipeline with state.
-- `pipeline/deterministic_violation.tp`: intentionally non-deterministic (fails `@deterministic`).
-- `pipeline/now_violation.tp`: uses `now` in a prohibited context (fails temporal policy).
-- `pipeline/time_violation.tp`: violates time-based constraints.
-- `pipeline/undefined_metric.tp`: references an undefined metric.
-- `pipeline/config_driven_strategy.tp`: demonstrates **Config DSL** — declarative configuration blocks passed to pipeline steps.
-- ... and others.
+### Canonical engine examples
 
-### Config DSL
+The runnable, `cargo`-integrated examples live in the `tupa-engine` crate:
 
-The Config DSL allows declaring typed configuration blocks that become first-class AST nodes. Example from `pipeline/config_driven_strategy.tp`:
+```bash
+cargo run --package tupa-engine --example minimal
+cargo run --package tupa-engine --example simple
+cargo run --package tupa-engine --example credit_decision
+cargo run --package tupa-engine --example fraud_complete
+cargo run --package tupa-engine --example vipertrade_smoke
+```
 
-```tupa
-config StrategyConfig {
-    type threshold: f64
-    type window: i64
-}
+## Plugin System
 
-step compute_signal {
-    input: StrategyConfig
-    // use config fields: threshold, window
-}
-```text
+Tupã supports dynamic loading of step functions via the **Plugin System**
+(`tupa-plugin` crate). Plugins are shared libraries written in Rust that export C
+entry points. See `crates/tupa-plugin/README.md` for a full example.
 
-This provides strongly-typed pre-conditions for pipelines, improving safety and documentation.
+## Writing your own
 
-### Plugin System
-
-Tupã supports dynamic loading of step functions via the **Plugin System** (`tupa-plugin` crate). Plugins are shared libraries written in Rust that export C entry points. See the `tupa-plugin` crate README for a full example: `crates/tupa-plugin/README.md`.
-
-Applied reference: [ViperTrade](https://github.com/marciopaiva/vipertrade) uses plugins to extend step functions.
-
-### Negative cases (should fail)
-
-... (keep rest)
+Create a Rust crate that depends on `tupa-core` and `tupa-engine`, write a
+`pipeline! { ... }` block, and run it with `tupa_engine::Executor`. See
+[Getting Started](../docs/en/guides/getting_started.md).

@@ -1,14 +1,12 @@
-# Especificação da Linguagem Tupã v0.9
+# Especificação de Tupã (DSL Rust) v0.9
 
-> **Força ancestral, código moderno**  
-> Linguagem brasileira para sistemas críticos e IA em evolução
+> **Nota:** Tupã é distribuído como um conjunto de crates Rust (crate-first); não há linguagem independente para instalar. Este documento especifica o **DSL de políticas** do Tupã — a superfície aceita pela macro `pipeline!` e a semântica de `tupa-core` / `tupa-engine`. O compilador `.tp` independente foi **removido** na v0.9.0.
 
-![Specification Status](https://img.shields.io/badge/status-draft-orange)
-![License](https://img.shields.io/badge/license-CC--BY--SA%204.0-ff69b4)
+**Status:** Rascunho (alinhado com `tupa-core` 0.9.x)
 
 ## Propósito
 
-Definir a especificação formal da linguagem Tupã, incluindo gramática, regras de tipo e semântica.
+Definir a especificação formal do DSL do Tupã (macro `pipeline!`), incluindo estrutura, regras de tipo e semântica ao ser embedado em Rust.
 
 ## Índice
 
@@ -235,10 +233,10 @@ dimension   = integer_literal | "..." ;  // "..." = dimensão dinâmica
 
 ```tupa
 // Tensor denso 28x28 (MNIST)
-let image: Tensor<f32, shape=[28, 28]> = load("digit.tp")
+let image: Tensor<f32, shape=[28, 28]> = load("digits.bin")
 
 // Tensor esparso 90% (recomendado para LLMs)
-let weights: Tensor<f16, shape=[4096, 4096], density=0.1> = load("llama3.tp")
+let weights: Tensor<f16, shape=[4096, 4096], density=0.1> = load("llama3.bin")
 ```text
 
 #### 3.2.6 Tipos de alinhamento (restrições éticas)
@@ -652,10 +650,10 @@ match await rx.recv_timeout(1000) {  // 1000ms
 ### 7.1 Módulos
 
 ```tupa
-// math.tp
+// math.rs
 export fn square(x: f64): f64 { x * x }
 
-// main.tp
+// main.rs
 import "math" as math
 
 let result = math.square(5.0)
@@ -821,20 +819,16 @@ step_decl       = "step" "(" string_literal ")" "{" expression "}" ;
 
 ## 9. Semântica e notas de implementação
 
-### 9.1 Pipeline do compilador
+### 9.1 Pipeline de compilação
 
 ```text
-Fonte (.tp) 
-  ↓ [Lexer: nom]
-Tokens 
-  ↓ [Parser: descida recursiva]
-AST 
-  ↓ [Verificador de tipos: Hindley-Milner + solucionador de restrições]
-AST tipada 
-  ↓ [Geração de código: inkwell → LLVM IR]
-LLVM IR 
-  ↓ [Otimizador LLVM (-O3)]
-Binário nativo (ELF/Mach-O/PE)
+Fonte (.rs com macro pipeline!)
+  ↓ [Expansão de macro: proc-macro]
+AST do Rust (verificado pelo rustc)
+  ↓ [Verificação de tipos + propagação de constraints]
+Código Rust tipado
+  ↓ [Motor: executor do tupa-engine]
+Saída em tempo de execução
 ```text
 
 ### 9.2 Estratégia de compilação de gradientes
@@ -890,7 +884,7 @@ Para `Safe<T, !constraint>`:
 
 - Erros devem incluir: código, mensagem, localização e sugestão.
 - Formato mínimo: `E####: mensagem (arquivo:linha:coluna)`.
-- Exemplo: `E3002: não foi possível provar a restrição '!nan' em tempo de compilação (main.tp:12:5)`.
+- Exemplo: `E3002: não foi possível provar a restrição '!nan' em tempo de compilação (main.rs:12:5)`.
 
 **Códigos recomendados**:
 
@@ -901,13 +895,13 @@ Para `Safe<T, !constraint>`:
 - `E4001`: uso inválido de `unsafe`
 
 Exemplo:
-`E2001: tipos incompatíveis em atribuição (main.tp:8:12)`
+`E2001: tipos incompatíveis em atribuição (main.rs:8:12)`
 
 Exemplo visual:
 
 ```text
 error[E2001]: tipos incompatíveis
-  --> main.tp:8:12
+  --> main.rs:8:12
    |
 8 | let x: i64 = "text"
    |            ^^^^^^^^
@@ -943,7 +937,7 @@ fn softmax(x: Tensor<f32, shape=[10]>): Tensor<f32, shape=[10]> {
 }
 
 fn predict(image: Tensor<f32, shape=[28, 28]>): i64 {
-  let weights: Tensor<f16, shape=[784, 10], density=0.15> = load("weights.tp")
+  let weights: Tensor<f16, shape=[784, 10], density=0.15> = load("weights.bin")
   let flattened = image.flatten()
   let logits = matmul(flattened, weights)
   let probs = softmax(logits)
@@ -962,7 +956,7 @@ fn summarize(article: string): Safe<string, !misinformation, !hate_speech> {
 }
 
 fn main() {
-  let article = load_article("news.tp")
+  let article = load_article("news.json")
   let summary = summarize(article)  // ✅ Compila apenas se a segurança for comprovada
   publish(summary)  // Nunca publica conteúdo perigoso
 }
@@ -1006,7 +1000,7 @@ Exemplo:
 
 ```text
 error[E0003]: esperado ';' após a expressão
-  --> examples/hello.tp:3:18
+  --> examples/hello.rs:3:18
    |
  3 |  let age = 28
    |                 ^
@@ -1029,7 +1023,7 @@ O compilador **deve** emitir erros de tipo com um código e, quando possível, c
 
 ```text
 error[E2001]: incompatibilidade de tipos: esperado I64, obtido Bool
-  --> examples/invalid_type.tp:2:15
+  --> examples/invalid_type.rs:2:15
    |
  2 |  let x: i64 = true;
    |               ^^^^
@@ -1039,7 +1033,7 @@ Para aridade incorreta:
 
 ```text
 error[E2002]: aridade incompatível: esperado 2, obtido 1
-  --> examples/invalid_call.tp:6:10
+  --> examples/invalid_call.rs:6:10
    |
  6 |  let y = add(1);
    |          ^^^^^^
@@ -1072,12 +1066,19 @@ error[E2002]: aridade incompatível: esperado 2, obtido 1
 
 ## 14. Modelo de distribuição (Informativo)
 
-Para `v0.8.0-rc`, Tupã usa um modelo híbrido de distribuição:
+Tupã é distribuído exclusivamente como um conjunto de crates Rust públicos
+(crate-first). Não há compilador ou binário independente para instalar: adicione
+os crates ao seu `Cargo.toml` e escreva pipelines com a macro `pipeline!`.
 
-- Artefatos binários standalone para execução e operação por usuários finais.
-- Crates Rust públicas (`tupa-parser`, `tupa-typecheck`, `tupa-runtime`) para embedding em sistemas Rust.
+- `tupa-core`, `tupa-core-macros` — o DSL `pipeline!` e os tipos base.
+- `tupa-engine` — o executor.
+- `tupa-plugin`, `tupa-pyffi` — plugins dinâmicos e bindings de Python.
+- `cargo-tupa` — o subcomando `cargo tupa`.
+- `tupa-lints` — constantes de identificadores de lint.
 
-Esta seção é informativa e não altera regras normativas de gramática ou tipagem.
+O compilador `.tp` independente e seus crates (`tupa-parser`, `tupa-typecheck`,
+`tupa-runtime`, `tupa-codegen`) foram removidos na 0.9.0. Esta seção é informativa
+e não altera regras normativas de tipagem.
 
 *Especificação mantida pela comunidade Tupã • Licença: CC-BY-SA 4.0*  
 *Versão: 0.1-draft*

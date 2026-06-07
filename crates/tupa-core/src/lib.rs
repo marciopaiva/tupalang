@@ -1,7 +1,35 @@
 //! Tupã core library — types, traits, and pipeline macro re-export.
 
+// Allow `tupa_core::...` paths (emitted by our proc-macros) to resolve within
+// this crate itself, so the macros work in unit tests and doctests alike.
+extern crate self as tupa_core;
+
 /// Re-export the procedural macro so users can write `use tupa_core::pipeline;`
 pub use tupa_core_macros::pipeline;
+
+/// Re-export the `safe!` macro for compile-time-proven constrained values.
+///
+/// `safe!(Marker, expr)` proves the constraint at compile time when `expr` is a
+/// constant `f64` expression, or falls back to a runtime check otherwise.
+///
+/// ```
+/// use tupa_core::{safe, constraints::NonNan};
+/// // Proven at compile time (constant expression):
+/// let ok = safe!(NonNan, 1.0 + 2.0);
+/// assert_eq!(ok.get(), 3.0);
+/// // Runtime-checked for a non-constant value:
+/// let x = "0.5".parse::<f64>().unwrap();
+/// let y = safe!(NonNan, x);
+/// assert_eq!(y.get(), 0.5);
+/// ```
+///
+/// A constant expression that violates the constraint fails to compile:
+///
+/// ```compile_fail
+/// use tupa_core::{safe, constraints::NonNan};
+/// let bad = safe!(NonNan, 0.0_f64 / 0.0_f64); // NaN — E3002 at compile time
+/// ```
+pub use tupa_core_macros::safe;
 
 /// Re-export serde_json for generated code.
 pub use serde_json;
@@ -20,14 +48,44 @@ pub use serde_json;
 pub struct Safe<T, C>(pub T, std::marker::PhantomData<C>);
 
 impl<T, C> Safe<T, C> {
-    /// Create a new `Safe` value.
+    /// Create a new `Safe` value (no constraint check).
+    ///
+    /// Prefer [`Safe::try_new`] (runtime-checked) or the [`crate::safe!`] macro
+    /// (compile-time proof for constant expressions) when the constraint `C`
+    /// implements [`Constraint`].
     pub fn new(value: T) -> Self {
+        Safe(value, std::marker::PhantomData)
+    }
+
+    /// Create a `Safe` without checking the constraint.
+    ///
+    /// Use only when the constraint is already established by construction
+    /// (e.g. proven at compile time by the [`crate::safe!`] macro).
+    pub fn new_unchecked(value: T) -> Self {
         Safe(value, std::marker::PhantomData)
     }
 
     /// Extract the inner value.
     pub fn into_inner(self) -> T {
         self.0
+    }
+}
+
+impl<T, C> Safe<T, C>
+where
+    C: Constraint<T>,
+{
+    /// Construct a `Safe`, checking the constraint `C` at runtime.
+    ///
+    /// Returns [`ConstraintError`] if `value` does not satisfy `C`.
+    pub fn try_new(value: T) -> Result<Self, ConstraintError> {
+        if C::satisfied(&value) {
+            Ok(Safe(value, std::marker::PhantomData))
+        } else {
+            Err(ConstraintError {
+                constraint: C::NAME,
+            })
+        }
     }
 }
 
@@ -119,6 +177,78 @@ where
     type Output = Safe<T, C>;
     fn neg(self) -> Self::Output {
         Safe::new(-self.0)
+    }
+}
+
+// ============================================================================
+// Constraints (alignment types) — experimental
+// ============================================================================
+
+/// A constraint that a [`Safe<T, C>`] value must satisfy.
+///
+/// Implement this for a zero-sized marker type `C` to make it usable with
+/// [`Safe::try_new`] and the [`crate::safe!`] macro.
+pub trait Constraint<T> {
+    /// Stable, human-readable identifier (e.g. `"!nan"`).
+    const NAME: &'static str;
+
+    /// Returns `true` if `value` satisfies the constraint.
+    fn satisfied(value: &T) -> bool;
+}
+
+/// Error returned by [`Safe::try_new`] when a value violates its [`Constraint`].
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ConstraintError {
+    /// The [`Constraint::NAME`] that was violated.
+    pub constraint: &'static str,
+}
+
+impl std::fmt::Display for ConstraintError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "value violates constraint `{}`", self.constraint)
+    }
+}
+
+impl std::error::Error for ConstraintError {}
+
+/// Built-in constraint marker types.
+///
+/// These are kept in a submodule (not re-exported at the crate root) so they do
+/// not collide with user-defined markers.
+pub mod constraints {
+    use super::Constraint;
+
+    /// `!nan` — the value is not `NaN`.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+    pub struct NonNan;
+
+    impl Constraint<f64> for NonNan {
+        const NAME: &'static str = "!nan";
+        fn satisfied(value: &f64) -> bool {
+            !value.is_nan()
+        }
+    }
+
+    /// `!inf` — the value is not `±∞`.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+    pub struct NonInf;
+
+    impl Constraint<f64> for NonInf {
+        const NAME: &'static str = "!inf";
+        fn satisfied(value: &f64) -> bool {
+            !value.is_infinite()
+        }
+    }
+
+    /// `!nan, !inf` — the value is finite.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+    pub struct Finite;
+
+    impl Constraint<f64> for Finite {
+        const NAME: &'static str = "!nan,!inf";
+        fn satisfied(value: &f64) -> bool {
+            value.is_finite()
+        }
     }
 }
 

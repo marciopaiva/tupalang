@@ -2,51 +2,54 @@
 
 ## Propósito
 
-Describir comandos estándar de pruebas y consejos de triage de fallas.
+Comandos de prueba estándar y consejos de triaje de fallos para Tupã 0.9.x (era Rust-DSL).
+
+---
 
 ## Comandos principales
 
 ```bash
-# suite completa
-cargo test
+# Suite completa del workspace
+cargo test --workspace --locked
 
-# por crate
-cargo test -p tupa-lexer
-cargo test -p tupa-parser
-cargo test -p tupa-typecheck
-cargo test -p tupa-cli
-```text
+# Por crate (solo crates activos)
+cargo test -p tupa-core
+cargo test -p tupa-core-macros
+cargo test -p tupa-engine
+cargo test -p tupa-plugin
+cargo test -p tupa-pyffi
+cargo test -p cargo-tupa
+```
 
-## Pruebas del CLI
+---
 
-```bash
-# salidas golden
-cargo test -p tupa-cli -- tests::cli_golden
-```text
-
-## Pruebas de rendimiento
-
-- Objetivo: verificar tiempo de ejecución para ejemplos medianos (objetivo < 200ms).
-- Cómo ejecutar con logs:
-  - `cargo test -p tupa-cli perf -- --nocapture`
-- Qué se verifica:
-  - Codegen do exemplo `fraud_complete` abaixo de 500ms (limite não-frágil).
-  - Execução de `tupa run` para `FraudDetection` abaixo de 500ms.
-- Observaciones:
-  - Los valores impresos son ilustrativos y varían por máquina.
-  - Para mediciones más rigurosas, usa `hyperfine` con calentamiento (`--warmup`).
-  - Prefiere Rust stable y builds de release para mediciones de producto.
-
-## Restricciones éticas
+## Pruebas de cargo-tupa
 
 ```bash
-cargo run -p tupa-cli -- check examples/invalid_safe_misinformation.tp
-cargo run -p tupa-cli -- check examples/invalid_safe_misinformation_base.tp
-```text
+# Pruebas unitarias de los subcomandos del CLI
+cargo test -p cargo-tupa
 
-## Consejos de triage
+# Prueba de integración (salida de métricas)
+cargo test -p cargo-tupa --test run_metrics
+```
 
-- Ejecuta la prueba aislada antes de la suite completa.
-- Verifica si el error está en parsing o typecheck.
-- Compara spans y mensajes con la salida esperada.
-- Reproduce vía `tupa-cli -- parse|check`.
+---
+
+## Benchmarks de rendimiento
+
+La suite de benchmarks de `tupa-engine` (con `criterion`) se ejecuta con:
+
+```bash
+cargo bench -p tupa-engine
+```
+
+Para mediciones rigurosas use builds de release y `hyperfine` con calentamiento.
+
+---
+
+## Consejos de triaje
+
+- Ejecute la prueba aislada antes de la suite completa.
+- Distinga errores de compilación (`rustc` / macro `pipeline!`) de errores de
+  ejecución (`Executor::run` devuelve `PipelineResult`).
+- Compare mensajes y códigos de diagnóstico con la salida esperada.

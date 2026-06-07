@@ -1,5 +1,0 @@
-fn main() {
-  while 1 {
-    print("no");
-  }
-}

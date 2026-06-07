@@ -11,13 +11,13 @@ This crate provides the main user-facing API for writing Tupã policies in Rust:
 - Trait: `Pipeline`
 - Constraint builder: constraint DSL in pipeline definitions
 
-**Status:** Alpha (0.9.x). API may change before 1.0.
+**Status:** Alpha (0.10.x). API may change before 1.0.
 
 ## Installation
 
 ```toml
 [dependencies]
-tupa-core = "0.9"
+tupa-core = "0.10"
 ```
 
 ## Quick Example
@@ -46,28 +46,42 @@ pipeline! {
 
 ### `Safe<T, C>`
 
-Constrained numeric types with compile-time and runtime safety checks:
+A value of type `T` tagged with a zero-sized constraint marker `C`. The marker is
+a compile-time proof carrier and is erased at runtime.
 
 ```rust
-use tupa_core::types::Safe;
+use tupa_core::Safe;
 
-// Basic Safe with non-negative constraint
-let value: Safe<f64, _> = Safe::new(42.0).unwrap();
+// `C` is any zero-sized marker type you define for the constraint.
+struct NonNeg;
 
-// Arithmetic operators supported
-let a = Safe::new(10.0).unwrap();
-let b = Safe::new(5.0).unwrap();
-assert_eq!(*a + *b, 15.0);
+let value = Safe::<f64, NonNeg>::new(42.0);
+
+// Read the inner value with `get()` (Copy) or `into_inner()`.
+assert_eq!(value.get(), 42.0);
+
+// Arithmetic operators are supported between two `Safe<T, C>` values.
+let a = Safe::<f64, NonNeg>::new(10.0);
+let b = Safe::<f64, NonNeg>::new(5.0);
+assert_eq!((a + b).get(), 15.0);
 ```
 
-### `Tensor<T, Shape, Density>`
+### `Tensor<T>`
 
-Dense or sparse tensor types for multidimensional data.
+A thin newtype wrapper for tensor-like payloads, with `new`, `get`, and
+`into_inner`:
 
-## Module Structure
+```rust
+use tupa_core::Tensor;
 
-- `types` — `Safe`, `Tensor` type definitions
-- `pipeline` — re-export of `pipeline!` macro (from `tupa-core-macros`)
+let t = Tensor::new(vec![1.0, 2.0, 3.0]);
+assert_eq!(t.into_inner(), vec![1.0, 2.0, 3.0]);
+```
+
+## Public API
+
+- `Safe<T, C>`, `Tensor<T>` — exported from the crate root.
+- `pipeline!` — procedural macro re-exported from `tupa-core-macros`.
 
 ## License
 

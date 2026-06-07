@@ -12,10 +12,10 @@ Arquivo: `.github/workflows/ci.yml`
 
 - Roda em `push` e `pull_request`.
 - Roda testes por crate:
-  - `tupa-lexer`
-  - `tupa-parser`
-  - `tupa-typecheck`
-  - `tupa-cli`
+  - `tupa-core`
+  - `tupa-engine`
+  - `tupa-plugin`
+  - `cargo-tupa`
 
 ### Lint de docs
 

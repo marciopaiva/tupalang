@@ -158,25 +158,46 @@ check_commit_convention() {
 }
 
 check_publish_dry_run() {
-  echo -e "${YELLOW}==>${NC} Cargo publish dry-run (core crates)"
-  # Run publish --dry-run for core crates in dependency order
+  echo -e "${YELLOW}==>${NC} Publish packaging check (workspace, dependency order)"
+  # Crates publicáveis em ordem topológica (deps antes dos dependentes).
+  # Mantém paridade com [workspace].members do Cargo.toml.
   local crates=(
-    tupa-lexer
-    tupa-effects
-    tupa-parser
-    tupa-typecheck
-    tupa-codegen
+    tupa-core-macros
+    tupa-lints
+    tupa-core
+    tupa-engine
+    tupa-plugin
     tupa-pyffi
-    tupa-runtime
+    cargo-tupa
   )
+  # Limitação do registry: `cargo publish --dry-run` resolve as deps internas
+  # (tupa-*) contra crates.io. Ao preparar uma versão nova, essas versões ainda
+  # não estão indexadas, então só os crates *folha* (sem deps internas por path)
+  # passam por uma verificação completa de build. Para os dependentes, validamos
+  # o empacotamento com `cargo package --list` (manifesto + arquivos incluídos),
+  # que não toca o registry; o build completo é exercido na publicação real,
+  # crate a crate, conforme cada dependência é indexada.
   for crate in "${crates[@]}"; do
-    echo "Checking $crate..."
-    if ! cargo publish -p "$crate" --locked --dry-run >/dev/null 2>&1; then
-      echo -e "${RED}Failed:${NC} cargo publish dry-run for $crate"
+    local manifest="crates/$crate/Cargo.toml"
+    if [[ ! -f "$manifest" ]]; then
+      echo -e "${RED}Failed:${NC} manifest not found for $crate ($manifest)"
       return 1
     fi
+    if grep -Eq 'path *= *"\.\./' "$manifest"; then
+      echo "Packaging $crate (package --list — deps internas ainda não publicadas)..."
+      if ! cargo package -p "$crate" --allow-dirty --list >/dev/null 2>&1; then
+        echo -e "${RED}Failed:${NC} cargo package --list for $crate"
+        return 1
+      fi
+    else
+      echo "Dry-run $crate (publish --dry-run — build completo)..."
+      if ! cargo publish -p "$crate" --locked --allow-dirty --dry-run >/dev/null 2>&1; then
+        echo -e "${RED}Failed:${NC} cargo publish dry-run for $crate"
+        return 1
+      fi
+    fi
   done
-  echo -e "${GREEN}ok${NC} All core crates pass publish dry-run"
+  echo -e "${GREEN}ok${NC} All workspace crates pass packaging checks"
 }
 
 echo -e "${GREEN}Local CI check (CI + Docs Lint)${NC}"

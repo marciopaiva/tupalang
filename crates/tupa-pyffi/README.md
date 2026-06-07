@@ -6,13 +6,13 @@ Python FFI bindings for Tupã — call Python functions from Rust pipelines.
 
 Enables interoperability with Python libraries (NumPy, PyTorch, TensorFlow) by allowing Tupã pipelines to invoke Python functions as steps.
 
-**Status:** Alpha (0.9.x). API may change before 1.0.
+**Status:** Alpha (0.10.x). API may change before 1.0.
 
 ## Installation
 
 ```toml
 [dependencies]
-tupa-pyffi = "0.9"
+tupa-pyffi = "0.10"
 ```
 
 **Note:** Requires Python development headers installed on the system.
@@ -23,9 +23,9 @@ tupa-pyffi = "0.9"
 use tupa_pyffi::call_python_function;
 use serde_json::json;
 
-// Call math.sqrt from Python
+// Call math.sqrt from Python. Returns a `serde_json::Value`.
 let result = call_python_function("math", "sqrt", json!(16.0))?;
-assert_eq!(result, 4.0);
+assert_eq!(result, json!(4.0));
 ```
 
 ## Usage in Pipeline
@@ -52,13 +52,13 @@ pipeline! {
 ## Multi-Argument Calls
 
 ```rust
-use tupa_pyffi::call_with_multiple_args;
+use tupa_pyffi::call_python_function_with_args;
 
 let args = vec![
     json!(10.0),
     json!(20.0),
 ];
-let result = call_with_multiple_args("my_module", "add", &args)?;
+let result = call_python_function_with_args("my_module", "add", args)?;
 ```
 
 ## Reset Global State
