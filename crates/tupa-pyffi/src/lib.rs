@@ -144,15 +144,12 @@ mod tests {
 
     #[test]
     fn test_reset_clears_modules() {
-        {
-            let mut bridge = BRIDGE.lock().unwrap();
-            bridge.ensure_module("math").unwrap();
-            assert!(bridge.modules.contains_key("math"));
-        }
-        reset_python_bridge();
-        {
-            let bridge = BRIDGE.lock().unwrap();
-            assert!(!bridge.modules.contains_key("math"));
-        }
+        // Hold the lock for the entire test so no concurrent test can
+        // re-insert "math" between reset() and the final assertion.
+        let mut bridge = BRIDGE.lock().unwrap();
+        bridge.ensure_module("math").unwrap();
+        assert!(bridge.modules.contains_key("math"));
+        bridge.reset();
+        assert!(!bridge.modules.contains_key("math"));
     }
 }
