@@ -21,6 +21,21 @@
 //! }
 //! ```
 //!
+//! Inside each step body, `input: &MyInput` and `ctx: &StepContext` are both in scope.
+//! Use `ctx.get_f64("prior_metric")` to access outputs of upstream steps without
+//! re-computing them.
+//!
+//! ## Computed constraint thresholds
+//!
+//! Constraint thresholds can be arbitrary expressions referencing `input`:
+//!
+//! ```rust,ignore
+//! constraints: [
+//!     metric("equity_floor").ge(0.0),                          // literal
+//!     metric("equity").ge(input.min_equity_usdt).fail_fast(),  // computed, abort-on-fail
+//! ]
+//! ```
+//!
 //! The macro expands to a struct with associated methods for execution.
 
 use proc_macro::TokenStream;
@@ -52,7 +67,18 @@ struct StepDecl {
 struct ConstraintDecl {
     metric_name: String,
     op: ConstraintOp,
-    value: f64,
+    threshold: ConstraintThreshold,
+    /// When true, a constraint failure immediately aborts with `(false, failures)`.
+    fail_fast: bool,
+}
+
+/// How the threshold value is specified in a constraint.
+enum ConstraintThreshold {
+    /// A compile-time constant f64 (e.g. `metric("x").ge(1.0)`).
+    Literal(f64),
+    /// An arbitrary expression evaluated at runtime with `input` in scope.
+    /// Example: `metric("equity").ge(input.min_equity)`.
+    InputExpr(Box<Expr>),
 }
 
 #[derive(Clone, Copy)]
@@ -129,13 +155,30 @@ impl Parse for StepDecl {
     }
 }
 
-#[allow(clippy::collapsible_match)]
 impl Parse for ConstraintDecl {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let call_expr: Expr = input.parse()?;
+        parse_constraint_decl(call_expr)
+    }
+}
 
-        if let Expr::MethodCall(method_call) = &call_expr {
+/// Parse a constraint expression, supporting:
+/// - `metric("name").op(literal)`
+/// - `metric("name").op(input_expr)`
+/// - `metric("name").op(value).fail_fast()`
+fn parse_constraint_decl(expr: Expr) -> syn::Result<ConstraintDecl> {
+    match expr {
+        Expr::MethodCall(method_call) => {
             let method_name = method_call.method.to_string();
+
+            // Handle .fail_fast() chaining — recurse on the inner constraint
+            if method_name == "fail_fast" {
+                let mut inner = parse_constraint_decl(*method_call.receiver)?;
+                inner.fail_fast = true;
+                return Ok(inner);
+            }
+
+            // Parse operator
             let op = match method_name.as_str() {
                 "ge" => ConstraintOp::Ge,
                 "le" => ConstraintOp::Le,
@@ -146,82 +189,111 @@ impl Parse for ConstraintDecl {
                 _ => {
                     return Err(syn::Error::new_spanned(
                         &method_call.method,
-                        format!("unknown constraint method '{}'", method_name),
+                        format!(
+                            "unknown constraint method '{}'; expected .ge() .le() .eq() .ne() .gt() .lt()",
+                            method_name
+                        ),
                     ))
                 }
             };
 
-            let metric_call = match method_call.receiver.as_ref() {
-                Expr::Call(call) => call,
-                _ => {
+            // Parse metric("name") receiver
+            let metric_name = parse_metric_call(*method_call.receiver)?;
+
+            // Parse threshold argument
+            let threshold_expr = match method_call.args.into_iter().next() {
+                Some(e) => e,
+                None => {
                     return Err(syn::Error::new_spanned(
-                        &method_call.receiver,
-                        "expected metric(\"name\") call",
+                        &method_call.method,
+                        format!(
+                            "constraint `.{}()` requires a threshold argument",
+                            method_name
+                        ),
                     ))
                 }
             };
 
-            let func_path = match metric_call.func.as_ref() {
-                Expr::Path(path) => path,
-                _ => {
-                    return Err(syn::Error::new_spanned(
-                        &metric_call.func,
-                        "expected identifier `metric`",
-                    ))
-                }
-            };
+            let threshold = expr_to_threshold(threshold_expr)?;
 
-            if func_path.path.segments.last().unwrap().ident != "metric" {
-                return Err(syn::Error::new_spanned(
-                    func_path,
-                    "expected function `metric`",
-                ));
-            }
+            Ok(ConstraintDecl {
+                metric_name,
+                op,
+                threshold,
+                fail_fast: false,
+            })
+        }
+        other => Err(syn::Error::new_spanned(
+            &other,
+            "constraint must be: metric(\"name\").ge(value) or metric(\"name\").ge(expr).fail_fast()",
+        )),
+    }
+}
 
-            if let Some(arg) = metric_call.args.first() {
-                if let Expr::Lit(lit) = arg {
-                    if let Lit::Str(lit_str) = &lit.lit {
-                        let metric_name = lit_str.value();
-
-                        if let Some(value_arg) = method_call.args.first() {
-                            let value = match &value_arg {
-                                Expr::Lit(l) => match &l.lit {
-                                    Lit::Int(i) => i.base10_parse::<f64>().map_err(|_| {
-                                        syn::Error::new_spanned(i, "failed to parse integer as f64")
-                                    })?,
-                                    Lit::Float(f) => f.base10_parse::<f64>().map_err(|_| {
-                                        syn::Error::new_spanned(f, "failed to parse float")
-                                    })?,
-                                    _ => {
-                                        return Err(syn::Error::new_spanned(
-                                            value_arg,
-                                            "expected numeric literal for constraint value",
-                                        ))
-                                    }
-                                },
-                                _ => {
-                                    return Err(syn::Error::new_spanned(
-                                        value_arg,
-                                        "expected numeric literal",
-                                    ))
-                                }
-                            };
-                            return Ok(ConstraintDecl {
-                                metric_name,
-                                op,
-                                value,
-                            });
-                        }
+fn parse_metric_call(expr: Expr) -> syn::Result<String> {
+    match expr {
+        Expr::Call(call) => {
+            let func = *call.func;
+            match func {
+                Expr::Path(func_path) => {
+                    if func_path.path.segments.last().unwrap().ident != "metric" {
+                        return Err(syn::Error::new_spanned(
+                            &func_path,
+                            "expected function `metric`",
+                        ));
+                    }
+                    match call.args.into_iter().next() {
+                        Some(Expr::Lit(lit)) => match lit.lit {
+                            Lit::Str(s) => Ok(s.value()),
+                            _ => Err(syn::Error::new(
+                                proc_macro2::Span::call_site(),
+                                "metric name must be a string literal",
+                            )),
+                        },
+                        Some(_) => Err(syn::Error::new(
+                            proc_macro2::Span::call_site(),
+                            "metric name must be a string literal",
+                        )),
+                        None => Err(syn::Error::new(
+                            proc_macro2::Span::call_site(),
+                            "metric() requires a name argument",
+                        )),
                     }
                 }
+                _ => Err(syn::Error::new(
+                    proc_macro2::Span::call_site(),
+                    "expected identifier `metric`",
+                )),
             }
         }
-
-        Err(syn::Error::new_spanned(
-            call_expr,
-            "constraint must be: metric(\"name\").ge(value)",
-        ))
+        _ => Err(syn::Error::new(
+            proc_macro2::Span::call_site(),
+            "expected metric(\"name\") call",
+        )),
     }
+}
+
+fn expr_to_threshold(expr: Expr) -> syn::Result<ConstraintThreshold> {
+    // Try to parse as a numeric literal; anything else becomes an InputExpr.
+    if let Expr::Lit(ref l) = expr {
+        match &l.lit {
+            Lit::Int(i) => {
+                let v = i.base10_parse::<f64>().map_err(|_| {
+                    syn::Error::new_spanned(i, "failed to parse integer as f64")
+                })?;
+                return Ok(ConstraintThreshold::Literal(v));
+            }
+            Lit::Float(f) => {
+                let v = f.base10_parse::<f64>().map_err(|_| {
+                    syn::Error::new_spanned(f, "failed to parse float")
+                })?;
+                return Ok(ConstraintThreshold::Literal(v));
+            }
+            _ => {}
+        }
+    }
+    // Non-literal expression: evaluated at runtime with `input` in scope.
+    Ok(ConstraintThreshold::InputExpr(Box::new(expr)))
 }
 
 impl Parse for PipelineInput {
@@ -303,7 +375,12 @@ fn generate_step_methods(steps: &[StepDecl]) -> proc_macro2::TokenStream {
         let method_name = Ident::new(&format!("step_{}", id), proc_macro2::Span::call_site());
 
         methods.push(quote! {
-            pub fn #method_name(&self, input: &<Self as tupa_core::Pipeline>::Input) -> Result<tupa_core::serde_json::Value, tupa_engine::EngineError> {
+            #[allow(unused_variables)]
+            pub fn #method_name(
+                &self,
+                input: &<Self as tupa_core::Pipeline>::Input,
+                ctx: &tupa_engine::StepContext,
+            ) -> Result<tupa_core::serde_json::Value, tupa_engine::EngineError> {
                 let result = #body;
                 tupa_core::serde_json::to_value(&result)
                     .map_err(|e| tupa_engine::EngineError::Other(e.to_string()))
@@ -371,7 +448,8 @@ fn generate_step_calls(steps: &[StepDecl]) -> proc_macro2::TokenStream {
             .unwrap_or_else(|| vec![id]); // default: step id itself is the metric name
 
         quote! {
-            let val = self.#method_name(input)?;
+            let ctx = tupa_engine::StepContext::new(values.clone());
+            let val = self.#method_name(input, &ctx)?;
             #(
                 values.insert(#produces.to_string(), val.clone());
             )*
@@ -383,26 +461,40 @@ fn generate_step_calls(steps: &[StepDecl]) -> proc_macro2::TokenStream {
 fn generate_constraint_checks(constraints: &[ConstraintDecl]) -> proc_macro2::TokenStream {
     let checks = constraints.iter().map(|c| {
         let metric_name = &c.metric_name;
-        let value = c.value;
-        let (op_str, condition) = match c.op {
-            ConstraintOp::Ge => (">=", quote! { v >= #value }),
-            ConstraintOp::Le => ("<=", quote! { v <= #value }),
-            ConstraintOp::Eq => ("==", quote! { v == #value }),
-            ConstraintOp::Ne => ("!=", quote! { v != #value }),
-            ConstraintOp::Gt => (">", quote! { v > #value }),
-            ConstraintOp::Lt => ("<", quote! { v < #value }),
+
+        let (op_str, op_token) = match c.op {
+            ConstraintOp::Ge => (">=", quote! { >= }),
+            ConstraintOp::Le => ("<=", quote! { <= }),
+            ConstraintOp::Eq => ("==", quote! { == }),
+            ConstraintOp::Ne => ("!=", quote! { != }),
+            ConstraintOp::Gt => (">", quote! { > }),
+            ConstraintOp::Lt => ("<", quote! { < }),
+        };
+
+        let threshold_expr = match &c.threshold {
+            ConstraintThreshold::Literal(v) => quote! { #v },
+            // InputExpr references `input`, which is in scope as the fn parameter.
+            ConstraintThreshold::InputExpr(expr) => quote! { #expr },
+        };
+
+        let fail_fast_check = if c.fail_fast {
+            quote! { return (false, failures); }
+        } else {
+            quote! {}
         };
 
         quote! {
             if let Some(actual) = values.get(#metric_name) {
                 if let Some(v) = actual.as_f64() {
-                    if !(#condition) {
+                    let threshold: f64 = #threshold_expr;
+                    if !(v #op_token threshold) {
                         failures.push(tupa_engine::ConstraintFailure {
                             metric: #metric_name.to_string(),
                             operator: #op_str.to_string(),
-                            expected: tupa_core::serde_json::json!(#value),
+                            expected: tupa_core::serde_json::json!(threshold),
                             actual: actual.clone(),
                         });
+                        #fail_fast_check
                     }
                 }
             }
@@ -422,17 +514,18 @@ fn generate_constraint_checks(constraints: &[ConstraintDecl]) -> proc_macro2::To
 ///     input: InputType,
 ///     steps: [
 ///         step("step1") { step1_func(input) },
-///         step("step2") { step2_func(input) }
+///         step("step2") { step2_func(input, ctx) } requires ["step1"]
 ///     ],
 ///     constraints: [
 ///         metric("sharpe").ge(1.5),
-///         metric("max_drawdown").le(0.2)
+///         metric("max_drawdown").le(0.2),
+///         metric("equity").ge(input.min_equity).fail_fast(),
 ///     ]
 /// }
 /// ```
 ///
-/// The macro expands to a `pub struct MyPipeline` implementing `tupa_core::Pipeline`
-/// and `tupa_engine::ExecutorPipeline`.
+/// Inside each step body, both `input: &InputType` and `ctx: &tupa_engine::StepContext`
+/// are implicitly in scope. Use `ctx.get_f64("prior_metric")` to access prior step outputs.
 ///
 /// ## Diagnostic codes
 ///
@@ -443,7 +536,6 @@ fn generate_constraint_checks(constraints: &[ConstraintDecl]) -> proc_macro2::To
 /// | E102 | `requires` references a step that doesn't exist |
 /// | E103 | `produces` references a step that doesn't exist |
 /// | E104 | Constraint references a metric not produced by any step |
-/// | E105 | Constraint value is not a numeric literal |
 /// | E106 | Unknown constraint operator (use `.ge()`, `.le()`, `.eq()`, `.ne()`, `.gt()`, `.lt()`) |
 /// | E107 | Empty pipeline — no steps defined |
 /// | E108 | Step name is a Rust keyword |
@@ -603,7 +695,6 @@ pub fn pipeline(input: TokenStream) -> TokenStream {
     }
 
     // --- Validation: E104 constraint references unknown metric ---
-    // Collect all metric names produced by steps (explicit produces or step id default)
     let produced_metrics: std::collections::HashSet<_> = ast
         .steps
         .iter()
@@ -676,7 +767,7 @@ pub fn pipeline(input: TokenStream) -> TokenStream {
             let method_name =
                 Ident::new(&format!("step_{}", step.id), proc_macro2::Span::call_site());
             quote! {
-                #id_lit => self.#method_name(input).map_err(|e| e.into()),
+                #id_lit => self.#method_name(input, ctx).map_err(|e| e.into()),
             }
         })
         .collect();
@@ -706,9 +797,13 @@ pub fn pipeline(input: TokenStream) -> TokenStream {
             }
 
             /// Check constraints against collected metric values.
+            ///
+            /// `input` is provided so computed thresholds (e.g. `input.min_equity`) resolve.
             #[doc(hidden)]
+            #[allow(unused_variables)]
             pub fn check_constraints(
                 values: &std::collections::HashMap<String, tupa_core::serde_json::Value>,
+                input: &<Self as tupa_core::Pipeline>::Input,
             ) -> (bool, Vec<tupa_engine::ConstraintFailure>) {
                 let mut failures = Vec::new();
                 #constraint_checks
@@ -728,7 +823,7 @@ pub fn pipeline(input: TokenStream) -> TokenStream {
                 use tupa_engine::PipelineResult;
                 let mut values = std::collections::HashMap::new();
                 #step_calls
-                let (passed, failures) = Self::check_constraints(&values);
+                let (passed, failures) = Self::check_constraints(&values, input);
                 Ok(PipelineResult { values, passed, failures, metrics: Vec::new() })
             }
         }
@@ -761,6 +856,7 @@ pub fn pipeline(input: TokenStream) -> TokenStream {
                 &self,
                 input: &<Self as tupa_core::Pipeline>::Input,
                 step_id: &str,
+                ctx: &tupa_engine::StepContext,
             ) -> Result<serde_json::Value, tupa_engine::EngineError> {
                 match step_id {
                     #(#execute_step_arms)*
@@ -768,10 +864,12 @@ pub fn pipeline(input: TokenStream) -> TokenStream {
                 }
             }
 
+            #[allow(unused_variables)]
             fn check_constraints(
                 values: &std::collections::HashMap<String, tupa_core::serde_json::Value>,
+                input: &<Self as tupa_core::Pipeline>::Input,
             ) -> (bool, Vec<tupa_engine::ConstraintFailure>) {
-                Self::check_constraints(values)
+                Self::check_constraints(values, input)
             }
         }
 
