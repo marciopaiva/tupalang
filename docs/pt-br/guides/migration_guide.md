@@ -237,6 +237,55 @@ rm estrategias/risk_limits.tp
 
 ---
 
+## Atualização de 0.10.0 para 0.11.0
+
+### O que mudou
+
+A macro `pipeline!` agora passa `ctx: &StepContext` para cada corpo de step. Se você implementa `ParallelPipeline` **manualmente** (sem a macro), deve atualizar a assinatura de um método:
+
+```rust
+// 0.10.0
+fn check_constraints(
+    values: &HashMap<String, Value>,
+) -> (bool, Vec<ConstraintFailure>);
+
+// 0.11.0
+fn check_constraints(
+    values: &HashMap<String, Value>,
+    input: &Self::Input,
+) -> (bool, Vec<ConstraintFailure>);
+```
+
+**Se você usa `pipeline!`:** nenhuma mudança necessária. A macro regenera esse método automaticamente.
+
+### Novas funcionalidades disponíveis imediatamente
+
+Atualize o `Cargo.toml`:
+
+```toml
+tupa-core   = "0.11"
+tupa-engine = "0.11"
+```
+
+Em seguida, use nos corpos de step:
+
+```rust
+// Ler saída de step anterior
+let prev = ctx.get_f64("prev_step").unwrap_or(0.0);
+
+// Limiar de constraint calculado
+metric("score").le(input.config.max_score)
+
+// Fail-fast
+metric("equity").ge(0.0).fail_fast()
+
+// Acessores tipados de resultado
+let score = result.get_f64("score");
+let decision = result.get_as::<MyDecision>("decision");
+```
+
+---
+
 ## Ajuda
 
 - Issues: [GitHub Issues](https://github.com/marciopaiva/tupalang/issues)

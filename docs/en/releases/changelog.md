@@ -284,6 +284,29 @@ This document records relevant changes per version.
 - Basic closure support in codegen (without environment capture yet).
 - Golden test fixes for error cases (removed cargo messages).
 
+## 0.11.0 (2026-06-13)
+
+- Release theme: step context threading, computed constraint thresholds, fail-fast constraints, and typed pipeline result accessors.
+
+### Delivered Scope
+
+- **StepContext** (`tupa-engine`): each step body in `pipeline!` now receives `ctx: &StepContext` with the outputs of upstream steps. Methods: `ctx.get`, `ctx.get_f64`, `ctx.get_bool`, `ctx.get_str`, `ctx.get_as::<T>`. Steps that depend on prior outputs should declare `requires ["step_name"]`; the parallel executor threads outputs automatically. Eliminates the O(n²) re-execution pattern where each step had to re-run all predecessors to read their results.
+- **Computed constraint thresholds**: constraint thresholds now accept any Rust expression — `metric("equity_floor").ge(input.min_equity)` — not only f64 literals. The `input` variable is in scope where thresholds are evaluated. Parsed at macro expansion time; type errors surface at compile time.
+- **Fail-fast constraints**: `.fail_fast()` suffix on a constraint aborts the pipeline at the first violation without evaluating remaining constraints — useful for hard invariants where continuing is meaningless (e.g. negative equity).
+- **PipelineResult typed accessors**: `result.get_f64("k")`, `result.get_bool("k")`, `result.get_str("k")`, `result.get_as::<T>("k")`, `result.get("k")` — convenience methods replacing direct `result.values["k"].as_f64().unwrap()` lookups.
+- **tupa-lints**: bumped to 0.11.0 for workspace version consistency.
+- **publish-crates CI** (`publish-crates.yml`): restructured into `check` + `publish` jobs. The `check` job runs the full test suite, verifies all publishable crates share the same version, and (on tag triggers) validates that the tag matches the declared version. Publish is gated on `check` passing.
+
+### Breaking Changes
+
+- `ParallelPipeline::check_constraints` now takes `input: &Self::Input` as a second parameter. **Users of the `pipeline!` macro are unaffected** — the macro regenerates this method automatically. Only affects projects implementing `ParallelPipeline` manually.
+
+### Validation Snapshot
+
+- Tests: `cargo test --workspace --locked` green (79 tupa-engine + 37 tupa-core-macros + 15 cargo-tupa).
+- Smoke: `scripts/vipertrade-smoke.sh` ok.
+- Publish dry-run: `CI_LOCAL_CHECK_PUBLISH=1 bash scripts/ci-local.sh` ok.
+
 ## 0.10.0 (2026-06-06)
 
 - Release theme: legacy `.tp` cleanup, crate-distribution reframing, and an experimental type-level constraints API.

@@ -176,6 +176,80 @@ pipeline! {
 
 If constraint fails, pipeline returns `ConstraintFailure` result.
 
+### Computed Thresholds
+
+Thresholds can be any Rust expression — the `input` variable is in scope:
+
+```rust
+pipeline! {
+    name: DynamicThreshold,
+    input: RiskParams,
+    steps: [ step("equity_floor") { input.account_equity_usdt } ],
+    constraints: [
+        metric("equity_floor").ge(input.min_equity_threshold)
+    ]
+}
+```
+
+### Fail-Fast Constraints
+
+Add `.fail_fast()` to abort immediately on violation — useful for hard invariants:
+
+```rust
+constraints: [
+    metric("equity_floor").ge(0.0).fail_fast(),  // abort if negative
+    metric("score").le(input.max_score),          // only checked if above passes
+]
+```
+
+Without `.fail_fast()`, all constraints are evaluated and all failures collected. With it, the pipeline stops at the first violation.
+
+---
+
+## StepContext — Reading Prior Step Outputs
+
+Every step body has access to `ctx: &StepContext`, which carries the outputs of upstream steps. This lets later steps read prior results without re-running them.
+
+```rust
+pipeline! {
+    name: ScoringPipeline,
+    input: MarketData,
+    steps: [
+        step("base_score") { compute_base(input) },
+        step("adjusted_score") {
+            // read the output of "base_score" from context
+            let base = ctx.get_f64("base_score").unwrap_or(0.0);
+            base * input.volatility_multiplier
+        } requires ["base_score"],
+    ],
+    constraints: []
+}
+```
+
+### StepContext API
+
+| Method | Return | Description |
+|--------|--------|-------------|
+| `ctx.get("name")` | `Option<&Value>` | Raw JSON value |
+| `ctx.get_f64("name")` | `Option<f64>` | Parse as f64 |
+| `ctx.get_bool("name")` | `Option<bool>` | Parse as bool |
+| `ctx.get_str("name")` | `Option<&str>` | Parse as &str |
+| `ctx.get_as::<T>("name")` | `Option<T>` | Deserialize into T |
+
+### Declaring Dependencies
+
+Use `requires ["step_name"]` so the parallel executor knows to thread the output:
+
+```rust
+step("decision") {
+    let score = ctx.get_f64("score").unwrap_or(0.0);
+    let valid = ctx.get_bool("validate").unwrap_or(false);
+    if valid && score > threshold { "ENTER" } else { "HOLD" }
+} requires ["score", "validate"]
+```
+
+If `requires` is omitted, `ctx` may be empty (the step runs concurrently with others). The `ctx` parameter is always present — just use `_ctx` if you don't need it.
+
 ---
 
 ## Metrics
@@ -243,7 +317,14 @@ struct PipelineResult {
 You can extract typed values:
 
 ```rust
-let profit: f64 = result.values["profit"].as_f64().unwrap();
+// Typed accessors (0.11.0+)
+let profit: Option<f64>  = result.get_f64("profit");
+let passed: Option<bool> = result.get_bool("validate");
+let label: Option<&str>  = result.get_str("label");
+let decision: Option<MyDecision> = result.get_as::<MyDecision>("decision");
+
+// Direct map access still works
+let raw: &Value = &result.values["profit"];
 ```text
 
 Better: define a custom result type via associated type on `Pipeline` trait (advanced).
