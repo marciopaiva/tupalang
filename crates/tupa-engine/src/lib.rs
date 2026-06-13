@@ -510,7 +510,9 @@ impl Executor {
                                                 .requires(dep)
                                                 .iter()
                                                 .filter_map(|&req| {
-                                                    guard.get(req).map(|v| (req.to_string(), v.clone()))
+                                                    guard
+                                                        .get(req)
+                                                        .map(|v| (req.to_string(), v.clone()))
                                                 })
                                                 .collect::<HashMap<String, Value>>()
                                         };

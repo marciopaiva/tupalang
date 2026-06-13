@@ -278,15 +278,15 @@ fn expr_to_threshold(expr: Expr) -> syn::Result<ConstraintThreshold> {
     if let Expr::Lit(ref l) = expr {
         match &l.lit {
             Lit::Int(i) => {
-                let v = i.base10_parse::<f64>().map_err(|_| {
-                    syn::Error::new_spanned(i, "failed to parse integer as f64")
-                })?;
+                let v = i
+                    .base10_parse::<f64>()
+                    .map_err(|_| syn::Error::new_spanned(i, "failed to parse integer as f64"))?;
                 return Ok(ConstraintThreshold::Literal(v));
             }
             Lit::Float(f) => {
-                let v = f.base10_parse::<f64>().map_err(|_| {
-                    syn::Error::new_spanned(f, "failed to parse float")
-                })?;
+                let v = f
+                    .base10_parse::<f64>()
+                    .map_err(|_| syn::Error::new_spanned(f, "failed to parse float"))?;
                 return Ok(ConstraintThreshold::Literal(v));
             }
             _ => {}

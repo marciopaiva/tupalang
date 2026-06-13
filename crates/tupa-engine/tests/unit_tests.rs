@@ -438,8 +438,8 @@ mod class4 {
     #[test]
     fn tc_get_f64_present() {
         let mut r = PipelineResult::default();
-        r.values.insert("score".into(), Value::from(3.14f64));
-        assert_eq!(r.get_f64("score"), Some(3.14));
+        r.values.insert("score".into(), Value::from(1.5f64));
+        assert_eq!(r.get_f64("score"), Some(1.5));
         assert_eq!(r.get_f64("missing"), None);
     }
 
