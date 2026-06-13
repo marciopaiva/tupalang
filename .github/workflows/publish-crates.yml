@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       dry_run:
-        description: "Run cargo publish --dry-run"
+        description: "Run cargo publish --dry-run (no actual publish)"
         required: false
         default: true
         type: boolean
@@ -16,8 +16,79 @@ permissions:
   contents: read
 
 jobs:
-  publish-core:
+  # ── Gate ─────────────────────────────────────────────────────────────────
+  # Runs tests, verifies all publishable crates share the same version, and
+  # when triggered by a tag, confirms the tag matches that version.
+  check:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Verify version consistency across publishable crates
+        id: ver
+        run: |
+          set -euo pipefail
+          CRATES=(
+            crates/tupa-core-macros/Cargo.toml
+            crates/tupa-core/Cargo.toml
+            crates/tupa-engine/Cargo.toml
+            crates/tupa-plugin/Cargo.toml
+            crates/tupa-pyffi/Cargo.toml
+            crates/tupa-lints/Cargo.toml
+            crates/cargo-tupa/Cargo.toml
+          )
+          VERSIONS=$(grep '^version' "${CRATES[@]}" | awk -F'"' '{print $2}' | sort -u)
+          COUNT=$(printf '%s\n' "$VERSIONS" | wc -l | tr -d ' ')
+          if [ "$COUNT" -ne 1 ]; then
+            echo "::error::Version mismatch across publishable crates:"
+            grep '^version' "${CRATES[@]}"
+            exit 1
+          fi
+          VERSION=$(printf '%s' "$VERSIONS" | tr -d '[:space:]')
+          echo "All publishable crates at version $VERSION"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Verify tag matches crate version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          TAG="${GITHUB_REF#refs/tags/v}"
+          VERSION="${{ steps.ver.outputs.version }}"
+          if [ "$TAG" != "$VERSION" ]; then
+            echo "::error::Tag v$TAG does not match crate version $VERSION"
+            echo "Bump all crate versions to $TAG before tagging, or retag as v$VERSION"
+            exit 1
+          fi
+          echo "Tag v$TAG matches crate version — ok"
+
+      - name: Run test suite
+        env:
+          TUPA_RUN_E2E: "0"
+        run: cargo test --workspace --locked
+
+  # ── Publish ──────────────────────────────────────────────────────────────
+  # Publishes crates to crates.io in dependency order.
+  # Each crate is skipped gracefully when already published at that version.
+  # A 30s sleep after each real publish lets the crates.io index propagate.
+  publish:
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
     env:
       CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
 
@@ -28,42 +99,53 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Publish core crates in dependency order
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Publish crates in dependency order
         shell: bash
         run: |
           set -euo pipefail
-          MODE="--locked"
-          if [[ "${{ github.event.inputs.dry_run || 'false' }}" == "true" ]]; then
-            MODE="--locked --dry-run"
+
+          DRY_RUN_INPUT="${{ github.event.inputs.dry_run || 'false' }}"
+          if [[ "$DRY_RUN_INPUT" == "true" ]]; then
+            FLAGS="--locked --dry-run"
+            echo "Mode: DRY RUN (no packages will be published)"
+          else
+            FLAGS="--locked"
+            echo "Mode: REAL PUBLISH to crates.io — version ${{ needs.check.outputs.version }}"
           fi
 
           publish_crate() {
             local crate="$1"
-            echo "Publishing $crate ($MODE)"
+            echo ""
+            echo "── Publishing $crate ──"
 
             set +e
-            OUTPUT=$(cargo publish -p "$crate" $MODE 2>&1)
+            OUTPUT=$(cargo publish -p "$crate" $FLAGS 2>&1)
             CODE=$?
             set -e
 
             echo "$OUTPUT"
 
             if [[ $CODE -eq 0 ]]; then
-              if [[ "$MODE" != *"--dry-run"* ]]; then
+              if [[ "$FLAGS" != *"--dry-run"* ]]; then
+                echo "Sleeping 30s for crates.io index propagation..."
                 sleep 30
               fi
               return 0
             fi
 
-            if [[ "$OUTPUT" == *"already exists on crates.io index"* ]]; then
-              echo "Skipping $crate: already published"
+            if echo "$OUTPUT" | grep -q "already uploaded\|already exists"; then
+              echo "Skipping $crate: already published at this version"
               return 0
             fi
 
+            echo "::error::Failed to publish $crate (exit $CODE)"
             return $CODE
           }
 
-          # 0.9.5 — Rust-DSL era (7 crates): macros -> core -> engine -> plugin -> pyffi -> tupa-lints -> cargo-tupa
+          # Dependency order: macros → core → engine → plugin → pyffi → lints → cargo-tupa
           for crate in \
             tupa-core-macros \
             tupa-core \
@@ -75,4 +157,5 @@ jobs:
             publish_crate "$crate"
           done
 
-          # All legacy crates removed from workspace (0.8.x frozen, publish=false)
+          echo ""
+          echo "All crates processed."

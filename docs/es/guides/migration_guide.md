@@ -319,6 +319,55 @@ Después de migrar un pipeline:
 
 ---
 
+## Actualización de 0.10.0 a 0.11.0
+
+### Qué cambió
+
+La macro `pipeline!` ahora pasa `ctx: &StepContext` a cada cuerpo de paso. Si implementa `ParallelPipeline` **manualmente** (sin la macro), debe actualizar la firma de un método:
+
+```rust
+// 0.10.0
+fn check_constraints(
+    values: &HashMap<String, Value>,
+) -> (bool, Vec<ConstraintFailure>);
+
+// 0.11.0
+fn check_constraints(
+    values: &HashMap<String, Value>,
+    input: &Self::Input,
+) -> (bool, Vec<ConstraintFailure>);
+```
+
+**Si usa `pipeline!`:** no se requieren cambios. La macro regenera este método automáticamente.
+
+### Nuevas funcionalidades disponibles de inmediato
+
+Actualice `Cargo.toml`:
+
+```toml
+tupa-core   = "0.11"
+tupa-engine = "0.11"
+```
+
+Luego úselas en los cuerpos de paso:
+
+```rust
+// Leer salida de paso anterior
+let prev = ctx.get_f64("prev_step").unwrap_or(0.0);
+
+// Umbral de constraint calculado
+metric("score").le(input.config.max_score)
+
+// Fail-fast
+metric("equity").ge(0.0).fail_fast()
+
+// Accesores tipados de resultado
+let score = result.get_f64("score");
+let decision = result.get_as::<MyDecision>("decision");
+```
+
+---
+
 ## ¿Necesita ayuda?
 
 - Abra un issue: [GitHub Issues](https://github.com/marciopaiva/tupalang/issues)

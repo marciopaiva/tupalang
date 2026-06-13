@@ -41,10 +41,15 @@ struct StepDecl {
     requires: Option<Vec<String>>,
 }
 
+enum ConstraintThreshold {
+    Literal(f64),
+    InputExpr(Box<Expr>),
+}
+
 struct ConstraintDecl {
     metric_name: String,
     op: ConstraintOp,
-    value: f64,
+    threshold: ConstraintThreshold,
 }
 
 #[derive(Clone, Copy)]
@@ -163,32 +168,31 @@ impl Parse for ConstraintDecl {
                     if let Lit::Str(lit_str) = &lit.lit {
                         let metric_name = lit_str.value();
                         if let Some(value_arg) = method_call.args.first() {
-                            let value = match &value_arg {
+                            let threshold = match &value_arg {
                                 Expr::Lit(l) => match &l.lit {
-                                    Lit::Int(i) => i.base10_parse::<f64>().map_err(|_| {
-                                        syn::Error::new_spanned(i, "failed to parse integer as f64")
-                                    })?,
-                                    Lit::Float(f) => f.base10_parse::<f64>().map_err(|_| {
-                                        syn::Error::new_spanned(f, "failed to parse float")
-                                    })?,
+                                    Lit::Int(i) => ConstraintThreshold::Literal(
+                                        i.base10_parse::<f64>().map_err(|_| {
+                                            syn::Error::new_spanned(
+                                                i,
+                                                "failed to parse integer as f64",
+                                            )
+                                        })?,
+                                    ),
+                                    Lit::Float(f) => ConstraintThreshold::Literal(
+                                        f.base10_parse::<f64>().map_err(|_| {
+                                            syn::Error::new_spanned(f, "failed to parse float")
+                                        })?,
+                                    ),
                                     _ => {
-                                        return Err(syn::Error::new_spanned(
-                                            value_arg,
-                                            "expected numeric literal for constraint value",
-                                        ))
+                                        ConstraintThreshold::InputExpr(Box::new(value_arg.clone()))
                                     }
                                 },
-                                _ => {
-                                    return Err(syn::Error::new_spanned(
-                                        value_arg,
-                                        "expected numeric literal",
-                                    ))
-                                }
+                                _ => ConstraintThreshold::InputExpr(Box::new(value_arg.clone())),
                             };
                             return Ok(ConstraintDecl {
                                 metric_name,
                                 op,
-                                value,
+                                threshold,
                             });
                         }
                     }
@@ -347,17 +351,21 @@ fn generate_step_calls(steps: &[StepDecl]) -> TokenStream {
 fn generate_constraint_checks(constraints: &[ConstraintDecl]) -> TokenStream {
     let checks = constraints.iter().map(|c| {
         let metric_name = &c.metric_name;
-        let value = c.value;
+        let threshold_expr = match &c.threshold {
+            ConstraintThreshold::Literal(v) => quote! { #v as f64 },
+            ConstraintThreshold::InputExpr(expr) => quote! { (#expr) as f64 },
+        };
         let (op_str, condition) = match c.op {
-            ConstraintOp::Ge => (">=", quote! { v >= #value }),
-            ConstraintOp::Le => ("<=", quote! { v <= #value }),
-            ConstraintOp::Eq => ("==", quote! { v == #value }),
-            ConstraintOp::Ne => ("!=", quote! { v != #value }),
-            ConstraintOp::Gt => (">", quote! { v > #value }),
-            ConstraintOp::Lt => ("<", quote! { v < #value }),
+            ConstraintOp::Ge => (">=", quote! { v >= threshold }),
+            ConstraintOp::Le => ("<=", quote! { v <= threshold }),
+            ConstraintOp::Eq => ("==", quote! { v == threshold }),
+            ConstraintOp::Ne => ("!=", quote! { v != threshold }),
+            ConstraintOp::Gt => (">", quote! { v > threshold }),
+            ConstraintOp::Lt => ("<", quote! { v < threshold }),
         };
         quote! {
             if let Some(v) = values.get(#metric_name).and_then(|val| val.as_f64()) {
+                let threshold: f64 = #threshold_expr;
                 if !(#condition) {
                     failures.push(tupa_engine::ConstraintFailure {
                         metric: #metric_name.to_string(),
@@ -431,7 +439,9 @@ fn generate_pipeline_impl(
             #[doc(hidden)]
             pub fn check_constraints(
                 values: &std::collections::HashMap<String, tupa_core::serde_json::Value>,
+                input: &<Self as tupa_core::Pipeline>::Input,
             ) -> (bool, Vec<tupa_engine::ConstraintFailure>) {
+                let _ = input;
                 let mut failures = Vec::new();
                 #constraint_checks
                 (failures.is_empty(), failures)
@@ -446,7 +456,7 @@ fn generate_pipeline_impl(
                 use tupa_engine::PipelineResult;
                 let mut values = std::collections::HashMap::new();
                 #step_calls
-                let (passed, failures) = Self::check_constraints(&values);
+                let (passed, failures) = Self::check_constraints(&values, input);
                 Ok(PipelineResult { values, passed, failures, metrics: Vec::new() })
             }
         }
@@ -484,8 +494,9 @@ fn generate_pipeline_impl(
             }
             fn check_constraints(
                 values: &std::collections::HashMap<String, tupa_core::serde_json::Value>,
+                input: &<Self as tupa_core::Pipeline>::Input,
             ) -> (bool, Vec<tupa_engine::ConstraintFailure>) {
-                Self::check_constraints(values)
+                Self::check_constraints(values, input)
             }
         }
         impl #name {

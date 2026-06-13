@@ -195,7 +195,9 @@ mod class2 {
     fn tm11_parse_ge_constraint() {
         let c = parse_constraint(r#"metric("x").ge(10)"#);
         assert_eq!(c.metric_name, "x");
-        assert_eq!(c.value, 10.0);
+        assert!(
+            matches!(c.threshold, ConstraintThreshold::Literal(v) if (v - 10.0).abs() < f64::EPSILON)
+        );
         assert!(matches!(c.op, ConstraintOp::Ge));
     }
 
@@ -232,13 +234,17 @@ mod class2 {
     #[test]
     fn tm17_parse_constraint_int_value() {
         let c = parse_constraint(r#"metric("score").ge(42)"#);
-        assert_eq!(c.value, 42.0);
+        assert!(
+            matches!(c.threshold, ConstraintThreshold::Literal(v) if (v - 42.0).abs() < f64::EPSILON)
+        );
     }
 
     #[test]
     fn tm18_parse_constraint_float_value() {
         let c = parse_constraint(r#"metric("ratio").ge(0.5)"#);
-        assert_eq!(c.value, 0.5);
+        assert!(
+            matches!(c.threshold, ConstraintThreshold::Literal(v) if (v - 0.5).abs() < f64::EPSILON)
+        );
     }
 
     #[test]
@@ -248,9 +254,16 @@ mod class2 {
     }
 
     #[test]
-    fn tm20_parse_constraint_non_numeric() {
+    fn tm20_parse_constraint_non_numeric_becomes_input_expr() {
+        // Non-numeric thresholds are now accepted as InputExpr (0.11.0).
+        // The generated `let threshold: f64 = "hello";` would fail at compile
+        // time, but macro parsing succeeds.
         let result: syn::Result<ConstraintDecl> = syn::parse_str(r#"metric("x").ge("hello")"#);
-        assert!(result.is_err());
+        assert!(result.is_ok());
+        assert!(matches!(
+            result.unwrap().threshold,
+            ConstraintThreshold::InputExpr(_)
+        ));
     }
 
     #[test]

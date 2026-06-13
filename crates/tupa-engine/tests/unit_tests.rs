@@ -1,4 +1,4 @@
-//! tupa-engine unit tests — coverage gap fix for 0.9.4.
+//! tupa-engine unit tests — coverage gap fix for 0.9.4, updated for 0.11.0.
 //!
 //! Classe 1 : ExecutorConfig + parse_duration via from_env
 //! Classe 4 : StepState, StepMetrics, PipelineResult, ConstraintFailure, EngineError
@@ -11,7 +11,7 @@ use std::time::Duration;
 use tupa_core::Pipeline;
 use tupa_engine::{
     ConstraintFailure, EngineError, Executor, ExecutorConfig, ExecutorPipeline, ParallelPipeline,
-    PipelineResult, StepMetrics, StepState,
+    PipelineResult, StepContext, StepMetrics, StepState,
 };
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -433,6 +433,87 @@ mod class4 {
             EngineError::Other("oops".into()).to_string()
         );
     }
+
+    // ── PipelineResult typed accessors ─────────────────────────────────────
+    #[test]
+    fn tc_get_f64_present() {
+        let mut r = PipelineResult::default();
+        r.values.insert("score".into(), Value::from(1.5f64));
+        assert_eq!(r.get_f64("score"), Some(1.5));
+        assert_eq!(r.get_f64("missing"), None);
+    }
+
+    #[test]
+    fn tc_get_bool_present() {
+        let mut r = PipelineResult::default();
+        r.values.insert("flag".into(), Value::from(true));
+        assert_eq!(r.get_bool("flag"), Some(true));
+        assert_eq!(r.get_bool("missing"), None);
+    }
+
+    #[test]
+    fn tc_get_str_present() {
+        let mut r = PipelineResult::default();
+        r.values.insert("label".into(), Value::from("long"));
+        assert_eq!(r.get_str("label"), Some("long"));
+        assert_eq!(r.get_str("missing"), None);
+    }
+
+    #[test]
+    fn tc_get_as_deserialize() {
+        #[derive(serde::Deserialize, PartialEq, Debug)]
+        struct MyStruct {
+            x: i32,
+        }
+        let mut r = PipelineResult::default();
+        r.values.insert("obj".into(), serde_json::json!({"x": 42}));
+        let decoded: Option<MyStruct> = r.get_as("obj");
+        assert_eq!(decoded, Some(MyStruct { x: 42 }));
+    }
+
+    // ── StepContext ────────────────────────────────────────────────────────
+    #[test]
+    fn tc_step_context_get_f64() {
+        let mut m = HashMap::new();
+        m.insert("equity".into(), Value::from(1000.0f64));
+        let ctx = StepContext::new(m);
+        assert_eq!(ctx.get_f64("equity"), Some(1000.0));
+        assert_eq!(ctx.get_f64("missing"), None);
+    }
+
+    #[test]
+    fn tc_step_context_get_bool() {
+        let mut m = HashMap::new();
+        m.insert("flag".into(), Value::from(false));
+        let ctx = StepContext::new(m);
+        assert_eq!(ctx.get_bool("flag"), Some(false));
+    }
+
+    #[test]
+    fn tc_step_context_get_str() {
+        let mut m = HashMap::new();
+        m.insert("side".into(), Value::from("long"));
+        let ctx = StepContext::new(m);
+        assert_eq!(ctx.get_str("side"), Some("long"));
+    }
+
+    #[test]
+    fn tc_step_context_get_as() {
+        #[derive(serde::Deserialize, PartialEq, Debug)]
+        struct S {
+            v: i32,
+        }
+        let mut m = HashMap::new();
+        m.insert("obj".into(), serde_json::json!({"v": 7}));
+        let ctx = StepContext::new(m);
+        assert_eq!(ctx.get_as::<S>("obj"), Some(S { v: 7 }));
+    }
+
+    #[test]
+    fn tc_step_context_default_empty() {
+        let ctx = StepContext::default();
+        assert_eq!(ctx.get_f64("x"), None);
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -451,7 +532,7 @@ impl ExecutorPipeline for MockP {
     fn execute(&self, input: &i32) -> Result<PipelineResult, EngineError> {
         let mut v = HashMap::new();
         v.insert("out".into(), Value::from(*input + 1));
-        let (passed, failures) = <Self as ParallelPipeline>::check_constraints(&v);
+        let (passed, failures) = <Self as ParallelPipeline>::check_constraints(&v, input);
         Ok(PipelineResult {
             values: v,
             passed,
@@ -470,10 +551,10 @@ impl ParallelPipeline for MockP {
     fn requires(&self, _: &str) -> &'static [&'static str] {
         &[]
     }
-    fn execute_step(&self, input: &i32, _: &str) -> Result<Value, EngineError> {
+    fn execute_step(&self, input: &i32, _: &str, _ctx: &StepContext) -> Result<Value, EngineError> {
         Ok(Value::from(*input + 1))
     }
-    fn check_constraints(_: &HashMap<String, Value>) -> (bool, Vec<ConstraintFailure>) {
+    fn check_constraints(_: &HashMap<String, Value>, _: &i32) -> (bool, Vec<ConstraintFailure>) {
         (true, vec![])
     }
 }
@@ -504,10 +585,10 @@ impl ParallelPipeline for SingleP {
     fn requires(&self, _: &str) -> &'static [&'static str] {
         &[]
     }
-    fn execute_step(&self, x: &i32, _: &str) -> Result<Value, EngineError> {
+    fn execute_step(&self, x: &i32, _: &str, _ctx: &StepContext) -> Result<Value, EngineError> {
         Ok(Value::from(*x))
     }
-    fn check_constraints(_: &HashMap<String, Value>) -> (bool, Vec<ConstraintFailure>) {
+    fn check_constraints(_: &HashMap<String, Value>, _: &i32) -> (bool, Vec<ConstraintFailure>) {
         (true, vec![])
     }
 }
@@ -535,10 +616,10 @@ impl ParallelPipeline for TwoIndepP {
     fn requires(&self, _: &str) -> &'static [&'static str] {
         &[]
     }
-    fn execute_step(&self, x: &i32, _: &str) -> Result<Value, EngineError> {
+    fn execute_step(&self, x: &i32, _: &str, _ctx: &StepContext) -> Result<Value, EngineError> {
         Ok(Value::from(*x))
     }
-    fn check_constraints(_: &HashMap<String, Value>) -> (bool, Vec<ConstraintFailure>) {
+    fn check_constraints(_: &HashMap<String, Value>, _: &i32) -> (bool, Vec<ConstraintFailure>) {
         (true, vec![])
     }
 }
@@ -574,10 +655,10 @@ impl ParallelPipeline for SequentialP {
             _ => &[],
         }
     }
-    fn execute_step(&self, x: &i32, _: &str) -> Result<Value, EngineError> {
+    fn execute_step(&self, x: &i32, _: &str, _ctx: &StepContext) -> Result<Value, EngineError> {
         Ok(Value::from(*x))
     }
-    fn check_constraints(_: &HashMap<String, Value>) -> (bool, Vec<ConstraintFailure>) {
+    fn check_constraints(_: &HashMap<String, Value>, _: &i32) -> (bool, Vec<ConstraintFailure>) {
         (true, vec![])
     }
 }
@@ -607,7 +688,7 @@ impl ParallelPipeline for SlowP {
     fn requires(&self, _: &str) -> &'static [&'static str] {
         &[]
     }
-    fn execute_step(&self, _: &(), _: &str) -> Result<Value, EngineError> {
+    fn execute_step(&self, _: &(), _: &str, _ctx: &StepContext) -> Result<Value, EngineError> {
         // Não usar tokio::time::sleep aqui — execute_step é fn, não async fn.
         // O timeout é detectado pela camada superior (run_parallel) que envolve
         // este método com tokio::time::timeout().
@@ -622,7 +703,114 @@ impl ParallelPipeline for SlowP {
         std::thread::sleep(std::time::Duration::from_millis(1000));
         Ok(Value::from(42))
     }
-    fn check_constraints(_: &HashMap<String, Value>) -> (bool, Vec<ConstraintFailure>) {
+    fn check_constraints(_: &HashMap<String, Value>, _: &()) -> (bool, Vec<ConstraintFailure>) {
+        (true, vec![])
+    }
+}
+
+/// CtxPassP — verifies that prior step outputs reach later steps via StepContext.
+/// Step "a" produces input*10; step "b" reads it from ctx and adds 1.
+#[derive(Clone)]
+struct CtxPassP;
+impl tupa_core::Pipeline for CtxPassP {
+    type Input = i32;
+    fn name(&self) -> &'static str {
+        "CtxPassP"
+    }
+}
+impl ExecutorPipeline for CtxPassP {
+    fn execute(&self, _: &i32) -> Result<PipelineResult, EngineError> {
+        Ok(PipelineResult::default())
+    }
+}
+impl ParallelPipeline for CtxPassP {
+    fn step_ids(&self) -> &'static [&'static str] {
+        &["a", "b"]
+    }
+    fn produces(&self, id: &str) -> &'static [&'static str] {
+        match id {
+            "a" => &["a_val"],
+            "b" => &["b_val"],
+            _ => &[],
+        }
+    }
+    fn requires(&self, id: &str) -> &'static [&'static str] {
+        match id {
+            "b" => &["a_val"],
+            _ => &[],
+        }
+    }
+    fn execute_step(
+        &self,
+        input: &i32,
+        step_id: &str,
+        ctx: &StepContext,
+    ) -> Result<Value, EngineError> {
+        match step_id {
+            "a" => Ok(Value::from(*input * 10)),
+            "b" => {
+                let a_val = ctx.get_f64("a_val").unwrap_or(0.0);
+                Ok(Value::from(a_val + 1.0))
+            }
+            _ => Err(EngineError::Other(format!("unknown step: {}", step_id))),
+        }
+    }
+    fn check_constraints(_: &HashMap<String, Value>, _: &i32) -> (bool, Vec<ConstraintFailure>) {
+        (true, vec![])
+    }
+}
+
+/// ComputedConstraintP — verifies that check_constraints receives the input value.
+/// Constraint: "out" >= input (threshold computed from input).
+#[derive(Clone)]
+struct ComputedConstraintP;
+impl tupa_core::Pipeline for ComputedConstraintP {
+    type Input = i32;
+    fn name(&self) -> &'static str {
+        "ComputedConstraintP"
+    }
+}
+impl ExecutorPipeline for ComputedConstraintP {
+    fn execute(&self, _: &i32) -> Result<PipelineResult, EngineError> {
+        Ok(PipelineResult::default())
+    }
+}
+impl ParallelPipeline for ComputedConstraintP {
+    fn step_ids(&self) -> &'static [&'static str] {
+        &["compute"]
+    }
+    fn produces(&self, _: &str) -> &'static [&'static str] {
+        &["out"]
+    }
+    fn requires(&self, _: &str) -> &'static [&'static str] {
+        &[]
+    }
+    fn execute_step(
+        &self,
+        input: &i32,
+        _step_id: &str,
+        _ctx: &StepContext,
+    ) -> Result<Value, EngineError> {
+        Ok(Value::from(*input as f64 * 2.0))
+    }
+    fn check_constraints(
+        values: &HashMap<String, Value>,
+        input: &i32,
+    ) -> (bool, Vec<ConstraintFailure>) {
+        let threshold = *input as f64;
+        if let Some(v) = values.get("out").and_then(|v| v.as_f64()) {
+            if v < threshold {
+                return (
+                    false,
+                    vec![ConstraintFailure {
+                        metric: "out".into(),
+                        operator: ">=".into(),
+                        expected: Value::from(threshold),
+                        actual: Value::from(v),
+                    }],
+                );
+            }
+        }
         (true, vec![])
     }
 }
@@ -649,16 +837,33 @@ mod class9 {
     #[test]
     fn tc41_check_constraints_passes() {
         let v: HashMap<String, Value> = [("x".into(), Value::from(1f64))].into_iter().collect();
-        let (ok, _) = <MockP as ParallelPipeline>::check_constraints(&v);
+        let (ok, _) = <MockP as ParallelPipeline>::check_constraints(&v, &0);
         assert!(ok);
     }
 
     #[test]
     fn tc42_check_constraints_with_metric() {
         let v = HashMap::from([("out".into(), Value::from(10.0f64))]);
-        let (ok, fails) = <MockP as ParallelPipeline>::check_constraints(&v);
+        let (ok, fails) = <MockP as ParallelPipeline>::check_constraints(&v, &0);
         assert!(ok);
         assert!(fails.is_empty());
+    }
+
+    #[test]
+    fn tc_computed_constraint_passes_when_above_threshold() {
+        let v = HashMap::from([("out".into(), Value::from(20.0f64))]);
+        // input = 5, threshold = 5.0, out = 20.0 → passes
+        let (ok, _) = <ComputedConstraintP as ParallelPipeline>::check_constraints(&v, &5);
+        assert!(ok);
+    }
+
+    #[test]
+    fn tc_computed_constraint_fails_when_below_threshold() {
+        let v = HashMap::from([("out".into(), Value::from(2.0f64))]);
+        // input = 10, threshold = 10.0, out = 2.0 → fails
+        let (ok, fails) = <ComputedConstraintP as ParallelPipeline>::check_constraints(&v, &10);
+        assert!(!ok);
+        assert_eq!(fails[0].metric, "out");
     }
 }
 
@@ -843,10 +1048,18 @@ mod class10 {
                     _ => &[],
                 }
             }
-            fn execute_step(&self, _: &i32, _: &str) -> Result<Value, EngineError> {
+            fn execute_step(
+                &self,
+                _: &i32,
+                _: &str,
+                _ctx: &StepContext,
+            ) -> Result<Value, EngineError> {
                 Ok(Value::from(1))
             }
-            fn check_constraints(_: &HashMap<String, Value>) -> (bool, Vec<ConstraintFailure>) {
+            fn check_constraints(
+                _: &HashMap<String, Value>,
+                _: &i32,
+            ) -> (bool, Vec<ConstraintFailure>) {
                 (true, vec![])
             }
         }
@@ -879,5 +1092,34 @@ mod class10 {
         exec.cancel();
         let result = exec.run_parallel(&SingleP, &0).await;
         assert!(matches!(result, Err(EngineError::Cancelled)));
+    }
+
+    #[tokio::test]
+    /// StepContext: step B reads step A's output via ctx.
+    async fn tc_step_ctx_threads_prior_outputs() {
+        let r = Executor::new().run_parallel(&CtxPassP, &3).await.unwrap();
+        // Step "a": 3 * 10 = 30
+        // Step "b": 30 + 1 = 31
+        assert_eq!(r.get_f64("a_val"), Some(30.0));
+        assert_eq!(r.get_f64("b_val"), Some(31.0));
+    }
+
+    #[tokio::test]
+    /// Computed constraint: check_constraints receives input and uses it as threshold.
+    async fn tc_computed_constraint_via_run_parallel() {
+        // input=5, step produces 5*2=10, constraint: out >= input(5) → passes
+        let r = Executor::new()
+            .run_parallel(&ComputedConstraintP, &5)
+            .await
+            .unwrap();
+        assert!(r.passed);
+        assert_eq!(r.get_f64("out"), Some(10.0));
+
+        // input=20, step produces 20*2=40, constraint: out >= input(20) → passes
+        let r2 = Executor::new()
+            .run_parallel(&ComputedConstraintP, &20)
+            .await
+            .unwrap();
+        assert!(r2.passed);
     }
 }

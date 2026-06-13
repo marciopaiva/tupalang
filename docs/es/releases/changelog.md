@@ -285,6 +285,29 @@ Registrar cambios relevantes por versión.
 - Soporte básico de closures en codegen (aún sin captura de entorno).
 - Correcciones de golden tests para casos de error (mensajes de cargo removidos).
 
+## 0.11.0 (2026-06-13)
+
+- Tema de la versión: propagación de contexto entre pasos, umbrales de constraints calculados, constraints fail-fast y accesores tipados para resultados de pipeline.
+
+### Alcance Entregado
+
+- **StepContext** (`tupa-engine`): cada cuerpo de paso en `pipeline!` recibe ahora `ctx: &StepContext` con las salidas de los pasos anteriores. Métodos: `ctx.get`, `ctx.get_f64`, `ctx.get_bool`, `ctx.get_str`, `ctx.get_as::<T>`. Los pasos que dependen de salidas previas deben declarar `requires ["step_name"]`; el ejecutor paralelo propaga las salidas automáticamente. Elimina el patrón O(n²) donde cada paso re-ejecutaba todos sus predecesores para leer sus resultados.
+- **Umbrales de constraints calculados**: los umbrales de constraints ahora aceptan cualquier expresión Rust — `metric("equity_floor").ge(input.min_equity)` — no solo literales f64. La variable `input` está en ámbito donde se evalúan los umbrales. Se analiza en tiempo de expansión de macro; los errores de tipo se detectan en tiempo de compilación.
+- **Constraints fail-fast**: el sufijo `.fail_fast()` en un constraint aborta el pipeline ante la primera violación sin evaluar los constraints restantes — útil para invariantes estrictas donde continuar carece de sentido (p. ej. equity negativa).
+- **Accesores tipados de PipelineResult**: `result.get_f64("k")`, `result.get_bool("k")`, `result.get_str("k")`, `result.get_as::<T>("k")`, `result.get("k")` — métodos de conveniencia que reemplazan el acceso directo `result.values["k"].as_f64().unwrap()`.
+- **tupa-lints**: bump a 0.11.0 para consistencia de versión en el workspace.
+- **publish-crates CI** (`publish-crates.yml`): reestructurado en jobs `check` + `publish`. El job `check` ejecuta la suite de tests completa, verifica que todos los crates publicables compartan la misma versión y (en triggers de tag) valida que el tag coincida con la versión declarada. La publicación depende de que `check` pase.
+
+### Breaking Changes
+
+- `ParallelPipeline::check_constraints` ahora recibe `input: &Self::Input` como segundo parámetro. **Los usuarios de la macro `pipeline!` no se ven afectados** — la macro regenera este método automáticamente. Solo afecta a proyectos que implementan `ParallelPipeline` manualmente.
+
+### Snapshot de Validación
+
+- Tests: `cargo test --workspace --locked` en verde (79 tupa-engine + 37 tupa-core-macros + 15 cargo-tupa).
+- Smoke: `scripts/vipertrade-smoke.sh` ok.
+- Publish dry-run: `CI_LOCAL_CHECK_PUBLISH=1 bash scripts/ci-local.sh` ok.
+
 ## 0.10.0 (2026-06-06)
 
 - Tema de la versión: limpieza del legado `.tp`, reencuadre como distribución de crates, y una API experimental de constraints a nivel de tipo.

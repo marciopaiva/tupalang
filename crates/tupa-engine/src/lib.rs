@@ -23,6 +23,49 @@ use std::sync::{
 use thiserror::Error;
 use tokio::sync::{mpsc, Mutex};
 
+/// Context carrying outputs of prior steps, passed to each step body.
+///
+/// Available as the `ctx` variable inside `pipeline!` step bodies.
+/// Use `ctx.get_f64("metric")`, `ctx.get_bool("flag")`, or `ctx.get_as::<T>("metric")`
+/// to access results produced by upstream steps without re-computing them.
+#[derive(Debug, Clone, Default)]
+pub struct StepContext {
+    prior: HashMap<String, Value>,
+}
+
+impl StepContext {
+    /// Create a new context from prior step outputs.
+    #[doc(hidden)]
+    pub fn new(prior: HashMap<String, Value>) -> Self {
+        Self { prior }
+    }
+
+    /// Get the raw JSON value for a prior metric.
+    pub fn get(&self, metric: &str) -> Option<&Value> {
+        self.prior.get(metric)
+    }
+
+    /// Get a prior metric as f64.
+    pub fn get_f64(&self, metric: &str) -> Option<f64> {
+        self.prior.get(metric)?.as_f64()
+    }
+
+    /// Get a prior metric as bool.
+    pub fn get_bool(&self, metric: &str) -> Option<bool> {
+        self.prior.get(metric)?.as_bool()
+    }
+
+    /// Get a prior metric as &str (borrows from the context).
+    pub fn get_str(&self, metric: &str) -> Option<&str> {
+        self.prior.get(metric)?.as_str()
+    }
+
+    /// Deserialize a prior metric into type `T`.
+    pub fn get_as<T: serde::de::DeserializeOwned>(&self, metric: &str) -> Option<T> {
+        serde_json::from_value(self.prior.get(metric)?.clone()).ok()
+    }
+}
+
 /// Main executor for Tupã pipelines.
 ///
 /// The executor is responsible for scheduling step execution, managing
@@ -327,11 +370,13 @@ impl Executor {
 
         // Spawn manager task
         let manager_handle = tokio::spawn(async move {
-            // Helper to spawn a worker for a step
+            // Helper to spawn a worker for a step.
+            // ctx_values carries the prior step outputs this step requires.
             let spawn_worker =
                 |step_id: String,
                  pipeline: P,
                  input: I,
+                 ctx_values: HashMap<String, Value>,
                  complete_tx: mpsc::Sender<(String, Result<serde_json::Value, EngineError>)>,
                  metrics: Arc<Mutex<HashMap<String, StepMetrics>>>| {
                     tokio::spawn(async move {
@@ -355,17 +400,17 @@ impl Executor {
                             );
                         }
 
-                        // Execute step with optional timeout
-                        // Use spawn_blocking for sync execute_step to prevent blocking the async runtime
+                        // Execute step with optional timeout.
+                        // Use spawn_blocking for sync execute_step to prevent blocking the async runtime.
                         let result: Result<Value, EngineError> = if let Some(timeout) = step_timeout
                         {
                             let step_id_for_timeout = step_id.clone();
                             match tokio::time::timeout(timeout, async move {
-                                // Execute blocking code on a blocking thread pool
                                 let input_clone = input.clone();
                                 let step_id_str = step_id_for_timeout.clone();
+                                let ctx = StepContext::new(ctx_values);
                                 tokio::task::spawn_blocking(move || {
-                                    pipeline.execute_step(&input_clone, &step_id_str)
+                                    pipeline.execute_step(&input_clone, &step_id_str, &ctx)
                                 })
                                 .await
                                 .unwrap_or(Err(EngineError::Other("spawn blocking failed".into())))
@@ -382,8 +427,9 @@ impl Executor {
                             // No timeout - use spawn_blocking to avoid blocking async runtime
                             let input_clone = input.clone();
                             let step_id_str = step_id.clone();
+                            let ctx = StepContext::new(ctx_values);
                             tokio::task::spawn_blocking(move || {
-                                pipeline.execute_step(&input_clone, &step_id_str)
+                                pipeline.execute_step(&input_clone, &step_id_str, &ctx)
                             })
                             .await
                             .unwrap_or(Err(EngineError::Other("spawn blocking failed".into())))
@@ -416,12 +462,13 @@ impl Executor {
                     });
                 };
 
-            // Spawn initial ready steps
+            // Spawn initial ready steps (no prior dependencies → empty ctx)
             for step_id in step_ids.iter().copied().filter(|&id| in_degree[id] == 0) {
                 spawn_worker(
                     step_id.to_string(),
                     pipeline_owned.clone(),
                     input_owned.clone(),
+                    HashMap::new(),
                     manager_complete_tx.clone(),
                     manager_metrics.clone(),
                 );
@@ -456,11 +503,24 @@ impl Executor {
                                 if let Some(count) = in_degree.get_mut(dep) {
                                     *count = count.saturating_sub(1);
                                     if *count == 0 {
-                                        // spawn worker for newly ready step
+                                        // Clone only the required metric values for this step's ctx
+                                        let ctx_values = {
+                                            let guard = manager_values.lock().await;
+                                            pipeline_owned
+                                                .requires(dep)
+                                                .iter()
+                                                .filter_map(|&req| {
+                                                    guard
+                                                        .get(req)
+                                                        .map(|v| (req.to_string(), v.clone()))
+                                                })
+                                                .collect::<HashMap<String, Value>>()
+                                        };
                                         spawn_worker(
                                             dep.to_string(),
                                             pipeline_owned.clone(),
                                             input_owned.clone(),
+                                            ctx_values,
                                             manager_complete_tx.clone(),
                                             manager_metrics.clone(),
                                         );
@@ -487,7 +547,7 @@ impl Executor {
             Ok(Ok(())) => {
                 // All steps completed successfully; evaluate constraints
                 let values_guard = values.lock().await;
-                let (passed, failures) = P::check_constraints(&values_guard);
+                let (passed, failures) = P::check_constraints(&values_guard, input);
 
                 // Collect metrics from Arc
                 let metrics_guard = step_metrics.lock().await;
@@ -535,15 +595,20 @@ pub trait ParallelPipeline: ExecutorPipeline {
     fn produces(&self, step_id: &str) -> &'static [&'static str];
     /// Returns the metrics required by the given step.
     fn requires(&self, step_id: &str) -> &'static [&'static str];
-    /// Execute a single step independently (used by parallel scheduler).
+    /// Execute a single step, receiving prior step outputs via `ctx`.
     fn execute_step(
         &self,
         input: &Self::Input,
         step_id: &str,
+        ctx: &StepContext,
     ) -> Result<serde_json::Value, EngineError>;
-    /// Check constraints against collected metric values. Returns `(passed, failures)`.
+    /// Check constraints against collected metric values.
+    ///
+    /// `input` is provided so that computed thresholds (e.g. `input.min_equity`) can be used
+    /// in constraint expressions. Returns `(passed, failures)`.
     fn check_constraints(
         values: &std::collections::HashMap<String, serde_json::Value>,
+        input: &Self::Input,
     ) -> (bool, Vec<ConstraintFailure>);
 }
 
@@ -559,6 +624,49 @@ pub struct PipelineResult {
     pub failures: Vec<ConstraintFailure>,
     /// Step-by-step execution metrics (timings, state)
     pub metrics: Vec<StepMetrics>,
+}
+
+impl PipelineResult {
+    /// Create a new empty (passing) pipeline result.
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Get a metric value by key.
+    pub fn get(&self, key: &str) -> Option<&Value> {
+        self.values.get(key)
+    }
+
+    /// Get a metric value as f64.
+    pub fn get_f64(&self, key: &str) -> Option<f64> {
+        self.values.get(key)?.as_f64()
+    }
+
+    /// Get a metric value as bool.
+    pub fn get_bool(&self, key: &str) -> Option<bool> {
+        self.values.get(key)?.as_bool()
+    }
+
+    /// Get a metric value as &str.
+    pub fn get_str(&self, key: &str) -> Option<&str> {
+        self.values.get(key)?.as_str()
+    }
+
+    /// Deserialize a metric value into type `T`.
+    pub fn get_as<T: serde::de::DeserializeOwned>(&self, key: &str) -> Option<T> {
+        serde_json::from_value(self.values.get(key)?.clone()).ok()
+    }
+}
+
+impl Default for PipelineResult {
+    fn default() -> Self {
+        Self {
+            values: HashMap::new(),
+            passed: true,
+            failures: Vec::new(),
+            metrics: Vec::new(),
+        }
+    }
 }
 
 /// Per-step execution metrics.
@@ -588,24 +696,6 @@ pub enum StepState {
     Timeout,
     /// Step was cancelled
     Cancelled,
-}
-
-impl PipelineResult {
-    /// Create a new empty (passing) pipeline result.
-    pub fn new() -> Self {
-        Self::default()
-    }
-}
-
-impl Default for PipelineResult {
-    fn default() -> Self {
-        Self {
-            values: HashMap::new(),
-            passed: true,
-            failures: Vec::new(),
-            metrics: Vec::new(),
-        }
-    }
 }
 
 /// Information about a single constraint that failed.
